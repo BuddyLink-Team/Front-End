@@ -12,7 +12,7 @@ export const RoleRoute = ({ allowedRoles = [] }) => {
   const { user, isAuthenticated } = useSelector((state) => state.auth);
 
   if (!isAuthenticated || !user) {
-    return <Navigate to="/login" replace />;
+    return <Navigate to="/" replace />;
   }
 
   if (allowedRoles.length > 0 && !allowedRoles.includes(user.role)) {

@@ -2,6 +2,12 @@
 
 Tài liệu này chuẩn hóa toàn bộ các **Shared Components**, **Layouts**, **UI Primitives** và **Hooks** được trích xuất trực tiếp từ bản thiết kế trên **Stitch (Project: BuddyLink Playmate Platform)** và Design System ([DESIGN.md](./DESIGN.md)).
 
+> [!CAUTION]
+> ### ⛔ NGUYÊN TẮC BẮT BUỘC (CRITICAL COMPONENT RULES)
+> 1. **KHÔNG ĐƯỢC PHÉP SỬA (LÀM THAY ĐỔI) các component dùng chung hiện có**: Tuyệt đối không xóa, đổi tên props hoặc thay đổi logic/style cốt lõi của các component trong `src/components/` vì sẽ gây lỗi dây chuyền (regression bug) cho toàn bộ hệ thống.
+> 2. **ĐƯỢC PHÉP THÊM DÒNG MỚI (ADDITIONAL EXTENSIONS)**: Được phép thêm props mới, biến thể mới hoặc class bổ sung với **giá trị mặc định tương thích ngược 100% (backward-compatible defaults)**.
+> 3. **ĐƯỢC PHÉP TẠO FILE MỚI (NEW FILES)**: Nếu cần một component mới hoặc logic riêng biệt, hãy tạo file component mới và export thông qua `src/components/index.js`.
+
 ---
 
 ## 🎨 Design System Tokens (Stitch Theme)
@@ -78,6 +84,7 @@ src/components/
 | **UI** | `Switch` | `components/ui/Switch.jsx` | ✅ Đã code | Toggle chuyển động mượt 3 kích thước |
 | **UI** | `Select` | `components/ui/Select.jsx` | ✅ Đã code | Custom chevron, hỗ trợ options/children |
 | **UI** | `Avatar` | `components/ui/Avatar.jsx` | ✅ Đã code | Kích thước sm/md/lg/xl, online badge |
+| **UI** | `Dropdown` | `components/ui/Dropdown.jsx` | ✅ Đã code | Dropdown menu bo góc kèm Item, Header, Divider |
 | **UI** | `DataTable` | `components/ui/DataTable.jsx` | ✅ Đã code | Bảng dữ liệu đa năng |
 | **Badges** | `VerifiedBadge` | `components/badges/VerifiedBadge.jsx` | ✅ Đã code | Matcha ShieldCheck icon |
 | **Badges** | `StatusChip` | `components/badges/StatusChip.jsx` | ✅ Đã code | pending, confirmed, cancelled, reported, completed |

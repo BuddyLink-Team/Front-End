@@ -37,7 +37,13 @@ src/
 ### `components/`
 
 - Pure, reusable UI components without domain-specific business logic.
-- Conforms to **BuddyLink Design System** (`Button`, `Card`, `StatCard`, `EmptyState`, `VerifiedBadge`, `StatusChip`, `InterestTag`, `Avatar`, `Input`, `PasswordInput`, `Textarea`, `Checkbox`, `Switch`, `Select`, `Modal`, `ConfirmDialog`, `Sidebar`, `Tabs`, `Pagination`, `SearchBar`, `FilterChips`, `DataTable`).
+- Conforms to **BuddyLink Design System** (`Button`, `Card`, `StatCard`, `EmptyState`, `VerifiedBadge`, `StatusChip`, `InterestTag`, `Avatar`, `Input`, `PasswordInput`, `Textarea`, `Checkbox`, `Switch`, `Select`, `Dropdown`, `Modal`, `ConfirmDialog`, `Sidebar`, `Tabs`, `Pagination`, `SearchBar`, `FilterChips`, `DataTable`).
+- **Main Navigation Tabs (`NAV_LINKS` in `navigation.constants.js`)**:
+  1. `Khám phá` (`/discovery`) - Search & match nearby peers.
+  2. `Kết nối` (`/connections`) - Friend requests & connections.
+  3. `Tin nhắn` (`/chat`) - 1-on-1 and playdate messaging.
+  4. `Hẹn chơi` (`/playdates`) - Playdate scheduling & invitations.
+  5. `Thành tích` (`/gamification`) - Badges, points & community milestones.
 
 ### `hooks/`
 
