@@ -97,9 +97,11 @@ modules/playdate/
 
 ### ✅ ALWAYS:
 1. **Separate UI and Logic**: JSX files (`.jsx`) only handle rendering, event wiring, and local UI animations. All state manipulation, API calls, and business validation belong in custom hooks (`.js`).
-2. **Use Shared Components**: Reuse components from `src/components/` (`Button`, `Input`, `PasswordInput`, `Textarea`, `Checkbox`, `Switch`, `Select`, `Card`, `Modal`, `ConfirmDialog`, `VerifiedBadge`, `StatusChip`, `InterestTag`, `Avatar`, `Sidebar`, `Tabs`, `Pagination`, `SearchBar`, `FilterChips`) instead of rewriting ad-hoc styles.
-3. **Centralized API Client**: Use `services/apiClient.js` for all HTTP requests to guarantee token injection, refresh handling, and error formatting.
-4. **Encapsulate Realtime**: Manage all Socket.io subscriptions within custom hooks (e.g. `useChatSocket`, `useNotificationSocket`) and always clean up listeners in `useEffect` returns.
+2. **Use Shared Components**: Reuse components from `src/components/` (`Button`, `Input`, `PasswordInput`, `Textarea`, `Checkbox`, `Switch`, `Select`, `Dropdown`, `Card`, `Modal`, `ConfirmDialog`, `VerifiedBadge`, `StatusChip`, `InterestTag`, `Avatar`, `Sidebar`, `Tabs`, `Pagination`, `SearchBar`, `FilterChips`) instead of rewriting ad-hoc styles.
+3. **Preserve Shared Components (`src/components/`)**: STRICT RULE: NEVER edit existing lines in shared components that could break other features. Only append backward-compatible props/lines or create new dedicated component files if needed.
+4. **Follow Navigation Order**: Respect standard tabs in `navigation.constants.js` (`Khám phá`, `Kết nối`, `Tin nhắn`, `Hẹn chơi`, `Thành tích`).
+5. **Centralized API Client**: Use `services/apiClient.js` for all HTTP requests to guarantee token injection, refresh handling, and error formatting.
+6. **Encapsulate Realtime**: Manage all Socket.io subscriptions within custom hooks (e.g. `useChatSocket`, `useNotificationSocket`) and always clean up listeners in `useEffect` returns.
 
 ### ❌ NEVER:
 1. **NEVER** import or call `axios` directly inside a React component or page.

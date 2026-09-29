@@ -20,9 +20,14 @@ export const getApiErrorMsg = (
   err,
   fallback = 'Có lỗi xảy ra, vui lòng thử lại.',
 ) => {
-  const code = err?.code || err?.response?.data?.error?.code;
+  const code =
+    err?.code ||
+    err?.error?.code ||
+    err?.response?.data?.error?.code ||
+    (typeof err?.error === 'string' ? err?.error : null);
+
   if (code && errorMap?.[code]) {
     return errorMap[code];
   }
-  return err?.response?.data?.message || fallback;
+  return err?.message || err?.response?.data?.message || fallback;
 };

@@ -8,8 +8,6 @@ import PlaceholderPage from '../components/feedback/PlaceholderPage';
  */
 export const ParentRoutes = () => (
   <Route element={<MainLayout />}>
-    <Route index element={<Navigate to="/discovery" replace />} />
-
     {/* Discovery & Peer Matching */}
     <Route
       path="/discovery"

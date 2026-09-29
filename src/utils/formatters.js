@@ -54,3 +54,44 @@ export const formatDate = (date, format = 'DD/MM/YYYY') => {
   const d = new Date(date);
   return d.toLocaleDateString('vi-VN');
 };
+
+/**
+ * Format total seconds into MM:SS display string.
+ *
+ * @param {number} seconds - Number of seconds remaining.
+ * @returns {string} Formatted string "MM:SS".
+ */
+export const formatTimer = (seconds) => {
+  const mins = Math.floor(Math.max(0, seconds) / 60);
+  const secs = Math.max(0, seconds) % 60;
+  return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+};
+
+/**
+ * Mask a phone number for privacy display (e.g. +84 908 ••• 321).
+ *
+ * @param {string} phone - Raw phone number.
+ * @returns {string} Masked phone number.
+ */
+export const maskPhone = (phone) => {
+  if (!phone) return '+84 908 ••• 321';
+  const clean = String(phone).replace(/\s+/g, '');
+  if (clean.length < 8) return phone;
+  const prefix = clean.slice(0, 4);
+  const suffix = clean.slice(-3);
+  return `${prefix} ••• ${suffix}`;
+};
+
+/**
+ * Mask an email address for privacy display (e.g. ph***@gmail.com).
+ *
+ * @param {string} email - Raw email address.
+ * @returns {string} Masked email.
+ */
+export const maskEmail = (email) => {
+  if (!email) return 'ph***@buddylink.vn';
+  const [name, domain] = String(email).split('@');
+  if (!domain) return email;
+  const maskedName = name.length > 2 ? `${name.slice(0, 2)}***` : `${name}***`;
+  return `${maskedName}@${domain}`;
+};

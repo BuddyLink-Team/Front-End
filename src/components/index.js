@@ -8,6 +8,12 @@ export { Switch } from './ui/Switch';
 export { Select } from './ui/Select';
 export { Avatar } from './ui/Avatar';
 export { DataTable } from './ui/DataTable';
+export {
+  Dropdown,
+  DropdownItem,
+  DropdownDivider,
+  DropdownHeader,
+} from './ui/Dropdown';
 
 // Badges & Chips
 export { VerifiedBadge } from './badges/VerifiedBadge';
@@ -30,6 +36,7 @@ export { PlaceholderPage } from './feedback/PlaceholderPage';
 
 // Navigation
 export { Navbar } from './navigation/Navbar';
+export { Footer } from './navigation/Footer';
 export { Sidebar } from './navigation/Sidebar';
 export { Tabs } from './navigation/Tabs';
 export { Pagination } from './navigation/Pagination';

@@ -47,6 +47,17 @@ VITE_SOCKET_URL=http://localhost:5000
 
 # Client App Port / URL
 VITE_PORT=5173
+
+# Google OAuth 2.0 Client ID (Web Application)
+VITE_GOOGLE_CLIENT_ID=your_google_client_id_here
+
+# Firebase Phone Auth / SMS Verification
+VITE_FIREBASE_API_KEY=your_firebase_api_key
+VITE_FIREBASE_AUTH_DOMAIN=your_project.firebaseapp.com
+VITE_FIREBASE_PROJECT_ID=your_project_id
+VITE_FIREBASE_STORAGE_BUCKET=your_project.appspot.com
+VITE_FIREBASE_MESSAGING_SENDER_ID=your_messaging_sender_id
+VITE_FIREBASE_APP_ID=your_app_id
 ```
 
 ---

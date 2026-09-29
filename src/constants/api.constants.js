@@ -1,18 +1,27 @@
 export const API_ENDPOINTS = {
   AUTH: {
     LOGIN: '/auth/login',
+    ADMIN_LOGIN: '/auth/admin/login',
     REGISTER: '/auth/register',
+    GOOGLE: '/auth/google',
     REFRESH_TOKEN: '/auth/refresh-token',
     LOGOUT: '/auth/logout',
     FORGOT_PASSWORD: '/auth/forgot-password',
-    VERIFY_OTP: '/auth/verify-otp',
     RESET_PASSWORD: '/auth/reset-password',
+    ME: '/auth/me',
+    SEND_PHONE_OTP: '/auth/phone/send-otp',
+    VERIFY_PHONE_OTP: '/auth/phone/verify-otp',
+    VERIFY_FIREBASE_PHONE: '/auth/phone/verify-firebase',
+    SEND_EMAIL_OTP: '/auth/email/send-otp',
+    VERIFY_EMAIL_OTP: '/auth/email/verify-otp',
   },
   USER: {
     PROFILE: '/users/profile',
     UPDATE_PROFILE: '/users/profile',
   },
   PARENT: {
+    ME: '/parent/me',
+    ONBOARDING_PREFERENCES: '/parent/preferences/onboarding',
     VERIFICATION: '/parents/verify',
   },
   CHILD: {
