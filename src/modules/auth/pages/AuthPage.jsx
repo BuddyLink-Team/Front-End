@@ -7,7 +7,7 @@ import LoginForm from '../components/LoginForm';
 import RegisterForm from '../components/RegisterForm';
 import GoogleLoginButton from '../components/GoogleLoginButton';
 
-export const AuthScreen = () => {
+export const AuthPage = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const {
@@ -150,4 +150,4 @@ export const AuthScreen = () => {
   );
 };
 
-export default AuthScreen;
+export default AuthPage;

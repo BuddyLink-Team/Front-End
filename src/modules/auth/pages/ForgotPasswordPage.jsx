@@ -16,7 +16,7 @@ import { forgotPasswordSchema } from '../validation/authValidation';
 import AuthCardLayout from '../components/AuthCardLayout';
 import { Input, Button } from '../../../components';
 
-export const ForgotPasswordScreen = () => {
+export const ForgotPasswordPage = () => {
   const { isSubmitting, errorMessage, handleForgotPassword } = useAuth();
   const [submittedEmail, setSubmittedEmail] = useState(null);
 
@@ -182,4 +182,4 @@ export const ForgotPasswordScreen = () => {
   );
 };
 
-export default ForgotPasswordScreen;
+export default ForgotPasswordPage;

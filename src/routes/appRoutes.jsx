@@ -11,9 +11,9 @@ import { USER_ROLES, getRoleHomePath } from '../constants/role.constants';
 import { MainLayout } from '../layouts/MainLayout';
 import PlaceholderPage from '../components/feedback/PlaceholderPage';
 import LandingPage from '../modules/auth/pages/LandingPage';
-import AuthScreen from '../modules/auth/pages/AuthScreen';
-import ForgotPasswordScreen from '../modules/auth/pages/ForgotPasswordScreen';
-import VerifyOtpScreen from '../modules/auth/pages/VerifyOtpScreen';
+import AuthPage from '../modules/auth/pages/AuthPage';
+import ForgotPasswordPage from '../modules/auth/pages/ForgotPasswordPage';
+import VerifyOtpPage from '../modules/auth/pages/VerifyOtpPage';
 import OnboardingChildPage from '../modules/child/pages/OnboardingChildPage';
 
 /**
@@ -55,9 +55,9 @@ export const AppRoutes = () => {
         {/* Public Routes (Wrapped in MainLayout for Header & Footer) */}
         <Route element={<PublicRoute />}>
           <Route element={<MainLayout />}>
-            <Route path="/login" element={<AuthScreen />} />
-            <Route path="/register" element={<AuthScreen />} />
-            <Route path="/forgot-password" element={<ForgotPasswordScreen />} />
+            <Route path="/login" element={<AuthPage />} />
+            <Route path="/register" element={<AuthPage />} />
+            <Route path="/forgot-password" element={<ForgotPasswordPage />} />
             <Route
               path="/reset-password"
               element={
@@ -72,7 +72,7 @@ export const AppRoutes = () => {
 
         {/* OTP Verification Route (Accessible by logged in parents as well) */}
         <Route>
-          <Route path="/verify-otp" element={<VerifyOtpScreen />} />
+          <Route path="/verify-otp" element={<VerifyOtpPage />} />
           <Route path="/onboarding-child" element={<OnboardingChildPage />} />
         </Route>
 

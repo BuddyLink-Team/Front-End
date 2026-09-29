@@ -15,7 +15,7 @@ import { useVerifyOtp } from '../hooks/useVerifyOtp';
 import { formatTimer, maskPhone, maskEmail } from '../../../utils/formatters';
 import { Button, Input } from '../../../components';
 
-export const VerifyOtpScreen = () => {
+export const VerifyOtpPage = () => {
   const {
     user,
     isPhoneVerified,
@@ -351,4 +351,4 @@ export const VerifyOtpScreen = () => {
   );
 };
 
-export default VerifyOtpScreen;
+export default VerifyOtpPage;
