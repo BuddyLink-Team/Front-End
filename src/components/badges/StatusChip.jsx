@@ -7,17 +7,23 @@ export const StatusChip = ({ status, className }) => {
   const statusStyles = {
     pending: 'bg-[#fef7e6] text-[#755a1b] border-[#fae4b2]',
     confirmed: 'bg-[#eaf3ec] text-[#3d6841] border-[#d2e7d7]',
+    accepted: 'bg-[#eaf3ec] text-[#3d6841] border-[#d2e7d7]',
+    declined: 'bg-[#ffdad6] text-[#ba1a1a] border-[#ffb4ab]',
     cancelled: 'bg-[#edf2f0] text-[#718096] border-[#d9e2de]',
     reported: 'bg-[#ffdad6] text-[#ba1a1a] border-[#ffb4ab]',
     completed: 'bg-[#e7eeff] text-[#30647b] border-[#b1e4fe]',
+    upcoming: 'bg-[#eaf3ec] text-[#3d6841] border-[#d2e7d7]',
   };
 
   const statusLabels = {
     pending: 'Chờ phản hồi',
     confirmed: 'Đã xác nhận',
+    accepted: 'Đã tham gia',
+    declined: 'Đã từ chối',
     cancelled: 'Đã hủy',
     reported: 'Báo cáo vi phạm',
     completed: 'Đã hoàn thành',
+    upcoming: 'Sắp diễn ra',
   };
 
   const currentStyle = statusStyles[normalizedStatus] || statusStyles.pending;
