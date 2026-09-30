@@ -15,6 +15,7 @@ import AuthPage from '../modules/auth/pages/AuthPage';
 import ForgotPasswordPage from '../modules/auth/pages/ForgotPasswordPage';
 import VerifyOtpPage from '../modules/auth/pages/VerifyOtpPage';
 import OnboardingChildPage from '../modules/child/pages/OnboardingChildPage';
+import ChatPage from '../modules/chat/pages/ChatPage';
 
 /**
  * Root route handler:
@@ -118,24 +119,8 @@ export const AppRoutes = () => {
                   />
                 }
               />
-              <Route
-                path="/chat"
-                element={
-                  <PlaceholderPage
-                    title="Tin nhắn trò chuyện"
-                    description="Danh sách trò chuyện trực tiếp 1-1 với phụ huynh đã kết nối."
-                  />
-                }
-              />
-              <Route
-                path="/chat/:conversationId"
-                element={
-                  <PlaceholderPage
-                    title="Khung chat trực tiếp"
-                    description="Trò chuyện thời gian thực và chia sẻ hình ảnh cùng phụ huynh."
-                  />
-                }
-              />
+              <Route path="/chat" element={<ChatPage />} />
+              <Route path="/chat/:conversationId" element={<ChatPage />} />
               <Route
                 path="/ai-assistant"
                 element={

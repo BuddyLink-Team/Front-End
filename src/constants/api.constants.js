@@ -35,8 +35,9 @@ export const API_ENDPOINTS = {
     BASE: '/playdates',
   },
   CHAT: {
-    CONVERSATIONS: '/chats/conversations',
-    MESSAGES: '/chats/messages',
+    CONVERSATIONS: '/chat/conversations',
+    MESSAGES: '/chat/conversations',
+    UPLOAD: '/chat/upload',
   },
   AI_ASSISTANT: {
     RECOMMEND: '/ai/recommendations',

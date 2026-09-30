@@ -2,6 +2,7 @@ import React from 'react';
 import { Route, Navigate } from 'react-router-dom';
 import { MainLayout } from '../layouts/MainLayout';
 import PlaceholderPage from '../components/feedback/PlaceholderPage';
+import ChatPage from '../modules/chat/pages/ChatPage';
 
 /**
  * Full route definitions for Parent features.
@@ -29,14 +30,8 @@ export const ParentRoutes = () => (
     />
 
     {/* Communication */}
-    <Route
-      path="/chat"
-      element={<PlaceholderPage title="Tin nhắn trò chuyện" description="Danh sách trò chuyện trực tiếp 1-1 với phụ huynh đã kết nối." />}
-    />
-    <Route
-      path="/chat/:conversationId"
-      element={<PlaceholderPage title="Khung chat trực tiếp" description="Trò chuyện thời gian thực và chia sẻ hình ảnh cùng phụ huynh." />}
-    />
+    <Route path="/chat" element={<ChatPage />} />
+    <Route path="/chat/:conversationId" element={<ChatPage />} />
 
     {/* AI Assistant */}
     <Route
