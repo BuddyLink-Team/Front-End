@@ -3,4 +3,5 @@ export const STORAGE_KEYS = {
   REFRESH_TOKEN: 'buddylink_refresh_token',
   USER_INFO: 'buddylink_user',
   PARENT_INFO: 'buddylink_parent',
+  REMEMBERED_EMAIL: 'buddylink_remembered_email',
 };
