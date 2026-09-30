@@ -17,6 +17,13 @@ export const chatApi = {
   },
 
   /**
+   * Get or initialize Playdate group chat by playdateId
+   */
+  getPlaydateConversation: async (playdateId) => {
+    return apiClient.get(`${API_ENDPOINTS.CHAT.PLAYDATE}/${playdateId}`);
+  },
+
+  /**
    * Get or create a direct conversation with target parent
    */
   createDirectConversation: async (targetParentId) => {

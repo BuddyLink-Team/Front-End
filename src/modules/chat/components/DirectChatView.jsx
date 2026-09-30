@@ -59,7 +59,9 @@ export const DirectChatView = ({
 
   // Auto scroll to bottom
   const scrollToBottom = (behavior = 'smooth') => {
-    messagesEndRef.current?.scrollIntoView({ behavior });
+    if (typeof messagesEndRef.current?.scrollIntoView === 'function') {
+      messagesEndRef.current.scrollIntoView({ behavior });
+    }
   };
 
   useEffect(() => {
@@ -203,16 +205,16 @@ export const DirectChatView = ({
             placement="bottom-end"
           >
             <DropdownItem
-              icon={<Flag className="w-4 h-4 text-error" />}
+              icon={Flag}
+              danger
               onClick={() => setShowReportDialog(true)}
-              className="text-error"
             >
               Báo cáo vi phạm
             </DropdownItem>
             <DropdownItem
-              icon={<UserX className="w-4 h-4 text-error" />}
+              icon={UserX}
+              danger
               onClick={() => setShowBlockDialog(true)}
-              className="text-error"
             >
               Chặn người dùng
             </DropdownItem>

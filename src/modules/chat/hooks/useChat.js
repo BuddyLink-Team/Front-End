@@ -5,7 +5,12 @@ import chatApi from '../api/chatApi.js';
 import useChatSocket from './useChatSocket.js';
 import { CONVERSATION_TYPES, MESSAGE_TYPES } from '../constants/chatConstants.js';
 
-export const useChat = (initialConversationId = null) => {
+export const useChat = (arg1 = null, arg2 = null) => {
+  const options = typeof arg1 === 'object' && arg1 !== null
+    ? arg1
+    : { initialConversationId: arg1, initialPlaydateId: arg2 };
+  const { initialConversationId = null, initialPlaydateId = null } = options;
+
   const currentParent = useSelector((state) => state.auth?.parent);
   const currentParentId = currentParent?._id || currentParent?.id;
 
@@ -14,9 +19,12 @@ export const useChat = (initialConversationId = null) => {
   const [activeConversationId, setActiveConversationId] = useState(initialConversationId);
   const [activeConversation, setActiveConversation] = useState(null);
   const [isLoadingConversations, setIsLoadingConversations] = useState(true);
+  const [playdateError, setPlaydateError] = useState(null);
 
   // Tab & Search Filtering
-  const [selectedTab, setSelectedTab] = useState(CONVERSATION_TYPES.ALL);
+  const [selectedTab, setSelectedTab] = useState(
+    initialPlaydateId ? CONVERSATION_TYPES.PLAYDATE : CONVERSATION_TYPES.ALL
+  );
   const [searchQuery, setSearchQuery] = useState('');
 
   // Messages State
@@ -47,8 +55,8 @@ export const useChat = (initialConversationId = null) => {
       const list = res?.data || res || [];
       setConversations(list);
 
-      // Auto-select first conversation on desktop if none selected
-      if (!activeConversationId && list.length > 0 && window.innerWidth >= 1024) {
+      // Auto-select first conversation on desktop if none selected and not viewing playdate
+      if (!activeConversationId && !initialConversationId && !initialPlaydateId && list.length > 0 && window.innerWidth >= 1024) {
         setActiveConversationId(list[0].id);
       }
     } catch (error) {
@@ -56,11 +64,53 @@ export const useChat = (initialConversationId = null) => {
     } finally {
       setIsLoadingConversations(false);
     }
-  }, [activeConversationId]);
+  }, [activeConversationId, initialConversationId, initialPlaydateId]);
 
   useEffect(() => {
     fetchConversations();
-  }, []);
+  }, [fetchConversations]);
+
+  // Handle Playdate Conversation initialization (TASK-BE-11 & TASK-FE-11)
+  useEffect(() => {
+    if (!initialPlaydateId) return;
+
+    let isMounted = true;
+    setIsLoadingConversations(true);
+    setPlaydateError(null);
+
+    chatApi.getPlaydateConversation(initialPlaydateId)
+      .then((res) => {
+        if (!isMounted) return;
+        const conv = res?.data || res;
+        if (conv?.id) {
+          setActiveConversation(conv);
+          setActiveConversationId(conv.id);
+          setSelectedTab(CONVERSATION_TYPES.PLAYDATE);
+
+          // Add to conversations list if not present
+          setConversations((prev) => {
+            if (prev.some((c) => c.id === conv.id)) {
+              return prev.map((c) => (c.id === conv.id ? { ...c, ...conv } : c));
+            }
+            return [conv, ...prev];
+          });
+        }
+      })
+      .catch((error) => {
+        if (!isMounted) return;
+        console.error('[Chat] Failed to get playdate conversation:', error);
+        const errMsg = error?.response?.data?.message || 'Không thể tham gia nhóm chat cuộc hẹn này.';
+        setPlaydateError(errMsg);
+        toast.error(errMsg);
+      })
+      .finally(() => {
+        if (isMounted) setIsLoadingConversations(false);
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [initialPlaydateId]);
 
   // Update active conversation details from list or fetch if not present
   useEffect(() => {
@@ -324,6 +374,8 @@ export const useChat = (initialConversationId = null) => {
     isPartnerTyping,
     selectedImageFile,
     imagePreviewUrl,
+    playdateError,
+    setActiveConversation,
     handleSelectImage,
     handleClearImage,
     handleSendMessage,

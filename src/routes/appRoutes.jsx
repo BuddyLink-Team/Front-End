@@ -120,6 +120,7 @@ export const AppRoutes = () => {
                 }
               />
               <Route path="/chat" element={<ChatPage />} />
+              <Route path="/chat/playdate/:playdateId" element={<ChatPage />} />
               <Route path="/chat/:conversationId" element={<ChatPage />} />
               <Route
                 path="/ai-assistant"

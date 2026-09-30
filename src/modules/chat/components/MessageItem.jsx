@@ -9,6 +9,7 @@ export const MessageItem = ({
   partnerAvatar,
   partnerName,
   onImageClick,
+  showSenderName = false,
 }) => {
   const isMine = message.isMine;
   const timeFormatted = dayjs(message.createdAt).format('HH:mm');
@@ -33,6 +34,13 @@ export const MessageItem = ({
 
       {/* Message Bubble & Meta */}
       <div className={cn('flex flex-col gap-1', isMine ? 'items-end' : 'items-start')}>
+        {/* Sender Name for group chats */}
+        {!isMine && showSenderName && (
+          <span className="text-[11px] font-semibold text-on-surface-variant px-1 select-none">
+            {message.sender?.fullName || partnerName || 'Thành viên'}
+          </span>
+        )}
+
         <div
           className={cn(
             'px-4 py-2.5 rounded-2xl shadow-xs text-sm leading-relaxed break-words',
