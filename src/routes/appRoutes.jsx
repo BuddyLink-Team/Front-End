@@ -15,6 +15,7 @@ import VerifyOtpPage from '../modules/auth/pages/VerifyOtpPage';
 import OnboardingChildPage from '../modules/child/pages/OnboardingChildPage';
 import PlaydateListPage from '../modules/playdate/pages/PlaydateListPage';
 import CreatePlaydatePage from '../modules/playdate/pages/CreatePlaydatePage';
+import PlaydateDetailPage from '../modules/playdate/pages/PlaydateDetailPage';
 
 /**
  * Root route handler:
@@ -101,12 +102,7 @@ export const AppRoutes = () => {
               />
               <Route
                 path="/playdates/:id"
-                element={
-                  <PlaceholderPage
-                    title="Chi tiết cuộc hẹn chơi"
-                    description="Xem thông tin chi tiết cuộc hẹn, người tham gia, lịch hẹn và trao đổi nhóm."
-                  />
-                }
+                element={<PlaydateDetailPage />}
               />
               <Route
                 path="/chat"

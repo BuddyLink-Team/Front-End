@@ -32,6 +32,36 @@ export const playdateApi = {
    */
   cancelPlaydate: (id, payload = {}) =>
     apiClient.patch(`${API_ENDPOINTS.PLAYDATE.BASE}/${id}/cancel`, payload),
+
+  /**
+   * Participant responds to playdate invitation (RSVP: accept / decline)
+   */
+  respondToPlaydate: (id, status) =>
+    apiClient.put(`${API_ENDPOINTS.PLAYDATE.BASE}/${id}/respond`, { status }),
+
+  /**
+   * Propose a reschedule request for playdate
+   */
+  createReschedule: (id, payload) =>
+    apiClient.post(`${API_ENDPOINTS.PLAYDATE.BASE}/${id}/reschedule`, payload),
+
+  /**
+   * Vote on a pending reschedule request (accept / decline)
+   */
+  voteReschedule: (id, payload) =>
+    apiClient.put(`${API_ENDPOINTS.PLAYDATE.BASE}/${id}/reschedule/vote`, payload),
+
+  /**
+   * Get latest / active reschedule request for a playdate
+   */
+  getReschedule: (id) =>
+    apiClient.get(`${API_ENDPOINTS.PLAYDATE.BASE}/${id}/reschedule`),
+
+  /**
+   * Search nearby child-friendly venues adapter (parks, cafes, playgrounds)
+   */
+  getNearbyPlaces: (params = {}) =>
+    apiClient.get('/places/nearby', { params }),
 };
 
 export default playdateApi;

@@ -3,6 +3,7 @@ import { MainLayout } from '../layouts/MainLayout';
 import PlaceholderPage from '../components/feedback/PlaceholderPage';
 import PlaydateListPage from '../modules/playdate/pages/PlaydateListPage';
 import CreatePlaydatePage from '../modules/playdate/pages/CreatePlaydatePage';
+import PlaydateDetailPage from '../modules/playdate/pages/PlaydateDetailPage';
 
 /**
  * Full route definitions for Parent features.
@@ -26,7 +27,7 @@ export const ParentRoutes = () => (
     />
     <Route
       path="/playdates/:id"
-      element={<PlaceholderPage title="Chi tiết cuộc hẹn chơi" description="Xem thông tin chi tiết cuộc hẹn, người tham gia, lịch hẹn và trao đổi nhóm." />}
+      element={<PlaydateDetailPage />}
     />
 
     {/* Communication */}
