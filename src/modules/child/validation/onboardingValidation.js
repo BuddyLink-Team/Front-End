@@ -1,8 +1,7 @@
 import { z } from 'zod';
 import dayjs from 'dayjs';
 
-export const onboardingSchema = z.object({
-  // Child details
+export const childSchema = z.object({
   displayName: z
     .string()
     .min(2, 'Tên của bé phải có ít nhất 2 ký tự')
@@ -27,6 +26,9 @@ export const onboardingSchema = z.object({
   personality: z
     .array(z.string())
     .min(1, 'Vui lòng chọn ít nhất 1 nét tính cách nổi bật'),
+});
+
+export const onboardingSchema = childSchema.extend({
 
   // Parent Matching Preferences
   preferredPlaydateDays: z

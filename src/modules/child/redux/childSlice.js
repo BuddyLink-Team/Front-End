@@ -16,9 +16,9 @@ const initialState = {
       personality: [],
     },
     preferences: {
-      preferredPlaydateDays: ['weekend'],
-      preferredTimeSlots: ['morning', 'afternoon'],
-      preferredLocations: ['park', 'kids_cafe'],
+      preferredPlaydateDays: [],
+      preferredTimeSlots: [],
+      preferredLocations: [],
       maxDistanceKm: 10,
       preferredAgeRange: { min: 2, max: 8 },
       languages: ['Vietnamese'],
@@ -26,8 +26,8 @@ const initialState = {
     },
     location: {
       address: '',
-      area: 'Quận 1',
-      city: 'Hồ Chí Minh',
+      area: '',
+      city: '',
       coordinates: [106.6953, 10.7769],
     },
   },
