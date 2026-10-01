@@ -18,6 +18,11 @@ export const playdateApi = {
   createPlaydate: (payload) => apiClient.post(API_ENDPOINTS.PLAYDATE.BASE, payload),
 
   /**
+   * Get connected friends that can be invited to a playdate
+   */
+  getFriends: () => apiClient.get(`${API_ENDPOINTS.PLAYDATE.BASE}/friends`),
+
+  /**
    * Host marks playdate as completed
    */
   completePlaydate: (id) => apiClient.patch(`${API_ENDPOINTS.PLAYDATE.BASE}/${id}/complete`),

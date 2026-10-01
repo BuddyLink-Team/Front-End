@@ -2,6 +2,7 @@ import { Route } from 'react-router-dom';
 import { MainLayout } from '../layouts/MainLayout';
 import PlaceholderPage from '../components/feedback/PlaceholderPage';
 import PlaydateListPage from '../modules/playdate/pages/PlaydateListPage';
+import CreatePlaydatePage from '../modules/playdate/pages/CreatePlaydatePage';
 
 /**
  * Full route definitions for Parent features.
@@ -21,7 +22,7 @@ export const ParentRoutes = () => (
     />
     <Route
       path="/playdates/create"
-      element={<PlaceholderPage title="Tạo cuộc hẹn chơi mới" description="Lên lịch Playdate, chọn bé tham gia, hoạt động và địa điểm vui chơi." />}
+      element={<CreatePlaydatePage />}
     />
     <Route
       path="/playdates/:id"
