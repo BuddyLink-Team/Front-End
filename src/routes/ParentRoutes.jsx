@@ -6,6 +6,7 @@ import ParentProfilePage from '../modules/parent/pages/ParentProfilePage';
 
 import ChildrenManagementPage from '../modules/child/pages/ChildrenManagementPage';
 import ChildFormPage from '../modules/child/pages/ChildFormPage';
+import DiscoveryPage from '../modules/discovery/pages/DiscoveryPage';
 
 /**
  * Full route definitions for Parent features.
@@ -15,7 +16,7 @@ export const ParentRoutes = () => (
     {/* Discovery & Peer Matching */}
     <Route
       path="/discovery"
-      element={<PlaceholderPage title="Khám phá bạn chơi" description="Gợi ý bạn chơi phù hợp dựa trên độ tuổi, sở thích và vị trí lân cận." />}
+      element={<DiscoveryPage />}
     />
 
     {/* Playdate Management */}
