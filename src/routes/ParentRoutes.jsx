@@ -1,11 +1,7 @@
-import React from 'react';
-import { Route, Navigate } from 'react-router-dom';
+import { Route } from 'react-router-dom';
 import { MainLayout } from '../layouts/MainLayout';
 import PlaceholderPage from '../components/feedback/PlaceholderPage';
-import ParentProfilePage from '../modules/parent/pages/ParentProfilePage';
-
-import ChildrenManagementPage from '../modules/child/pages/ChildrenManagementPage';
-import ChildFormPage from '../modules/child/pages/ChildFormPage';
+import PlaydateListPage from '../modules/playdate/pages/PlaydateListPage';
 
 /**
  * Full route definitions for Parent features.
@@ -21,7 +17,7 @@ export const ParentRoutes = () => (
     {/* Playdate Management */}
     <Route
       path="/playdates"
-      element={<PlaceholderPage title="Danh sách cuộc hẹn chơi" description="Quản lý lịch hẹn Playdate sắp diễn ra, đã hoàn thành hoặc đã hủy." />}
+      element={<PlaydateListPage />}
     />
     <Route
       path="/playdates/create"
@@ -51,22 +47,25 @@ export const ParentRoutes = () => (
     {/* Child Profiles */}
     <Route
       path="/children"
-      element={<ChildrenManagementPage />}
+      element={<PlaceholderPage title="Hồ sơ các bé" description="Quản lý thông tin, độ tuổi, nhóm tính cách và sở thích của con." />}
     />
     <Route
       path="/children/create"
-      element={<ChildFormPage />}
+      element={<PlaceholderPage title="Thêm hồ sơ bé" description="Tạo hồ sơ bé mới với sở thích, ảnh và đặc điểm phát triển." />}
     />
     <Route
       path="/children/:id/edit"
-      element={<ChildFormPage />}
+      element={<PlaceholderPage title="Chỉnh sửa hồ sơ bé" description="Cập nhật thông tin chi tiết và quyền riêng tư cho bé." />}
     />
 
     {/* Parent Account & Profile */}
-    <Route path="/profile" element={<ParentProfilePage />} />
+    <Route
+      path="/profile"
+      element={<PlaceholderPage title="Hồ sơ phụ huynh" description="Xem và chỉnh sửa thông tin cá nhân, định vị khu vực và huy hiệu xác thực." />}
+    />
     <Route
       path="/profile/edit"
-      element={<Navigate to="/profile" replace />}
+      element={<PlaceholderPage title="Chỉnh sửa thông tin" description="Cập nhật thông tin tài khoản phụ huynh." />}
     />
     <Route
       path="/profile/verification"

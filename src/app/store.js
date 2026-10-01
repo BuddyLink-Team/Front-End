@@ -1,13 +1,13 @@
 import { configureStore } from '@reduxjs/toolkit';
 import authReducer from '../modules/auth/redux/authSlice';
 import childReducer from '../modules/child/redux/childSlice';
-import parentReducer from '../modules/parent/redux/parentSlice';
+import playdateReducer from '../modules/playdate/redux/playdateSlice';
 
 export const store = configureStore({
   reducer: {
     auth: authReducer,
     child: childReducer,
-    parent: parentReducer,
+    playdate: playdateReducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
