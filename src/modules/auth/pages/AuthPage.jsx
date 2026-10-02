@@ -13,6 +13,7 @@ export const AuthPage = () => {
   const {
     isSubmitting,
     errorMessage,
+    setErrorMessage,
     handleLogin,
     handleRegister,
     handleGoogleLogin,
@@ -25,14 +26,16 @@ export const AuthPage = () => {
   );
 
   useEffect(() => {
+    setErrorMessage(null);
     if (isRegisterRoute) {
       setMode(AUTH_MODES.REGISTER);
     } else {
       setMode(AUTH_MODES.LOGIN);
     }
-  }, [isRegisterRoute]);
+  }, [isRegisterRoute, setErrorMessage]);
 
   const switchMode = (newMode) => {
+    setErrorMessage(null);
     setMode(newMode);
     if (newMode === AUTH_MODES.REGISTER) {
       navigate('/register', { replace: true });

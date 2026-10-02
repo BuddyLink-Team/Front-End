@@ -3,6 +3,10 @@ import { Route, Navigate } from 'react-router-dom';
 import { MainLayout } from '../layouts/MainLayout';
 import PlaceholderPage from '../components/feedback/PlaceholderPage';
 import ChatPage from '../modules/chat/pages/ChatPage';
+import ParentProfilePage from '../modules/parent/pages/ParentProfilePage';
+
+import ChildrenManagementPage from '../modules/child/pages/ChildrenManagementPage';
+import ChildFormPage from '../modules/child/pages/ChildFormPage';
 
 /**
  * Full route definitions for Parent features.
@@ -42,25 +46,22 @@ export const ParentRoutes = () => (
     {/* Child Profiles */}
     <Route
       path="/children"
-      element={<PlaceholderPage title="Hồ sơ các bé" description="Quản lý thông tin, độ tuổi, nhóm tính cách và sở thích của con." />}
+      element={<ChildrenManagementPage />}
     />
     <Route
       path="/children/create"
-      element={<PlaceholderPage title="Thêm hồ sơ bé" description="Tạo hồ sơ bé mới với sở thích, ảnh và đặc điểm phát triển." />}
+      element={<ChildFormPage />}
     />
     <Route
       path="/children/:id/edit"
-      element={<PlaceholderPage title="Chỉnh sửa hồ sơ bé" description="Cập nhật thông tin chi tiết và quyền riêng tư cho bé." />}
+      element={<ChildFormPage />}
     />
 
     {/* Parent Account & Profile */}
-    <Route
-      path="/profile"
-      element={<PlaceholderPage title="Hồ sơ phụ huynh" description="Xem và chỉnh sửa thông tin cá nhân, định vị khu vực và huy hiệu xác thực." />}
-    />
+    <Route path="/profile" element={<ParentProfilePage />} />
     <Route
       path="/profile/edit"
-      element={<PlaceholderPage title="Chỉnh sửa thông tin" description="Cập nhật thông tin tài khoản phụ huynh." />}
+      element={<Navigate to="/profile" replace />}
     />
     <Route
       path="/profile/verification"

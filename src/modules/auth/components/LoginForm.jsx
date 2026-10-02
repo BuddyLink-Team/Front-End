@@ -5,8 +5,11 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { Mail, ArrowRight, LogIn } from 'lucide-react';
 import { loginSchema } from '../validation/authValidation';
 import { Input, PasswordInput, Button, Checkbox } from '../../../components';
+import { STORAGE_KEYS } from '../../../constants/storage.constants';
 
 export const LoginForm = ({ onSubmit, isLoading }) => {
+  const rememberedEmail = localStorage.getItem(STORAGE_KEYS.REMEMBERED_EMAIL) || '';
+
   const {
     register,
     handleSubmit,
@@ -14,14 +17,26 @@ export const LoginForm = ({ onSubmit, isLoading }) => {
   } = useForm({
     resolver: zodResolver(loginSchema),
     defaultValues: {
-      email: '',
+      email: rememberedEmail,
       password: '',
-      rememberMe: false,
+      rememberMe: Boolean(rememberedEmail),
     },
   });
 
+  const handleFormSubmit = async (data) => {
+    if (data.rememberMe) {
+      localStorage.setItem(STORAGE_KEYS.REMEMBERED_EMAIL, data.email);
+    } else {
+      localStorage.removeItem(STORAGE_KEYS.REMEMBERED_EMAIL);
+    }
+
+    if (onSubmit) {
+      await onSubmit(data);
+    }
+  };
+
   return (
-    <form className="space-y-4" onSubmit={handleSubmit(onSubmit)} noValidate>
+    <form className="space-y-4" onSubmit={handleSubmit(handleFormSubmit)} noValidate>
       {/* Email Field */}
       <Input
         id="login-email"
