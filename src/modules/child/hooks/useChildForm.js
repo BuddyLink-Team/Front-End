@@ -6,6 +6,7 @@ import childApi from '../api/childApi';
 import {
   addChild,
   updateChildInList,
+  removeChildFromList,
   setLoading,
   setError,
 } from '../redux/childSlice';
@@ -117,8 +118,6 @@ export const useChildForm = () => {
     return true;
   };
 
-  const [quotaExceededError, setQuotaExceededError] = useState(null);
-
   // Submit create or edit
   const handleSubmit = async (e) => {
     if (e && e.preventDefault) e.preventDefault();
@@ -126,7 +125,6 @@ export const useChildForm = () => {
 
     dispatch(setLoading(true));
     dispatch(setError(null));
-    setQuotaExceededError(null);
 
     try {
       const payload = {
@@ -153,12 +151,7 @@ export const useChildForm = () => {
       navigate('/children');
     } catch (err) {
       const errorCode = err?.response?.data?.error?.code || err?.code;
-      if (errorCode === 'CHILD_QUOTA_EXCEEDED') {
-        const quotaMsg =
-          err?.response?.data?.message ||
-          'Bạn đã đạt giới hạn số lượng hồ sơ bé trong gói hiện tại.';
-        setQuotaExceededError(quotaMsg);
-      } else {
+      if (errorCode !== 'CHILD_QUOTA_EXCEEDED') {
         const fallback = isEditMode
           ? 'Cập nhật hồ sơ bé thất bại'
           : 'Tạo hồ sơ bé thất bại';
@@ -201,8 +194,6 @@ export const useChildForm = () => {
     isLoading: isLoading || isFetchingChild,
     isDeleting,
     isFetchingChild,
-    quotaExceededError,
-    setQuotaExceededError,
     updateField,
     toggleArrayItem,
     handleSubmit,
