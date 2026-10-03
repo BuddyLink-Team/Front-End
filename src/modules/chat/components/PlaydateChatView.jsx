@@ -18,13 +18,26 @@ import {
   Clock,
   Sparkles,
 } from 'lucide-react';
-import { toast } from 'react-hot-toast';
+import { useToast } from '../../../hooks/useToast.js';
 import { ConfirmDialog } from '../../../components/feedback/ConfirmDialog';
 import { Dropdown, DropdownItem } from '../../../components/ui/Dropdown';
 import { MessageItem } from './MessageItem.jsx';
 import { EmojiPopover } from './EmojiPopover.jsx';
 import { PlaydateEventCollateralPanel } from './PlaydateEventCollateralPanel.jsx';
+import { CHAT_FILE_INPUT_ACCEPT } from '../constants/chatConstants.js';
 import { cn } from '../../../utils/cn';
+
+/**
+ * Format date group label for messages separator
+ */
+const formatMessageDateGroup = (dateString) => {
+  if (!dateString) return 'Hôm nay';
+  const date = dayjs(dateString);
+  const now = dayjs();
+  if (date.isSame(now, 'day')) return 'Hôm nay';
+  if (date.isSame(now.subtract(1, 'day'), 'day')) return 'Hôm qua';
+  return date.format('DD/MM/YYYY');
+};
 
 export const PlaydateChatView = ({
   conversation,
@@ -32,6 +45,9 @@ export const PlaydateChatView = ({
   isLoadingMessages = false,
   isSending = false,
   isPartnerTyping = false,
+  hasMoreMessages = false,
+  isLoadingOlder = false,
+  onLoadOlderMessages,
   selectedImageFile,
   imagePreviewUrl,
   onSelectImage,
@@ -41,6 +57,7 @@ export const PlaydateChatView = ({
   onBack,
   className,
 }) => {
+  const toast = useToast();
   const navigate = useNavigate();
   const [inputText, setInputText] = useState('');
   const [isEmojiOpen, setIsEmojiOpen] = useState(false);
@@ -52,6 +69,8 @@ export const PlaydateChatView = ({
   const messagesEndRef = useRef(null);
   const textareaRef = useRef(null);
   const fileInputRef = useRef(null);
+  const lastTypingEmitRef = useRef(0);
+  const stopTypingTimeoutRef = useRef(null);
 
   const playdate = conversation?.playdate;
   const groupTitle = playdate?.title || playdate?.activity || 'Nhóm Hẹn Chơi';
@@ -68,14 +87,38 @@ export const PlaydateChatView = ({
     scrollToBottom(messages.length <= 10 ? 'auto' : 'smooth');
   }, [messages.length, isPartnerTyping]);
 
-  // Handle typing & text change
+  useEffect(() => {
+    return () => {
+      if (stopTypingTimeoutRef.current) {
+        clearTimeout(stopTypingTimeoutRef.current);
+      }
+    };
+  }, []);
+
+  // Handle typing & text change (throttled)
   const handleTextChange = (e) => {
     const val = e.target.value;
     setInputText(val);
 
-    if (onSendTyping) {
-      onSendTyping(val.length > 0);
+    if (!onSendTyping) return;
+
+    if (!val.trim()) {
+      if (stopTypingTimeoutRef.current) clearTimeout(stopTypingTimeoutRef.current);
+      lastTypingEmitRef.current = 0;
+      onSendTyping(false);
+      return;
     }
+
+    const now = Date.now();
+    if (now - lastTypingEmitRef.current > 2000) {
+      lastTypingEmitRef.current = now;
+      onSendTyping(true);
+    }
+
+    if (stopTypingTimeoutRef.current) clearTimeout(stopTypingTimeoutRef.current);
+    stopTypingTimeoutRef.current = setTimeout(() => {
+      onSendTyping(false);
+    }, 2500);
   };
 
   // Submit message
@@ -278,12 +321,26 @@ export const PlaydateChatView = ({
             )}
           </div>
 
-          {/* Date Marker */}
-          <div className="flex justify-center my-2">
-            <span className="px-3.5 py-1 rounded-full bg-surface-container-high/60 text-on-surface-variant text-xs font-medium">
-              Hôm nay, ngày {dayjs().format('DD/MM/YYYY')}
-            </span>
-          </div>
+          {/* Load older messages button */}
+          {hasMoreMessages && (
+            <div className="flex justify-center my-2">
+              <button
+                type="button"
+                onClick={onLoadOlderMessages}
+                disabled={isLoadingOlder}
+                className="px-3.5 py-1.5 rounded-full text-xs font-medium text-primary hover:bg-primary-container/20 border border-primary/20 transition-all flex items-center gap-1.5 disabled:opacity-60"
+              >
+                {isLoadingOlder ? (
+                  <>
+                    <div className="w-3.5 h-3.5 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+                    <span>Đang tải tin nhắn cũ...</span>
+                  </>
+                ) : (
+                  <span>Tải tin nhắn cũ hơn</span>
+                )}
+              </button>
+            </div>
+          )}
 
           {/* Loading State */}
           {isLoadingMessages ? (
@@ -299,16 +356,31 @@ export const PlaydateChatView = ({
               </p>
             </div>
           ) : (
-            messages.map((message) => (
-              <MessageItem
-                key={message.id}
-                message={message}
-                partnerAvatar={message.sender?.avatarUrl}
-                partnerName={message.sender?.fullName || 'Thành viên'}
-                showSenderName={true}
-                onImageClick={(url) => setLightboxImageUrl(url)}
-              />
-            ))
+            messages.map((message, idx) => {
+              const prevMsg = idx > 0 ? messages[idx - 1] : null;
+              const currentDate = dayjs(message.createdAt).format('YYYY-MM-DD');
+              const prevDate = prevMsg ? dayjs(prevMsg.createdAt).format('YYYY-MM-DD') : null;
+              const showDateDivider = !prevDate || currentDate !== prevDate;
+
+              return (
+                <React.Fragment key={message.id || idx}>
+                  {showDateDivider && (
+                    <div className="flex justify-center my-2">
+                      <span className="px-3.5 py-1 rounded-full bg-surface-container-high/60 text-on-surface-variant text-xs font-medium">
+                        {formatMessageDateGroup(message.createdAt)}
+                      </span>
+                    </div>
+                  )}
+                  <MessageItem
+                    message={message}
+                    partnerAvatar={message.sender?.avatarUrl}
+                    partnerName={message.sender?.fullName || 'Thành viên'}
+                    showSenderName={true}
+                    onImageClick={(url) => setLightboxImageUrl(url)}
+                  />
+                </React.Fragment>
+              );
+            })
           )}
 
           {/* Realtime Typing Indicator */}
@@ -368,7 +440,7 @@ export const PlaydateChatView = ({
                   onSelectImage(e.target.files[0]);
                 }
               }}
-              accept="image/*"
+              accept={CHAT_FILE_INPUT_ACCEPT}
               className="hidden"
             />
 

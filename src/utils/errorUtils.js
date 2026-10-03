@@ -29,5 +29,25 @@ export const getApiErrorMsg = (
   if (code && errorMap?.[code]) {
     return errorMap[code];
   }
-  return err?.message || err?.response?.data?.message || fallback;
+
+  // Check direct backend message key mapping
+  const backendMsg = err?.response?.data?.message || err?.message;
+  if (backendMsg && errorMap?.[backendMsg]) {
+    return errorMap[backendMsg];
+  }
+
+  // Extract first validation error detail if available
+  const details = err?.response?.data?.error?.details || err?.error?.details;
+  if (Array.isArray(details) && details.length > 0) {
+    const firstDetail = details[0];
+    const detailMsg = firstDetail?.message || (typeof firstDetail === 'string' ? firstDetail : null);
+    if (detailMsg && errorMap?.[detailMsg]) {
+      return errorMap[detailMsg];
+    }
+    if (detailMsg) {
+      return detailMsg;
+    }
+  }
+
+  return backendMsg || fallback;
 };

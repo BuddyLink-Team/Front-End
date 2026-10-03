@@ -8,10 +8,21 @@ export const MessageItem = ({
   message,
   partnerAvatar,
   partnerName,
+  currentParentId,
   onImageClick,
   showSenderName = false,
 }) => {
-  const isMine = message.isMine;
+  const senderId =
+    message.senderId?._id ||
+    message.senderId?.id ||
+    message.senderId ||
+    message.sender?.id ||
+    message.sender?._id;
+
+  const isMine =
+    currentParentId && senderId
+      ? String(senderId) === String(currentParentId)
+      : Boolean(message.isMine);
   const timeFormatted = dayjs(message.createdAt).format('HH:mm');
 
   return (

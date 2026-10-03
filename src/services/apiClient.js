@@ -1,6 +1,7 @@
 import axios from 'axios';
 import { STORAGE_KEYS } from '../constants/storage.constants';
 import { API_ENDPOINTS } from '../constants/api.constants';
+import socketService from './socket';
 
 const baseURL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api/v1';
 
@@ -43,8 +44,13 @@ apiClient.interceptors.response.use(
   (response) => response.data,
   async (error) => {
     const originalRequest = error.config;
+    const requestUrl = originalRequest?.url || '';
+    const isAuthEndpoint =
+      requestUrl.includes(API_ENDPOINTS.AUTH.LOGIN) ||
+      requestUrl.includes(API_ENDPOINTS.AUTH.ADMIN_LOGIN) ||
+      requestUrl.includes(API_ENDPOINTS.AUTH.REGISTER);
 
-    if (error.response?.status === 401 && !originalRequest._retry) {
+    if (error.response?.status === 401 && !originalRequest._retry && !isAuthEndpoint) {
       if (isRefreshing) {
         return new Promise((resolve, reject) => {
           failedQueue.push({ resolve, reject });
@@ -61,6 +67,7 @@ apiClient.interceptors.response.use(
 
       const refreshToken = localStorage.getItem(STORAGE_KEYS.REFRESH_TOKEN);
       if (!refreshToken) {
+        socketService.disconnect();
         localStorage.removeItem(STORAGE_KEYS.ACCESS_TOKEN);
         localStorage.removeItem(STORAGE_KEYS.USER_INFO);
         window.location.href = '/login';
@@ -77,10 +84,12 @@ apiClient.interceptors.response.use(
         const newAccessToken = data.accessToken;
         localStorage.setItem(STORAGE_KEYS.ACCESS_TOKEN, newAccessToken);
         apiClient.defaults.headers.common.Authorization = `Bearer ${newAccessToken}`;
+        socketService.updateToken(newAccessToken);
         processQueue(null, newAccessToken);
         originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
         return apiClient(originalRequest);
       } catch (refreshError) {
+        socketService.disconnect();
         processQueue(refreshError, null);
         localStorage.removeItem(STORAGE_KEYS.ACCESS_TOKEN);
         localStorage.removeItem(STORAGE_KEYS.REFRESH_TOKEN);

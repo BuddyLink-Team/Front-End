@@ -9,12 +9,15 @@ import {
   User,
   Settings,
   Baby,
+  Crown,
   LogOut,
 } from 'lucide-react';
 import { Avatar } from '../ui/Avatar';
 import { Button } from '../ui/Button';
 import { Dropdown, DropdownItem, DropdownDivider } from '../ui/Dropdown';
 import { logout } from '../../modules/auth/redux/authSlice';
+import { clearParentState } from '../../modules/parent/redux/parentSlice';
+import socketService from '../../services/socket';
 import { NAV_LINKS } from '../../constants/navigation.constants';
 import logoImg from '../../assets/images/logo.png';
 
@@ -26,8 +29,10 @@ export const Navbar = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const handleLogout = () => {
+    socketService.disconnect();
     dispatch(logout());
-    navigate('/login');
+    dispatch(clearParentState());
+    navigate('/');
   };
 
   // Landing page anchors only apply on root path '/'
@@ -153,8 +158,11 @@ export const Navbar = () => {
                   <DropdownItem as={Link} to="/profile" icon={User}>
                     Hồ sơ cá nhân
                   </DropdownItem>
-                  <DropdownItem as={Link} to="/onboarding-child" icon={Baby}>
+                  <DropdownItem as={Link} to="/children" icon={Baby}>
                     Quản lý hồ sơ bé
+                  </DropdownItem>
+                  <DropdownItem as={Link} to="/subscription" icon={Crown}>
+                    Gói hội viên & Hạn mức
                   </DropdownItem>
                   <DropdownItem as={Link} to="/settings" icon={Settings}>
                     Cài đặt tài khoản

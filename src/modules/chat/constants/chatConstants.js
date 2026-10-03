@@ -29,4 +29,12 @@ export const SOCKET_EVENTS = Object.freeze({
   CONVERSATION_UPDATED: 'conversation_updated',
 });
 
+// Must match the image types accepted by the backend upload middleware
+export const ALLOWED_IMAGE_EXTENSIONS = Object.freeze(['.jpg', '.jpeg', '.png', '.webp', '.gif']);
+export const ALLOWED_IMAGE_TYPES = Object.freeze(['image/jpeg', 'image/png', 'image/webp', 'image/gif']);
+export const CHAT_FILE_INPUT_ACCEPT = '.jpg,.jpeg,.png,.webp,.gif,image/jpeg,image/png,image/webp,image/gif';
+
+export const MAX_IMAGE_SIZE_BYTES = 5 * 1024 * 1024;
+
 export const QUICK_EMOJIS = ['😊', '❤️', '👍', '🎉', '👶', '🧸', '🎨', '⚽', '🍦', '⭐', '🤗', '✨'];
+

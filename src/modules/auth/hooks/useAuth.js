@@ -87,13 +87,17 @@ export const useAuth = () => {
         }),
       );
 
-      toast.success('Đăng nhập thành công! Rất vui được gặp lại ba mẹ.');
+      const isParent = user?.role === 'parent';
+      const welcomeMsg = isParent
+        ? 'Đăng nhập thành công! Rất vui được gặp lại ba mẹ.'
+        : 'Đăng nhập quản trị viên thành công!';
+      toast.success(welcomeMsg);
       
       const isPhoneVerified = !!parent?.verification?.isPhoneVerified;
       const isEmailVerified = !!parent?.verification?.isEmailVerified;
       const isVerified = isPhoneVerified && (isEmailVerified || !!user?.googleId);
 
-      if (user?.role === 'parent' && !isVerified) {
+      if (isParent && !isVerified) {
         navigate('/verify-otp', { replace: true });
       } else {
         const homePath = getRoleHomePath(user?.role);
@@ -173,11 +177,7 @@ export const useAuth = () => {
         email: data.email,
       });
 
-      const message =
-        response.data?.message ||
-        response.message ||
-        'Mã đặt lại mật khẩu đã được gửi đến email của bạn nếu tài khoản tồn tại.';
-
+      const message = 'Mã đặt lại mật khẩu đã được gửi đến email của bạn nếu tài khoản tồn tại.';
       toast.success(message);
       return { success: true, message };
     } catch (error) {
@@ -201,8 +201,8 @@ export const useAuth = () => {
     setIsSubmitting(true);
     setErrorMessage(null);
     try {
-      const response = await authApi.sendPhoneOtp({ phone });
-      const msg = response.data?.message || response.message || 'Mã OTP đã được gửi đến số điện thoại!';
+      await authApi.sendPhoneOtp({ phone });
+      const msg = 'Mã OTP đã được gửi đến số điện thoại của bạn!';
       toast.success(msg);
       return { success: true, message: msg };
     } catch (error) {
@@ -281,8 +281,8 @@ export const useAuth = () => {
     setIsSubmitting(true);
     setErrorMessage(null);
     try {
-      const response = await authApi.sendEmailOtp();
-      const msg = response.data?.message || response.message || 'Mã xác thực đã được gửi về email của bạn!';
+      await authApi.sendEmailOtp();
+      const msg = 'Mã xác thực OTP đã được gửi về email của bạn!';
       toast.success(msg);
       return { success: true, message: msg };
     } catch (error) {
