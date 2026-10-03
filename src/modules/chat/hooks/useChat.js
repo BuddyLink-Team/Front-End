@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { useSelector } from 'react-redux';
-import { toast } from 'react-hot-toast';
+import { useToast } from '../../../hooks/useToast.js';
+import { useMediaQuery } from '../../../hooks/useMediaQuery.js';
 import chatApi from '../api/chatApi.js';
 import useChatSocket from './useChatSocket.js';
 import {
@@ -11,6 +12,8 @@ import {
 } from '../constants/chatConstants.js';
 
 export const useChat = (initialConversationId = null) => {
+  const toast = useToast();
+  const isDesktop = useMediaQuery('(min-width: 1024px)');
   const currentParent = useSelector((state) => state.auth?.parent);
   const currentParentId = currentParent?._id || currentParent?.id;
 
@@ -28,10 +31,13 @@ export const useChat = (initialConversationId = null) => {
   const [messages, setMessages] = useState([]);
   const [isLoadingMessages, setIsLoadingMessages] = useState(false);
   const [isSending, setIsSending] = useState(false);
+  const [hasMoreMessages, setHasMoreMessages] = useState(false);
+  const [isLoadingOlder, setIsLoadingOlder] = useState(false);
 
   // Realtime Typing Indicator
   const [isPartnerTyping, setIsPartnerTyping] = useState(false);
   const typingTimeoutRef = useRef(null);
+  const emitReadStatusRef = useRef(null);
 
   // Attachment State
   const [selectedImageFile, setSelectedImageFile] = useState(null);
@@ -39,8 +45,8 @@ export const useChat = (initialConversationId = null) => {
 
   // Sync activeConversationId if initial prop changes
   useEffect(() => {
-    if (initialConversationId && initialConversationId !== activeConversationId) {
-      setActiveConversationId(initialConversationId);
+    if (initialConversationId) {
+      setActiveConversationId((prev) => (prev !== initialConversationId ? initialConversationId : prev));
     }
   }, [initialConversationId]);
 
@@ -53,19 +59,19 @@ export const useChat = (initialConversationId = null) => {
       setConversations(list);
 
       // Auto-select first conversation on desktop if none selected
-      if (!activeConversationId && list.length > 0 && window.innerWidth >= 1024) {
-        setActiveConversationId(list[0].id);
+      if (isDesktop && list.length > 0) {
+        setActiveConversationId((curr) => curr || list[0].id);
       }
-    } catch (error) {
-      console.error('[Chat] Failed to fetch conversations:', error);
+    } catch {
+      // Silently handle conversation fetch failure
     } finally {
       setIsLoadingConversations(false);
     }
-  }, [activeConversationId]);
+  }, [isDesktop]);
 
   useEffect(() => {
     fetchConversations();
-  }, []);
+  }, [fetchConversations]);
 
   // Update active conversation details from list or fetch if not present
   useEffect(() => {
@@ -84,7 +90,7 @@ export const useChat = (initialConversationId = null) => {
           const conv = res?.data || res;
           setActiveConversation(conv);
         })
-        .catch((err) => console.error('[Chat] Error fetching conversation:', err));
+        .catch(() => {});
     }
   }, [activeConversationId, conversations]);
 
@@ -94,24 +100,25 @@ export const useChat = (initialConversationId = null) => {
 
     let isMounted = true;
     setIsLoadingMessages(true);
+    setHasMoreMessages(false);
 
-    chatApi.getMessages(activeConversationId)
+    chatApi.getMessages(activeConversationId, { limit: 50 })
       .then((res) => {
         if (!isMounted) return;
         const msgList = res?.data || res || [];
         setMessages(msgList);
+        setHasMoreMessages(msgList.length >= 50);
 
-        // Mark as read on backend
+        // Mark as read on backend & emit socket read status
         chatApi.markAsRead(activeConversationId).catch(() => {});
+        emitReadStatusRef.current?.(activeConversationId);
 
         // Decrement local conversation unread count
         setConversations((prev) =>
           prev.map((c) => (c.id === activeConversationId ? { ...c, unreadCount: 0 } : c))
         );
       })
-      .catch((error) => {
-        console.error('[Chat] Failed to fetch messages:', error);
-      })
+      .catch(() => {})
       .finally(() => {
         if (isMounted) setIsLoadingMessages(false);
       });
@@ -120,6 +127,39 @@ export const useChat = (initialConversationId = null) => {
       isMounted = false;
     };
   }, [activeConversationId]);
+
+  // Load older messages (pagination with before & limit)
+  const loadOlderMessages = useCallback(async () => {
+    if (!activeConversationId || isLoadingOlder || !hasMoreMessages || messages.length === 0) {
+      return;
+    }
+
+    try {
+      setIsLoadingOlder(true);
+      const oldestMessage = messages[0];
+      const before = oldestMessage?.createdAt;
+
+      const res = await chatApi.getMessages(activeConversationId, { limit: 50, before });
+      const olderList = res?.data || res || [];
+
+      if (olderList.length < 50) {
+        setHasMoreMessages(false);
+      }
+
+      if (olderList.length > 0) {
+        setMessages((prev) => {
+          const existingIds = new Set(prev.map((m) => m.id));
+          const newUnique = olderList.filter((m) => !existingIds.has(m.id));
+          return [...newUnique, ...prev];
+        });
+      }
+    } catch {
+      toast.error('Không thể tải thêm tin nhắn cũ');
+    } finally {
+      setIsLoadingOlder(false);
+    }
+  }, [activeConversationId, isLoadingOlder, hasMoreMessages, messages, toast]);
+
 
   // 3. Socket Event Handlers
   const handleMessageReceived = useCallback((newMessage) => {
@@ -132,8 +172,9 @@ export const useChat = (initialConversationId = null) => {
         return [...prev, newMessage];
       });
 
-      // Mark as read immediately
+      // Mark as read immediately on backend and via socket
       chatApi.markAsRead(activeConversationId).catch(() => {});
+      emitReadStatusRef.current?.(activeConversationId);
     }
 
     // Update conversation in list (last message & unread badge)
@@ -186,28 +227,54 @@ export const useChat = (initialConversationId = null) => {
   const handleMessageRead = useCallback((data) => {
     if (data.conversationId === activeConversationId) {
       setMessages((prev) =>
-        prev.map((m) => ({
-          ...m,
-          isRead: true,
-        }))
+        prev.map((m) => {
+          const senderId =
+            m.senderId?._id ||
+            m.senderId?.id ||
+            m.senderId ||
+            m.sender?.id ||
+            m.sender?.parent ||
+            m.sender?._id;
+
+          // Only my outgoing messages turn into "Đã xem" when the other participant reads
+          const isMyMessage = currentParentId
+            ? String(senderId) === String(currentParentId)
+            : Boolean(m.isMine);
+
+          if (isMyMessage && String(data.parentId) !== String(currentParentId)) {
+            return {
+              ...m,
+              isRead: true,
+            };
+          }
+          return m;
+        })
       );
     }
-  }, [activeConversationId]);
+  }, [activeConversationId, currentParentId]);
 
   const handleConversationUpdated = useCallback((updatedConv) => {
     if (!updatedConv) return;
-    setConversations((prev) =>
-      prev.map((c) => (c.id === updatedConv.id ? { ...c, ...updatedConv } : c))
-    );
+    setConversations((prev) => {
+      const exists = prev.some((c) => c.id === updatedConv.id);
+      if (!exists) {
+        return [updatedConv, ...prev];
+      }
+      return prev.map((c) => (c.id === updatedConv.id ? { ...c, ...updatedConv } : c));
+    });
   }, []);
 
-  const { emitSendMessage, emitTyping } = useChatSocket({
+  const { emitSendMessage, emitTyping, emitReadStatus } = useChatSocket({
     conversationId: activeConversationId,
     onMessageReceived: handleMessageReceived,
     onUserTyping: handleUserTyping,
     onMessageRead: handleMessageRead,
     onConversationUpdated: handleConversationUpdated,
   });
+
+  useEffect(() => {
+    emitReadStatusRef.current = emitReadStatus;
+  }, [emitReadStatus]);
 
   // 4. Send Message Handler (with image upload if attached)
   const handleSendMessage = async (text) => {
@@ -237,13 +304,23 @@ export const useChat = (initialConversationId = null) => {
       // Send via socket with REST fallback
       emitSendMessage(payload, async (ack) => {
         if (!ack || !ack.success) {
+          // If blocked or business rejection, display error directly
+          if (ack?.code === 'USER_BLOCKED' || ack?.error?.includes('chặn') || ack?.error?.includes('blocked')) {
+            toast.error(ack.error || 'Không thể gửi tin nhắn vì một trong hai người đã chặn nhau.');
+            return;
+          }
+
           // Fallback to REST API
           try {
             const restRes = await chatApi.sendMessage(activeConversationId, payload);
             const msg = restRes?.data || restRes;
             handleMessageReceived(msg);
           } catch (err) {
-            toast.error('Không thể gửi tin nhắn. Vui lòng thử lại.');
+            const errorMsg =
+              err?.response?.data?.message ||
+              err?.message ||
+              'Không thể gửi tin nhắn. Vui lòng thử lại.';
+            toast.error(errorMsg);
           }
         }
       });
@@ -252,9 +329,9 @@ export const useChat = (initialConversationId = null) => {
       setSelectedImageFile(null);
       setImagePreviewUrl(null);
     } catch (error) {
-      console.error('[Chat] Send message failed:', error);
-      toast.error('Gửi tin nhắn thất bại.');
+      toast.error(error?.message || 'Gửi tin nhắn thất bại.');
     } finally {
+
       setIsSending(false);
     }
   };
@@ -262,8 +339,10 @@ export const useChat = (initialConversationId = null) => {
   // Image Selection & Preview
   const handleSelectImage = (file) => {
     if (!file) return;
-    // accept attribute is only a hint (users can pick "All files"), so validate the type here too
-    if (!ALLOWED_IMAGE_TYPES.includes(file.type)) {
+    const isValidMime = ALLOWED_IMAGE_TYPES.includes(file.type);
+    const hasValidExt = /\.(jpe?g|png|webp|gif)$/i.test(file.name || '');
+
+    if (!isValidMime || !hasValidExt) {
       toast.error('Chỉ hỗ trợ ảnh JPG, PNG, WEBP hoặc GIF');
       return;
     }
@@ -332,6 +411,9 @@ export const useChat = (initialConversationId = null) => {
     isLoadingMessages,
     isSending,
     isPartnerTyping,
+    hasMoreMessages,
+    isLoadingOlder,
+    loadOlderMessages,
     selectedImageFile,
     imagePreviewUrl,
     handleSelectImage,

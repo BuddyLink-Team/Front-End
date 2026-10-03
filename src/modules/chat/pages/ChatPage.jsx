@@ -24,6 +24,9 @@ export const ChatPage = () => {
     isLoadingMessages,
     isSending,
     isPartnerTyping,
+    hasMoreMessages,
+    isLoadingOlder,
+    loadOlderMessages,
     selectedImageFile,
     imagePreviewUrl,
     handleSelectImage,
@@ -50,7 +53,7 @@ export const ChatPage = () => {
   };
 
   return (
-    <div className="chat-layout-height max-w-[1240px] mx-auto px-3 sm:px-6 py-3 flex gap-4 overflow-hidden">
+    <div className="chat-layout-height w-full flex gap-4 overflow-hidden">
       {/* Cột trái (320px-380px): Danh sách hội thoại */}
       <ConversationList
         conversations={conversations}
@@ -73,6 +76,9 @@ export const ChatPage = () => {
           isLoadingMessages={isLoadingMessages}
           isSending={isSending}
           isPartnerTyping={isPartnerTyping}
+          hasMoreMessages={hasMoreMessages}
+          isLoadingOlder={isLoadingOlder}
+          onLoadOlderMessages={loadOlderMessages}
           selectedImageFile={selectedImageFile}
           imagePreviewUrl={imagePreviewUrl}
           onSelectImage={handleSelectImage}

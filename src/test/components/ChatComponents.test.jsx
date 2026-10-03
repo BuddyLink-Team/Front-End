@@ -5,8 +5,18 @@ import { ConversationList } from '../../modules/chat/components/ConversationList
 import { MessageItem } from '../../modules/chat/components/MessageItem';
 import { EmptyChatState } from '../../modules/chat/components/EmptyChatState';
 import { EmojiPopover } from '../../modules/chat/components/EmojiPopover';
+import { DirectChatView } from '../../modules/chat/components/DirectChatView';
+
+vi.mock('react-router-dom', () => ({
+  useNavigate: () => vi.fn(),
+}));
+
+vi.mock('react-redux', () => ({
+  useSelector: (fn) => fn({ auth: { parent: { _id: 'my-parent-id' } } }),
+}));
 
 describe('Chat UI Components (TASK-FE-10)', () => {
+
   const mockConversations = [
     {
       id: 'conv-1',
@@ -109,4 +119,94 @@ describe('Chat UI Components (TASK-FE-10)', () => {
     expect(handleSelect).toHaveBeenCalledWith('😊');
     expect(handleClose).toHaveBeenCalled();
   });
+
+  it('5. MessageItem: should correctly determine isMine using currentParentId even if message.isMine was incorrect', () => {
+    // Partner's message that erroneously arrived with isMine: true from broadcast
+    const partnerMessage = {
+      id: 'msg-err-1',
+      content: 'Tin nhắn từ đối phương',
+      senderId: 'partner-id-123',
+      isMine: true, // Error from broadcast
+      createdAt: new Date().toISOString(),
+    };
+
+    const { rerender } = render(
+      <MessageItem
+        message={partnerMessage}
+        currentParentId="my-id-456"
+        partnerName="Mẹ Lan Anh"
+      />
+    );
+
+    // Should render as partner message (with partner avatar and without "Đã gửi" / "Đã xem" tick)
+    expect(screen.getByText('Tin nhắn từ đối phương')).toBeInTheDocument();
+    expect(screen.queryByText('Đã gửi')).not.toBeInTheDocument();
+
+    // Now my own message
+    const myMessage = {
+      id: 'msg-mine-1',
+      content: 'Tin nhắn từ chính tôi',
+      senderId: 'my-id-456',
+      isMine: false,
+      createdAt: new Date().toISOString(),
+    };
+
+    rerender(
+      <MessageItem
+        message={myMessage}
+        currentParentId="my-id-456"
+        partnerName="Mẹ Lan Anh"
+      />
+    );
+
+    expect(screen.getByText('Tin nhắn từ chính tôi')).toBeInTheDocument();
+    expect(screen.getByText('Đã gửi')).toBeInTheDocument();
+  });
+
+  it('6. DirectChatView: should render pagination button when hasMoreMessages is true', () => {
+    window.HTMLElement.prototype.scrollIntoView = vi.fn();
+    const handleLoadOlder = vi.fn();
+
+    const mockConv = {
+      id: 'conv-1',
+      partner: {
+        id: 'p-1',
+        fullName: 'Mẹ Lan Anh',
+        location: { area: 'Quận Cầu Giấy, Hà Nội' },
+        isOnline: false,
+      },
+    };
+
+    render(
+      <DirectChatView
+        conversation={mockConv}
+        messages={[
+          {
+            id: 'msg-old-1',
+            content: 'Tin nhắn hôm qua',
+            createdAt: '2026-10-02T10:00:00.000Z',
+            senderId: 'p-1',
+          },
+        ]}
+        hasMoreMessages={true}
+        onLoadOlderMessages={handleLoadOlder}
+      />
+    );
+
+    const loadMoreBtn = screen.getByText('Tải tin nhắn cũ hơn');
+    expect(loadMoreBtn).toBeInTheDocument();
+    fireEvent.click(loadMoreBtn);
+    expect(handleLoadOlder).toHaveBeenCalled();
+
+    // Verify location is accurately displayed and not hardcoded to TP. Hồ Chí Minh
+    expect(screen.getByText('Quận Cầu Giấy, Hà Nội')).toBeInTheDocument();
+    expect(screen.queryByText('TP. Hồ Chí Minh')).not.toBeInTheDocument();
+
+    // Verify Voice call dialog triggers
+    const phoneBtn = screen.getByTitle('Gọi thoại an tâm');
+    fireEvent.click(phoneBtn);
+    expect(screen.getByText('Gọi thoại An tâm')).toBeInTheDocument();
+    expect(screen.getByText(/Tính năng Gọi thoại An tâm đang trong giai đoạn hoàn thiện/)).toBeInTheDocument();
+  });
 });
+

@@ -17,6 +17,7 @@ import { Button } from '../ui/Button';
 import { Dropdown, DropdownItem, DropdownDivider } from '../ui/Dropdown';
 import { logout } from '../../modules/auth/redux/authSlice';
 import { clearParentState } from '../../modules/parent/redux/parentSlice';
+import socketService from '../../services/socket';
 import { NAV_LINKS } from '../../constants/navigation.constants';
 import logoImg from '../../assets/images/logo.png';
 
@@ -28,6 +29,7 @@ export const Navbar = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const handleLogout = () => {
+    socketService.disconnect();
     dispatch(logout());
     dispatch(clearParentState());
     navigate('/');

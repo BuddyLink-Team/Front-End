@@ -10,10 +10,11 @@ class SocketService {
 
   connect() {
     if (!this.socket) {
-      const token = localStorage.getItem(STORAGE_KEYS.ACCESS_TOKEN);
       this.socket = io(socketURL, {
-        auth: {
-          token,
+        auth: (cb) => {
+          cb({
+            token: localStorage.getItem(STORAGE_KEYS.ACCESS_TOKEN),
+          });
         },
         autoConnect: true,
         reconnection: true,
@@ -34,6 +35,12 @@ class SocketService {
       });
     }
     return this.socket;
+  }
+
+  updateToken(token) {
+    if (this.socket) {
+      this.socket.auth = { token };
+    }
   }
 
   disconnect() {
