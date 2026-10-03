@@ -22,6 +22,7 @@ import { Dropdown, DropdownItem } from '../../../components/ui/Dropdown';
 import { MessageItem } from './MessageItem.jsx';
 import { EmojiPopover } from './EmojiPopover.jsx';
 import { cn } from '../../../utils/cn';
+import { ALLOWED_IMAGE_TYPES } from '../constants/chatConstants.js';
 
 export const DirectChatView = ({
   conversation,
@@ -306,8 +307,10 @@ export const DirectChatView = ({
               if (e.target.files?.[0]) {
                 onSelectImage(e.target.files[0]);
               }
+              // Reset so selecting the same file again still triggers onChange
+              e.target.value = '';
             }}
-            accept="image/*"
+            accept={ALLOWED_IMAGE_TYPES.join(',')}
             className="hidden"
           />
 

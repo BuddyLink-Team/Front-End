@@ -3,7 +3,12 @@ import { useSelector } from 'react-redux';
 import { toast } from 'react-hot-toast';
 import chatApi from '../api/chatApi.js';
 import useChatSocket from './useChatSocket.js';
-import { CONVERSATION_TYPES, MESSAGE_TYPES } from '../constants/chatConstants.js';
+import {
+  CONVERSATION_TYPES,
+  MESSAGE_TYPES,
+  ALLOWED_IMAGE_TYPES,
+  MAX_IMAGE_SIZE_BYTES,
+} from '../constants/chatConstants.js';
 
 export const useChat = (initialConversationId = null) => {
   const currentParent = useSelector((state) => state.auth?.parent);
@@ -257,7 +262,12 @@ export const useChat = (initialConversationId = null) => {
   // Image Selection & Preview
   const handleSelectImage = (file) => {
     if (!file) return;
-    if (file.size > 5 * 1024 * 1024) {
+    // accept attribute is only a hint (users can pick "All files"), so validate the type here too
+    if (!ALLOWED_IMAGE_TYPES.includes(file.type)) {
+      toast.error('Chỉ hỗ trợ ảnh JPG, PNG, WEBP hoặc GIF');
+      return;
+    }
+    if (file.size > MAX_IMAGE_SIZE_BYTES) {
       toast.error('Kích thước ảnh không được vượt quá 5MB');
       return;
     }
