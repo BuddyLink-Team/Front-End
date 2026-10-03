@@ -16,7 +16,8 @@ export const Switch = React.forwardRef(
     },
     ref
   ) => {
-    const switchId = id || props.name || React.useId();
+    const generatedId = React.useId();
+    const switchId = id || props.name || generatedId;
 
     const sizes = {
       sm: {

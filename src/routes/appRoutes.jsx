@@ -15,6 +15,7 @@ import AuthPage from '../modules/auth/pages/AuthPage';
 import ForgotPasswordPage from '../modules/auth/pages/ForgotPasswordPage';
 import VerifyOtpPage from '../modules/auth/pages/VerifyOtpPage';
 import OnboardingChildPage from '../modules/child/pages/OnboardingChildPage';
+import ChatPage from '../modules/chat/pages/ChatPage';
 
 
 /**
