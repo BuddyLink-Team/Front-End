@@ -7,6 +7,11 @@ import ParentProfilePage from '../modules/parent/pages/ParentProfilePage';
 import ChildrenManagementPage from '../modules/child/pages/ChildrenManagementPage';
 import ChildFormPage from '../modules/child/pages/ChildFormPage';
 
+import SubscriptionPage from '../modules/subscription/pages/SubscriptionPage';
+import CheckoutPage from '../modules/subscription/pages/CheckoutPage';
+import PaymentSuccessPage from '../modules/subscription/pages/PaymentSuccessPage';
+import PaymentCancelPage from '../modules/subscription/pages/PaymentCancelPage';
+
 /**
  * Full route definitions for Parent features.
  */
@@ -91,11 +96,11 @@ export const ParentRoutes = () => (
       element={<PlaceholderPage title="Huy hiệu & Chuỗi Streak" description="Theo dõi chuỗi Playdate hàng tuần và bộ sưu tập huy hiệu đạt được." />}
     />
 
-    {/* Premium Subscription */}
-    <Route
-      path="/subscription"
-      element={<PlaceholderPage title="Gói hội viên Premium" description="Xem các gói quyền lợi thành viên và cổng thanh toán PayOS." />}
-    />
+    {/* Premium Subscription & PayOS Checkout */}
+    <Route path="/subscription" element={<SubscriptionPage />} />
+    <Route path="/checkout" element={<CheckoutPage />} />
+    <Route path="/payment/success" element={<PaymentSuccessPage />} />
+    <Route path="/payment/cancel" element={<PaymentCancelPage />} />
 
     {/* Safety & Settings */}
     <Route

@@ -1,13 +1,16 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useDispatch } from 'react-redux';
 import { Baby, Plus, RefreshCw, Crown } from 'lucide-react';
 import { Button, Spinner, EmptyState, ConfirmDialog } from '../../../components';
 import { ChildCard } from '../components';
 import { useChildrenList } from '../hooks/useChildrenList';
 import { useSubscriptionQuota } from '../../subscription/hooks/useSubscriptionQuota';
+import { openPaywall } from '../../subscription/redux/subscriptionSlice';
 
 export const ChildrenManagementPage = () => {
   const navigate = useNavigate();
+  const dispatch = useDispatch();
   const {
     children,
     isLoading: isChildrenLoading,
@@ -104,19 +107,26 @@ export const ChildrenManagementPage = () => {
           type="button"
           onClick={() => {
             if (isChildLimitReached) {
-              navigate('/subscription');
+              dispatch(
+                openPaywall({
+                  feature: 'child_profiles',
+                  title: 'Đã Đạt Hạn Mức 1 Hồ Sơ Bé',
+                  message:
+                    'Gói Miễn phí chỉ hỗ trợ tối đa 1 hồ sơ bé. Nâng cấp Premium để quản lý không giới hạn hồ sơ bé cho cả gia đình!',
+                })
+              );
             } else {
               navigate('/children/create');
             }
           }}
           className={`px-5 py-3 rounded-xl shadow-md font-semibold text-sm self-start sm:self-auto shrink-0 ${
             isChildLimitReached
-              ? 'bg-amber-600 hover:bg-amber-700 text-white'
+              ? 'bg-primary-container text-on-primary-container hover:bg-primary hover:text-on-primary'
               : ''
           }`}
           leftIcon={
             isChildLimitReached ? (
-              <Crown className="w-4 h-4 text-white" />
+              <Crown className="w-4 h-4 text-primary" />
             ) : (
               <Plus className="w-4 h-4" />
             )

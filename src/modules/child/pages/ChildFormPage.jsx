@@ -1,28 +1,21 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import {
   Baby,
   ArrowLeft,
   Save,
   Sparkles,
-  Heart,
-  Smile,
   Trash2,
-  Crown,
-  ArrowRight,
 } from 'lucide-react';
 import {
   Card,
   Button,
   Spinner,
   ConfirmDialog,
-  Modal,
 } from '../../../components';
 import { ChildBasicInfoStep, ChildInterestsStep } from '../components';
 import { useChildForm } from '../hooks/useChildForm';
 
 export const ChildFormPage = () => {
-  const navigate = useNavigate();
   const {
     isEditMode,
     formData,
@@ -30,8 +23,6 @@ export const ChildFormPage = () => {
     isLoading,
     isDeleting,
     isFetchingChild,
-    quotaExceededError,
-    setQuotaExceededError,
     updateField,
     toggleArrayItem,
     handleSubmit,
@@ -157,64 +148,6 @@ export const ChildFormPage = () => {
           }
         }}
       />
-
-      {/* Quota Exceeded Modal */}
-      <Modal
-        open={Boolean(quotaExceededError)}
-        onClose={() => setQuotaExceededError(null)}
-        title="Đã đạt giới hạn hồ sơ bé"
-        size="md"
-      >
-        <div className="space-y-5 py-2">
-          <div className="w-14 h-14 rounded-2xl bg-amber-500/10 text-amber-600 flex items-center justify-center mx-auto">
-            <Crown className="w-7 h-7" />
-          </div>
-
-          <div className="text-center space-y-2">
-            <h3 className="text-base font-bold text-on-surface">
-              Nâng cấp gói Premium để tạo thêm hồ sơ bé
-            </h3>
-            <p className="text-sm text-text-muted leading-relaxed">
-              {quotaExceededError ||
-                'Gói hiện tại chỉ cho phép quản lý tối đa 1 hồ sơ bé. Nâng cấp lên gói Premium để quản lý không giới hạn con và mở khóa đầy đủ tính năng kết nối!'}
-            </p>
-          </div>
-
-          <div className="bg-surface-container rounded-2xl p-4 space-y-2 text-xs text-text-muted">
-            <div className="flex items-center gap-2 text-on-surface font-semibold">
-              <Sparkles className="w-4 h-4 text-amber-500" />
-              <span>Đặc quyền gói Premium:</span>
-            </div>
-            <ul className="list-disc list-inside space-y-1 pl-1">
-              <li>Quản lý không giới hạn số lượng hồ sơ con</li>
-              <li>Không giới hạn lượt khám phá & gửi yêu cầu kết nối</li>
-              <li>Tạo và tham gia các buổi Playdate không giới hạn</li>
-              <li>Hỏi đáp không giới hạn với Trợ lý AI</li>
-            </ul>
-          </div>
-
-          <div className="flex items-center justify-end gap-3 pt-2">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => setQuotaExceededError(null)}
-            >
-              Để sau
-            </Button>
-            <Button
-              type="button"
-              onClick={() => {
-                setQuotaExceededError(null);
-                navigate('/subscription');
-              }}
-              className="bg-amber-600 hover:bg-amber-700 text-white font-semibold"
-              rightIcon={<ArrowRight className="w-4 h-4" />}
-            >
-              Nâng cấp Premium ngay
-            </Button>
-          </div>
-        </div>
-      </Modal>
     </Card>
   );
 };

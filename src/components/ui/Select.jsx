@@ -18,7 +18,8 @@ export const Select = React.forwardRef(
     },
     ref
   ) => {
-    const selectId = id || props.name || React.useId();
+    const generatedId = React.useId();
+    const selectId = id || props.name || generatedId;
 
     return (
       <div className="w-full space-y-1.5 text-left">

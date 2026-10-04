@@ -17,7 +17,8 @@ export const Checkbox = React.forwardRef(
     },
     ref
   ) => {
-    const checkboxId = id || props.name || React.useId();
+    const generatedId = React.useId();
+    const checkboxId = id || props.name || generatedId;
 
     const inputProps = {
       ref,

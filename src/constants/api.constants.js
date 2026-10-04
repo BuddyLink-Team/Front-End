@@ -58,6 +58,8 @@ export const API_ENDPOINTS = {
     PLANS: '/subscriptions/plans',
     CHECKOUT: '/subscriptions/checkout',
     MY_QUOTA: '/subscriptions/my',
+    VERIFY_PAYMENT: (orderCode) => `/subscriptions/payments/verify/${orderCode}`,
+    HISTORY: '/subscriptions/payments/history',
   },
   RATING_FEEDBACK: {
     BASE: '/ratings',
