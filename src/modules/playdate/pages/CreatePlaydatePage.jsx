@@ -68,7 +68,7 @@ export const CreatePlaydatePage = () => {
   } = useCreatePlaydate();
 
   return (
-    <div className="max-w-4xl mx-auto pb-16 space-y-6">
+    <div className="w-full pb-16 space-y-6">
       {/* Top Header & Breadcrumb */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex items-center gap-3">
@@ -122,7 +122,7 @@ export const CreatePlaydatePage = () => {
             </div>
 
             {isLoadingInitialData ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
                 <div className="h-16 bg-surface-subtle rounded-2xl animate-pulse" />
                 <div className="h-16 bg-surface-subtle rounded-2xl animate-pulse" />
               </div>
@@ -139,7 +139,7 @@ export const CreatePlaydatePage = () => {
                 </Button>
               </div>
             ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
                 {myChildren.map((child) => {
                   const childId = (child._id || child.id)?.toString();
                   const isSelected = selectedChildId === childId;
@@ -223,7 +223,7 @@ export const CreatePlaydatePage = () => {
                 </Button>
               </div>
             ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-60 overflow-y-auto pr-1">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 max-h-72 overflow-y-auto pr-1">
                 {friends.map((friend) => (
                   <div
                     key={friend.id}

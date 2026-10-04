@@ -51,7 +51,7 @@ export const PlaydateDetailPage = () => {
 
   if (isLoading) {
     return (
-      <div className="max-w-4xl mx-auto py-12 px-4 space-y-6 animate-pulse">
+      <div className="w-full py-12 px-4 space-y-6 animate-pulse">
         <div className="h-10 bg-surface-subtle rounded-xl w-1/3" />
         <div className="h-64 bg-surface-subtle rounded-2xl" />
         <div className="h-48 bg-surface-subtle rounded-2xl" />
@@ -67,7 +67,7 @@ export const PlaydateDetailPage = () => {
   ).length;
 
   return (
-    <div className="max-w-4xl mx-auto pb-16 space-y-6">
+    <div className="w-full pb-16 space-y-6">
       {/* Top Header & Breadcrumb */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex items-center gap-3">

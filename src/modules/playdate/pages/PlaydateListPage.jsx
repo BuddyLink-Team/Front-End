@@ -78,7 +78,7 @@ export const PlaydateListPage = () => {
   };
 
   return (
-    <div className="space-y-6 md:space-y-7 pb-16 max-w-6xl mx-auto">
+    <div className="w-full space-y-6 md:space-y-7 pb-16">
       {/* 1. Page Header matching Stitch layout */}
       <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-5 bg-white p-6 sm:p-7 rounded-3xl border border-slate-100 shadow-xs">
         <div className="space-y-2">
