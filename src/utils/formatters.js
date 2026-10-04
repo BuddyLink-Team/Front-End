@@ -95,3 +95,17 @@ export const maskEmail = (email) => {
   const maskedName = name.length > 2 ? `${name.slice(0, 2)}***` : `${name}***`;
   return `${maskedName}@${domain}`;
 };
+
+/**
+ * Return date in local YYYY-MM-DD format (avoids UTC timezone shift issues).
+ *
+ * @param {Date|string|number} [date=new Date()]
+ * @returns {string} Date string in YYYY-MM-DD format
+ */
+export const getLocalDateString = (date = new Date()) => {
+  const d = new Date(date);
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};

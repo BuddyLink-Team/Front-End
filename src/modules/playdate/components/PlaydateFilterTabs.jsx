@@ -15,7 +15,7 @@ export const PlaydateFilterTabs = ({
   return (
     <div
       className={cn(
-        'inline-flex items-center p-1 bg-[#f0f4f2] rounded-full border border-hairline overflow-x-auto max-w-full no-scrollbar',
+        'inline-flex items-center p-1 bg-surface-container-low rounded-full border border-hairline overflow-x-auto max-w-full no-scrollbar',
         className
       )}
     >

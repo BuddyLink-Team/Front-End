@@ -5,7 +5,6 @@ import { Toaster } from 'react-hot-toast';
 import { GoogleOAuthProvider } from '@react-oauth/google';
 import { store } from './app/store';
 import AppRoutes from './routes/appRoutes';
-import { ScrollToTop } from './components';
 
 const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID || '';
 
@@ -14,7 +13,6 @@ export function App() {
     <Provider store={store}>
       <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
         <BrowserRouter>
-          <ScrollToTop />
           <AppRoutes />
           <Toaster position="top-right" reverseOrder={false} />
         </BrowserRouter>

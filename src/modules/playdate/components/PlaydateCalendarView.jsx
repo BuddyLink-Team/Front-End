@@ -138,7 +138,7 @@ export const PlaydateCalendarView = ({
             <CalendarIcon className="w-5 h-5" />
           </div>
           <div>
-            <h2 className="text-lg md:text-xl font-bold text-text-primary capitalize">
+            <h2 className="text-lg md:text-xl font-semibold text-text-primary capitalize">
               {currentDate.toLocaleDateString('vi-VN', { month: 'long', year: 'numeric' })}
             </h2>
             <p className="text-xs text-text-muted">
@@ -157,7 +157,7 @@ export const PlaydateCalendarView = ({
           >
             Hôm nay
           </Button>
-          <div className="flex items-center border border-hairline rounded-xl overflow-hidden bg-[#fafbf9]">
+          <div className="flex items-center border border-hairline rounded-xl overflow-hidden bg-surface-subtle">
             <button
               type="button"
               onClick={handlePrevMonth}
@@ -181,7 +181,7 @@ export const PlaydateCalendarView = ({
       {/* Calendar Grid Container */}
       <div className="bg-white rounded-2xl border border-hairline shadow-2xs overflow-hidden">
         {/* Days of week header */}
-        <div className="grid grid-cols-7 border-b border-hairline bg-[#fafbf9] text-center text-xs font-semibold text-text-muted">
+        <div className="grid grid-cols-7 border-b border-hairline bg-surface-subtle text-center text-xs font-semibold text-text-muted">
           {DAYS_OF_WEEK.map((d, i) => (
             <div key={d} className={`py-3 ${i >= 5 ? 'text-primary-dark' : ''}`}>
               {d}
@@ -202,7 +202,7 @@ export const PlaydateCalendarView = ({
                 onClick={() => setSelectedDate(cell.date)}
                 className={`min-h-[90px] md:min-h-[110px] p-2 flex flex-col justify-between cursor-pointer transition-colors relative ${
                   !cell.isCurrentMonth
-                    ? 'bg-[#fcfdfc]/60 text-text-muted/40'
+                    ? 'bg-surface-subtle/50 text-text-muted/40'
                     : 'bg-white hover:bg-primary/5'
                 } ${active ? 'bg-primary/10 ring-2 ring-inset ring-primary' : ''}`}
               >
@@ -223,7 +223,7 @@ export const PlaydateCalendarView = ({
                   </span>
 
                   {hasEvents && (
-                    <span className="text-[10px] font-bold text-text-muted bg-[#fafbf9] border border-hairline px-1.5 py-0.2 rounded-full">
+                    <span className="text-[10px] font-semibold text-text-muted bg-surface-subtle border border-hairline px-1.5 py-0.2 rounded-full">
                       {cell.events.length}
                     </span>
                   )}
@@ -262,7 +262,7 @@ export const PlaydateCalendarView = ({
       <div className="space-y-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <h3 className="text-base font-bold text-text-primary">
+            <h3 className="text-base font-semibold text-text-primary">
               Lịch trình ngày {selectedDate.toLocaleDateString('vi-VN', { weekday: 'long', day: '2-digit', month: '2-digit', year: 'numeric' })}
             </h3>
             <span className="text-xs px-2.5 py-0.5 rounded-full bg-primary/10 text-primary-dark font-semibold">

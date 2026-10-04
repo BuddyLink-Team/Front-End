@@ -117,9 +117,9 @@ export const LandingPage = () => {
           <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-[1600px] h-[650px] bg-gradient-to-b from-[#eaf3ec]/40 via-[#f0f3ff]/20 to-transparent pointer-events-none -z-10" />
 
           <div className="max-w-[1600px] mx-auto px-6 sm:px-10 lg:px-16">
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-14 items-center">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-center">
               {/* Left Column: Heading & Value Proposition */}
-              <div className="lg:col-span-8 space-y-6 text-center lg:text-left">
+              <div className="lg:col-span-7 space-y-6 text-center lg:text-left">
                 {/* AI Badge pill */}
                 <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#eaf3ec] text-[#3d6841] text-xs font-semibold border border-[#d2e7d7] shadow-xs">
                   <Sparkles className="w-4 h-4 text-primary fill-primary/20" />
@@ -186,14 +186,14 @@ export const LandingPage = () => {
               </div>
 
               {/* Right Column: Interactive Match Preview Card */}
-              <div className="lg:col-span-4 relative">
+              <div className="lg:col-span-5 relative">
                 <div className="relative mx-auto max-w-md lg:max-w-none">
                   {/* Decorative Glow Elements */}
                   <div className="absolute -top-12 -right-12 w-72 h-72 bg-primary/15 rounded-full blur-3xl pointer-events-none" />
                   <div className="absolute -bottom-12 -left-12 w-72 h-72 bg-secondary/20 rounded-full blur-3xl pointer-events-none" />
 
                   {/* Main Preview Card */}
-                  <Card className="relative bg-white border border-hairline shadow-[0_20px_50px_rgba(45,55,72,0.08)] rounded-3xl p-6 space-y-5">
+                  <Card className="relative bg-white border border-hairline shadow-[0_20px_50px_rgba(45,55,72,0.08)] rounded-3xl p-6 sm:p-8 space-y-6">
                     {/* Header with Child Avatar and Verified Badge */}
                     <div className="flex items-start justify-between">
                       <div className="flex items-center gap-3.5">
@@ -230,27 +230,6 @@ export const LandingPage = () => {
                         <InterestTag label="Lego" />
                         <InterestTag label="Vẽ tranh" />
                         <InterestTag label="Vận động" />
-                      </div>
-                    </div>
-
-                    {/* Personality Traits */}
-                    <div className="space-y-2">
-                      <span className="text-xs font-semibold text-text-primary block">
-                        Tính cách:
-                      </span>
-                      <div className="flex flex-wrap gap-1.5">
-                        <InterestTag
-                          label="Sáng tạo"
-                          className="bg-amber-500/10 text-amber-800 border-amber-500/20"
-                        />
-                        <InterestTag
-                          label="Hòa đồng"
-                          className="bg-amber-500/10 text-amber-800 border-amber-500/20"
-                        />
-                        <InterestTag
-                          label="Tò mò"
-                          className="bg-amber-500/10 text-amber-800 border-amber-500/20"
-                        />
                       </div>
                     </div>
                     {/* Action Call to Action */}

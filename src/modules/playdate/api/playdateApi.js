@@ -61,7 +61,7 @@ export const playdateApi = {
    * Search nearby child-friendly venues adapter (parks, cafes, playgrounds)
    */
   getNearbyPlaces: (params = {}) =>
-    apiClient.get('/places/nearby', { params }),
+    apiClient.get(API_ENDPOINTS.PLACES.NEARBY, { params }),
 };
 
 export default playdateApi;

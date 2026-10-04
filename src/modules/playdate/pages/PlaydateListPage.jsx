@@ -41,7 +41,7 @@ export const PlaydateListPage = () => {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-6 rounded-2xl border border-hairline shadow-2xs">
         <div className="space-y-1">
           <div className="flex items-center gap-2">
-            <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-text-primary">
+            <h1 className="text-2xl md:text-3xl font-semibold tracking-tight text-text-primary">
               Quản lý Playdate & Lịch hẹn
             </h1>
             <span className="inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-0.5 rounded-full bg-primary/10 text-primary-dark border border-primary/20">
@@ -92,7 +92,7 @@ export const PlaydateListPage = () => {
             </div>
 
             {/* View Switcher Button Group */}
-            <div className="inline-flex items-center p-1 bg-[#f0f4f2] rounded-xl border border-hairline">
+            <div className="inline-flex items-center p-1 bg-surface-container-low rounded-xl border border-hairline">
               <button
                 type="button"
                 onClick={() => handleViewModeChange(PLAYDATE_VIEW_MODES.LIST)}

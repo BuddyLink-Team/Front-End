@@ -14,6 +14,9 @@ import { Input } from '../../../components/ui/Input';
 import { Textarea } from '../../../components/ui/Textarea';
 import { PlaceSearchModal } from './PlaceSearchModal';
 import { playdateApi } from '../api/playdateApi';
+import { getApiErrorMsg } from '../../../utils/errorUtils';
+import { PLAYDATE_ERROR_MAP } from '../../../constants/playdate.constants';
+import { getLocalDateString } from '../../../utils/formatters';
 
 const TIME_PRESETS = [
   '09:00 - 11:00',
@@ -41,7 +44,7 @@ export const RescheduleModal = ({
   // Place search modal
   const [showPlaceSearch, setShowPlaceSearch] = useState(false);
 
-  const todayStr = new Date().toISOString().split('T')[0];
+  const todayStr = getLocalDateString();
 
   if (!isOpen) return null;
 
@@ -79,7 +82,7 @@ export const RescheduleModal = ({
 
       const res = await playdateApi.createReschedule(playdate.id || playdate._id, payload);
 
-      if (res.data?.data?.isAutoApplied) {
+      if (res?.data?.isAutoApplied || res?.isAutoApplied) {
         toast.success('🎉 Đã cập nhật lịch hẹn mới thành công!');
       } else {
         toast.success('Đã gửi đề xuất đổi lịch đến các phụ huynh tham gia.');
@@ -88,7 +91,7 @@ export const RescheduleModal = ({
       if (onSuccess) onSuccess();
       onClose();
     } catch (err) {
-      const msg = err?.response?.data?.message || 'Có lỗi xảy ra khi gửi đề xuất đổi lịch';
+      const msg = getApiErrorMsg(PLAYDATE_ERROR_MAP, err, 'Có lỗi xảy ra khi gửi đề xuất đổi lịch');
       toast.error(msg);
     } finally {
       setIsSubmitting(false);
@@ -106,15 +109,15 @@ export const RescheduleModal = ({
   return (
     <>
       <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/45 backdrop-blur-xs animate-in fade-in">
-        <div className="bg-white rounded-3xl max-w-lg w-full p-6 space-y-5 shadow-xl border border-hairline max-h-[90vh] overflow-y-auto">
+        <div className="bg-white rounded-2xl max-w-lg w-full p-6 space-y-5 shadow-xl border border-hairline max-h-[90vh] overflow-y-auto">
           {/* Header */}
           <div className="flex items-center justify-between pb-2 border-b border-hairline">
             <div className="flex items-center gap-2.5">
-              <div className="w-10 h-10 rounded-2xl bg-amber-100/80 text-amber-700 flex items-center justify-center">
+              <div className="w-10 h-10 rounded-xl bg-tertiary-fixed/30 text-tertiary-dark flex items-center justify-center">
                 <CalendarIcon className="w-5 h-5" />
               </div>
               <div>
-                <h3 className="text-lg font-bold text-text-primary">
+                <h3 className="text-lg font-semibold text-text-primary">
                   Đề xuất đổi lịch Playdate
                 </h3>
                 <p className="text-xs text-text-muted">
@@ -196,7 +199,7 @@ export const RescheduleModal = ({
             <div className="space-y-2 pt-1 border-t border-hairline">
               <div className="flex items-center justify-between">
                 <label className="text-xs font-semibold text-text-primary flex items-center gap-1.5">
-                  <MapPin className="w-3.5 h-3.5 text-red-500" />
+                  <MapPin className="w-3.5 h-3.5 text-primary" />
                   Địa điểm mới (tùy chọn)
                 </label>
                 <Button

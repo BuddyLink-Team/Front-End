@@ -98,4 +98,16 @@ describe('CreatePlaydatePage Component', () => {
       expect(screen.getByText(/vui lòng nhập đầy đủ tên địa điểm và địa chỉ/i)).toBeInTheDocument();
     });
   });
+
+  it('renders unlimited quota badge when user is premium', async () => {
+    renderWithProviders(<CreatePlaydatePage />, {
+      preloadedState: {
+        auth: { user: { isPremium: true, subscriptionTier: 'premium' } },
+      },
+    });
+
+    expect(screen.getByText(/Gói Premium:/i)).toBeInTheDocument();
+    expect(screen.getByText(/Không giới hạn cuộc hẹn/i)).toBeInTheDocument();
+    expect(screen.queryByText(/Tối đa 3 cuộc hẹn\/tháng/i)).not.toBeInTheDocument();
+  });
 });

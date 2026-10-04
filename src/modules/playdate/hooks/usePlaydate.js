@@ -36,6 +36,15 @@ export const usePlaydate = () => {
 
   const [completingId, setCompletingId] = useState(null);
   const [confirmCompleteId, setConfirmCompleteId] = useState(null);
+  const [debouncedSearch, setDebouncedSearch] = useState(searchQuery);
+
+  // Debounce search query to prevent excessive API requests while typing
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(searchQuery);
+    }, 350);
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
 
   /**
    * Fetch playdates from API
@@ -48,8 +57,8 @@ export const usePlaydate = () => {
       if (activeTab && activeTab !== 'all') {
         params.status = activeTab;
       }
-      if (searchQuery?.trim()) {
-        params.search = searchQuery.trim();
+      if (debouncedSearch?.trim()) {
+        params.search = debouncedSearch.trim();
       }
 
       const response = await playdateApi.getPlaydates(params);
@@ -71,7 +80,7 @@ export const usePlaydate = () => {
     } finally {
       dispatch(setLoading(false));
     }
-  }, [activeTab, searchQuery, dispatch]);
+  }, [activeTab, debouncedSearch, dispatch]);
 
   useEffect(() => {
     fetchPlaydates();

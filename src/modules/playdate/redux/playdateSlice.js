@@ -52,6 +52,9 @@ export const playdateSlice = createSlice({
     markPlaydateCompleted: (state, action) => {
       const updatedItem = action.payload;
       const index = state.items.findIndex((item) => item.id === updatedItem.id);
+      const prevItem = index !== -1 ? state.items[index] : state.selectedPlaydate;
+      const prevStatus = prevItem?.displayStatus || prevItem?.status;
+
       if (index !== -1) {
         state.items[index] = {
           ...state.items[index],
@@ -68,10 +71,14 @@ export const playdateSlice = createSlice({
           displayStatus: 'completed',
         };
       }
-      // Re-adjust counts
+      // Re-adjust counts according to the previous status
+      if (prevStatus === 'confirmed' && state.counts.confirmed > 0) {
+        state.counts.confirmed -= 1;
+      } else if (prevStatus === 'pending' && state.counts.pending > 0) {
+        state.counts.pending -= 1;
+      }
       if (state.counts.completed !== undefined) {
         state.counts.completed += 1;
-        if (state.counts.confirmed > 0) state.counts.confirmed -= 1;
       }
     },
   },

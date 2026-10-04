@@ -205,7 +205,7 @@ export const PlaydateCriteriaStep = ({
             <Input
               id="area"
               label="Phường / Xã"
-              placeholder="VD: Phường Sài Gòn, Phường Hội An..."
+              placeholder="VD: Phường Bến Nghé, Xã An Khánh..."
               value={formData.area}
               onChange={(e) => updateField('area', e.target.value)}
               error={formErrors.area}

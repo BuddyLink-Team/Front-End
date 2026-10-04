@@ -16,14 +16,13 @@ export const API_ENDPOINTS = {
     VERIFY_EMAIL_OTP: '/auth/email/verify-otp',
   },
   USER: {
-    ME: '/user/me',
-    UPDATE_ME: '/user/me',
-    AVATAR: '/user/me/avatar',
-    PASSWORD: '/user/me/password',
+    PROFILE: '/users/profile',
+    UPDATE_PROFILE: '/users/profile',
   },
   PARENT: {
     ME: '/parent/me',
     ONBOARDING_PREFERENCES: '/parent/preferences/onboarding',
+    VERIFICATION: '/parents/verify',
   },
   CHILD: {
     BASE: '/children',
@@ -34,6 +33,9 @@ export const API_ENDPOINTS = {
   },
   PLAYDATE: {
     BASE: '/playdates',
+  },
+  PLACES: {
+    NEARBY: '/places/nearby',
   },
   CHAT: {
     CONVERSATIONS: '/chats/conversations',
@@ -57,7 +59,6 @@ export const API_ENDPOINTS = {
   SUBSCRIPTION: {
     PLANS: '/subscriptions/plans',
     CHECKOUT: '/subscriptions/checkout',
-    MY_QUOTA: '/subscriptions/my',
   },
   RATING_FEEDBACK: {
     BASE: '/ratings',

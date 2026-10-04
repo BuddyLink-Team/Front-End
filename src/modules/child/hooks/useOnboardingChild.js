@@ -140,14 +140,10 @@ export const useOnboardingChild = () => {
     dispatch(setError(null));
 
     try {
-      const resolvedAddress = formData.address?.trim()
-        ? formData.address.trim()
-        : [formData.area, formData.city].filter(Boolean).join(', ');
-
       // 1. Update Parent Criteria & Preferences
       const preferencesPayload = {
         location: {
-          address: resolvedAddress,
+          address: formData.address || '',
           area: formData.area,
           city: formData.city,
         },

@@ -75,12 +75,12 @@ export const PlaydateCard = ({
       <div
         className={`h-1.5 w-full ${
           isCompleted
-            ? 'bg-[#92C5DE]'
+            ? 'bg-secondary'
             : isCancelled
-            ? 'bg-[#CBD5E1]'
+            ? 'bg-outline-variant'
             : displayStatus === 'pending'
-            ? 'bg-[#F6D186]'
-            : 'bg-[#7BAE7F]'
+            ? 'bg-tertiary'
+            : 'bg-primary'
         }`}
       />
 
@@ -90,14 +90,14 @@ export const PlaydateCard = ({
           <div className="space-y-1 min-w-0">
             <h3
               onClick={() => navigate(`/playdates/${id}`)}
-              className="text-base md:text-lg font-bold text-text-primary tracking-tight truncate group-hover:text-primary transition-colors cursor-pointer"
+              className="text-base md:text-lg font-semibold text-text-primary tracking-tight truncate group-hover:text-primary transition-colors cursor-pointer"
               title={activity}
             >
               {activity}
             </h3>
             <div className="flex items-center gap-2 text-xs text-text-muted">
               {isHost ? (
-                <span className="inline-flex items-center gap-1 font-medium text-primary-dark bg-[#eaf3ec] px-2 py-0.5 rounded-md border border-[#d2e7d7]">
+                <span className="inline-flex items-center gap-1 font-medium text-primary-dark bg-primary/10 px-2 py-0.5 rounded-md border border-primary/20">
                   <Sparkles className="w-3 h-3" /> Bạn là người tổ chức
                 </span>
               ) : (
@@ -112,7 +112,7 @@ export const PlaydateCard = ({
         </div>
 
         {/* Schedule & Location */}
-        <div className="space-y-2 text-xs md:text-sm text-text-secondary bg-[#fafbf9] p-3.5 rounded-xl border border-hairline/80">
+        <div className="space-y-2 text-xs md:text-sm text-text-secondary bg-surface-container-low/50 p-3.5 rounded-xl border border-hairline/80">
           <div className="flex items-center gap-2 text-text-primary font-medium">
             <Calendar className="w-4 h-4 text-primary shrink-0" />
             <span>{formatDate(scheduledDate)}</span>
@@ -166,14 +166,14 @@ export const PlaydateCard = ({
 
         {/* Note if available */}
         {note && (
-          <p className="text-xs text-text-muted italic line-clamp-1 bg-[#fffdfa] px-3 py-1.5 rounded-lg border border-[#fae4b2]/50">
+          <p className="text-xs text-text-muted italic line-clamp-1 bg-tertiary-fixed/20 px-3 py-1.5 rounded-lg border border-tertiary-fixed/40">
             &ldquo;{note}&rdquo;
           </p>
         )}
 
         {/* Completed notification banner if completed */}
         {isCompleted && completedAt && (
-          <div className="flex items-center gap-1.5 text-xs text-[#30647b] bg-[#e7eeff]/60 px-3 py-1.5 rounded-lg border border-[#b1e4fe]">
+          <div className="flex items-center gap-1.5 text-xs text-secondary-dark bg-secondary-container/30 px-3 py-1.5 rounded-lg border border-secondary-container">
             <CheckCircle2 className="w-3.5 h-3.5 text-primary" />
             <span>Buổi hẹn đã hoàn thành tốt đẹp!</span>
           </div>
@@ -181,7 +181,7 @@ export const PlaydateCard = ({
       </div>
 
       {/* Card Action Footer */}
-      <div className="p-4 bg-[#fbfcfb] border-t border-hairline flex items-center justify-between gap-2">
+      <div className="p-4 bg-surface-container-low/30 border-t border-hairline flex items-center justify-between gap-2">
         <div className="flex items-center gap-2">
           {chatConversationId ? (
             <Button

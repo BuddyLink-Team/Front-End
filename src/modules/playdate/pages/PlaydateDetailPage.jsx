@@ -1,172 +1,65 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { useParams, useNavigate, Link } from 'react-router-dom';
+import React from 'react';
 import {
   ArrowLeft,
   Calendar as CalendarIcon,
   Clock,
   MapPin,
   Users,
+  Sparkles,
+  ExternalLink,
   MessageCircle,
+  RefreshCw,
+  Check,
   CheckCircle2,
+  Trash2,
   XCircle,
   AlertTriangle,
-  Sparkles,
   ShieldCheck,
-  RefreshCw,
-  ExternalLink,
   Baby,
-  Trash2,
-  Check,
 } from 'lucide-react';
-import toast from 'react-hot-toast';
 import { Button } from '../../../components/ui/Button';
 import { Avatar } from '../../../components/ui/Avatar';
+import { StatusChip } from '../../../components/badges/StatusChip';
 import { ConfirmDialog } from '../../../components/feedback/ConfirmDialog';
 import { RescheduleModal } from '../components/RescheduleModal';
-import { playdateApi } from '../api/playdateApi';
+import { usePlaydateDetail } from '../hooks/usePlaydateDetail';
 import { formatDate } from '../../../utils/formatters';
 
 export const PlaydateDetailPage = () => {
-  const { id } = useParams();
-  const navigate = useNavigate();
-
-  const [playdate, setPlaydate] = useState(null);
-  const [rescheduleReq, setRescheduleReq] = useState(null);
-  const [isLoading, setIsLoading] = useState(true);
-
-  // Modals & Action states
-  const [showRescheduleModal, setShowRescheduleModal] = useState(false);
-  const [showCancelModal, setShowCancelModal] = useState(false);
-  const [cancelReason, setCancelReason] = useState('');
-  const [isActionLoading, setIsActionLoading] = useState(false);
-
-  // Fetch Playdate Detail and Active Reschedule Request
-  const loadPlaydateData = useCallback(async () => {
-    setIsLoading(true);
-    try {
-      const [pdRes, reschedRes] = await Promise.allSettled([
-        playdateApi.getPlaydateById(id),
-        playdateApi.getReschedule(id),
-      ]);
-
-      if (pdRes.status === 'fulfilled' && pdRes.value?.data?.data) {
-        setPlaydate(pdRes.value.data.data);
-      } else {
-        toast.error('Không tìm thấy thông tin buổi hẹn');
-        navigate('/playdates');
-        return;
-      }
-
-      if (reschedRes.status === 'fulfilled' && reschedRes.value?.data?.data) {
-        setRescheduleReq(reschedRes.value.data.data);
-      }
-    } catch (err) {
-      toast.error('Lỗi khi tải thông tin buổi hẹn');
-    } finally {
-      setIsLoading(false);
-    }
-  }, [id, navigate]);
-
-  useEffect(() => {
-    loadPlaydateData();
-  }, [loadPlaydateData]);
-
-  // Host Completes Playdate
-  const handleComplete = async () => {
-    setIsActionLoading(true);
-    try {
-      await playdateApi.completePlaydate(id);
-      toast.success('🎉 Buổi hẹn chơi đã được hoàn thành!');
-      loadPlaydateData();
-    } catch (err) {
-      const msg = err?.response?.data?.message || 'Không thể hoàn thành buổi hẹn';
-      toast.error(msg);
-    } finally {
-      setIsActionLoading(false);
-    }
-  };
-
-  // Host Cancels Playdate
-  const handleCancelPlaydate = async () => {
-    setIsActionLoading(true);
-    try {
-      await playdateApi.cancelPlaydate(id, { reason: cancelReason || 'Hủy bởi người tổ chức' });
-      toast.success('Đã hủy buổi hẹn chơi.');
-      setShowCancelModal(false);
-      loadPlaydateData();
-    } catch (err) {
-      const msg = err?.response?.data?.message || 'Không thể hủy buổi hẹn';
-      toast.error(msg);
-    } finally {
-      setIsActionLoading(false);
-    }
-  };
-
-  // Participant responds to RSVP (accept / decline)
-  const handleRSVP = async (status) => {
-    setIsActionLoading(true);
-    try {
-      await playdateApi.respondToPlaydate(id, status);
-      toast.success(
-        status === 'accepted'
-          ? '🎉 Bạn đã chấp nhận tham gia buổi hẹn chơi!'
-          : 'Đã gửi từ chối lời mời.'
-      );
-      loadPlaydateData();
-    } catch (err) {
-      const msg = err?.response?.data?.message || 'Lỗi khi gửi phản hồi RSVP';
-      toast.error(msg);
-    } finally {
-      setIsActionLoading(false);
-    }
-  };
-
-  // Vote on active reschedule request
-  const handleVoteReschedule = async (status) => {
-    setIsActionLoading(true);
-    try {
-      await playdateApi.voteReschedule(id, {
-        requestId: rescheduleReq?._id || rescheduleReq?.id,
-        status,
-      });
-      toast.success(
-        status === 'accepted'
-          ? 'Bạn đã đồng ý với thời gian mới!'
-          : 'Bạn đã từ chối đổi lịch. Buổi hẹn sẽ giữ lịch cũ.'
-      );
-      loadPlaydateData();
-    } catch (err) {
-      const msg = err?.response?.data?.message || 'Lỗi khi bỏ phiếu đổi lịch';
-      toast.error(msg);
-    } finally {
-      setIsActionLoading(false);
-    }
-  };
+  const {
+    playdate,
+    rescheduleReq,
+    isLoading,
+    isActionLoading,
+    isHost,
+    isUpcoming,
+    isCancelled,
+    isCompleted,
+    canReschedule,
+    myPendingVote,
+    showCancelModal,
+    showRescheduleModal,
+    setShowCancelModal,
+    setShowRescheduleModal,
+    handleComplete,
+    handleCancel,
+    handleRespond,
+    handleVoteReschedule,
+    handleRescheduleSuccess,
+    navigate,
+  } = usePlaydateDetail();
 
   if (isLoading) {
     return (
       <div className="max-w-4xl mx-auto py-12 px-4 space-y-6 animate-pulse">
-        <div className="h-10 bg-gray-200 rounded-xl w-1/3" />
-        <div className="h-64 bg-gray-100 rounded-3xl" />
-        <div className="h-48 bg-gray-100 rounded-3xl" />
+        <div className="h-10 bg-surface-subtle rounded-xl w-1/3" />
+        <div className="h-64 bg-surface-subtle rounded-2xl" />
+        <div className="h-48 bg-surface-subtle rounded-2xl" />
       </div>
     );
   }
 
   if (!playdate) return null;
-
-  const isHost = playdate.isHost;
-  const isUpcoming = playdate.status === 'upcoming';
-  const isCancelled = playdate.status === 'cancelled';
-  const isCompleted = playdate.status === 'completed';
-
-  // Check if current user has voted on active reschedule
-  const myPendingVote =
-    rescheduleReq?.status === 'pending' &&
-    rescheduleReq.responses?.find((r) => {
-      const voterId = r.parentId?._id || r.parentId?.id || r.parentId;
-      return r.status === 'pending';
-    });
 
   // Calculate accepted participants count
   const acceptedCount = (playdate.participants || []).filter(
@@ -190,29 +83,11 @@ export const PlaydateDetailPage = () => {
           </Button>
           <div>
             <div className="flex items-center gap-2">
-              <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-text-primary">
+              <h1 className="text-xl sm:text-2xl font-semibold tracking-tight text-text-primary">
                 {playdate.activity}
               </h1>
               {/* Status Badge */}
-              <span
-                className={`text-xs font-semibold px-2.5 py-0.5 rounded-full border ${
-                  isCompleted
-                    ? 'bg-blue-50 text-blue-700 border-blue-200'
-                    : isCancelled
-                    ? 'bg-gray-100 text-gray-600 border-gray-200'
-                    : playdate.displayStatus === 'confirmed'
-                    ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
-                    : 'bg-amber-50 text-amber-700 border-amber-200'
-                }`}
-              >
-                {isCompleted
-                  ? 'Đã hoàn thành'
-                  : isCancelled
-                  ? 'Đã hủy'
-                  : playdate.displayStatus === 'confirmed'
-                  ? 'Đã xác nhận'
-                  : 'Đang chờ phản hồi'}
-              </span>
+              <StatusChip status={playdate.displayStatus || playdate.status} />
             </div>
             <p className="text-xs text-text-muted mt-0.5">
               Mã buổi hẹn: <code className="font-mono text-gray-500">{playdate.id}</code>
@@ -235,14 +110,14 @@ export const PlaydateDetailPage = () => {
             </Button>
           )}
 
-          {isUpcoming && (
+          {canReschedule && (
             <Button
               type="button"
               variant="outline"
               size="sm"
               onClick={() => setShowRescheduleModal(true)}
-              leftIcon={<RefreshCw className="w-4 h-4 text-amber-600" />}
-              className="rounded-xl border-amber-300 text-amber-700 hover:bg-amber-50"
+              leftIcon={<RefreshCw className="w-4 h-4 text-tertiary-dark" />}
+              className="rounded-xl border-tertiary text-tertiary-dark hover:bg-tertiary-fixed/20"
             >
               Đổi lịch hẹn
             </Button>
@@ -261,7 +136,6 @@ export const PlaydateDetailPage = () => {
               >
                 Hoàn thành
               </Button>
-              {/* Nút Hủy hẹn (Danger) */}
               <Button
                 type="button"
                 variant="danger"
@@ -277,18 +151,18 @@ export const PlaydateDetailPage = () => {
         </div>
       </div>
 
-      {/* PARTICIPANT RSVP BANNER (Nếu là participant và chưa trả lời) */}
+      {/* Participant RSVP Banner */}
       {!isHost && isUpcoming && playdate.myParticipantStatus === 'pending' && (
-        <div className="bg-amber-50/80 border border-amber-200 rounded-3xl p-5 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="bg-tertiary-fixed/20 border border-tertiary-fixed/50 rounded-2xl p-5 shadow-2xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="flex items-start gap-3">
-            <div className="w-10 h-10 rounded-2xl bg-amber-100 text-amber-700 flex items-center justify-center shrink-0">
+            <div className="w-10 h-10 rounded-xl bg-tertiary/20 text-tertiary-dark flex items-center justify-center shrink-0">
               <Sparkles className="w-5 h-5" />
             </div>
             <div>
-              <h4 className="text-sm font-bold text-amber-900">
+              <h4 className="text-sm font-semibold text-text-primary">
                 Bạn nhận được lời mời tham gia Playdate này!
               </h4>
-              <p className="text-xs text-amber-800/80 mt-0.5">
+              <p className="text-xs text-text-muted mt-0.5">
                 Vui lòng xác nhận để phụ huynh tổ chức chuẩn bị không gian chơi tốt nhất cho các bé.
               </p>
             </div>
@@ -298,9 +172,9 @@ export const PlaydateDetailPage = () => {
               type="button"
               variant="outline"
               size="sm"
-              onClick={() => handleRSVP('declined')}
+              onClick={() => handleRespond('declined')}
               disabled={isActionLoading}
-              className="rounded-xl border-amber-300 text-amber-800 hover:bg-amber-100"
+              className="rounded-xl border-tertiary text-tertiary-dark hover:bg-tertiary-fixed/30"
             >
               Từ chối
             </Button>
@@ -308,10 +182,10 @@ export const PlaydateDetailPage = () => {
               type="button"
               variant="primary"
               size="sm"
-              onClick={() => handleRSVP('accepted')}
+              onClick={() => handleRespond('accepted')}
               isLoading={isActionLoading}
               leftIcon={<Check className="w-4 h-4" />}
-              className="rounded-xl shadow-xs"
+              className="rounded-xl shadow-2xs"
             >
               Chấp nhận tham gia
             </Button>
@@ -319,20 +193,20 @@ export const PlaydateDetailPage = () => {
         </div>
       )}
 
-      {/* ACTIVE RESCHEDULE REQUEST BANNER (Nếu có đề xuất đang chờ) */}
+      {/* Active Reschedule Request Banner */}
       {rescheduleReq && rescheduleReq.status === 'pending' && (
-        <div className="bg-gradient-to-r from-amber-50/90 to-orange-50/90 border border-amber-200/90 rounded-3xl p-5 sm:p-6 shadow-xs space-y-4">
+        <div className="bg-tertiary-fixed/20 border border-tertiary-fixed/50 rounded-2xl p-5 sm:p-6 shadow-2xs space-y-4">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div className="flex items-start gap-3">
-              <div className="w-10 h-10 rounded-2xl bg-amber-500 text-white flex items-center justify-center shrink-0 shadow-xs">
-                <RefreshCw className="w-5 h-5 animate-spin-slow" />
+              <div className="w-10 h-10 rounded-xl bg-tertiary text-tertiary-on-container flex items-center justify-center shrink-0 shadow-2xs">
+                <RefreshCw className="w-5 h-5" />
               </div>
               <div>
                 <div className="flex items-center gap-2">
-                  <h4 className="text-sm font-bold text-text-primary">
+                  <h4 className="text-sm font-semibold text-text-primary">
                     Đang có đề xuất đổi lịch hẹn mới
                   </h4>
-                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-200 text-amber-800">
+                  <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-tertiary-fixed text-tertiary-dark border border-tertiary-fixed">
                     Chờ đồng thuận
                   </span>
                 </div>
@@ -343,7 +217,7 @@ export const PlaydateDetailPage = () => {
               </div>
             </div>
 
-            {/* Voting buttons if current user can vote */}
+            {/* Voting buttons shown only if current user has a pending vote */}
             {myPendingVote && (
               <div className="flex items-center gap-2 shrink-0">
                 <Button
@@ -352,9 +226,9 @@ export const PlaydateDetailPage = () => {
                   size="sm"
                   onClick={() => handleVoteReschedule('declined')}
                   disabled={isActionLoading}
-                  className="rounded-xl border-amber-300 text-amber-800 hover:bg-white"
+                  className="rounded-xl border-tertiary text-tertiary-dark hover:bg-white"
                 >
-                  Từ chối
+                  Từ chối lịch mới
                 </Button>
                 <Button
                   type="button"
@@ -363,7 +237,7 @@ export const PlaydateDetailPage = () => {
                   onClick={() => handleVoteReschedule('accepted')}
                   isLoading={isActionLoading}
                   leftIcon={<Check className="w-4 h-4" />}
-                  className="rounded-xl shadow-xs"
+                  className="rounded-xl shadow-2xs"
                 >
                   Đồng ý lịch mới
                 </Button>
@@ -372,7 +246,7 @@ export const PlaydateDetailPage = () => {
           </div>
 
           {/* New details preview */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 p-3.5 bg-white/80 rounded-2xl border border-hairline text-xs">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 p-3.5 bg-white/80 rounded-xl border border-hairline text-xs">
             <div className="flex items-center gap-2 text-text-primary">
               <CalendarIcon className="w-4 h-4 text-primary shrink-0" />
               <span>
@@ -381,7 +255,7 @@ export const PlaydateDetailPage = () => {
             </div>
             {rescheduleReq.newLocation?.name && (
               <div className="flex items-center gap-2 text-text-primary truncate">
-                <MapPin className="w-4 h-4 text-red-500 shrink-0" />
+                <MapPin className="w-4 h-4 text-error shrink-0" />
                 <span className="truncate">
                   Địa điểm: <strong>{rescheduleReq.newLocation.name}</strong>
                 </span>
@@ -391,9 +265,9 @@ export const PlaydateDetailPage = () => {
         </div>
       )}
 
-      {/* MAIN WHITE CARD: DATE, TIME & LOCATION */}
-      <div className="bg-white border border-hairline rounded-3xl p-6 sm:p-8 shadow-[0_2px_12px_rgba(0,0,0,0.03)] space-y-6">
-        <h2 className="text-base font-bold text-text-primary flex items-center gap-2 border-b border-hairline pb-3">
+      {/* Main Card: Date, Time & Location */}
+      <div className="bg-white border border-hairline rounded-2xl p-6 sm:p-8 shadow-2xs space-y-6">
+        <h2 className="text-base font-semibold text-text-primary flex items-center gap-2 border-b border-hairline pb-3">
           <CalendarIcon className="w-5 h-5 text-primary" />
           Thời gian & Địa điểm tổ chức
         </h2>
@@ -405,7 +279,7 @@ export const PlaydateDetailPage = () => {
               Thời gian gặp gỡ
             </span>
             <div className="space-y-1">
-              <div className="flex items-center gap-2 text-base font-bold text-text-primary">
+              <div className="flex items-center gap-2 text-base font-semibold text-text-primary">
                 <CalendarIcon className="w-4 h-4 text-primary" />
                 <span>{formatDate(playdate.scheduledDate)}</span>
               </div>
@@ -434,8 +308,8 @@ export const PlaydateDetailPage = () => {
               </a>
             </div>
             <div className="space-y-1">
-              <div className="flex items-center gap-2 text-base font-bold text-text-primary truncate">
-                <MapPin className="w-4 h-4 text-red-500 shrink-0" />
+              <div className="flex items-center gap-2 text-base font-semibold text-text-primary truncate">
+                <MapPin className="w-4 h-4 text-error shrink-0" />
                 <span className="truncate">{playdate.location?.name}</span>
               </div>
               <p className="text-xs text-text-muted pl-6 line-clamp-2">
@@ -448,31 +322,31 @@ export const PlaydateDetailPage = () => {
         {/* Host Note */}
         {playdate.note && (
           <div className="p-4 rounded-2xl bg-primary/5 border border-primary/15 space-y-1">
-            <span className="text-xs font-bold text-primary-dark">Ghi chú từ người tổ chức:</span>
+            <span className="text-xs font-semibold text-primary-dark">Ghi chú từ người tổ chức:</span>
             <p className="text-sm text-text-primary leading-relaxed">{playdate.note}</p>
           </div>
         )}
 
-        {/* Cancellation details if cancelled */}
+        {/* Cancellation details */}
         {isCancelled && playdate.cancellation && (
-          <div className="p-4 rounded-2xl bg-red-50 border border-red-200 space-y-1 text-red-800">
-            <div className="flex items-center gap-2 font-bold text-sm">
-              <AlertTriangle className="w-4 h-4 text-red-600" />
+          <div className="p-4 rounded-2xl bg-error-container/30 border border-error-container space-y-1 text-error">
+            <div className="flex items-center gap-2 font-semibold text-sm">
+              <AlertTriangle className="w-4 h-4 text-error" />
               Buổi hẹn này đã bị hủy
             </div>
-            <p className="text-xs text-red-700">
+            <p className="text-xs text-error/80">
               Lý do: <em>{playdate.cancellation.reason || 'Hủy bởi người tổ chức'}</em>
             </p>
           </div>
         )}
       </div>
 
-      {/* PARTICIPANTS & RSVP STATUS CARD */}
-      <div className="bg-white border border-hairline rounded-3xl p-6 sm:p-8 shadow-[0_2px_12px_rgba(0,0,0,0.03)] space-y-6">
+      {/* Participants & RSVP Status Card */}
+      <div className="bg-white border border-hairline rounded-2xl p-6 sm:p-8 shadow-2xs space-y-6">
         <div className="flex items-center justify-between border-b border-hairline pb-3">
           <div className="flex items-center gap-2">
             <Users className="w-5 h-5 text-secondary-dark" />
-            <h2 className="text-base font-bold text-text-primary">
+            <h2 className="text-base font-semibold text-text-primary">
               Danh sách phụ huynh & Trạng thái RSVP
             </h2>
           </div>
@@ -492,13 +366,13 @@ export const PlaydateDetailPage = () => {
               />
               <div className="space-y-0.5">
                 <div className="flex items-center gap-1.5">
-                  <p className="text-sm font-bold text-text-primary">
+                  <p className="text-sm font-semibold text-text-primary">
                     {playdate.hostParent?.fullName}
                   </p>
                   {playdate.hostParent?.isVerified && (
                     <ShieldCheck className="w-4 h-4 text-primary shrink-0" />
                   )}
-                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-primary text-white">
+                  <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-primary text-white">
                     Người tổ chức (Host)
                   </span>
                 </div>
@@ -513,7 +387,7 @@ export const PlaydateDetailPage = () => {
               </div>
             </div>
 
-            <span className="inline-flex items-center gap-1 text-xs font-semibold text-emerald-700 bg-emerald-50 px-3 py-1 rounded-full border border-emerald-200 shrink-0 self-start sm:self-center">
+            <span className="inline-flex items-center gap-1 text-xs font-semibold text-primary-dark bg-primary/10 px-3 py-1 rounded-full border border-primary/20 shrink-0 self-start sm:self-center">
               <CheckCircle2 className="w-3.5 h-3.5" /> Đã xác nhận (Host)
             </span>
           </div>
@@ -562,10 +436,10 @@ export const PlaydateDetailPage = () => {
                   <span
                     className={`inline-flex items-center gap-1 text-xs font-semibold px-3 py-1 rounded-full border shrink-0 self-start sm:self-center ${
                       isAccepted
-                        ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                        ? 'bg-primary/10 text-primary-dark border-primary/20'
                         : isDeclined
-                        ? 'bg-gray-100 text-gray-500 border-gray-200'
-                        : 'bg-amber-50 text-amber-700 border-amber-200'
+                        ? 'bg-surface-subtle text-text-muted border-hairline'
+                        : 'bg-tertiary-fixed/30 text-tertiary-dark border-tertiary-fixed/50'
                     }`}
                   >
                     {isAccepted ? (
@@ -594,7 +468,7 @@ export const PlaydateDetailPage = () => {
         isOpen={showRescheduleModal}
         onClose={() => setShowRescheduleModal(false)}
         playdate={playdate}
-        onSuccess={loadPlaydateData}
+        onSuccess={handleRescheduleSuccess}
       />
 
       {/* Cancel Playdate Confirm Dialog */}
@@ -606,7 +480,7 @@ export const PlaydateDetailPage = () => {
         cancelLabel="Giữ lại lịch hẹn"
         variant="danger"
         isLoading={isActionLoading}
-        onConfirm={handleCancelPlaydate}
+        onConfirm={handleCancel}
         onCancel={() => setShowCancelModal(false)}
       />
     </div>

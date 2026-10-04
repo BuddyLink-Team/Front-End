@@ -40,7 +40,6 @@ export { Footer } from './navigation/Footer';
 export { Sidebar } from './navigation/Sidebar';
 export { Tabs } from './navigation/Tabs';
 export { Pagination } from './navigation/Pagination';
-export { ScrollToTop } from './navigation/ScrollToTop';
 
 // Search & Filtering
 export { SearchBar } from './search/SearchBar';

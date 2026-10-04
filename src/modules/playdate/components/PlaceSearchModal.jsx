@@ -24,10 +24,50 @@ const CATEGORIES = [
   { label: 'Thể thao', value: 'sports_center', icon: Building2 },
 ];
 
-export const PlaceSearchModal = ({ isOpen, onClose, onSelectPlace }) => {
+const CURATED_FALLBACK_PLACES = [
+  {
+    id: 'place-1',
+    name: 'Công viên Gia Định',
+    address: 'Đường Hoàng Minh Giám, Phường 3, Quận Gò Vấp, TP. Hồ Chí Minh',
+    placeType: 'park',
+    rating: 4.6,
+    coordinates: [106.6741, 10.8144],
+  },
+  {
+    id: 'place-2',
+    name: 'Công viên Cầu Ánh Sao - Hồ Bán Nguyệt',
+    address: 'Khu đô thị Phú Mỹ Hưng, Phường Tân Phú, Quận 7, TP. Hồ Chí Minh',
+    placeType: 'park',
+    rating: 4.8,
+    coordinates: [106.7196, 10.7267],
+  },
+  {
+    id: 'place-3',
+    name: 'Thảo Cầm Viên Sài Gòn',
+    address: 'Số 2 Nguyễn Bỉnh Khiêm, Phường Bến Nghé, Quận 1, TP. Hồ Chí Minh',
+    placeType: 'park',
+    rating: 4.5,
+    coordinates: [106.7051, 10.7875],
+  },
+  {
+    id: 'place-4',
+    name: 'Công viên Tao Đàn',
+    address: 'Đường Trương Định, Phường Bến Thành, Quận 1, TP. Hồ Chí Minh',
+    placeType: 'park',
+    rating: 4.4,
+    coordinates: [106.6917, 10.7744],
+  },
+];
+
+export const PlaceSearchModal = ({
+  isOpen,
+  onClose,
+  onSelectPlace,
+  title = 'Địa điểm gợi ý lân cận',
+}) => {
   const [activeCategory, setActiveCategory] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
-  const [places, setPlaces] = useState([]);
+  const [places, setPlaces] = useState(CURATED_FALLBACK_PLACES);
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
@@ -42,12 +82,12 @@ export const PlaceSearchModal = ({ isOpen, onClose, onSelectPlace }) => {
         if (searchTerm.trim()) params.search = searchTerm.trim();
 
         const res = await playdateApi.getNearbyPlaces(params);
-        if (isCurrent && res.data) {
+        if (isCurrent && res?.data) {
           const list = Array.isArray(res.data) ? res.data : res.data.places || [];
-          setPlaces(list);
+          setPlaces(list.length > 0 ? list : CURATED_FALLBACK_PLACES);
         }
       } catch (err) {
-        // Fallback gracefully
+        if (isCurrent) setPlaces(CURATED_FALLBACK_PLACES);
       } finally {
         if (isCurrent) setIsLoading(false);
       }
@@ -64,16 +104,16 @@ export const PlaceSearchModal = ({ isOpen, onClose, onSelectPlace }) => {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/45 backdrop-blur-xs animate-in fade-in">
-      <div className="bg-white rounded-3xl max-w-xl w-full p-6 space-y-4 shadow-xl border border-hairline flex flex-col max-h-[90vh]">
+      <div className="bg-white rounded-2xl max-w-xl w-full p-6 space-y-4 shadow-xl border border-hairline flex flex-col max-h-[90vh]">
         {/* Header */}
         <div className="flex items-center justify-between pb-1 border-b border-hairline">
           <div className="flex items-center gap-2.5">
-            <div className="w-10 h-10 rounded-2xl bg-secondary/10 flex items-center justify-center text-secondary-dark">
+            <div className="w-10 h-10 rounded-xl bg-secondary/10 flex items-center justify-center text-secondary-dark">
               <Compass className="w-5 h-5" />
             </div>
             <div>
-              <h3 className="text-lg font-bold text-text-primary">
-                Tìm kiếm địa điểm vui chơi
+              <h3 className="text-lg font-semibold text-text-primary">
+                {title}
               </h3>
               <p className="text-xs text-text-muted">
                 Công viên, quán cafe trẻ em và không gian giải trí an toàn cho bé
@@ -158,8 +198,8 @@ export const PlaceSearchModal = ({ isOpen, onClose, onSelectPlace }) => {
                       {place.name}
                     </p>
                     {place.rating > 0 && (
-                      <span className="inline-flex items-center gap-0.5 text-[11px] font-semibold text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded-md border border-amber-200/50 shrink-0">
-                        <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
+                      <span className="inline-flex items-center gap-0.5 text-[11px] font-semibold text-tertiary-dark bg-tertiary-fixed/30 px-1.5 py-0.5 rounded-md border border-tertiary-fixed/50 shrink-0">
+                        <Star className="w-3 h-3 fill-tertiary text-tertiary" />
                         {place.rating}
                       </span>
                     )}

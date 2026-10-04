@@ -25,22 +25,22 @@ export const PLAYDATE_STATUS_KEYS = {
 export const PLAYDATE_STATUS_META = {
   pending: {
     label: 'Chờ phản hồi',
-    badgeClass: 'bg-[#fef7e6] text-[#755a1b] border-[#fae4b2]',
+    badgeClass: 'bg-tertiary-fixed/30 text-tertiary-dark border-tertiary-fixed/50',
     dotColor: '#F6D186',
   },
   confirmed: {
     label: 'Đã xác nhận',
-    badgeClass: 'bg-[#eaf3ec] text-[#3d6841] border-[#d2e7d7]',
+    badgeClass: 'bg-primary/10 text-primary-dark border-primary/20',
     dotColor: '#7BAE7F',
   },
   completed: {
     label: 'Đã hoàn thành',
-    badgeClass: 'bg-[#e7eeff] text-[#30647b] border-[#b1e4fe]',
+    badgeClass: 'bg-secondary-container/40 text-secondary-dark border-secondary-container',
     dotColor: '#92C5DE',
   },
   cancelled: {
     label: 'Đã hủy',
-    badgeClass: 'bg-[#edf2f0] text-[#718096] border-[#d9e2de]',
+    badgeClass: 'bg-surface-subtle text-text-muted border-hairline',
     dotColor: '#CBD5E1',
   },
 };
