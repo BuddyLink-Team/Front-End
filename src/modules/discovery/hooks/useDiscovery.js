@@ -15,7 +15,14 @@ export const useDiscovery = (filters) => {
       setError(null);
       const parsedFilters = filterString ? JSON.parse(filterString) : {};
       const response = await getDiscoveryProfiles(parsedFilters);
-      setProfiles(response.data?.profiles || []);
+      const personalities = parsedFilters.personalities || [];
+      let fetched = response.data?.profiles || [];
+      if (personalities.length > 0) {
+        fetched = fetched.filter((p) =>
+          (p.personality || []).some((trait) => personalities.includes(trait))
+        );
+      }
+      setProfiles(fetched);
       setMeta(response.data?.meta || null);
     } catch (err) {
       setError(err?.response?.data?.message || 'Lỗi tải danh sách khám phá');
