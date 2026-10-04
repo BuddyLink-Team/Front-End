@@ -7,6 +7,8 @@ import ParentProfilePage from '../modules/parent/pages/ParentProfilePage';
 import ChildrenManagementPage from '../modules/child/pages/ChildrenManagementPage';
 import ChildFormPage from '../modules/child/pages/ChildFormPage';
 
+import GamificationPage from '../modules/gamification/pages/GamificationPage';
+
 /**
  * Full route definitions for Parent features.
  */
@@ -88,7 +90,7 @@ export const ParentRoutes = () => (
     {/* Gamification */}
     <Route
       path="/gamification"
-      element={<PlaceholderPage title="Huy hiệu & Chuỗi Streak" description="Theo dõi chuỗi Playdate hàng tuần và bộ sưu tập huy hiệu đạt được." />}
+      element={<GamificationPage />}
     />
 
     {/* Premium Subscription */}

@@ -2,6 +2,7 @@ import React from 'react';
 import { Outlet } from 'react-router-dom';
 import { Navbar } from '../components/navigation/Navbar';
 import { Footer } from '../components/navigation/Footer';
+import RatingPrompt from '../modules/rating-feedback/components/RatingPrompt';
 
 export const MainLayout = () => {
   return (
@@ -11,6 +12,7 @@ export const MainLayout = () => {
         <Outlet />
       </main>
       <Footer />
+      <RatingPrompt />
     </div>
   );
 };
