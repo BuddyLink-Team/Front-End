@@ -7,3 +7,7 @@ export const getDiscoveryProfiles = (params) => {
 export const swipeProfile = (targetChildId, isLike) => {
   return apiClient.post('/discovery/swipe', { targetChildId, isLike });
 };
+
+export const getChildPublicProfile = (childId) => {
+  return apiClient.get(`/children/${childId}/public-profile`);
+};

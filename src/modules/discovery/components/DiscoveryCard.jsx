@@ -1,4 +1,5 @@
 import React from 'react';
+import { MapPin, CalendarDays } from 'lucide-react';
 import { motion, useMotionValue, useTransform } from 'framer-motion';
 import { VerifiedBadge } from '../../../components/badges/VerifiedBadge';
 import { InterestTag } from '../../../components/badges/InterestTag';
@@ -84,8 +85,8 @@ export const DiscoveryCard = ({ profile, onSwipe, index, isTop }) => {
                 {profile.schoolLevel ? ` • ${profile.schoolLevel}` : ''}
               </span>
               <span className="flex items-center gap-1 px-2.5 py-0.5 bg-gray-50 text-gray-500 text-xs rounded-full border border-gray-200">
-                <span className="material-symbols-outlined text-[13px]">location_on</span>
-                Bảo mật ẩn ảnh thật
+                <MapPin size={12} strokeWidth={1.5} />
+                {profile.distanceKm !== undefined ? `Cách ${profile.distanceKm} km` : 'Gần bạn'}
               </span>
             </div>
 
@@ -98,10 +99,12 @@ export const DiscoveryCard = ({ profile, onSwipe, index, isTop }) => {
             )}
 
             {/* Meetup spots */}
-            <div className="flex items-start gap-1.5 text-sm text-gray-600">
-              <span className="material-symbols-outlined text-[16px] text-[#7BAE7F] mt-0.5 shrink-0">location_on</span>
-              <span>Điểm hẹn thích: <strong className="text-gray-800">Công viên • Khu vui chơi trong nhà</strong></span>
-            </div>
+            {profile.parent?.preferences?.preferredLocations?.length > 0 && (
+              <div className="flex items-start gap-1.5 text-sm text-gray-600">
+                <MapPin size={15} strokeWidth={1.5} className="text-[#7BAE7F] mt-0.5 shrink-0" />
+                <span>Điểm hẹn thích: <strong className="text-gray-800">{profile.parent.preferences.preferredLocations.join(' • ')}</strong></span>
+              </div>
+            )}
 
             {/* MatchScore inline */}
             <MatchScoreBar score={profile.matchScore || 0} />
@@ -153,10 +156,22 @@ export const DiscoveryCard = ({ profile, onSwipe, index, isTop }) => {
                 <p className="text-xs text-gray-500 mt-0.5">Phụ huynh bảo hộ • Tham gia cộng đồng</p>
               </div>
             </div>
-            <div className="flex items-center gap-1.5 shrink-0 text-xs text-gray-600 bg-white border border-gray-200 px-2.5 py-1.5 rounded-xl">
-              <span className="material-symbols-outlined text-[14px]">calendar_month</span>
-              Rảnh cuối tuần
-            </div>
+            {(profile.parent?.preferences?.preferredPlaydateDays?.length > 0 || profile.parent?.preferences?.preferredTimeSlots?.length > 0) && (
+              <div className="flex flex-col gap-1 items-end shrink-0">
+                {profile.parent?.preferences?.preferredPlaydateDays?.length > 0 && (
+                  <div className="flex items-center gap-1.5 text-xs text-gray-600 bg-white border border-gray-200 px-2.5 py-1 rounded-xl">
+                    <CalendarDays size={13} strokeWidth={1.5} />
+                    {profile.parent.preferences.preferredPlaydateDays.join(', ')}
+                  </div>
+                )}
+                {profile.parent?.preferences?.preferredTimeSlots?.length > 0 && (
+                  <div className="flex items-center gap-1.5 text-xs text-gray-600 bg-white border border-gray-200 px-2.5 py-1 rounded-xl">
+                    <span className="material-symbols-outlined text-[13px]">schedule</span>
+                    {profile.parent.preferences.preferredTimeSlots.join(', ')}
+                  </div>
+                )}
+              </div>
+            )}
           </div>
 
           {profile.parent?.bio && (

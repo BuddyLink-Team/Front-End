@@ -39,7 +39,7 @@ export const DiscoveryFilterBar = ({ meta }) => {
           )}
         </div>
       </div>
-      
+
       <div className="flex flex-wrap items-center justify-between gap-2 px-1">
         <div className="flex flex-wrap items-center gap-2 flex-1">
           <button className="group inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-surface-container-lowest border border-outline-variant/40 hover:border-primary hover:bg-[#E8F3EB]/60 text-on-surface text-xs font-medium transition-all shadow-xs" type="button">

@@ -32,12 +32,12 @@ export const useDiscovery = (filters) => {
     setProfiles((prev) => prev.slice(1));
   }, []);
 
-  return { 
-    profiles, 
-    meta, 
-    isLoading, 
-    error, 
-    refetch: fetchProfiles, 
-    removeTopProfile 
+  return {
+    profiles,
+    meta,
+    isLoading,
+    error,
+    refetch: fetchProfiles,
+    removeTopProfile
   };
 };

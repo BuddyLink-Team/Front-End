@@ -19,7 +19,7 @@ export const DiscoveryPage = () => {
     const handleKeyDown = (e) => {
       if (profiles.length === 0) return;
       const topProfile = profiles[0];
-      
+
       if (e.key === 'ArrowLeft') {
         handleCardSwipe('PASS', topProfile);
       } else if (e.key === 'ArrowRight') {
@@ -47,8 +47,8 @@ export const DiscoveryPage = () => {
             const isTop = actualIndex === 0;
             if (actualIndex > 1) return null;
             return (
-              <DiscoveryCard 
-                key={profile.childId} 
+              <DiscoveryCard
+                key={profile.childId}
                 profile={profile}
                 index={actualIndex}
                 isTop={isTop}
