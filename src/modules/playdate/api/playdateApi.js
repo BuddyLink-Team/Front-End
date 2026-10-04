@@ -1,67 +1,72 @@
 import apiClient from '../../../services/apiClient';
 import { API_ENDPOINTS } from '../../../constants/api.constants';
+import playdateMockService from '../mock/playdateMockService';
 
-export const playdateApi = {
-  /**
-   * Get playdates list with optional status filtering, search, pagination
-   */
-  getPlaydates: (params = {}) => apiClient.get(API_ENDPOINTS.PLAYDATE.BASE, { params }),
+const isMock = import.meta.env.MODE === 'mock' || import.meta.env.VITE_USE_MOCK === 'true';
 
-  /**
-   * Get single playdate details
-   */
-  getPlaydateById: (id) => apiClient.get(`${API_ENDPOINTS.PLAYDATE.BASE}/${id}`),
+export const playdateApi = isMock
+  ? playdateMockService
+  : {
+      /**
+       * Get playdates list with optional status filtering, search, pagination
+       */
+      getPlaydates: (params = {}) => apiClient.get(API_ENDPOINTS.PLAYDATE.BASE, { params }),
 
-  /**
-   * Create a new playdate
-   */
-  createPlaydate: (payload) => apiClient.post(API_ENDPOINTS.PLAYDATE.BASE, payload),
+      /**
+       * Get single playdate details
+       */
+      getPlaydateById: (id) => apiClient.get(`${API_ENDPOINTS.PLAYDATE.BASE}/${id}`),
 
-  /**
-   * Get connected friends that can be invited to a playdate
-   */
-  getFriends: () => apiClient.get(`${API_ENDPOINTS.PLAYDATE.BASE}/friends`),
+      /**
+       * Create a new playdate
+       */
+      createPlaydate: (payload) => apiClient.post(API_ENDPOINTS.PLAYDATE.BASE, payload),
 
-  /**
-   * Host marks playdate as completed
-   */
-  completePlaydate: (id) => apiClient.patch(`${API_ENDPOINTS.PLAYDATE.BASE}/${id}/complete`),
+      /**
+       * Get connected friends that can be invited to a playdate
+       */
+      getFriends: () => apiClient.get(`${API_ENDPOINTS.PLAYDATE.BASE}/friends`),
 
-  /**
-   * Host cancels playdate
-   */
-  cancelPlaydate: (id, payload = {}) =>
-    apiClient.patch(`${API_ENDPOINTS.PLAYDATE.BASE}/${id}/cancel`, payload),
+      /**
+       * Host marks playdate as completed
+       */
+      completePlaydate: (id) => apiClient.patch(`${API_ENDPOINTS.PLAYDATE.BASE}/${id}/complete`),
 
-  /**
-   * Participant responds to playdate invitation (RSVP: accept / decline)
-   */
-  respondToPlaydate: (id, status) =>
-    apiClient.put(`${API_ENDPOINTS.PLAYDATE.BASE}/${id}/respond`, { status }),
+      /**
+       * Host cancels playdate
+       */
+      cancelPlaydate: (id, payload = {}) =>
+        apiClient.patch(`${API_ENDPOINTS.PLAYDATE.BASE}/${id}/cancel`, payload),
 
-  /**
-   * Propose a reschedule request for playdate
-   */
-  createReschedule: (id, payload) =>
-    apiClient.post(`${API_ENDPOINTS.PLAYDATE.BASE}/${id}/reschedule`, payload),
+      /**
+       * Participant responds to playdate invitation (RSVP: accept / decline)
+       */
+      respondToPlaydate: (id, status) =>
+        apiClient.put(`${API_ENDPOINTS.PLAYDATE.BASE}/${id}/respond`, { status }),
 
-  /**
-   * Vote on a pending reschedule request (accept / decline)
-   */
-  voteReschedule: (id, payload) =>
-    apiClient.put(`${API_ENDPOINTS.PLAYDATE.BASE}/${id}/reschedule/vote`, payload),
+      /**
+       * Propose a reschedule request for playdate
+       */
+      createReschedule: (id, payload) =>
+        apiClient.post(`${API_ENDPOINTS.PLAYDATE.BASE}/${id}/reschedule`, payload),
 
-  /**
-   * Get latest / active reschedule request for a playdate
-   */
-  getReschedule: (id) =>
-    apiClient.get(`${API_ENDPOINTS.PLAYDATE.BASE}/${id}/reschedule`),
+      /**
+       * Vote on a pending reschedule request (accept / decline)
+       */
+      voteReschedule: (id, payload) =>
+        apiClient.put(`${API_ENDPOINTS.PLAYDATE.BASE}/${id}/reschedule/vote`, payload),
 
-  /**
-   * Search nearby child-friendly venues adapter (parks, cafes, playgrounds)
-   */
-  getNearbyPlaces: (params = {}) =>
-    apiClient.get(API_ENDPOINTS.PLACES.NEARBY, { params }),
-};
+      /**
+       * Get latest / active reschedule request for a playdate
+       */
+      getReschedule: (id) =>
+        apiClient.get(`${API_ENDPOINTS.PLAYDATE.BASE}/${id}/reschedule`),
+
+      /**
+       * Search nearby child-friendly venues adapter (parks, cafes, playgrounds)
+       */
+      getNearbyPlaces: (params = {}) =>
+        apiClient.get(API_ENDPOINTS.PLACES.NEARBY, { params }),
+    };
 
 export default playdateApi;
