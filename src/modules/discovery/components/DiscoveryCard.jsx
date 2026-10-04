@@ -1,5 +1,5 @@
 import React from 'react';
-import { MapPin, CalendarDays } from 'lucide-react';
+import { MapPin, CalendarDays, Brain, Heart, Clock } from 'lucide-react';
 import { motion, useMotionValue, useTransform } from 'framer-motion';
 import { VerifiedBadge } from '../../../components/badges/VerifiedBadge';
 import { InterestTag } from '../../../components/badges/InterestTag';
@@ -74,14 +74,14 @@ export const DiscoveryCard = ({ profile, onSwipe, index, isTop, onViewDetail }) 
         {/* ── Header: Avatar + Info ── */}
         <div className="flex gap-4">
           {/* Avatar box */}
-          <div className="relative w-[100px] h-[100px] shrink-0 rounded-2xl bg-[#EAF3EC] overflow-hidden flex items-center justify-center border border-[#D2E7D7]">
+          <div className="relative w-[100px] h-[100px] shrink-0 rounded-2xl bg-primary-container overflow-hidden flex items-center justify-center border border-primary">
             <img
               alt={profile.displayName}
               src={profile.avatarUrl || defaultAvatar}
               className="w-full h-full object-cover select-none pointer-events-none"
               draggable={false}
             />
-            <span className="absolute bottom-0 left-0 right-0 text-center bg-[#4A90E2] text-white text-[10px] font-bold py-0.5">
+            <span className="absolute bottom-0 left-0 right-0 text-center bg-secondary text-on-secondary text-[10px] font-bold py-0.5">
               {genderLabel}
             </span>
           </div>
@@ -109,17 +109,17 @@ export const DiscoveryCard = ({ profile, onSwipe, index, isTop, onViewDetail }) 
 
             {/* Personality */}
             {profile.personality?.length > 0 && (
-              <div className="flex items-start gap-1.5 text-sm text-gray-600">
-                <span className="material-symbols-outlined text-[16px] text-[#7BAE7F] mt-0.5 shrink-0">psychology</span>
-                <span>Tính cách: <strong className="text-gray-800">{profile.personality.join(' • ')}</strong></span>
+              <div className="flex items-start gap-1.5 text-sm text-on-surface-variant">
+                <Brain size={16} strokeWidth={1.5} className="text-primary mt-0.5 shrink-0" />
+                <span>Tính cách: <strong className="text-on-surface">{profile.personality.join(' • ')}</strong></span>
               </div>
             )}
 
             {/* Meetup spots */}
             {profile.parent?.preferences?.preferredLocations?.length > 0 && (
-              <div className="flex items-start gap-1.5 text-sm text-gray-600">
-                <MapPin size={15} strokeWidth={1.5} className="text-[#7BAE7F] mt-0.5 shrink-0" />
-                <span>Điểm hẹn thích: <strong className="text-gray-800">{profile.parent.preferences.preferredLocations.map((l) => tr(LOCATION_LABELS, l)).join(' • ')}</strong></span>
+              <div className="flex items-start gap-1.5 text-sm text-on-surface-variant">
+                <MapPin size={15} strokeWidth={1.5} className="text-primary mt-0.5 shrink-0" />
+                <span>Điểm hẹn thích: <strong className="text-on-surface">{profile.parent.preferences.preferredLocations.map((l) => tr(LOCATION_LABELS, l)).join(' • ')}</strong></span>
               </div>
             )}
 
@@ -134,12 +134,12 @@ export const DiscoveryCard = ({ profile, onSwipe, index, isTop, onViewDetail }) 
         {/* ── Interests ── */}
         <div className="flex flex-col gap-2.5">
           <div className="flex items-center justify-between flex-wrap gap-2">
-            <h3 className="text-[11px] font-bold uppercase tracking-widest text-gray-400 flex items-center gap-1.5">
-              <span className="material-symbols-outlined text-[14px]">favorite</span>
+            <h3 className="text-[11px] font-bold uppercase tracking-widest text-on-surface-variant flex items-center gap-1.5">
+              <Heart size={14} strokeWidth={1.5} className="text-primary" />
               Sở thích chung tương thích
             </h3>
             {profile.matchedInterestsCount !== undefined && (
-              <span className="px-2.5 py-0.5 bg-[#EAF3EC] text-[#3d6841] text-xs font-medium rounded-full border border-[#C8E6CF]">
+              <span className="px-2.5 py-0.5 bg-primary-container text-on-primary-container text-xs font-medium rounded-full border border-primary">
                 {profile.matchedInterestsCount}/{interests.length} sở thích trùng khớp
               </span>
             )}
@@ -182,8 +182,8 @@ export const DiscoveryCard = ({ profile, onSwipe, index, isTop, onViewDetail }) 
                   </div>
                 )}
                 {profile.parent?.preferences?.preferredTimeSlots?.length > 0 && (
-                  <div className="flex items-center gap-1.5 text-xs text-gray-600 bg-white border border-gray-200 px-2.5 py-1 rounded-xl">
-                    <span className="material-symbols-outlined text-[13px]">schedule</span>
+                  <div className="flex items-center gap-1.5 text-xs text-on-surface-variant bg-white border border-surface-container px-2.5 py-1 rounded-xl">
+                    <Clock size={13} strokeWidth={1.5} />
                     {profile.parent.preferences.preferredTimeSlots.map((t) => tr(TIME_LABELS, t)).join(', ')}
                   </div>
                 )}
