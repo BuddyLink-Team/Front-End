@@ -5,8 +5,15 @@ import { VerifiedBadge } from '../../../components/badges/VerifiedBadge';
 import { InterestTag } from '../../../components/badges/InterestTag';
 import { MatchScoreBar } from './MatchScoreBar';
 import { DiscoveryActionButtons } from './DiscoveryActionButtons';
+const LOCATION_LABELS = {
+  park: 'Công viên', kids_cafe: 'Quán cà phê trẻ em', mall: 'Trung tâm thương mại', indoor: 'Trong nhà',
+  outdoor: 'Ngoài trời', home: 'Nhà riêng', library: 'Thư viện', museum: 'Bảo tàng',
+  sports_center: 'Khu thể thao', pool: 'Hồ bơi',
+};
+const DAY_LABELS = { weekday: 'Ngày thường', weekend: 'Cuối tuần' };
+const TIME_LABELS = { morning: 'Buổi sáng', afternoon: 'Buổi chiều', evening: 'Buổi tối' };
 
-export const DiscoveryCard = ({ profile, onSwipe, index, isTop }) => {
+export const DiscoveryCard = ({ profile, onSwipe, index, isTop, onViewDetail }) => {
   const x = useMotionValue(0);
   const rotate = useTransform(x, [-300, 300], [-4, 4]);
   const opacity = useTransform(x, [-300, -150, 0, 150, 300], [0, 1, 1, 1, 0]);
@@ -35,8 +42,12 @@ export const DiscoveryCard = ({ profile, onSwipe, index, isTop }) => {
   if (!profile) return null;
 
   const interests = [...(profile.interests || []), ...(profile.favoriteActivities || [])];
-  const genderLabel = profile.gender === 'MALE' ? 'Bé Trai' : profile.gender === 'FEMALE' ? 'Bé Gái' : 'Khác';
-  const defaultAvatar = profile.gender === 'FEMALE' ? '/avatars/default_girl.jpg' : '/avatars/default_boy.jpg';
+  const g = String(profile.gender || '').toLowerCase();
+  const isGirl = g === 'girl' || g === 'female';
+  const isBoy = g === 'boy' || g === 'male';
+  const genderLabel = isBoy ? 'Bé Trai' : isGirl ? 'Bé Gái' : 'Khác';
+  const defaultAvatar = isGirl ? '/avatars/default_girl.jpg' : '/avatars/default_boy.jpg';
+  const tr = (map, v) => map[v] || v;
 
   return (
     <motion.div
@@ -44,7 +55,7 @@ export const DiscoveryCard = ({ profile, onSwipe, index, isTop }) => {
         x, rotate, opacity,
         background: isTop ? bgColor : '#ffffff',
         boxShadow: isTop ? boxShadow : '0 4px 16px rgba(0,0,0,0.06)',
-        zIndex: 100 - index,
+        zIndex: 10 - index,
         left: 0, right: 0, margin: '0 auto',
       }}
       drag={isTop ? 'x' : false}
@@ -79,7 +90,13 @@ export const DiscoveryCard = ({ profile, onSwipe, index, isTop }) => {
           <div className="flex-1 flex flex-col gap-2 min-w-0">
             {/* Name row */}
             <div className="flex items-center gap-2 flex-wrap">
-              <h2 className="text-[22px] font-extrabold text-gray-900 leading-tight">{profile.displayName}</h2>
+              <h2
+                className="text-[22px] font-extrabold text-gray-900 leading-tight cursor-pointer hover:text-primary transition-colors"
+                onClick={onViewDetail}
+                title="Xem chi tiết hồ sơ"
+              >
+                {profile.displayName}
+              </h2>
               <span className="px-2.5 py-0.5 bg-gray-100 text-gray-600 text-xs font-medium rounded-full border border-gray-200">
                 {profile.age} tuổi
                 {profile.schoolLevel ? ` • ${profile.schoolLevel}` : ''}
@@ -102,7 +119,7 @@ export const DiscoveryCard = ({ profile, onSwipe, index, isTop }) => {
             {profile.parent?.preferences?.preferredLocations?.length > 0 && (
               <div className="flex items-start gap-1.5 text-sm text-gray-600">
                 <MapPin size={15} strokeWidth={1.5} className="text-[#7BAE7F] mt-0.5 shrink-0" />
-                <span>Điểm hẹn thích: <strong className="text-gray-800">{profile.parent.preferences.preferredLocations.join(' • ')}</strong></span>
+                <span>Điểm hẹn thích: <strong className="text-gray-800">{profile.parent.preferences.preferredLocations.map((l) => tr(LOCATION_LABELS, l)).join(' • ')}</strong></span>
               </div>
             )}
 
@@ -161,13 +178,13 @@ export const DiscoveryCard = ({ profile, onSwipe, index, isTop }) => {
                 {profile.parent?.preferences?.preferredPlaydateDays?.length > 0 && (
                   <div className="flex items-center gap-1.5 text-xs text-gray-600 bg-white border border-gray-200 px-2.5 py-1 rounded-xl">
                     <CalendarDays size={13} strokeWidth={1.5} />
-                    {profile.parent.preferences.preferredPlaydateDays.join(', ')}
+                    {profile.parent.preferences.preferredPlaydateDays.map((d) => tr(DAY_LABELS, d)).join(', ')}
                   </div>
                 )}
                 {profile.parent?.preferences?.preferredTimeSlots?.length > 0 && (
                   <div className="flex items-center gap-1.5 text-xs text-gray-600 bg-white border border-gray-200 px-2.5 py-1 rounded-xl">
                     <span className="material-symbols-outlined text-[13px]">schedule</span>
-                    {profile.parent.preferences.preferredTimeSlots.join(', ')}
+                    {profile.parent.preferences.preferredTimeSlots.map((t) => tr(TIME_LABELS, t)).join(', ')}
                   </div>
                 )}
               </div>
