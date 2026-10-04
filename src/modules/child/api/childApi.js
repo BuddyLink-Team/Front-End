@@ -1,15 +1,11 @@
 import apiClient from '../../../services/apiClient';
 import { API_ENDPOINTS } from '../../../constants/api.constants';
-import playdateMockService from '../../playdate/mock/playdateMockService';
-
-const isMock = import.meta.env.MODE === 'mock' || import.meta.env.VITE_USE_MOCK === 'true';
 
 export const childApi = {
   /**
    * Get all children belonging to logged-in parent
    */
-  getMyChildren: () =>
-    isMock ? playdateMockService.getMyChildren() : apiClient.get(API_ENDPOINTS.CHILD.BASE),
+  getMyChildren: () => apiClient.get(API_ENDPOINTS.CHILD.BASE),
 
   /**
    * Create new child profile
