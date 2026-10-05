@@ -1,5 +1,5 @@
 import React from 'react';
-import { User, MapPin, FileText, Save, Sparkles } from 'lucide-react';
+import { User, MapPin, Save, Sparkles } from 'lucide-react';
 import { Input, Textarea, Button, Card } from '../../../components';
 import { useProfileInfo } from '../hooks/useParentTabHooks';
 

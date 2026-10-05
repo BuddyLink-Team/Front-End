@@ -28,7 +28,7 @@ export const Modal = ({
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       {/* Backdrop with blur */}
       <div
-        className="fixed inset-0 bg-[#2d3748]/30 backdrop-blur-sm transition-opacity"
+        className="fixed inset-0 bg-text-primary/30 backdrop-blur-sm transition-opacity"
         onClick={onClose}
       />
 

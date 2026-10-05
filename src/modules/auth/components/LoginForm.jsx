@@ -2,13 +2,13 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Mail, ArrowRight, LogIn } from 'lucide-react';
+import { Mail, LogIn } from 'lucide-react';
 import { loginSchema } from '../validation/authValidation';
 import { Input, PasswordInput, Button, Checkbox } from '../../../components';
-import { STORAGE_KEYS } from '../../../constants/storage.constants';
+import { useRememberedEmail } from '../hooks/useRememberedEmail';
 
 export const LoginForm = ({ onSubmit, isLoading }) => {
-  const rememberedEmail = localStorage.getItem(STORAGE_KEYS.REMEMBERED_EMAIL) || '';
+  const { rememberedEmail, saveRememberedEmail } = useRememberedEmail();
 
   const {
     register,
@@ -24,11 +24,7 @@ export const LoginForm = ({ onSubmit, isLoading }) => {
   });
 
   const handleFormSubmit = async (data) => {
-    if (data.rememberMe) {
-      localStorage.setItem(STORAGE_KEYS.REMEMBERED_EMAIL, data.email);
-    } else {
-      localStorage.removeItem(STORAGE_KEYS.REMEMBERED_EMAIL);
-    }
+    saveRememberedEmail(data.email, data.rememberMe);
 
     if (onSubmit) {
       await onSubmit(data);

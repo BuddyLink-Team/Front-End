@@ -1,7 +1,8 @@
 import React from 'react';
 import { Navigate, Outlet } from 'react-router-dom';
 import { useSelector } from 'react-redux';
-import { getRoleHomePath, USER_ROLES } from '../constants/role.constants';
+import { getRoleHomePath } from '../constants/role.constants';
+import { needsVerification } from '../modules/auth/utils/verification';
 
 /**
  * Route guard that only permits unauthenticated users.
@@ -11,14 +12,8 @@ export const PublicRoute = () => {
   const { isAuthenticated, user, parent } = useSelector((state) => state.auth);
 
   if (isAuthenticated) {
-    if (user?.role === USER_ROLES.PARENT) {
-      const isPhoneVerified = !!parent?.verification?.isPhoneVerified;
-      const isEmailVerified = !!parent?.verification?.isEmailVerified;
-      const isVerified = isPhoneVerified && (isEmailVerified || !!user?.googleId);
-
-      if (!isVerified) {
-        return <Navigate to="/verify-otp" replace />;
-      }
+    if (needsVerification(user, parent)) {
+      return <Navigate to="/verify-otp" replace />;
     }
 
     return <Navigate to={getRoleHomePath(user?.role)} replace />;

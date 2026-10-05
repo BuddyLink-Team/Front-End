@@ -5,8 +5,6 @@ import {
   ArrowLeft,
   Save,
   Sparkles,
-  Heart,
-  Smile,
   Trash2,
   Crown,
   ArrowRight,
@@ -160,13 +158,13 @@ export const ChildFormPage = () => {
 
       {/* Quota Exceeded Modal */}
       <Modal
-        open={Boolean(quotaExceededError)}
+        isOpen={Boolean(quotaExceededError)}
         onClose={() => setQuotaExceededError(null)}
         title="Đã đạt giới hạn hồ sơ bé"
-        size="md"
+        maxWidth="max-w-md"
       >
         <div className="space-y-5 py-2">
-          <div className="w-14 h-14 rounded-2xl bg-amber-500/10 text-amber-600 flex items-center justify-center mx-auto">
+          <div className="w-14 h-14 rounded-2xl bg-tertiary/15 text-tertiary-dark flex items-center justify-center mx-auto">
             <Crown className="w-7 h-7" />
           </div>
 
@@ -182,7 +180,7 @@ export const ChildFormPage = () => {
 
           <div className="bg-surface-container rounded-2xl p-4 space-y-2 text-xs text-text-muted">
             <div className="flex items-center gap-2 text-on-surface font-semibold">
-              <Sparkles className="w-4 h-4 text-amber-500" />
+              <Sparkles className="w-4 h-4 text-tertiary-container" />
               <span>Đặc quyền gói Premium:</span>
             </div>
             <ul className="list-disc list-inside space-y-1 pl-1">
@@ -207,7 +205,7 @@ export const ChildFormPage = () => {
                 setQuotaExceededError(null);
                 navigate('/subscription');
               }}
-              className="bg-amber-600 hover:bg-amber-700 text-white font-semibold"
+              className="bg-tertiary-dark hover:bg-tertiary-dark/90 text-white font-semibold"
               rightIcon={<ArrowRight className="w-4 h-4" />}
             >
               Nâng cấp Premium ngay

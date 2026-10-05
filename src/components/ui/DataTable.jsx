@@ -40,7 +40,7 @@ export const DataTable = ({
 
       <table className="w-full text-left border-collapse text-sm">
         {/* Table Head */}
-        <thead className="bg-[#f0f4f2]/70 border-b border-hairline">
+        <thead className="bg-surface-muted/70 border-b border-hairline">
           <tr>
             {columns.map((col) => (
               <th
