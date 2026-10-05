@@ -38,6 +38,7 @@ export const AUTH_ERROR_MESSAGES = Object.freeze({
   FORBIDDEN: 'Bạn không có quyền truy cập vào chức năng này.',
   USER_INACTIVE: 'Tài khoản hiện đang không hoạt động.',
   PARENT_NOT_FOUND: 'Không tìm thấy hồ sơ phụ huynh tương ứng.',
+  EMAIL_SEND_FAILED: 'Không gửi được email xác thực. Vui lòng thử lại sau ít phút!',
   INVALID_OTP: 'Mã xác thực OTP không chính xác hoặc đã hết hạn. Vui lòng thử lại!',
   INVALID_FIREBASE_TOKEN: 'Mã xác thực Firebase không hợp lệ hoặc đã hết hạn.',
   INVALID_RESET_TOKEN: 'Mã hoặc liên kết đặt lại mật khẩu không hợp lệ hoặc đã hết hạn.',
