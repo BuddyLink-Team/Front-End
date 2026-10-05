@@ -1,47 +1,79 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { useToast } from '../../../hooks/useToast.js';
 import { useMediaQuery } from '../../../hooks/useMediaQuery.js';
-import chatApi from '../api/chatApi.js';
-import useChatSocket from './useChatSocket.js';
+import { getApiErrorMsg } from '../../../utils/errorUtils.js';
+import useChatSocket, { SOCKET_ERROR_CODES } from './useChatSocket.js';
 import {
   CONVERSATION_TYPES,
   MESSAGE_TYPES,
+  MESSAGE_STATUS,
   ALLOWED_IMAGE_TYPES,
   MAX_IMAGE_SIZE_BYTES,
+  CHAT_ERROR_MESSAGES,
 } from '../constants/chatConstants.js';
+import {
+  createTempId,
+  buildOptimisticMessage,
+  getOldestPersistedMessageId,
+} from '../utils/chatMessageUtils.js';
+import {
+  fetchConversations,
+  fetchConversationById,
+  fetchMessages,
+  fetchOlderMessages,
+  sendMessageRest,
+  markConversationReadRest,
+  uploadChatImage,
+  conversationUpdated,
+  messageReceived,
+  optimisticMessageAdded,
+  messageStatusChanged,
+  messagesReadByPartner,
+  activeConversationClosed,
+  CHAT_LIST_STATUS,
+} from '../redux/chatSlice.js';
 
+const getSenderId = (message) =>
+  message?.senderId?._id || message?.senderId?.id || message?.senderId || message?.sender?.id;
+
+/**
+ * Chat screen logic. Conversations, messages and REST calls live in the chat slice;
+ * this hook keeps UI-only state (tab, search, typing, image picker) and wires the socket.
+ */
 export const useChat = (initialConversationId = null) => {
   const toast = useToast();
+  const dispatch = useDispatch();
   const isDesktop = useMediaQuery('(min-width: 1024px)');
   const currentParent = useSelector((state) => state.auth?.parent);
   const currentParentId = currentParent?._id || currentParent?.id;
 
-  // Conversations State
-  const [conversations, setConversations] = useState([]);
-  const [activeConversationId, setActiveConversationId] = useState(initialConversationId);
-  const [activeConversation, setActiveConversation] = useState(null);
-  const [isLoadingConversations, setIsLoadingConversations] = useState(true);
+  const {
+    conversations,
+    conversationsStatus,
+    activeConversationDetail,
+    messages,
+    isLoadingMessages,
+    hasMoreMessages,
+    isLoadingOlder,
+  } = useSelector((state) => state.chat);
 
-  // Tab & Search Filtering
+  // UI state
+  const [activeConversationId, setActiveConversationId] = useState(initialConversationId);
   const [selectedTab, setSelectedTab] = useState(CONVERSATION_TYPES.ALL);
   const [searchQuery, setSearchQuery] = useState('');
-
-  // Messages State
-  const [messages, setMessages] = useState([]);
-  const [isLoadingMessages, setIsLoadingMessages] = useState(false);
   const [isSending, setIsSending] = useState(false);
-  const [hasMoreMessages, setHasMoreMessages] = useState(false);
-  const [isLoadingOlder, setIsLoadingOlder] = useState(false);
-
-  // Realtime Typing Indicator
   const [isPartnerTyping, setIsPartnerTyping] = useState(false);
-  const typingTimeoutRef = useRef(null);
-  const emitReadStatusRef = useRef(null);
-
-  // Attachment State
   const [selectedImageFile, setSelectedImageFile] = useState(null);
   const [imagePreviewUrl, setImagePreviewUrl] = useState(null);
+  const typingTimeoutRef = useRef(null);
+  // Socket actions are created after the handlers below, so handlers reach them through a ref
+  const socketActionsRef = useRef(null);
+
+  const toErrorMessage = useCallback(
+    (error, fallback) => getApiErrorMsg(CHAT_ERROR_MESSAGES, error, fallback),
+    [],
+  );
 
   // Sync activeConversationId if initial prop changes
   useEffect(() => {
@@ -50,168 +82,116 @@ export const useChat = (initialConversationId = null) => {
     }
   }, [initialConversationId]);
 
-  // 1. Fetch Conversations List
-  const fetchConversations = useCallback(async () => {
+  // 1. Conversations list
+  const refreshConversations = useCallback(async () => {
     try {
-      setIsLoadingConversations(true);
-      const res = await chatApi.getConversations();
-      const list = res?.data || res || [];
-      setConversations(list);
-
+      const list = await dispatch(fetchConversations()).unwrap();
       // Auto-select first conversation on desktop if none selected
-      if (isDesktop && list.length > 0) {
-        setActiveConversationId((curr) => curr || list[0].id);
+      if (isDesktop && list?.length > 0) {
+        setActiveConversationId((current) => current || list[0].id);
       }
     } catch {
-      // Silently handle conversation fetch failure
-    } finally {
-      setIsLoadingConversations(false);
+      // The list shows its empty state; nothing else to do
     }
-  }, [isDesktop]);
+  }, [dispatch, isDesktop]);
 
   useEffect(() => {
-    fetchConversations();
-  }, [fetchConversations]);
+    refreshConversations();
+  }, [refreshConversations]);
 
-  // Update active conversation details from list or fetch if not present
+  // Mark a conversation as read once: via socket when connected (server also broadcasts the
+  // read receipt), otherwise via REST
+  const markConversationRead = useCallback(
+    (conversationId) => {
+      if (!conversationId) return;
+      const socketActions = socketActionsRef.current;
+      if (socketActions?.isConnected()) {
+        socketActions.emitReadStatus(conversationId);
+      } else {
+        dispatch(markConversationReadRest(conversationId));
+      }
+    },
+    [dispatch],
+  );
+
+  const isOwnMessage = useCallback(
+    (message) => Boolean(currentParentId) && String(getSenderId(message)) === String(currentParentId),
+    [currentParentId],
+  );
+
+  // Active conversation: from the list, or fetched when opened by URL
+  const conversationFromList = conversations.find((c) => c.id === activeConversationId);
+  const activeConversation =
+    conversationFromList ||
+    (activeConversationDetail?.id === activeConversationId ? activeConversationDetail : null);
+
+  useEffect(() => {
+    if (activeConversationId && !conversationFromList && conversationsStatus === CHAT_LIST_STATUS.SUCCEEDED) {
+      dispatch(fetchConversationById(activeConversationId));
+    }
+  }, [activeConversationId, conversationFromList, conversationsStatus, dispatch]);
+
+  // 2. Messages of the active conversation
   useEffect(() => {
     if (!activeConversationId) {
-      setActiveConversation(null);
-      setMessages([]);
+      dispatch(activeConversationClosed());
       return;
     }
 
-    const found = conversations.find((c) => c.id === activeConversationId);
-    if (found) {
-      setActiveConversation(found);
-    } else {
-      chatApi.getConversation(activeConversationId)
-        .then((res) => {
-          const conv = res?.data || res;
-          setActiveConversation(conv);
-        })
-        .catch(() => {});
-    }
-  }, [activeConversationId, conversations]);
+    dispatch(fetchMessages(activeConversationId))
+      .unwrap()
+      .then(() => markConversationRead(activeConversationId))
+      .catch(() => {});
+  }, [activeConversationId, dispatch, markConversationRead]);
 
-  // 2. Fetch Messages when active conversation changes
-  useEffect(() => {
-    if (!activeConversationId) return;
-
-    let isMounted = true;
-    setIsLoadingMessages(true);
-    setHasMoreMessages(false);
-
-    chatApi.getMessages(activeConversationId, { limit: 50 })
-      .then((res) => {
-        if (!isMounted) return;
-        const msgList = res?.data || res || [];
-        setMessages(msgList);
-        setHasMoreMessages(msgList.length >= 50);
-
-        // Mark as read on backend & emit socket read status
-        chatApi.markAsRead(activeConversationId).catch(() => {});
-        emitReadStatusRef.current?.(activeConversationId);
-
-        // Decrement local conversation unread count
-        setConversations((prev) =>
-          prev.map((c) => (c.id === activeConversationId ? { ...c, unreadCount: 0 } : c))
-        );
-      })
-      .catch(() => {})
-      .finally(() => {
-        if (isMounted) setIsLoadingMessages(false);
-      });
-
-    return () => {
-      isMounted = false;
-    };
-  }, [activeConversationId]);
-
-  // Load older messages (pagination with before & limit)
+  // Load older messages (cursor pagination: before = oldest persisted message id)
   const loadOlderMessages = useCallback(async () => {
-    if (!activeConversationId || isLoadingOlder || !hasMoreMessages || messages.length === 0) {
+    const before = getOldestPersistedMessageId(messages);
+    if (!activeConversationId || isLoadingOlder || !hasMoreMessages || !before) {
       return;
     }
 
     try {
-      setIsLoadingOlder(true);
-      const oldestMessage = messages[0];
-      const before = oldestMessage?.createdAt;
-
-      const res = await chatApi.getMessages(activeConversationId, { limit: 50, before });
-      const olderList = res?.data || res || [];
-
-      if (olderList.length < 50) {
-        setHasMoreMessages(false);
-      }
-
-      if (olderList.length > 0) {
-        setMessages((prev) => {
-          const existingIds = new Set(prev.map((m) => m.id));
-          const newUnique = olderList.filter((m) => !existingIds.has(m.id));
-          return [...newUnique, ...prev];
-        });
-      }
+      await dispatch(fetchOlderMessages({ conversationId: activeConversationId, before })).unwrap();
     } catch {
       toast.error('Không thể tải thêm tin nhắn cũ');
-    } finally {
-      setIsLoadingOlder(false);
     }
-  }, [activeConversationId, isLoadingOlder, hasMoreMessages, messages, toast]);
-
+  }, [activeConversationId, isLoadingOlder, hasMoreMessages, messages, dispatch, toast]);
 
   // 3. Socket Event Handlers
-  const handleMessageReceived = useCallback((newMessage) => {
-    if (!newMessage) return;
+  const handleMessageReceived = useCallback(
+    (newMessage) => {
+      if (!newMessage) return;
 
-    // If belongs to currently opened conversation, add to stream
-    if (newMessage.conversationId === activeConversationId) {
-      setMessages((prev) => {
-        if (prev.some((m) => m.id === newMessage.id)) return prev;
-        return [...prev, newMessage];
-      });
+      const isMine = isOwnMessage(newMessage);
+      const isKnownConversation = conversations.some((c) => c.id === newMessage.conversationId);
 
-      // Mark as read immediately on backend and via socket
-      chatApi.markAsRead(activeConversationId).catch(() => {});
-      emitReadStatusRef.current?.(activeConversationId);
-    }
+      dispatch(messageReceived({ message: newMessage, isMine }));
 
-    // Update conversation in list (last message & unread badge)
-    setConversations((prev) => {
-      const idx = prev.findIndex((c) => c.id === newMessage.conversationId);
-      if (idx === -1) {
-        // Conversation not in list yet, refresh list
-        fetchConversations();
-        return prev;
+      // Only incoming messages of the open conversation need a read receipt
+      if (newMessage.conversationId === activeConversationId && !isMine) {
+        markConversationRead(activeConversationId);
       }
 
-      const updated = [...prev];
-      const isCurrent = newMessage.conversationId === activeConversationId;
-      const unreadCount = isCurrent ? 0 : (updated[idx].unreadCount || 0) + 1;
+      // A conversation we do not have yet (e.g. started by the partner): reload the list
+      if (!isKnownConversation) {
+        refreshConversations();
+      }
+    },
+    [activeConversationId, conversations, dispatch, isOwnMessage, markConversationRead, refreshConversations],
+  );
 
-      const item = {
-        ...updated[idx],
-        lastMessage: {
-          messageId: newMessage.id,
-          senderId: newMessage.senderId,
-          senderName: newMessage.sender?.fullName || '',
-          content: newMessage.content,
-          type: newMessage.type,
-          sentAt: newMessage.createdAt,
-        },
-        unreadCount,
-        updatedAt: newMessage.createdAt,
-      };
+  // Socket acks resolve after the user may have switched conversation, so they must call
+  // the latest handler rather than the one captured when the message was sent
+  const handleMessageReceivedRef = useRef(handleMessageReceived);
+  useEffect(() => {
+    handleMessageReceivedRef.current = handleMessageReceived;
+  }, [handleMessageReceived]);
 
-      // Move updated conversation to top
-      updated.splice(idx, 1);
-      return [item, ...updated];
-    });
-  }, [activeConversationId, fetchConversations]);
+  const handleUserTyping = useCallback(
+    (data) => {
+      if (data.parentId === currentParentId) return;
 
-  const handleUserTyping = useCallback((data) => {
-    if (data.parentId !== currentParentId) {
       setIsPartnerTyping(Boolean(data.isTyping));
 
       // Auto clear typing state after 3 seconds of inactivity
@@ -221,50 +201,31 @@ export const useChat = (initialConversationId = null) => {
           setIsPartnerTyping(false);
         }, 3000);
       }
-    }
-  }, [currentParentId]);
+    },
+    [currentParentId],
+  );
 
-  const handleMessageRead = useCallback((data) => {
-    if (data.conversationId === activeConversationId) {
-      setMessages((prev) =>
-        prev.map((m) => {
-          const senderId =
-            m.senderId?._id ||
-            m.senderId?.id ||
-            m.senderId ||
-            m.sender?.id ||
-            m.sender?.parent ||
-            m.sender?._id;
-
-          // Only my outgoing messages turn into "Đã xem" when the other participant reads
-          const isMyMessage = currentParentId
-            ? String(senderId) === String(currentParentId)
-            : Boolean(m.isMine);
-
-          if (isMyMessage && String(data.parentId) !== String(currentParentId)) {
-            return {
-              ...m,
-              isRead: true,
-            };
-          }
-          return m;
-        })
+  const handleMessageRead = useCallback(
+    (data) => {
+      dispatch(
+        messagesReadByPartner({
+          conversationId: data.conversationId,
+          readerId: data.parentId,
+          currentParentId,
+        }),
       );
-    }
-  }, [activeConversationId, currentParentId]);
+    },
+    [dispatch, currentParentId],
+  );
 
-  const handleConversationUpdated = useCallback((updatedConv) => {
-    if (!updatedConv) return;
-    setConversations((prev) => {
-      const exists = prev.some((c) => c.id === updatedConv.id);
-      if (!exists) {
-        return [updatedConv, ...prev];
-      }
-      return prev.map((c) => (c.id === updatedConv.id ? { ...c, ...updatedConv } : c));
-    });
-  }, []);
+  const handleConversationUpdated = useCallback(
+    (updatedConversation) => {
+      dispatch(conversationUpdated(updatedConversation));
+    },
+    [dispatch],
+  );
 
-  const { emitSendMessage, emitTyping, emitReadStatus } = useChatSocket({
+  const { isConnected, emitSendMessage, emitTyping, emitReadStatus } = useChatSocket({
     conversationId: activeConversationId,
     onMessageReceived: handleMessageReceived,
     onUserTyping: handleUserTyping,
@@ -273,67 +234,113 @@ export const useChat = (initialConversationId = null) => {
   });
 
   useEffect(() => {
-    emitReadStatusRef.current = emitReadStatus;
-  }, [emitReadStatus]);
+    socketActionsRef.current = { isConnected, emitReadStatus };
+  }, [isConnected, emitReadStatus]);
 
-  // 4. Send Message Handler (with image upload if attached)
+  // 4. Deliver a message whose optimistic copy is already in the stream, then reconcile by tempId.
+  // - Socket disconnected: nothing was sent yet, so REST is used.
+  // - Inline (data URL) images from the dev storage fallback are too large for a socket frame: REST.
+  // - Socket timeout: the server may still have saved it, so it is only marked as failed and never
+  //   re-sent automatically; a late echo with the same tempId replaces it.
+  // - Business error from the server (blocked, too long...): marked as failed with its message.
+  const deliverMessage = useCallback(
+    (payload) => {
+      const { tempId, conversationId } = payload;
+
+      const markFailed = (error) => {
+        dispatch(messageStatusChanged({ tempId, status: MESSAGE_STATUS.FAILED }));
+        if (error) {
+          toast.error(toErrorMessage(error, 'Không thể gửi tin nhắn. Vui lòng thử lại.'));
+        }
+      };
+
+      const sendViaRest = async () => {
+        try {
+          const savedMessage = await dispatch(sendMessageRest({ conversationId, payload })).unwrap();
+          handleMessageReceivedRef.current({ ...savedMessage, tempId });
+        } catch (error) {
+          markFailed(error);
+        }
+      };
+
+      if (payload.mediaUrl?.startsWith('data:')) {
+        sendViaRest();
+        return;
+      }
+
+      emitSendMessage(payload, (ack) => {
+        if (ack?.success) {
+          handleMessageReceivedRef.current(ack.data);
+          return;
+        }
+        if (ack?.code === SOCKET_ERROR_CODES.DISCONNECTED) {
+          sendViaRest();
+          return;
+        }
+        if (ack?.code === SOCKET_ERROR_CODES.TIMEOUT) {
+          markFailed();
+          return;
+        }
+        markFailed(ack || {});
+      });
+    },
+    [dispatch, emitSendMessage, toast, toErrorMessage],
+  );
+
+  // Send Message Handler (with image upload if attached)
   const handleSendMessage = async (text) => {
     if (!activeConversationId) return;
     const trimmed = (text || '').trim();
     if (!trimmed && !selectedImageFile) return;
 
-    setIsSending(true);
-    emitTyping({ conversationId: activeConversationId, isTyping: false });
+    const conversationId = activeConversationId;
+    emitTyping({ conversationId, isTyping: false });
 
-    try {
-      let mediaUrl = null;
+    let mediaUrl = null;
 
-      // Upload image attachment first if selected
-      if (selectedImageFile) {
-        const uploadRes = await chatApi.uploadImage(selectedImageFile);
-        mediaUrl = uploadRes?.data?.mediaUrl || uploadRes?.mediaUrl;
+    // Upload image attachment first if selected (kept in the composer if the upload fails)
+    if (selectedImageFile) {
+      setIsSending(true);
+      try {
+        const uploadResult = await dispatch(uploadChatImage(selectedImageFile)).unwrap();
+        mediaUrl = uploadResult?.mediaUrl;
+      } catch (error) {
+        toast.error(toErrorMessage(error, 'Tải ảnh lên thất bại. Vui lòng thử lại.'));
+        return;
+      } finally {
+        setIsSending(false);
       }
-
-      const payload = {
-        conversationId: activeConversationId,
-        content: trimmed || (mediaUrl ? '[Hình ảnh]' : ''),
-        type: mediaUrl ? MESSAGE_TYPES.IMAGE : MESSAGE_TYPES.TEXT,
-        mediaUrl,
-      };
-
-      // Send via socket with REST fallback
-      emitSendMessage(payload, async (ack) => {
-        if (!ack || !ack.success) {
-          // If blocked or business rejection, display error directly
-          if (ack?.code === 'USER_BLOCKED' || ack?.error?.includes('chặn') || ack?.error?.includes('blocked')) {
-            toast.error(ack.error || 'Không thể gửi tin nhắn vì một trong hai người đã chặn nhau.');
-            return;
-          }
-
-          // Fallback to REST API
-          try {
-            const restRes = await chatApi.sendMessage(activeConversationId, payload);
-            const msg = restRes?.data || restRes;
-            handleMessageReceived(msg);
-          } catch (err) {
-            const errorMsg =
-              err?.response?.data?.message ||
-              err?.message ||
-              'Không thể gửi tin nhắn. Vui lòng thử lại.';
-            toast.error(errorMsg);
-          }
-        }
-      });
-
-      // Clear image attachment preview
       setSelectedImageFile(null);
       setImagePreviewUrl(null);
-    } catch (error) {
-      toast.error(error?.message || 'Gửi tin nhắn thất bại.');
-    } finally {
-
-      setIsSending(false);
     }
+
+    const payload = {
+      tempId: createTempId(),
+      conversationId,
+      content: trimmed || (mediaUrl ? '[Hình ảnh]' : ''),
+      type: mediaUrl ? MESSAGE_TYPES.IMAGE : MESSAGE_TYPES.TEXT,
+      mediaUrl,
+    };
+
+    dispatch(optimisticMessageAdded(buildOptimisticMessage({ ...payload, senderId: currentParentId })));
+    deliverMessage(payload);
+  };
+
+  // Manually re-send a failed optimistic message with the same tempId
+  const handleRetryMessage = (tempId) => {
+    const failedMessage = messages.find(
+      (m) => m.tempId === tempId && m.status === MESSAGE_STATUS.FAILED,
+    );
+    if (!failedMessage) return;
+
+    dispatch(messageStatusChanged({ tempId, status: MESSAGE_STATUS.SENDING }));
+    deliverMessage({
+      tempId,
+      conversationId: failedMessage.conversationId,
+      content: failedMessage.content,
+      type: failedMessage.type,
+      mediaUrl: failedMessage.mediaUrl,
+    });
   };
 
   // Image Selection & Preview
@@ -378,7 +385,7 @@ export const useChat = (initialConversationId = null) => {
         return false;
       }
 
-      // Filter by Search Query (Partner name, Child name)
+      // Filter by Search Query (Partner name, last message)
       if (searchQuery.trim()) {
         const query = searchQuery.toLowerCase().trim();
         const partnerName = conv.partner?.fullName?.toLowerCase() || '';
@@ -407,7 +414,8 @@ export const useChat = (initialConversationId = null) => {
     searchQuery,
     setSearchQuery,
     messages,
-    isLoadingConversations,
+    isLoadingConversations:
+      conversationsStatus === CHAT_LIST_STATUS.IDLE || conversationsStatus === CHAT_LIST_STATUS.LOADING,
     isLoadingMessages,
     isSending,
     isPartnerTyping,
@@ -419,8 +427,9 @@ export const useChat = (initialConversationId = null) => {
     handleSelectImage,
     handleClearImage,
     handleSendMessage,
+    handleRetryMessage,
     handleSendTyping,
-    refreshConversations: fetchConversations,
+    refreshConversations,
   };
 };
 

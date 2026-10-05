@@ -1,33 +1,28 @@
-import { useState, useEffect, useCallback } from 'react';
-import { subscriptionApi } from '../api/subscriptionApi';
+import { useEffect, useCallback } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { fetchMySubscriptionQuota } from '../redux/subscriptionSlice';
+import { getApiErrorMsg } from '../../../utils/errorUtils';
+import { SUBSCRIPTION_ERROR_MESSAGES } from '../constants/subscriptionConstants';
 
+/**
+ * Current plan and usage quota of the signed-in parent (data lives in the subscription slice).
+ */
 export const useSubscriptionQuota = () => {
-  const [quotaInfo, setQuotaInfo] = useState(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const dispatch = useDispatch();
+  const { subscription, quota, isLoading, error } = useSelector((state) => state.subscription);
 
   const fetchQuota = useCallback(async () => {
-    setIsLoading(true);
-    setError(null);
     try {
-      const res = await subscriptionApi.getMySubscriptionQuota();
-      const data = res?.data || res || null;
-      setQuotaInfo(data);
-      return data;
-    } catch (err) {
-      setError(err);
+      return await dispatch(fetchMySubscriptionQuota()).unwrap();
+    } catch {
       return null;
-    } finally {
-      setIsLoading(false);
     }
-  }, []);
+  }, [dispatch]);
 
   useEffect(() => {
     fetchQuota();
   }, [fetchQuota]);
 
-  const subscription = quotaInfo?.subscription;
-  const quota = quotaInfo?.quota;
   const limits = quota?.limits || {};
   const usage = quota?.usage || {};
 
@@ -37,8 +32,12 @@ export const useSubscriptionQuota = () => {
   const childProfilesCount = usage.childProfiles ?? 0;
   const isChildLimitReached = !isChildUnlimited && childProfilesCount >= childLimit;
 
+  const errorMessage = error
+    ? getApiErrorMsg(SUBSCRIPTION_ERROR_MESSAGES, error, 'Không thể tải thông tin gói dịch vụ.')
+    : null;
+
   return {
-    quotaInfo,
+    quotaInfo: quota ? { subscription, quota } : null,
     subscription,
     quota,
     limits,
@@ -47,7 +46,7 @@ export const useSubscriptionQuota = () => {
     isChildUnlimited,
     isChildLimitReached,
     isLoading,
-    error,
+    error: errorMessage,
     refetchQuota: fetchQuota,
   };
 };

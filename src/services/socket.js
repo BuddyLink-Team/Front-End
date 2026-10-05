@@ -1,5 +1,5 @@
 import { io } from 'socket.io-client';
-import { STORAGE_KEYS } from '../constants/storage.constants';
+import tokenStore from './tokenStore';
 
 const socketURL = import.meta.env.VITE_SOCKET_URL || 'http://localhost:5000';
 
@@ -11,9 +11,10 @@ class SocketService {
   connect() {
     if (!this.socket) {
       this.socket = io(socketURL, {
+        // Read the in-memory access token on every (re)connect
         auth: (cb) => {
           cb({
-            token: localStorage.getItem(STORAGE_KEYS.ACCESS_TOKEN),
+            token: tokenStore.getAccessToken(),
           });
         },
         autoConnect: true,
@@ -21,25 +22,18 @@ class SocketService {
         reconnectionAttempts: 5,
         reconnectionDelay: 1000,
       });
-
-      this.socket.on('connect', () => {
-        console.log('[Socket] Connected with ID:', this.socket.id);
-      });
-
-      this.socket.on('disconnect', (reason) => {
-        console.log('[Socket] Disconnected:', reason);
-      });
-
-      this.socket.on('connect_error', (error) => {
-        console.error('[Socket] Connection error:', error.message);
-      });
     }
     return this.socket;
   }
 
-  updateToken(token) {
-    if (this.socket) {
-      this.socket.auth = { token };
+  /**
+   * Call after the access token is refreshed. The auth callback already reads the
+   * latest token from localStorage on every (re)connect, so it must not be replaced;
+   * only reconnect if the server rejected the previous (expired) token.
+   */
+  updateToken() {
+    if (this.socket && !this.socket.connected) {
+      this.socket.connect();
     }
   }
 

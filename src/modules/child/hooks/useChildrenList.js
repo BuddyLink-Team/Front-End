@@ -1,22 +1,24 @@
 import { useState, useEffect, useCallback } from 'react';
-import { toast } from 'react-hot-toast';
-import { childApi } from '../api/childApi';
+import { useDispatch, useSelector } from 'react-redux';
+import { useToast } from '../../../hooks/useToast';
+import { fetchMyChildren, deleteChild, CHILD_LIST_STATUS } from '../redux/childSlice';
 import { CHILD_ERROR_MESSAGES } from '../constants/childConstants';
 import { getApiErrorMsg } from '../../../utils/errorUtils';
 
+/**
+ * Children list of the signed-in parent. Data and request status live in the child slice.
+ */
 export const useChildrenList = () => {
-  const [children, setChildren] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const toast = useToast();
+  const dispatch = useDispatch();
+  const { children, listStatus } = useSelector((state) => state.child);
   const [isDeleting, setIsDeleting] = useState(false);
   const [errorMessage, setErrorMessage] = useState(null);
 
   const fetchChildren = useCallback(async () => {
-    setIsLoading(true);
     setErrorMessage(null);
     try {
-      const res = await childApi.getMyChildren();
-      const list = res?.data || res || [];
-      setChildren(Array.isArray(list) ? list : []);
+      await dispatch(fetchMyChildren()).unwrap();
     } catch (error) {
       const msg = getApiErrorMsg(
         CHILD_ERROR_MESSAGES,
@@ -25,21 +27,18 @@ export const useChildrenList = () => {
       );
       setErrorMessage(msg);
       toast.error(msg);
-    } finally {
-      setIsLoading(false);
     }
-  }, []);
+  }, [dispatch, toast]);
 
   useEffect(() => {
     fetchChildren();
   }, [fetchChildren]);
 
   const handleDeleteChild = async (childId) => {
-    if (!childId) return;
+    if (!childId) return { success: false };
     setIsDeleting(true);
     try {
-      await childApi.deleteChild(childId);
-      setChildren((prev) => prev.filter((c) => (c.id || c._id) !== childId));
+      await dispatch(deleteChild(childId)).unwrap();
       toast.success('Đã xóa hồ sơ bé thành công!');
       return { success: true };
     } catch (error) {
@@ -57,7 +56,8 @@ export const useChildrenList = () => {
 
   return {
     children,
-    isLoading,
+    // Not fetched yet counts as loading so the page never flashes the empty state
+    isLoading: listStatus === CHILD_LIST_STATUS.IDLE || listStatus === CHILD_LIST_STATUS.LOADING,
     isDeleting,
     errorMessage,
     fetchChildren,

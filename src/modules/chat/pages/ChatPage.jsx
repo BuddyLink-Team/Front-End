@@ -32,6 +32,7 @@ export const ChatPage = () => {
     handleSelectImage,
     handleClearImage,
     handleSendMessage,
+    handleRetryMessage,
     handleSendTyping,
   } = useChat(conversationId);
 
@@ -84,6 +85,7 @@ export const ChatPage = () => {
           onSelectImage={handleSelectImage}
           onClearImage={handleClearImage}
           onSendMessage={handleSendMessage}
+          onRetryMessage={handleRetryMessage}
           onSendTyping={handleSendTyping}
           onBack={handleBackToConversations}
           className={!activeConversationId ? 'hidden lg:flex' : 'flex'}

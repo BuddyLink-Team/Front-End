@@ -61,7 +61,7 @@ export const Tabs = ({
   return (
     <div
       className={cn(
-        'inline-flex items-center p-1 bg-[#f0f4f2] rounded-full border border-hairline overflow-x-auto max-w-full',
+        'inline-flex items-center p-1 bg-surface-muted rounded-full border border-hairline overflow-x-auto max-w-full',
         className
       )}
     >

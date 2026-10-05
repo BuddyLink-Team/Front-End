@@ -21,7 +21,12 @@ import socketService from '../../services/socket';
 import { NAV_LINKS } from '../../constants/navigation.constants';
 import logoImg from '../../assets/images/logo.png';
 
-export const Navbar = () => {
+/**
+ * @param {Object} props
+ * @param {Function} [props.onLogout] - Logout handler provided by the layout (revokes the session
+ *   on the server). Falls back to clearing the local session only when not provided.
+ */
+export const Navbar = ({ onLogout } = {}) => {
   const location = useLocation();
   const navigate = useNavigate();
   const dispatch = useDispatch();
@@ -29,6 +34,10 @@ export const Navbar = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const handleLogout = () => {
+    if (onLogout) {
+      onLogout();
+      return;
+    }
     socketService.disconnect();
     dispatch(logout());
     dispatch(clearParentState());
@@ -62,7 +71,7 @@ export const Navbar = () => {
 
         {/* Center Navigation Links - Conditional based on Auth & Route */}
         {isAuthenticated ? (
-          <nav className="hidden md:flex items-center gap-1.5 bg-[#f0f4f2] p-1.5 rounded-full border border-hairline">
+          <nav className="hidden md:flex items-center gap-1.5 bg-surface-muted p-1.5 rounded-full border border-hairline">
             {NAV_LINKS.map((link) => {
               const Icon = link.icon;
               const isActive = location.pathname.startsWith(link.href);
@@ -252,7 +261,7 @@ export const Navbar = () => {
                   <span>Hồ sơ cá nhân</span>
                 </Link>
                 <Link
-                  to="/onboarding-child"
+                  to="/children"
                   onClick={closeMobileMenu}
                   className="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-semibold text-text-primary hover:bg-canvas"
                 >

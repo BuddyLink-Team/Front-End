@@ -28,9 +28,8 @@ export const childSchema = z.object({
     .min(1, 'Vui lòng chọn ít nhất 1 nét tính cách nổi bật'),
 });
 
-export const onboardingSchema = childSchema.extend({
-
-  // Parent Matching Preferences
+// Step 1 of onboarding: parent matching criteria & location
+const criteriaBaseSchema = z.object({
   preferredPlaydateDays: z
     .array(z.string())
     .min(1, 'Vui lòng chọn ít nhất 1 khoảng thời gian trong tuần'),
@@ -48,10 +47,39 @@ export const onboardingSchema = childSchema.extend({
   ageMax: z.number().max(18, 'Tuổi tối đa là 18'),
 
   // Location
-  city: z.string().min(1, 'Vui lòng chọn hoặc nhập Tỉnh / Thành phố'),
-  area: z.string().min(1, 'Vui lòng chọn hoặc nhập Quận / Huyện'),
+  city: z.string().trim().min(1, 'Vui lòng chọn hoặc nhập Tỉnh / Thành phố'),
+  area: z.string().trim().min(1, 'Vui lòng chọn hoặc nhập Quận / Huyện'),
   address: z.string().optional(),
-}).refine((data) => data.ageMin <= data.ageMax, {
-  message: 'Độ tuổi tối thiểu phải nhỏ hơn hoặc bằng độ tuổi tối đa',
-  path: ['ageMax'],
 });
+
+const ageRangeRule = [
+  (data) => data.ageMin <= data.ageMax,
+  {
+    message: 'Độ tuổi tối thiểu phải nhỏ hơn hoặc bằng độ tuổi tối đa',
+    path: ['ageMax'],
+  },
+];
+
+export const criteriaSchema = criteriaBaseSchema.refine(...ageRangeRule);
+
+// Full onboarding payload (criteria + first child profile)
+export const onboardingSchema = childSchema.merge(criteriaBaseSchema).refine(...ageRangeRule);
+
+/**
+ * Run a Zod schema and return the first error message per field ({} when valid)
+ * @param {import('zod').ZodTypeAny} schema
+ * @param {Object} data
+ * @returns {Record<string, string>}
+ */
+export const getFieldErrors = (schema, data) => {
+  const result = schema.safeParse(data);
+  if (result.success) return {};
+
+  return result.error.errors.reduce((errors, issue) => {
+    const field = issue.path[0];
+    if (field && !errors[field]) {
+      errors[field] = issue.message;
+    }
+    return errors;
+  }, {});
+};

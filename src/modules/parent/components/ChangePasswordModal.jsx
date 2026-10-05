@@ -1,5 +1,4 @@
 import React from 'react';
-import { KeyRound } from 'lucide-react';
 import { Modal, PasswordInput, Button } from '../../../components';
 import { useChangePassword } from '../hooks/useParentTabHooks';
 

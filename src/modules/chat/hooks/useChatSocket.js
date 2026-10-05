@@ -1,6 +1,12 @@
 import { useEffect, useRef, useCallback } from 'react';
 import socketService from '../../../services/socket.js';
-import { SOCKET_EVENTS } from '../constants/chatConstants.js';
+import { SOCKET_EVENTS, SOCKET_ACK_TIMEOUT_MS } from '../constants/chatConstants.js';
+
+// Transport failures (as opposed to business errors returned by the server in the ack)
+export const SOCKET_ERROR_CODES = Object.freeze({
+  DISCONNECTED: 'SOCKET_DISCONNECTED',
+  TIMEOUT: 'SOCKET_TIMEOUT',
+});
 
 export const useChatSocket = ({
   conversationId,
@@ -72,11 +78,13 @@ export const useChatSocket = ({
     };
   }, [conversationId, onMessageReceived, onUserTyping, onMessageRead, onConversationUpdated]);
 
+  const isConnected = useCallback(() => Boolean(socketRef.current?.connected), []);
+
   const emitSendMessage = useCallback((payload, callback) => {
     const socket = socketRef.current;
     if (!socket || !socket.connected) {
       if (typeof callback === 'function') {
-        callback({ success: false, error: 'Socket is not connected' });
+        callback({ success: false, code: SOCKET_ERROR_CODES.DISCONNECTED });
       }
       return;
     }
@@ -85,9 +93,9 @@ export const useChatSocket = ({
     const timeoutTimer = setTimeout(() => {
       hasTimedOut = true;
       if (typeof callback === 'function') {
-        callback({ success: false, error: 'Socket request timed out' });
+        callback({ success: false, code: SOCKET_ERROR_CODES.TIMEOUT });
       }
-    }, 4000);
+    }, SOCKET_ACK_TIMEOUT_MS);
 
     socket.emit(SOCKET_EVENTS.SEND_MESSAGE, payload, (response) => {
       if (hasTimedOut) return;
@@ -111,6 +119,7 @@ export const useChatSocket = ({
   }, []);
 
   return {
+    isConnected,
     emitSendMessage,
     emitTyping,
     emitReadStatus,
