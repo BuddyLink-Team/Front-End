@@ -3,6 +3,9 @@ import { MapPin, CalendarDays } from 'lucide-react';
 import { motion, useMotionValue, useTransform } from 'framer-motion';
 import { VerifiedBadge } from '../../../components/badges/VerifiedBadge';
 import { InterestTag } from '../../../components/badges/InterestTag';
+import { Avatar } from '../../../components/ui/Avatar';
+import { useDiscoveryCard } from '../hooks/useDiscoveryCard';
+import { SWIPE_DIRECTIONS } from '../constants/discoveryConstants';
 import { MatchScoreBar } from './MatchScoreBar';
 import { DiscoveryActionButtons } from './DiscoveryActionButtons';
 
@@ -27,16 +30,11 @@ export const DiscoveryCard = ({ profile, onSwipe, index, isTop }) => {
     ]
   );
 
-  const handleDragEnd = (_, info) => {
-    if (info.offset.x > 100) onSwipe('LIKE');
-    else if (info.offset.x < -100) onSwipe('PASS');
-  };
+  const { data, handleDragEnd } = useDiscoveryCard(profile, onSwipe);
 
-  if (!profile) return null;
+  if (!data) return null;
 
-  const interests = [...(profile.interests || []), ...(profile.favoriteActivities || [])];
-  const genderLabel = profile.gender === 'MALE' ? 'Bé Trai' : profile.gender === 'FEMALE' ? 'Bé Gái' : 'Khác';
-  const defaultAvatar = profile.gender === 'FEMALE' ? '/avatars/default_girl.jpg' : '/avatars/default_boy.jpg';
+  const { interests, genderLabel, avatarSrc, distanceLabel, preferredLocations, preferredPlaydateDays, preferredTimeSlots } = data;
 
   return (
     <motion.div
@@ -66,7 +64,7 @@ export const DiscoveryCard = ({ profile, onSwipe, index, isTop }) => {
           <div className="relative w-[100px] h-[100px] shrink-0 rounded-2xl bg-[#EAF3EC] overflow-hidden flex items-center justify-center border border-[#D2E7D7]">
             <img
               alt={profile.displayName}
-              src={profile.avatarUrl || defaultAvatar}
+              src={avatarSrc}
               className="w-full h-full object-cover select-none pointer-events-none"
               draggable={false}
             />
@@ -82,11 +80,10 @@ export const DiscoveryCard = ({ profile, onSwipe, index, isTop }) => {
               <h2 className="text-[22px] font-extrabold text-gray-900 leading-tight">{profile.displayName}</h2>
               <span className="px-2.5 py-0.5 bg-gray-100 text-gray-600 text-xs font-medium rounded-full border border-gray-200">
                 {profile.age} tuổi
-                {profile.schoolLevel ? ` • ${profile.schoolLevel}` : ''}
               </span>
               <span className="flex items-center gap-1 px-2.5 py-0.5 bg-gray-50 text-gray-500 text-xs rounded-full border border-gray-200">
                 <MapPin size={12} strokeWidth={1.5} />
-                {profile.distanceKm !== undefined ? `Cách ${profile.distanceKm} km` : 'Gần bạn'}
+                {distanceLabel}
               </span>
             </div>
 
@@ -99,10 +96,10 @@ export const DiscoveryCard = ({ profile, onSwipe, index, isTop }) => {
             )}
 
             {/* Meetup spots */}
-            {profile.parent?.preferences?.preferredLocations?.length > 0 && (
+            {preferredLocations.length > 0 && (
               <div className="flex items-start gap-1.5 text-sm text-gray-600">
                 <MapPin size={15} strokeWidth={1.5} className="text-[#7BAE7F] mt-0.5 shrink-0" />
-                <span>Điểm hẹn thích: <strong className="text-gray-800">{profile.parent.preferences.preferredLocations.join(' • ')}</strong></span>
+                <span>Điểm hẹn thích: <strong className="text-gray-800">{preferredLocations.join(' • ')}</strong></span>
               </div>
             )}
 
@@ -128,8 +125,8 @@ export const DiscoveryCard = ({ profile, onSwipe, index, isTop }) => {
             )}
           </div>
           <div className="flex flex-wrap gap-2">
-            {interests.map((item, idx) => (
-              <InterestTag key={idx} label={item} />
+            {interests.map((item) => (
+              <InterestTag key={item} label={item} />
             ))}
           </div>
         </div>
@@ -141,10 +138,10 @@ export const DiscoveryCard = ({ profile, onSwipe, index, isTop }) => {
         <div className="rounded-2xl border border-gray-150 bg-gray-50 p-4 flex flex-col gap-3">
           <div className="flex items-start justify-between gap-3">
             <div className="flex items-center gap-2.5">
-              <img
-                alt={profile.parent?.fullName}
-                className="w-10 h-10 rounded-full border-2 border-white shadow object-cover shrink-0"
-                src={profile.parent?.avatarUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(profile.parent?.fullName || 'PH')}&background=EAF3EC&color=3d6841`}
+              <Avatar
+                src={profile.parent?.avatarUrl}
+                alt={profile.parent?.fullName || 'PH'}
+                size="md"
               />
               <div>
                 <div className="flex items-center gap-1.5 flex-wrap">
@@ -156,18 +153,18 @@ export const DiscoveryCard = ({ profile, onSwipe, index, isTop }) => {
                 <p className="text-xs text-gray-500 mt-0.5">Phụ huynh bảo hộ • Tham gia cộng đồng</p>
               </div>
             </div>
-            {(profile.parent?.preferences?.preferredPlaydateDays?.length > 0 || profile.parent?.preferences?.preferredTimeSlots?.length > 0) && (
+            {(preferredPlaydateDays.length > 0 || preferredTimeSlots.length > 0) && (
               <div className="flex flex-col gap-1 items-end shrink-0">
-                {profile.parent?.preferences?.preferredPlaydateDays?.length > 0 && (
+                {preferredPlaydateDays.length > 0 && (
                   <div className="flex items-center gap-1.5 text-xs text-gray-600 bg-white border border-gray-200 px-2.5 py-1 rounded-xl">
                     <CalendarDays size={13} strokeWidth={1.5} />
-                    {profile.parent.preferences.preferredPlaydateDays.join(', ')}
+                    {preferredPlaydateDays.join(', ')}
                   </div>
                 )}
-                {profile.parent?.preferences?.preferredTimeSlots?.length > 0 && (
+                {preferredTimeSlots.length > 0 && (
                   <div className="flex items-center gap-1.5 text-xs text-gray-600 bg-white border border-gray-200 px-2.5 py-1 rounded-xl">
                     <span className="material-symbols-outlined text-[13px]">schedule</span>
-                    {profile.parent.preferences.preferredTimeSlots.join(', ')}
+                    {preferredTimeSlots.join(', ')}
                   </div>
                 )}
               </div>
@@ -176,7 +173,7 @@ export const DiscoveryCard = ({ profile, onSwipe, index, isTop }) => {
 
           {profile.parent?.bio && (
             <p className="text-sm text-gray-600 italic bg-white px-3.5 py-3 rounded-xl border border-gray-100 leading-relaxed">
-              "{profile.parent.bio}"
+              &quot;{profile.parent.bio}&quot;
             </p>
           )}
         </div>
@@ -184,8 +181,8 @@ export const DiscoveryCard = ({ profile, onSwipe, index, isTop }) => {
         {/* ── Action Buttons ── */}
         {isTop && (
           <DiscoveryActionButtons
-            onPass={() => onSwipe('PASS')}
-            onLike={() => onSwipe('LIKE')}
+            onPass={() => onSwipe(SWIPE_DIRECTIONS.PASS)}
+            onLike={() => onSwipe(SWIPE_DIRECTIONS.LIKE)}
           />
         )}
       </div>

@@ -29,8 +29,8 @@ export const API_ENDPOINTS = {
     BASE: '/children',
   },
   DISCOVERY: {
-    MATCH: '/discovery/match',
-    NEARBY: '/discovery/nearby',
+    BASE: '/discovery',
+    SWIPE: '/discovery/swipe',
   },
   PLAYDATE: {
     BASE: '/playdates',

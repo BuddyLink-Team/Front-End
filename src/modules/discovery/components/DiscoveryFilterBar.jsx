@@ -1,6 +1,6 @@
 import React from 'react';
 
-export const DiscoveryFilterBar = ({ meta }) => {
+export const DiscoveryFilterBar = ({ meta, remainingViewsLabel, onUpgrade }) => {
   return (
     <div className="w-full max-w-[740px] flex flex-col gap-3 mb-6 z-10 relative">
       <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 w-full bg-surface-container-lowest p-2.5 sm:px-4 sm:py-3 rounded-2xl border border-outline-variant/40 shadow-sm transition-all">
@@ -27,12 +27,12 @@ export const DiscoveryFilterBar = ({ meta }) => {
             <div className="flex items-center gap-1 text-tertiary">
               <span className="material-symbols-outlined text-[16px]">bolt</span>
               <span className="text-xs font-semibold text-on-surface">
-                {meta?.remainingViews !== undefined ? `${meta.remainingViews} lượt` : '...'}
+                {remainingViewsLabel}
               </span>
             </div>
           </div>
           {!meta?.isPremium && (
-            <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-tertiary-fixed text-on-tertiary-fixed text-xs font-semibold hover:bg-tertiary-container hover:text-on-tertiary-container transition-all shadow-sm active:scale-95 flex-shrink-0" type="button">
+            <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-tertiary-fixed text-on-tertiary-fixed text-xs font-semibold hover:bg-tertiary-container hover:text-on-tertiary-container transition-all shadow-sm active:scale-95 flex-shrink-0" type="button" onClick={onUpgrade}>
               <span className="text-xs">👑</span>
               <span className="font-medium">Nâng cấp</span>
             </button>

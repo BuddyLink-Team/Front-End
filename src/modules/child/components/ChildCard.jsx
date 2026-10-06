@@ -28,7 +28,6 @@ export const ChildCard = ({ child, onEdit, onDelete }) => {
         <div className="flex items-start justify-between gap-3">
           <div className="flex items-start gap-3.5 min-w-0 flex-1">
             <Avatar
-              src={child.avatarUrl}
               alt={child.displayName}
               size="lg"
               className="rounded-2xl object-cover shrink-0 w-14 h-14"
@@ -159,7 +158,6 @@ ChildCard.propTypes = {
     _id: PropTypes.string,
     displayName: PropTypes.string,
     gender: PropTypes.string,
-    avatarUrl: PropTypes.string,
     age: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
     interests: PropTypes.arrayOf(PropTypes.string),
     personality: PropTypes.arrayOf(PropTypes.string),
