@@ -1,3 +1,10 @@
+// Mirror of the backend REPORT_TARGET_TYPES
+export const REPORT_TARGET_TYPES = Object.freeze({
+  USER: 'user',
+  MESSAGE: 'message',
+  PLAYDATE: 'playdate',
+});
+
 // Backend error codes -> user-facing messages (the API returns English messages)
 /**
  * Codes returned by the /safety endpoints (safety.service); shared middleware codes are in

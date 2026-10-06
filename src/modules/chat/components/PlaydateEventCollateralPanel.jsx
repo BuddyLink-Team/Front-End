@@ -18,6 +18,7 @@ import { VerifiedBadge } from '../../../components/badges/VerifiedBadge';
 import { StatusChip } from '../../../components/badges/StatusChip';
 import { InterestTag } from '../../../components/badges/InterestTag';
 import { cn } from '../../../utils/cn';
+import { PLAYDATE_PARTICIPANT_STATUS } from '../constants/chatConstants.js';
 
 /**
  * Format child age nicely
@@ -82,7 +83,7 @@ export const PlaydateEventCollateralPanel = ({
   } = playdate;
 
   // Filter accepted participants & total children count
-  const acceptedParticipants = participants.filter((p) => p.status === 'accepted');
+  const acceptedParticipants = participants.filter((p) => p.status === PLAYDATE_PARTICIPANT_STATUS.ACCEPTED);
   const allChildren = [
     ...(hostChild ? [{ ...hostChild, isHost: true, parentName: host?.fullName }] : []),
     ...participants

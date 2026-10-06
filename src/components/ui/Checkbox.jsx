@@ -37,22 +37,6 @@ export const Checkbox = React.forwardRef(
       inputProps.onChange = onChange;
     }
 
-    const inputProps = {
-      ref,
-      type: 'checkbox',
-      id: checkboxId,
-      disabled,
-      className: 'peer sr-only',
-      ...props,
-    };
-
-    if (checked !== undefined) {
-      inputProps.checked = checked;
-    }
-    if (onChange !== undefined) {
-      inputProps.onChange = onChange;
-    }
-
     return (
       <div className={cn('flex items-start gap-2.5 text-left select-none', className)}>
         <div className="relative flex items-center justify-center mt-0.5">

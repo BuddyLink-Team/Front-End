@@ -34,6 +34,9 @@ export const ChatPage = () => {
     selectedImageFile,
     imagePreviewUrl,
     playdateError,
+    currentParentId,
+    canReportPlaydateChat,
+    reportPlaydateChat,
     handleSelectImage,
     handleClearImage,
     handleSendMessage,
@@ -136,8 +139,12 @@ export const ChatPage = () => {
             onSelectImage={handleSelectImage}
             onClearImage={handleClearImage}
             onSendMessage={handleSendMessage}
+            onRetryMessage={handleRetryMessage}
             onSendTyping={handleSendTyping}
             onBack={handleBackToConversations}
+            currentParentId={currentParentId}
+            canReport={canReportPlaydateChat}
+            onReport={reportPlaydateChat}
             className={!activeConversationId ? 'hidden lg:flex' : 'flex'}
           />
         ) : (

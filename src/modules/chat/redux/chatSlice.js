@@ -12,6 +12,11 @@ export const fetchConversationById = createApiThunk('chat/fetchConversationById'
   chatApi.getConversation(conversationId),
 );
 
+// Opens (and creates on first access) the group chat of a playdate; includes host & participants
+export const fetchPlaydateConversation = createApiThunk('chat/fetchPlaydateConversation', (playdateId) =>
+  chatApi.getPlaydateConversation(playdateId),
+);
+
 export const fetchMessages = createApiThunk('chat/fetchMessages', (conversationId) =>
   chatApi.getMessages(conversationId, { limit: PAGE_SIZE }),
 );
@@ -52,6 +57,15 @@ const initialState = {
   isLoadingOlder: false,
 };
 
+const upsertConversation = (state, conversation) => {
+  const index = state.conversations.findIndex((c) => c.id === conversation.id);
+  if (index === -1) {
+    state.conversations.unshift(conversation);
+  } else {
+    state.conversations[index] = { ...state.conversations[index], ...conversation };
+  }
+};
+
 const getSenderId = (message) =>
   message?.senderId?._id || message?.senderId?.id || message?.senderId || message?.sender?.id;
 
@@ -62,12 +76,7 @@ export const chatSlice = createSlice({
     conversationUpdated: (state, action) => {
       const updatedConversation = action.payload;
       if (!updatedConversation?.id) return;
-      const index = state.conversations.findIndex((c) => c.id === updatedConversation.id);
-      if (index === -1) {
-        state.conversations.unshift(updatedConversation);
-      } else {
-        state.conversations[index] = { ...state.conversations[index], ...updatedConversation };
-      }
+      upsertConversation(state, updatedConversation);
     },
 
     /**
@@ -156,6 +165,12 @@ export const chatSlice = createSlice({
 
       .addCase(fetchConversationById.fulfilled, (state, action) => {
         state.activeConversationDetail = action.payload;
+      })
+
+      .addCase(fetchPlaydateConversation.fulfilled, (state, action) => {
+        if (!action.payload?.id) return;
+        state.activeConversationDetail = action.payload;
+        upsertConversation(state, action.payload);
       })
 
       .addCase(fetchMessages.pending, (state, action) => {

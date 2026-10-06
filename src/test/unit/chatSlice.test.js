@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import chatReducer, {
   fetchConversations,
+  fetchPlaydateConversation,
   fetchMessages,
   messageReceived,
   optimisticMessageAdded,
@@ -69,6 +70,15 @@ describe('chatSlice', () => {
     state = chatReducer(state, messagesReadByPartner({ conversationId: 'c1', readerId: 'partner', currentParentId: 'me' }));
     expect(state.messages.find((m) => m.id === 'm-1').isRead).toBe(true);
     expect(state.messages.find((m) => m.id === 'm-2').isRead).toBe(false);
+  });
+
+  it('opens a playdate group chat: keeps its details and adds it to the list once', () => {
+    const groupChat = { id: 'g1', type: 'playdate', playdate: { id: 'p1', host: { id: 'h1' } } };
+    let state = chatReducer(withConversations, action(fetchPlaydateConversation, 'fulfilled', groupChat, 'p1'));
+    state = chatReducer(state, action(fetchPlaydateConversation, 'fulfilled', groupChat, 'p1'));
+
+    expect(state.activeConversationDetail).toEqual(groupChat);
+    expect(state.conversations.map((c) => c.id)).toEqual(['g1', 'c1', 'c2']);
   });
 
   it('resets on logout', () => {

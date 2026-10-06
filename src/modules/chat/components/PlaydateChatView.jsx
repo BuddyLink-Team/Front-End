@@ -18,7 +18,6 @@ import {
   Clock,
   Sparkles,
 } from 'lucide-react';
-import { useToast } from '../../../hooks/useToast.js';
 import { ConfirmDialog } from '../../../components/feedback/ConfirmDialog';
 import { Dropdown, DropdownItem } from '../../../components/ui/Dropdown';
 import { MessageItem } from './MessageItem.jsx';
@@ -53,11 +52,14 @@ export const PlaydateChatView = ({
   onSelectImage,
   onClearImage,
   onSendMessage,
+  onRetryMessage,
   onSendTyping,
   onBack,
+  currentParentId,
+  canReport = false,
+  onReport,
   className,
 }) => {
-  const toast = useToast();
   const navigate = useNavigate();
   const [inputText, setInputText] = useState('');
   const [isEmojiOpen, setIsEmojiOpen] = useState(false);
@@ -150,9 +152,11 @@ export const PlaydateChatView = ({
     }
   };
 
-  const handleConfirmReport = () => {
-    setShowReportDialog(false);
-    toast.success('Báo cáo nhóm đã được gửi tới Quản trị viên để kiểm duyệt an toàn.');
+  const handleConfirmReport = async () => {
+    const result = await onReport?.();
+    if (result?.success) {
+      setShowReportDialog(false);
+    }
   };
 
   // Format short schedule snippet for header
@@ -270,26 +274,28 @@ export const PlaydateChatView = ({
               <Calendar className="w-4 h-4" />
             </button>
 
-            {/* Menu More / Report */}
-            <Dropdown
-              trigger={
-                <button
-                  type="button"
-                  className="w-8 h-8 rounded-full flex items-center justify-center text-on-surface-variant hover:bg-surface-container-low hover:text-on-surface transition-colors"
-                >
-                  <MoreVertical className="w-4 h-4" />
-                </button>
-              }
-              placement="bottom-end"
-            >
-              <DropdownItem
-                icon={Flag}
-                danger
-                onClick={() => setShowReportDialog(true)}
+            {/* Menu More / Report (reported against the host, so hidden for the host) */}
+            {canReport && onReport && (
+              <Dropdown
+                trigger={
+                  <button
+                    type="button"
+                    className="w-8 h-8 rounded-full flex items-center justify-center text-on-surface-variant hover:bg-surface-container-low hover:text-on-surface transition-colors"
+                  >
+                    <MoreVertical className="w-4 h-4" />
+                  </button>
+                }
+                placement="bottom-end"
               >
-                Báo cáo nhóm chat
-              </DropdownItem>
-            </Dropdown>
+                <DropdownItem
+                  icon={Flag}
+                  danger
+                  onClick={() => setShowReportDialog(true)}
+                >
+                  Báo cáo nhóm chat
+                </DropdownItem>
+              </Dropdown>
+            )}
           </div>
         </div>
 
@@ -376,7 +382,9 @@ export const PlaydateChatView = ({
                     partnerAvatar={message.sender?.avatarUrl}
                     partnerName={message.sender?.fullName || 'Thành viên'}
                     showSenderName={true}
+                    currentParentId={currentParentId}
                     onImageClick={(url) => setLightboxImageUrl(url)}
+                    onRetry={onRetryMessage}
                   />
                 </React.Fragment>
               );
