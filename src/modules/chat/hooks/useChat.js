@@ -4,6 +4,8 @@ import { useToast } from '../../../hooks/useToast.js';
 import { useMediaQuery } from '../../../hooks/useMediaQuery.js';
 import { getApiErrorMsg } from '../../../utils/errorUtils.js';
 import useChatSocket, { SOCKET_ERROR_CODES } from './useChatSocket.js';
+import { useSafetyActions } from '../../safety/hooks/useSafetyActions.js';
+import { REPORT_TARGET_TYPES } from '../../safety/constants/safetyConstants.js';
 import {
   CONVERSATION_TYPES,
   MESSAGE_TYPES,
@@ -11,6 +13,7 @@ import {
   ALLOWED_IMAGE_TYPES,
   MAX_IMAGE_SIZE_BYTES,
   CHAT_ERROR_MESSAGES,
+  PLAYDATE_REPORT,
 } from '../constants/chatConstants.js';
 import {
   createTempId,
@@ -20,6 +23,7 @@ import {
 import {
   fetchConversations,
   fetchConversationById,
+  fetchPlaydateConversation,
   fetchMessages,
   fetchOlderMessages,
   sendMessageRest,
@@ -40,10 +44,14 @@ const getSenderId = (message) =>
 /**
  * Chat screen logic. Conversations, messages and REST calls live in the chat slice;
  * this hook keeps UI-only state (tab, search, typing, image picker) and wires the socket.
+ * @param {Object} [options]
+ * @param {string} [options.initialConversationId] - Opened by /chat/:conversationId
+ * @param {string} [options.initialPlaydateId] - Opened by /chat/playdate/:playdateId
  */
-export const useChat = (initialConversationId = null) => {
+export const useChat = ({ initialConversationId = null, initialPlaydateId = null } = {}) => {
   const toast = useToast();
   const dispatch = useDispatch();
+  const { reportUser } = useSafetyActions();
   const isDesktop = useMediaQuery('(min-width: 1024px)');
   const currentParent = useSelector((state) => state.auth?.parent);
   const currentParentId = currentParent?._id || currentParent?.id;
@@ -60,7 +68,10 @@ export const useChat = (initialConversationId = null) => {
 
   // UI state
   const [activeConversationId, setActiveConversationId] = useState(initialConversationId);
-  const [selectedTab, setSelectedTab] = useState(CONVERSATION_TYPES.ALL);
+  const [selectedTab, setSelectedTab] = useState(
+    initialPlaydateId ? CONVERSATION_TYPES.PLAYDATE : CONVERSATION_TYPES.ALL,
+  );
+  const [playdateError, setPlaydateError] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [isSending, setIsSending] = useState(false);
   const [isPartnerTyping, setIsPartnerTyping] = useState(false);
@@ -82,12 +93,18 @@ export const useChat = (initialConversationId = null) => {
     }
   }, [initialConversationId]);
 
+  // Read through a ref so that switching playdate does not re-fetch the whole list
+  const initialPlaydateIdRef = useRef(initialPlaydateId);
+  useEffect(() => {
+    initialPlaydateIdRef.current = initialPlaydateId;
+  }, [initialPlaydateId]);
+
   // 1. Conversations list
   const refreshConversations = useCallback(async () => {
     try {
       const list = await dispatch(fetchConversations()).unwrap();
-      // Auto-select first conversation on desktop if none selected
-      if (isDesktop && list?.length > 0) {
+      // Auto-select first conversation on desktop if none selected (not while a playdate chat opens)
+      if (isDesktop && !initialPlaydateIdRef.current && list?.length > 0) {
         setActiveConversationId((current) => current || list[0].id);
       }
     } catch {
@@ -98,6 +115,31 @@ export const useChat = (initialConversationId = null) => {
   useEffect(() => {
     refreshConversations();
   }, [refreshConversations]);
+
+  // Playdate group chat opened by URL: resolve (and create on first access) its conversation.
+  // Only the host and accepted participants are allowed; others get an explanatory error state.
+  useEffect(() => {
+    setPlaydateError(null);
+    if (!initialPlaydateId) return undefined;
+
+    let isCurrent = true;
+    dispatch(fetchPlaydateConversation(initialPlaydateId))
+      .unwrap()
+      .then((conversation) => {
+        if (!isCurrent || !conversation?.id) return;
+        setActiveConversationId(conversation.id);
+        setSelectedTab(CONVERSATION_TYPES.PLAYDATE);
+      })
+      .catch((error) => {
+        if (!isCurrent) return;
+        setActiveConversationId(null);
+        setPlaydateError(toErrorMessage(error, 'Không thể tham gia nhóm chat của cuộc hẹn này.'));
+      });
+
+    return () => {
+      isCurrent = false;
+    };
+  }, [initialPlaydateId, dispatch, toErrorMessage]);
 
   // Mark a conversation as read once: via socket when connected (server also broadcasts the
   // read receipt), otherwise via REST
@@ -119,17 +161,28 @@ export const useChat = (initialConversationId = null) => {
     [currentParentId],
   );
 
-  // Active conversation: from the list, or fetched when opened by URL
+  // Active conversation: from the list (kept fresh by socket updates), or fetched when opened by URL.
+  // List/socket payloads only carry a playdate summary, so the detailed playdate (host, participants)
+  // of the fetched conversation is kept for the event panel.
   const conversationFromList = conversations.find((c) => c.id === activeConversationId);
-  const activeConversation =
-    conversationFromList ||
-    (activeConversationDetail?.id === activeConversationId ? activeConversationDetail : null);
+  const detailOfActive = activeConversationDetail?.id === activeConversationId ? activeConversationDetail : null;
+  const activeConversation = useMemo(() => {
+    if (!conversationFromList) return detailOfActive;
+    if (!detailOfActive?.playdate) return conversationFromList;
+    return { ...conversationFromList, playdate: detailOfActive.playdate };
+  }, [conversationFromList, detailOfActive]);
+
+  const needsDetail =
+    !conversationFromList || conversationFromList.type === CONVERSATION_TYPES.PLAYDATE;
+  const hasDetail = Boolean(detailOfActive);
 
   useEffect(() => {
-    if (activeConversationId && !conversationFromList && conversationsStatus === CHAT_LIST_STATUS.SUCCEEDED) {
+    // The playdate route fetches its own detail; avoid a duplicate request while it loads
+    if (initialPlaydateId) return;
+    if (activeConversationId && needsDetail && !hasDetail && conversationsStatus === CHAT_LIST_STATUS.SUCCEEDED) {
       dispatch(fetchConversationById(activeConversationId));
     }
-  }, [activeConversationId, conversationFromList, conversationsStatus, dispatch]);
+  }, [activeConversationId, needsDetail, hasDetail, conversationsStatus, initialPlaydateId, dispatch]);
 
   // 2. Messages of the active conversation
   useEffect(() => {
@@ -385,12 +438,13 @@ export const useChat = (initialConversationId = null) => {
         return false;
       }
 
-      // Filter by Search Query (Partner name, last message)
+      // Filter by Search Query (partner name or playdate title, last message)
       if (searchQuery.trim()) {
         const query = searchQuery.toLowerCase().trim();
-        const partnerName = conv.partner?.fullName?.toLowerCase() || '';
+        const title =
+          conv.type === CONVERSATION_TYPES.PLAYDATE ? conv.playdate?.title : conv.partner?.fullName;
         const lastMsg = conv.lastMessage?.content?.toLowerCase() || '';
-        return partnerName.includes(query) || lastMsg.includes(query);
+        return (title || '').toLowerCase().includes(query) || lastMsg.includes(query);
       }
 
       return true;
@@ -401,6 +455,23 @@ export const useChat = (initialConversationId = null) => {
   const totalUnreadCount = useMemo(() => {
     return conversations.reduce((acc, curr) => acc + (curr.unreadCount || 0), 0);
   }, [conversations]);
+
+  // A report needs a reported parent: a playdate group chat is reported against its host,
+  // so the host has nobody to report it to
+  const playdateHostId = activeConversation?.playdate?.host?.id;
+  const canReportPlaydateChat =
+    Boolean(playdateHostId) && String(playdateHostId) !== String(currentParentId);
+
+  const reportPlaydateChat = useCallback(() => {
+    const playdate = activeConversation?.playdate;
+    return reportUser({
+      reportedUserId: playdate?.host?.id,
+      targetType: REPORT_TARGET_TYPES.PLAYDATE,
+      targetPlaydateId: playdate?.id,
+      reason: PLAYDATE_REPORT.REASON,
+      description: PLAYDATE_REPORT.DESCRIPTION,
+    });
+  }, [activeConversation, reportUser]);
 
   return {
     conversations: filteredConversations,
@@ -424,6 +495,10 @@ export const useChat = (initialConversationId = null) => {
     loadOlderMessages,
     selectedImageFile,
     imagePreviewUrl,
+    playdateError,
+    currentParentId,
+    canReportPlaydateChat,
+    reportPlaydateChat,
     handleSelectImage,
     handleClearImage,
     handleSendMessage,

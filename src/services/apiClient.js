@@ -110,6 +110,7 @@ apiClient.interceptors.response.use(
         originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
         return apiClient(originalRequest);
       } catch (refreshError) {
+        socketService.disconnect();
         processQueue(refreshError, null);
         endSession();
         return Promise.reject(refreshError);

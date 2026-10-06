@@ -37,6 +37,7 @@ export const API_ENDPOINTS = {
   },
   CHAT: {
     CONVERSATIONS: '/chat/conversations',
+    PLAYDATE: '/chat/playdate',
     MESSAGES: '/chat/conversations',
     UPLOAD: '/chat/upload',
   },

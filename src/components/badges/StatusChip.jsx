@@ -15,9 +15,12 @@ export const StatusChip = ({ status, className }) => {
   const statusLabels = {
     pending: 'Chờ phản hồi',
     confirmed: 'Đã xác nhận',
+    accepted: 'Đã tham gia',
+    declined: 'Đã từ chối',
     cancelled: 'Đã hủy',
     reported: 'Báo cáo vi phạm',
     completed: 'Đã hoàn thành',
+    upcoming: 'Sắp diễn ra',
   };
 
   const currentStyle = statusStyles[normalizedStatus] || statusStyles.pending;

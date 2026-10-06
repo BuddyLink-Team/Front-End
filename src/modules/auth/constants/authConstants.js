@@ -57,4 +57,3 @@ export const AUTH_ERROR_MESSAGES = Object.freeze({
   'auth/popup-closed-by-user': 'Cửa sổ đăng nhập đã bị đóng trước khi hoàn tất.',
   'auth/cancelled-popup-request': 'Thao tác đăng nhập đã bị hủy.',
 });
-

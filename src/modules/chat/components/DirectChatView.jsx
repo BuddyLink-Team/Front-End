@@ -24,6 +24,7 @@ import { EmojiPopover } from './EmojiPopover.jsx';
 import { cn } from '../../../utils/cn';
 import { CHAT_FILE_INPUT_ACCEPT } from '../constants/chatConstants.js';
 import { useSafetyActions } from '../../safety/hooks/useSafetyActions.js';
+import { REPORT_TARGET_TYPES } from '../../safety/constants/safetyConstants.js';
 
 const formatMessageDateGroup = (date) => {
   if (!date) return '';
@@ -89,7 +90,9 @@ export const DirectChatView = ({
 
   // Auto scroll to bottom only on new messages or typing
   const scrollToBottom = (behavior = 'smooth') => {
-    messagesEndRef.current?.scrollIntoView({ behavior });
+    if (typeof messagesEndRef.current?.scrollIntoView === 'function') {
+      messagesEndRef.current.scrollIntoView({ behavior });
+    }
   };
 
   useEffect(() => {
@@ -210,7 +213,7 @@ export const DirectChatView = ({
     const targetId = partner?.id || partner?._id;
     const result = await reportUser({
       reportedUserId: targetId,
-      targetType: 'user',
+      targetType: REPORT_TARGET_TYPES.USER,
       reason: 'Báo cáo vi phạm từ cuộc trò chuyện',
       description: 'Báo cáo người dùng từ màn hình trò chuyện trực tiếp.',
     });

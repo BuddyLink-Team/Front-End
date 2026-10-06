@@ -11,6 +11,13 @@ export const MESSAGE_TYPES = Object.freeze({
   SYSTEM: 'system',
 });
 
+// Playdate participant statuses (mirror of the backend PARTICIPANT_STATUS)
+export const PLAYDATE_PARTICIPANT_STATUS = Object.freeze({
+  PENDING: 'pending',
+  ACCEPTED: 'accepted',
+  DECLINED: 'declined',
+});
+
 // Client-only delivery states of optimistic messages (persisted messages have no status)
 export const MESSAGE_STATUS = Object.freeze({
   SENDING: 'sending',
@@ -47,6 +54,11 @@ export const CHAT_FILE_INPUT_ACCEPT = '.jpg,.jpeg,.png,.webp,.gif,image/jpeg,ima
 
 export const MAX_IMAGE_SIZE_BYTES = 5 * 1024 * 1024;
 
+export const PLAYDATE_REPORT = Object.freeze({
+  REASON: 'Báo cáo vi phạm trong nhóm chat cuộc hẹn chơi',
+  DESCRIPTION: 'Báo cáo từ màn hình trò chuyện nhóm Playdate.',
+});
+
 export const QUICK_EMOJIS = ['😊', '❤️', '👍', '🎉', '👶', '🧸', '🎨', '⚽', '🍦', '⭐', '🤗', '✨'];
 
 
@@ -69,6 +81,12 @@ export const CHAT_ERROR_MESSAGES = Object.freeze({
   MESSAGE_TOO_LONG: 'Tin nhắn không được vượt quá 5000 ký tự.',
   MESSAGE_EMPTY: 'Tin nhắn không được để trống.',
   INVALID_MEDIA_URL: 'Ảnh đính kèm không hợp lệ. Vui lòng tải ảnh lên lại.',
+  // Playdate group chat
+  PLAYDATE_NOT_FOUND: 'Không tìm thấy cuộc hẹn chơi này.',
+  PLAYDATE_ID_REQUIRED: 'Thiếu thông tin cuộc hẹn chơi.',
+  FORBIDDEN_NOT_IN_PLAYDATE: 'Bạn không thuộc danh sách tham gia cuộc hẹn chơi này.',
+  FORBIDDEN_PLAYDATE_CHAT_ACCESS:
+    'Chỉ chủ cuộc hẹn và phụ huynh đã chấp nhận lời mời mới được tham gia nhóm chat.',
   JOIN_REJECTED: 'Không thể mở cuộc trò chuyện. Vui lòng thử lại.',
   INTERNAL_ERROR: 'Không thể gửi tin nhắn. Vui lòng thử lại sau.',
   // Image upload

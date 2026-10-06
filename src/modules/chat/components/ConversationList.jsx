@@ -203,7 +203,7 @@ export const ConversationList = ({
                       <div className="flex items-center gap-1.5 mt-1.5">
                         <span className="inline-flex items-center gap-1 text-[11px] text-secondary bg-secondary-container/40 px-2 py-0.5 rounded-full">
                           <Calendar className="w-3 h-3" />
-                          <span>Hẹn chơi {dayjs(conv.playdate.scheduledDate).format('HH:mm DD/MM')}</span>
+                          <span>Hẹn chơi {dayjs(conv.playdate.scheduledDate).format('DD/MM')}{conv.playdate.time ? ` • ${conv.playdate.time}` : ''}</span>
                         </span>
                       </div>
                     )}
