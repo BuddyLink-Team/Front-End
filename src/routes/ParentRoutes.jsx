@@ -3,6 +3,7 @@ import { Route, Navigate } from 'react-router-dom';
 import { MainLayout } from '../layouts/MainLayout';
 import PlaceholderPage from '../components/feedback/PlaceholderPage';
 
+import DiscoveryPage from '../modules/discovery/pages/DiscoveryPage';
 // Pages are code-split: each route downloads its own chunk on first visit
 const ChatPage = lazy(() => import('../modules/chat/pages/ChatPage'));
 const ParentProfilePage = lazy(() => import('../modules/parent/pages/ParentProfilePage'));
@@ -17,7 +18,7 @@ export const ParentRoutes = () => (
     {/* Discovery & Peer Matching */}
     <Route
       path="/discovery"
-      element={<PlaceholderPage title="Khám phá bạn chơi" description="Gợi ý bạn chơi phù hợp dựa trên độ tuổi, sở thích và vị trí lân cận." />}
+      element={<DiscoveryPage />}
     />
 
     {/* Playdate Management */}
