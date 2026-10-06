@@ -152,13 +152,13 @@ const ChildProfileDetailModal = ({ childId, onClose, onSwipe, isSwiping }) => {
                       </div>
                       {/* Verification icons */}
                       <div className="flex gap-2 mt-1">
-                        {profile.parent?.verifiedEmail && (
+                        {profile.parent?.isEmailVerified && (
                           <span className="flex items-center gap-1 text-[11px] text-on-surface-variant">
                             <Mail size={11} strokeWidth={1.5} className="text-primary" />
                             Email
                           </span>
                         )}
-                        {profile.parent?.verifiedPhone && (
+                        {profile.parent?.isPhoneVerified && (
                           <span className="flex items-center gap-1 text-[11px] text-on-surface-variant">
                             <Phone size={11} strokeWidth={1.5} className="text-primary" />
                             SĐT
