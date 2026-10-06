@@ -1,14 +1,42 @@
 import React from 'react';
-import { Button } from '../../../components/ui/Button';
+import { AlertTriangle, Compass } from 'lucide-react';
+import { Spinner } from '../../../components/feedback/Spinner';
+import { EmptyState } from '../../../components/cards/EmptyState';
 import { useDiscovery } from '../hooks/useDiscovery';
+import { useDiscoveryModals } from '../hooks/useDiscoveryModals';
 import { DiscoveryFilterBar } from '../components/DiscoveryFilterBar';
 import { DiscoveryCard } from '../components/DiscoveryCard';
-import { EmptyDiscovery } from '../components/EmptyDiscovery';
+import DiscoveryFilterModal from '../components/DiscoveryFilterModal';
+import ChildProfileDetailModal from '../components/ChildProfileDetailModal';
 import { VISIBLE_CARD_COUNT } from '../constants/discoveryConstants';
 
 export const DiscoveryPage = () => {
-  const { profiles, meta, isLoading, errorMessage, remainingViewsLabel, refetch, handleSwipe, goToUpgrade } =
-    useDiscovery();
+  const {
+    selectedChildId,
+    isFilterOpen,
+    isAnyModalOpen,
+    openFilter,
+    closeFilter,
+    openChildDetail,
+    closeChildDetail,
+  } = useDiscoveryModals();
+
+  const {
+    profiles,
+    meta,
+    isLoading,
+    isSwiping,
+    errorMessage,
+    remainingViewsLabel,
+    searchingForLabel,
+    childOptions,
+    selectedChildId: matchingChildId,
+    selectChild,
+    filterSummary,
+    refetch,
+    handleSwipe,
+    goToUpgrade,
+  } = useDiscovery({ isKeyboardEnabled: !isAnyModalOpen, onViewDetail: openChildDetail });
 
   // Render the top cards only, bottom-most first so the top card sits above the others
   const visibleProfiles = profiles.slice(0, VISIBLE_CARD_COUNT).reverse();
@@ -17,7 +45,7 @@ export const DiscoveryPage = () => {
     if (isLoading && profiles.length === 0) {
       return (
         <div className="flex flex-col items-center justify-center h-full text-on-surface-variant">
-          <span className="material-symbols-outlined animate-spin text-4xl mb-4 text-primary">autorenew</span>
+          <Spinner size="lg" className="mb-4" />
           <p>Đang tìm kiếm bạn bè quanh đây...</p>
         </div>
       );
@@ -25,17 +53,26 @@ export const DiscoveryPage = () => {
 
     if (errorMessage && profiles.length === 0) {
       return (
-        <EmptyDiscovery
-          icon="⚠️"
+        <EmptyState
+          icon={<AlertTriangle size={24} strokeWidth={1.5} />}
           title="Không tải được danh sách khám phá"
           description={errorMessage}
-          action={<Button onClick={refetch}>Thử lại</Button>}
+          actionLabel="Thử lại"
+          onAction={refetch}
+          className="max-w-[740px] mx-auto mt-10"
         />
       );
     }
 
     if (profiles.length === 0) {
-      return <EmptyDiscovery />;
+      return (
+        <EmptyState
+          icon={<Compass size={24} strokeWidth={1.5} />}
+          title="Bạn đã xem hết các hồ sơ quanh đây!"
+          description="Hãy thử mở rộng bán kính tìm kiếm hoặc thay đổi bộ lọc để khám phá thêm nhiều người bạn thú vị khác cho bé nhé."
+          className="max-w-[740px] mx-auto mt-10"
+        />
+      );
     }
 
     return visibleProfiles.map((profile) => {
@@ -47,6 +84,7 @@ export const DiscoveryPage = () => {
           index={index}
           isTop={index === 0}
           onSwipe={(direction) => handleSwipe(profile, direction)}
+          onViewDetail={() => openChildDetail(profile.childId)}
         />
       );
     });
@@ -54,10 +92,34 @@ export const DiscoveryPage = () => {
 
   return (
     <div className="w-full flex flex-col items-center py-6 px-4 sm:px-6 max-w-2xl mx-auto select-none">
-      <DiscoveryFilterBar meta={meta} remainingViewsLabel={remainingViewsLabel} onUpgrade={goToUpgrade} />
-      <div className="relative w-full mt-4 pb-6" style={{ minHeight: '680px' }}>
+      {/* Filter bar with modal trigger */}
+      <DiscoveryFilterBar
+        meta={meta}
+        remainingViewsLabel={remainingViewsLabel}
+        searchingForLabel={searchingForLabel}
+        childOptions={childOptions}
+        selectedChildId={matchingChildId}
+        onSelectChild={selectChild}
+        filterSummary={filterSummary}
+        onOpenFilter={openFilter}
+        onUpgrade={goToUpgrade}
+      />
+
+      {/* Card stack area */}
+      <div className="relative w-full mt-3 pb-6 min-h-100vh">
         {renderContent()}
       </div>
+
+      {/* Filter modal */}
+      <DiscoveryFilterModal isOpen={isFilterOpen} onClose={closeFilter} />
+
+      {/* Child profile detail modal */}
+      <ChildProfileDetailModal
+        childId={selectedChildId}
+        onClose={closeChildDetail}
+        onSwipe={(direction) => handleSwipe(selectedChildId, direction)}
+        isSwiping={isSwiping}
+      />
     </div>
   );
 };

@@ -25,7 +25,7 @@ export const Modal = ({
   if (!isOpen) return null;
 
   return createPortal(
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
       {/* Backdrop with blur */}
       <div
         className="fixed inset-0 bg-text-primary/30 backdrop-blur-sm transition-opacity"

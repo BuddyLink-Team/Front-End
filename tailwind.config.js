@@ -154,6 +154,8 @@ export default {
         soft: '0 2px 8px rgba(0,0,0,0.02)',
         elevated: '0 8px 24px -4px rgba(45, 55, 72, 0.04), 0 2px 6px -2px rgba(45, 55, 72, 0.02)',
         modal: '0 16px 40px -8px rgba(45, 55, 72, 0.08)',
+        // Swipe feedback halo; colorize with a shadow color utility (e.g. shadow-glow shadow-primary/50)
+        glow: '0 0 40px 8px rgba(45, 55, 72, 0.1)',
       },
     },
   },

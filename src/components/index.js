@@ -7,6 +7,7 @@ export { Checkbox } from './ui/Checkbox';
 export { Switch } from './ui/Switch';
 export { Select } from './ui/Select';
 export { Avatar } from './ui/Avatar';
+export { UpgradeButton } from './ui/UpgradeButton';
 export { DataTable } from './ui/DataTable';
 export {
   Dropdown,

@@ -1,11 +1,16 @@
 import { useCallback, useMemo } from 'react';
 import { CHILD_GENDERS } from '../../child/constants/childConstants';
 import {
+  DAY_LABELS,
   DEFAULT_CHILD_AVATARS,
   GENDER_LABELS,
+  LOCATION_LABELS,
+  TIME_LABELS,
   SWIPE_DIRECTIONS,
   SWIPE_THRESHOLD_PX,
 } from '../constants/discoveryConstants';
+
+const translate = (labels, values = []) => values.map((v) => labels[v] || v);
 
 /**
  * Merge interests and favorite activities, removing case-insensitive duplicates
@@ -36,9 +41,9 @@ export const useDiscoveryCard = (profile, onSwipe) => {
       genderLabel: GENDER_LABELS[profile.gender] || GENDER_LABELS[CHILD_GENDERS.OTHER],
       avatarSrc: DEFAULT_CHILD_AVATARS[profile.gender] || DEFAULT_CHILD_AVATARS.DEFAULT,
       distanceLabel: profile.distanceKm !== undefined ? `Cách ${profile.distanceKm} km` : 'Gần bạn',
-      preferredLocations: preferences.preferredLocations || [],
-      preferredPlaydateDays: preferences.preferredPlaydateDays || [],
-      preferredTimeSlots: preferences.preferredTimeSlots || [],
+      preferredLocations: translate(LOCATION_LABELS, preferences.preferredLocations),
+      preferredPlaydateDays: translate(DAY_LABELS, preferences.preferredPlaydateDays),
+      preferredTimeSlots: translate(TIME_LABELS, preferences.preferredTimeSlots),
     };
   }, [profile]);
 
