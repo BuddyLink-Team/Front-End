@@ -10,6 +10,7 @@ const toQueryParams = (filters = {}) => {
   if (filters.maxDistance) params.maxDistanceKm = filters.maxDistance;
   if (filters.minAge !== undefined) params.ageMin = filters.minAge;
   if (filters.maxAge !== undefined) params.ageMax = filters.maxAge;
+  if (filters.childId) params.childId = filters.childId;
   return params;
 };
 
@@ -17,6 +18,7 @@ export const discoveryApi = {
   /**
    * Get discovery profiles with Smart Matching scores
    * @param {Object} filters - Redux filter state { maxDistance, minAge, maxAge, personalities }
+   *   plus `childId` of the child being matched
    */
   getProfiles: (filters) =>
     apiClient.get(API_ENDPOINTS.DISCOVERY.BASE, { params: toQueryParams(filters) }),

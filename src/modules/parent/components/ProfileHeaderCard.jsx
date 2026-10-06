@@ -39,7 +39,6 @@ export const ProfileHeaderCard = ({
             src={profile?.avatarUrl}
             alt={profile?.fullName || 'Phụ huynh'}
             size="2xl"
-            className="object-cover w-24 h-24 sm:w-28 sm:h-28"
           />
           <button
             type="button"

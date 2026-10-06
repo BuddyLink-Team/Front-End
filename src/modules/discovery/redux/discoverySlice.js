@@ -1,7 +1,12 @@
 import { createSlice } from '@reduxjs/toolkit';
 import { createApiThunk } from '../../../utils/reduxUtils';
 import { discoveryApi } from '../api/discoveryApi';
-import { DISCOVERY_PAGE_SIZE } from '../constants/discoveryConstants';
+import {
+  AGE_RANGE_YEARS,
+  DEFAULT_DISCOVERY_FILTERS,
+  DISCOVERY_PAGE_SIZE,
+  DISTANCE_RANGE_KM,
+} from '../constants/discoveryConstants';
 
 // ---- Thunks ----
 
@@ -17,6 +22,29 @@ export const fetchChildPublicProfile = createApiThunk('discovery/fetchChildPubli
   discoveryApi.getChildPublicProfile(childId),
 );
 
+const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
+
+const isSameFilters = (a, b) => Boolean(a && b) && JSON.stringify(a) === JSON.stringify(b);
+
+/**
+ * Default filters from the parent's preferences (maxDistanceKm, preferredAgeRange),
+ * kept inside the filter modal bounds. Personality has no preference: none selected.
+ * @param {Object} [preferences] - parent.preferences
+ */
+export const buildDefaultFilters = (preferences = {}) => {
+  const maxDistance = Number(preferences.maxDistanceKm) || DEFAULT_DISCOVERY_FILTERS.maxDistance;
+  const minAge = preferences.preferredAgeRange?.min ?? DEFAULT_DISCOVERY_FILTERS.minAge;
+  const maxAge = preferences.preferredAgeRange?.max ?? DEFAULT_DISCOVERY_FILTERS.maxAge;
+  const safeMinAge = clamp(minAge, AGE_RANGE_YEARS.MIN, AGE_RANGE_YEARS.MAX);
+
+  return {
+    maxDistance: clamp(Math.round(maxDistance), DISTANCE_RANGE_KM.MIN, DISTANCE_RANGE_KM.MAX),
+    minAge: safeMinAge,
+    maxAge: clamp(maxAge, safeMinAge, AGE_RANGE_YEARS.MAX),
+    personalities: [],
+  };
+};
+
 /**
  * Keep profiles having at least one of the selected personalities
  * (the backend does not filter by personality).
@@ -27,11 +55,15 @@ const filterByPersonalities = (profiles, personalities = []) => {
 };
 
 /**
- * Filters: { maxDistance, minAge, maxAge, personalities }. Empty filters let the backend
- * fall back to the parent's saved preferences.
+ * Filters: { maxDistance, minAge, maxAge, personalities }.
+ * `defaultFilters` come from the parent's preferences; `filters` stays null until they are
+ * known so the first fetch already uses them.
  */
 const initialState = {
-  filters: {},
+  defaultFilters: null,
+  filters: null,
+  // Child of the current parent the matches are for (several children → parent picks one)
+  selectedChildId: null,
   profiles: [],
   meta: null,
   hasMore: false,
@@ -50,11 +82,34 @@ const discoverySlice = createSlice({
   name: 'discovery',
   initialState,
   reducers: {
+    // Set the defaults from the parent's preferences. Filters still equal to the previous
+    // defaults follow the new ones; filters the user changed are kept.
+    // No-op when the defaults did not change, so state references stay stable (no re-render loop).
+    initFiltersFromPreferences(state, action) {
+      const nextDefaults = buildDefaultFilters(action.payload);
+      const previousDefaults = state.defaultFilters;
+      if (state.filters && isSameFilters(previousDefaults, nextDefaults)) return;
+
+      const isUntouched = !state.filters || isSameFilters(state.filters, previousDefaults);
+      state.defaultFilters = nextDefaults;
+      if (isUntouched) state.filters = nextDefaults;
+    },
+    // Applying / resetting filters starts a fresh search: drop the current stack
     setFilters(state, action) {
-      state.filters = { ...state.filters, ...action.payload };
+      state.filters = { ...(state.filters || state.defaultFilters), ...action.payload };
+      state.profiles = [];
+      state.hasMore = false;
     },
     resetFilters(state) {
-      state.filters = initialState.filters;
+      state.filters = state.defaultFilters || buildDefaultFilters();
+      state.profiles = [];
+      state.hasMore = false;
+    },
+    setSelectedChild(state, action) {
+      if (state.selectedChildId === action.payload) return;
+      state.selectedChildId = action.payload;
+      state.profiles = [];
+      state.hasMore = false;
     },
     // Optimistically drop a card as soon as it is swiped
     removeProfile(state, action) {
@@ -113,7 +168,14 @@ const discoverySlice = createSlice({
   },
 });
 
-export const { setFilters, resetFilters, removeProfile, restoreProfile, clearChildDetail } =
-  discoverySlice.actions;
+export const {
+  initFiltersFromPreferences,
+  setSelectedChild,
+  setFilters,
+  resetFilters,
+  removeProfile,
+  restoreProfile,
+  clearChildDetail,
+} = discoverySlice.actions;
 
 export default discoverySlice.reducer;

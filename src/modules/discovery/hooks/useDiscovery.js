@@ -8,10 +8,15 @@ import {
   swipeDiscoveryProfile,
   removeProfile,
   restoreProfile,
+  initFiltersFromPreferences,
+  setSelectedChild,
 } from '../redux/discoverySlice';
+import { fetchMyChildren, CHILD_LIST_STATUS } from '../../child/redux/childSlice';
+import { fetchMyParentProfile } from '../../parent/redux/parentSlice';
+import { PARENT_ERROR_MESSAGES } from '../../parent/constants/parentConstants';
+import { CHILD_ERROR_MESSAGES } from '../../child/constants/childConstants';
 import {
   CONNECTION_QUOTA_EXCEEDED_MESSAGE,
-  DEFAULT_DISCOVERY_FILTERS,
   DISCOVERY_ERROR_CODES,
   DISCOVERY_ERROR_MESSAGES,
   LIKE_SUCCESS_MESSAGES,
@@ -23,6 +28,8 @@ import {
 
 const FETCH_ERROR_FALLBACK = 'Lỗi tải danh sách khám phá';
 const SWIPE_ERROR_FALLBACK = 'Không thể ghi nhận lựa chọn. Vui lòng thử lại.';
+const PREFERENCES_ERROR_FALLBACK = 'Không tải được tiêu chí tìm bạn của bạn, đang dùng bộ lọc mặc định.';
+const CHILDREN_ERROR_FALLBACK = 'Không tải được danh sách bé, đang tìm bạn cho tất cả các bé.';
 
 /**
  * Map a swipe error to a message; QUOTA_EXCEEDED is shared by the discovery and
@@ -41,24 +48,27 @@ const isTypingTarget = (target) =>
   (target.isContentEditable || ['INPUT', 'TEXTAREA', 'SELECT'].includes(target.tagName));
 
 /**
- * Labels for the filter bar chips. Unset values mean "no filter" (Tất cả).
+ * Labels for the filter bar chips. Filters always hold real values (defaults = parent preferences);
+ * a filter is "active" when it differs from those defaults.
  */
-const buildFilterSummary = (filters = {}) => {
-  const hasDistance =
-    filters.maxDistance !== undefined && filters.maxDistance !== DEFAULT_DISCOVERY_FILTERS.maxDistance;
-  const hasAge =
-    (filters.minAge !== undefined && filters.minAge !== DEFAULT_DISCOVERY_FILTERS.minAge) ||
-    (filters.maxAge !== undefined && filters.maxAge !== DEFAULT_DISCOVERY_FILTERS.maxAge);
+const buildFilterSummary = (filters, defaultFilters) => {
+  if (!filters || !defaultFilters) {
+    return { hasActiveFilter: false, distanceLabel: '...', ageLabel: '...' };
+  }
+  const isDistanceChanged = filters.maxDistance !== defaultFilters.maxDistance;
+  const isAgeChanged = filters.minAge !== defaultFilters.minAge || filters.maxAge !== defaultFilters.maxAge;
   const hasPersonality = (filters.personalities || []).length > 0;
 
   return {
-    hasActiveFilter: hasDistance || hasAge || hasPersonality,
-    distanceLabel: hasDistance ? `${filters.maxDistance} km` : 'Tất cả',
-    ageLabel: hasAge
-      ? `${filters.minAge ?? DEFAULT_DISCOVERY_FILTERS.minAge}-${filters.maxAge ?? DEFAULT_DISCOVERY_FILTERS.maxAge} tuổi`
-      : 'Tất cả',
+    hasActiveFilter: isDistanceChanged || isAgeChanged || hasPersonality,
+    distanceLabel: `${filters.maxDistance} km`,
+    ageLabel: `${filters.minAge}-${filters.maxAge} tuổi`,
   };
 };
+
+const DEFAULT_SEARCHING_FOR_LABEL = 'Bé của bạn';
+
+const getChildId = (child) => String(child.id || child._id);
 
 /**
  * Discovery card stack: loads profiles, records swipes (optimistic with rollback) and
@@ -72,7 +82,65 @@ export const useDiscovery = ({ isKeyboardEnabled = true, onViewDetail } = {}) =>
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const toast = useToast();
-  const { filters, profiles, meta, hasMore, isLoading, error } = useSelector((state) => state.discovery);
+  const { filters, defaultFilters, selectedChildId, profiles, meta, hasMore, isLoading, error } = useSelector(
+    (state) => state.discovery,
+  );
+  const { profile: parentProfile, isLoading: isParentLoading } = useSelector((state) => state.parent);
+  const hasRequestedParent = useRef(false);
+
+  // Default filters = the parent's preferences: load the profile if needed, then (re)build defaults
+  // whenever the preferences change. Falls back to the standard defaults if it cannot be loaded.
+  const parentPreferences = parentProfile?.preferences;
+  const hasDefaultFilters = Boolean(defaultFilters);
+
+  useEffect(() => {
+    if (parentPreferences) dispatch(initFiltersFromPreferences(parentPreferences));
+  }, [parentPreferences, dispatch]);
+
+  useEffect(() => {
+    if (parentPreferences || isParentLoading || hasDefaultFilters) return;
+    if (!hasRequestedParent.current) {
+      hasRequestedParent.current = true;
+      dispatch(fetchMyParentProfile())
+        .unwrap()
+        .catch((err) => toast.error(getApiErrorMsg(PARENT_ERROR_MESSAGES, err, PREFERENCES_ERROR_FALLBACK)));
+      return;
+    }
+    // Profile could not be loaded: use the standard defaults
+    dispatch(initFiltersFromPreferences());
+  }, [parentPreferences, isParentLoading, hasDefaultFilters, dispatch, toast]);
+  const { children: myChildren, listStatus: childListStatus } = useSelector((state) => state.child);
+
+  // Load the parent's children once: the matches are computed for one selected child
+  useEffect(() => {
+    if (childListStatus !== CHILD_LIST_STATUS.IDLE) return;
+    dispatch(fetchMyChildren())
+      .unwrap()
+      .catch((err) => toast.error(getApiErrorMsg(CHILD_ERROR_MESSAGES, err, CHILDREN_ERROR_FALLBACK)));
+  }, [childListStatus, dispatch, toast]);
+
+  const isChildListSettled =
+    childListStatus === CHILD_LIST_STATUS.SUCCEEDED || childListStatus === CHILD_LIST_STATUS.FAILED;
+
+  // Default to the first child; re-pick if the selected child no longer exists
+  useEffect(() => {
+    if (!isChildListSettled) return;
+    const childIds = myChildren.map(getChildId);
+    if (childIds.length === 0) {
+      if (selectedChildId) dispatch(setSelectedChild(null));
+    } else if (!childIds.includes(selectedChildId)) {
+      dispatch(setSelectedChild(childIds[0]));
+    }
+  }, [isChildListSettled, myChildren, selectedChildId, dispatch]);
+
+  const childOptions = myChildren.map((c) => ({ value: getChildId(c), label: c.displayName }));
+  const selectedChild = childOptions.find((o) => o.value === selectedChildId);
+  const selectChild = useCallback((childId) => dispatch(setSelectedChild(childId)), [dispatch]);
+
+  // Ready once the default filters (parent preferences) and the selected child are known
+  const isSelectionReady =
+    isChildListSettled && (myChildren.length === 0 || myChildren.some((c) => getChildId(c) === selectedChildId));
+  const isSearchReady = Boolean(filters) && isSelectionReady;
 
   // Child IDs whose swipe request is still in flight
   const pendingSwipeIds = useRef(new Set());
@@ -82,19 +150,23 @@ export const useDiscovery = ({ isKeyboardEnabled = true, onViewDetail } = {}) =>
   const profilesRef = useRef(profiles);
   profilesRef.current = profiles;
 
-  const fetchProfiles = useCallback(() => dispatch(fetchDiscoveryProfiles(filters)), [dispatch, filters]);
+  const fetchProfiles = useCallback(
+    () => dispatch(fetchDiscoveryProfiles({ ...filters, childId: selectedChildId || undefined })),
+    [dispatch, filters, selectedChildId],
+  );
 
+  // (Re)search whenever the filters are applied or another child is selected
   useEffect(() => {
-    fetchProfiles();
-  }, [fetchProfiles]);
+    if (isSearchReady) fetchProfiles();
+  }, [isSearchReady, fetchProfiles]);
 
   // Load the next batch once the stack is empty and every swipe has reached the server,
   // so already-swiped children are excluded by the backend
   useEffect(() => {
-    if (profiles.length === 0 && hasMore && !isLoading && !error && pendingCount === 0) {
+    if (isSearchReady && profiles.length === 0 && hasMore && !isLoading && !error && pendingCount === 0) {
       fetchProfiles();
     }
-  }, [profiles.length, hasMore, isLoading, error, pendingCount, fetchProfiles]);
+  }, [isSearchReady, profiles.length, hasMore, isLoading, error, pendingCount, fetchProfiles]);
 
   /**
    * Like / Pass a child. Accepts a discovery profile, or a child ID (e.g. from the detail modal).
@@ -162,11 +234,16 @@ export const useDiscovery = ({ isKeyboardEnabled = true, onViewDetail } = {}) =>
   return {
     profiles,
     meta,
-    isLoading,
+    // Still loading until the default filters and the selected child are known
+    isLoading: isLoading || !isSearchReady,
     isSwiping: pendingCount > 0,
     errorMessage: error ? getApiErrorMsg(DISCOVERY_ERROR_MESSAGES, error, FETCH_ERROR_FALLBACK) : null,
     remainingViewsLabel,
-    filterSummary: buildFilterSummary(filters),
+    searchingForLabel: selectedChild?.label || DEFAULT_SEARCHING_FOR_LABEL,
+    childOptions,
+    selectedChildId,
+    selectChild,
+    filterSummary: buildFilterSummary(filters, defaultFilters),
     refetch: fetchProfiles,
     handleSwipe,
     goToUpgrade,

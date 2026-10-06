@@ -1,6 +1,5 @@
 import React from 'react';
-import { X, MapPin, CalendarDays, Clock, ShieldCheck, Mail, Phone, Send, ThumbsDown } from 'lucide-react';
-import { createPortal } from 'react-dom';
+import { MapPin, CalendarDays, Clock, ShieldCheck, Mail, Phone, Send, ThumbsDown } from 'lucide-react';
 import { useChildProfile } from '../hooks/useChildProfile';
 import { SWIPE_DIRECTIONS } from '../constants/discoveryConstants';
 import { VerifiedBadge } from '../../../components/badges/VerifiedBadge';
@@ -8,6 +7,8 @@ import { InterestTag } from '../../../components/badges/InterestTag';
 import { Button } from '../../../components/ui/Button';
 import { Avatar } from '../../../components/ui/Avatar';
 import { Skeleton } from '../../../components/feedback/Skeleton';
+import { Modal } from '../../../components/feedback/Modal';
+import { EmptyState } from '../../../components/cards/EmptyState';
 
 /**
  * ChildProfileDetailModal
@@ -35,35 +36,11 @@ const ChildProfileDetailModal = ({ childId, onClose, onSwipe, isSwiping }) => {
     onClose();
   };
 
-  if (!isOpen) return null;
-
-  return createPortal(
-    <div className="fixed inset-0 z-[200] flex items-end sm:items-center justify-center p-0 sm:p-4">
-      {/* Backdrop */}
-      <div
-        className="fixed inset-0 bg-on-surface/30 backdrop-blur-md transition-opacity"
-        onClick={onClose}
-      />
-
-      {/* Modal box */}
-      <div className="relative w-full sm:max-w-md bg-white rounded-t-3xl sm:rounded-3xl shadow-[0_16px_40px_-8px_rgba(45,55,72,0.12)] border border-hairline z-10 animate-in slide-in-from-bottom-4 sm:zoom-in-95 duration-200 flex flex-col max-h-[92vh]">
-
-        {/* Drag handle (mobile) */}
-        <div className="flex justify-center pt-3 pb-1 sm:hidden">
-          <div className="w-10 h-1 rounded-full bg-surface-container-high" />
-        </div>
-
-        {/* Close button */}
-        <button
-          onClick={onClose}
-          className="absolute top-4 right-4 w-8 h-8 rounded-full flex items-center justify-center text-on-surface-variant hover:bg-surface-container transition-colors z-10"
-          aria-label="Đóng"
-        >
-          <X size={18} strokeWidth={1.75} />
-        </button>
-
+  return (
+    <Modal isOpen={isOpen} onClose={onClose} title="Hồ sơ của bé" maxWidth="max-w-md">
+      <div className="flex flex-col max-h-[75vh]">
         {/* Scrollable content */}
-        <div className="overflow-y-auto flex-1 px-5 pt-4 pb-2">
+        <div className="overflow-y-auto flex-1 pb-2">
           {isLoading ? (
             <div className="flex flex-col gap-4 py-2">
               <div className="flex gap-4">
@@ -92,7 +69,7 @@ const ChildProfileDetailModal = ({ childId, onClose, onSwipe, isSwiping }) => {
                     className="w-full h-full object-cover"
                     draggable={false}
                   />
-                  <span className="absolute bottom-0 left-0 right-0 text-center bg-primary text-on-primary text-[10px] font-bold py-0.5">
+                  <span className="absolute bottom-0 left-0 right-0 text-center bg-primary text-primary-on-primary text-[10px] font-bold py-0.5">
                     {view.genderLabel}
                   </span>
                 </div>
@@ -215,16 +192,17 @@ const ChildProfileDetailModal = ({ childId, onClose, onSwipe, isSwiping }) => {
               </div>
             </div>
           ) : (
-            <div className="flex flex-col items-center justify-center py-12 text-on-surface-variant">
-              <ShieldCheck size={40} strokeWidth={1} className="mb-3 opacity-40" />
-              <p className="text-sm">Không tìm thấy thông tin hồ sơ</p>
-            </div>
+            <EmptyState
+              icon={<ShieldCheck size={24} strokeWidth={1.5} />}
+              title="Không tìm thấy thông tin hồ sơ"
+              className="border-0"
+            />
           )}
         </div>
 
         {/* ── CTA Footer (sticky) ── */}
         {!isLoading && profile && (
-          <div className="px-5 py-4 border-t border-hairline bg-white rounded-b-3xl flex gap-3">
+          <div className="pt-4 border-t border-hairline bg-white flex gap-3">
             <Button
               variant="ghost"
               onClick={handlePass}
@@ -245,8 +223,7 @@ const ChildProfileDetailModal = ({ childId, onClose, onSwipe, isSwiping }) => {
           </div>
         )}
       </div>
-    </div>,
-    document.body
+    </Modal>
   );
 };
 

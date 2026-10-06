@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Baby, Plus, RefreshCw, Crown } from 'lucide-react';
-import { Button, Spinner, EmptyState, ConfirmDialog } from '../../../components';
+import { Button, UpgradeButton, Spinner, EmptyState, ConfirmDialog } from '../../../components';
 import { ChildCard } from '../components';
 import { useChildrenList } from '../hooks/useChildrenList';
 import { useSubscriptionQuota } from '../../subscription/hooks/useSubscriptionQuota';
@@ -100,30 +100,23 @@ export const ChildrenManagementPage = () => {
           </div>
         </div>
 
-        <Button
-          type="button"
-          onClick={() => {
-            if (isChildLimitReached) {
-              navigate('/subscription');
-            } else {
-              navigate('/children/create');
-            }
-          }}
-          className={`px-5 py-3 rounded-xl shadow-md font-semibold text-sm self-start sm:self-auto shrink-0 ${
-            isChildLimitReached
-              ? 'bg-amber-400 hover:bg-amber-400/90 text-white'
-              : ''
-          }`}
-          leftIcon={
-            isChildLimitReached ? (
-              <Crown className="w-4 h-4 text-white" />
-            ) : (
-              <Plus className="w-4 h-4" />
-            )
-          }
-        >
-          {isChildLimitReached ? 'Nâng cấp để thêm bé' : 'Thêm hồ sơ bé'}
-        </Button>
+        {isChildLimitReached ? (
+          <UpgradeButton
+            onClick={() => navigate('/subscription')}
+            className="self-start sm:self-auto shrink-0"
+          >
+            Nâng cấp để thêm bé
+          </UpgradeButton>
+        ) : (
+          <Button
+            type="button"
+            onClick={() => navigate('/children/create')}
+            className="px-5 py-3 rounded-xl shadow-md font-semibold text-sm self-start sm:self-auto shrink-0"
+            leftIcon={<Plus className="w-4 h-4" />}
+          >
+            Thêm hồ sơ bé
+          </Button>
+        )}
       </div>
 
       {/* Children List Grid / Empty State */}

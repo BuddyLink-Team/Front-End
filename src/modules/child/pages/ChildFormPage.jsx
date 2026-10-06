@@ -7,7 +7,6 @@ import {
   Sparkles,
   Trash2,
   Crown,
-  ArrowRight,
 } from 'lucide-react';
 import {
   Card,
@@ -15,6 +14,7 @@ import {
   Spinner,
   ConfirmDialog,
   Modal,
+  UpgradeButton,
 } from '../../../components';
 import { ChildBasicInfoStep, ChildInterestsStep } from '../components';
 import { useChildForm } from '../hooks/useChildForm';
@@ -199,17 +199,14 @@ export const ChildFormPage = () => {
             >
               Để sau
             </Button>
-            <Button
-              type="button"
+            <UpgradeButton
               onClick={() => {
                 setQuotaExceededError(null);
                 navigate('/subscription');
               }}
-              className="bg-tertiary-dark hover:bg-tertiary-dark/90 text-white font-semibold"
-              rightIcon={<ArrowRight className="w-4 h-4" />}
             >
               Nâng cấp Premium ngay
-            </Button>
+            </UpgradeButton>
           </div>
         </div>
       </Modal>
