@@ -74,7 +74,7 @@ export const ChildrenManagementPage = () => {
                 <span
                   className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold ${
                     isChildUnlimited
-                      ? 'bg-amber-500/10 text-amber-700 border border-amber-500/20'
+                      ? 'bg-tertiary/15 text-tertiary-dark border border-tertiary/40'
                       : isChildLimitReached
                         ? 'bg-error/10 text-error border border-error/20'
                         : 'bg-primary/10 text-primary border border-primary/20'
@@ -82,7 +82,7 @@ export const ChildrenManagementPage = () => {
                 >
                   {isChildUnlimited ? (
                     <>
-                      <Crown className="w-3 h-3 text-amber-500" />
+                      <Crown className="w-3 h-3 text-tertiary-container" />
                       <span>Không giới hạn (Premium)</span>
                     </>
                   ) : (
@@ -111,7 +111,7 @@ export const ChildrenManagementPage = () => {
           }}
           className={`px-5 py-3 rounded-xl shadow-md font-semibold text-sm self-start sm:self-auto shrink-0 ${
             isChildLimitReached
-              ? 'bg-amber-600 hover:bg-amber-700 text-white'
+              ? 'bg-amber-400 hover:bg-amber-400/90 text-white'
               : ''
           }`}
           leftIcon={

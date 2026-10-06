@@ -77,10 +77,6 @@ export const ParentProfilePage = () => {
               {TAB_CONFIGS.map((tab) => {
                 const Icon = tab.icon;
                 const isActive = activeTab === tab.id;
-                const count =
-                  tab.id === PROFILE_TABS.CHILDREN
-                    ? children.length
-                    : undefined;
 
                 return (
                   <button

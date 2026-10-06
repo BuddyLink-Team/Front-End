@@ -16,7 +16,6 @@ export const ChildCard = ({ child, onEdit, onDelete }) => {
 
   return (
     <Card
-      key={childId}
       className="p-6 rounded-3xl border border-hairline bg-white shadow-sm hover:shadow-md hover:border-primary/40 transition-all duration-200 flex flex-col justify-between space-y-5 relative overflow-hidden"
     >
       {/* Decorative Top Accent */}
@@ -134,13 +133,13 @@ export const ChildCard = ({ child, onEdit, onDelete }) => {
                     <InterestTag
                       key={idx}
                       label={trait}
-                      className="bg-amber-500/10 text-amber-800 border-amber-500/20"
+                      className="bg-tertiary/15 text-tertiary-dark border-tertiary/40"
                     />
                   ))}
                   {remainingCount > 0 && (
                     <span
                       title={`Còn lại: ${remainingTooltip}`}
-                      className="inline-flex items-center text-[11px] font-bold px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-800 border border-amber-500/20 cursor-help hover:bg-amber-500/20 transition-colors"
+                      className="inline-flex items-center text-[11px] font-bold px-2 py-0.5 rounded-full bg-tertiary/15 text-tertiary-dark border border-tertiary/40 cursor-help hover:bg-tertiary/25 transition-colors"
                     >
                       +{remainingCount}
                     </span>

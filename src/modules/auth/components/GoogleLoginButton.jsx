@@ -70,7 +70,6 @@ export const GoogleLoginButton = ({
               }}
               onError={() => {
                 setIsLoading(false);
-                console.error('Google Sign-In failed');
               }}
               text="signin_with"
               shape="rectangular"

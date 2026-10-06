@@ -5,8 +5,6 @@ import {
   Phone,
   MapPin,
   Flame,
-  ShieldCheck,
-  Calendar,
   Sparkles,
 } from 'lucide-react';
 import { Card, Avatar, VerifiedBadge } from '../../../components';
@@ -17,9 +15,8 @@ export const ProfileHeaderCard = ({
   childrenCount = 0,
   onAvatarUpload,
   isUploadingAvatar,
-  onOpenChangePassword,
 }) => {
-  const { fileInputRef, handleFileChange, triggerUpload } = useProfileAvatar({
+  const { fileInputRef, handleFileChange } = useProfileAvatar({
     onAvatarUpload,
   });
 
@@ -108,12 +105,12 @@ export const ProfileHeaderCard = ({
         {/* Stats & Streak Highlights Grid */}
         <div className="grid grid-cols-2 gap-2.5 w-full pt-2">
           {/* Weekly Streak Box */}
-          <div className="p-3 rounded-2xl bg-amber-500/30 border border-amber-500/20 text-amber-700 flex flex-col items-center justify-center gap-1">
-            <span className="text-[10px] font-semibold uppercase tracking-wider text-amber-600">
+          <div className="p-3 rounded-2xl bg-tertiary/35 border border-tertiary/40 text-tertiary-dark flex flex-col items-center justify-center gap-1">
+            <span className="text-[10px] font-semibold uppercase tracking-wider text-tertiary-dark">
               Streak tuần
             </span>
             <div className="flex items-center gap-1">
-              <Flame className="w-4 h-4 text-amber-500 fill-amber-500" />
+              <Flame className="w-4 h-4 text-tertiary-container fill-tertiary" />
               <span className="text-xs font-bold">{weeklyStreak} tuần</span>
             </div>
           </div>
