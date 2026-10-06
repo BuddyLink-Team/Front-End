@@ -19,6 +19,7 @@ export default {
           'container-highest': '#d9e3f9',
           variant: '#d9e3f9',
           tint: '#396940',
+          muted: '#f0f4f2', // Ghost hover / pill track background (DESIGN.md)
         },
         'on-surface': '#121c2c',
         'on-surface-variant': '#414940',
@@ -31,6 +32,7 @@ export default {
           variant: '#c1c9be',
         },
         hairline: '#edf2f0',
+        'hairline-strong': '#d9e2de',
 
         // --- Primary Brand (Matcha Green) ---
         primary: {
@@ -47,6 +49,16 @@ export default {
           'fixed-dim': '#9fd3a2',
           'on-fixed': '#002109',
           'on-fixed-variant': '#20502a',
+          // Soft surfaces from DESIGN.md (verified pill, active chip, secondary button)
+          soft: '#eaf3ec',
+          tint: '#ebf4ee',
+          'tint-hover': '#dcefe1',
+          border: '#d2e7d7',
+          ink: '#3d6841',
+          // Chat bubbles
+          bubble: '#e3f0e5',
+          'bubble-soft': '#f0f7f2',
+          'bubble-border': '#cde5d3',
         },
 
         // --- Secondary Brand (Cloud Blue) ---
@@ -75,6 +87,9 @@ export default {
           'fixed-dim': '#e6c278',
           'on-fixed': '#261a00',
           'on-fixed-variant': '#5b4303',
+          // Pending chip (DESIGN.md)
+          soft: '#fef7e6',
+          border: '#fae4b2',
         },
 
         // --- Error States ---
@@ -84,6 +99,7 @@ export default {
           container: '#ffdad6',
           'on-container': '#93000a',
           'on-error-container': '#93000a',
+          'container-hover': '#ffb4ab',
         },
 
         // --- Neutrals & Backgrounds ---

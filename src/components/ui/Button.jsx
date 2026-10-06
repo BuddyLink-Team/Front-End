@@ -24,13 +24,13 @@ export const Button = React.forwardRef(
       primary:
         'bg-primary text-white hover:bg-primary-hover hover:scale-[1.01] focus:ring-primary/50 shadow-sm',
       secondary:
-        'bg-[#ebf4ee] text-primary-dark hover:bg-[#dcefe1] focus:ring-primary/30',
+        'bg-primary-tint text-primary-dark hover:bg-primary-tint-hover focus:ring-primary/30',
       outline:
         'border border-primary text-primary-dark hover:bg-primary/10 focus:ring-primary/30',
       ghost:
-        'bg-transparent text-text-primary hover:bg-[#f0f4f2] focus:ring-gray-300',
+        'bg-transparent text-text-primary hover:bg-surface-muted focus:ring-gray-300',
       danger:
-        'bg-[#ffdad6] text-[#ba1a1a] border border-[#ba1a1a] hover:bg-[#ffb4ab] focus:ring-red-400',
+        'bg-error-container text-error border border-error hover:bg-error-container-hover focus:ring-red-400',
     };
 
     const sizes = {

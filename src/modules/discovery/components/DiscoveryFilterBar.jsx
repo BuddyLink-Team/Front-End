@@ -1,15 +1,16 @@
 import React from 'react';
 import { SlidersHorizontal, ChevronDown } from 'lucide-react';
-import { useSelector } from 'react-redux';
 
-export const DiscoveryFilterBar = ({ meta, onOpenFilter }) => {
-  const filters = useSelector((s) => s.discovery?.filters);
-  const hasActiveFilter =
-    filters &&
-    (filters.maxDistance !== 20 ||
-      filters.minAge !== 1 ||
-      filters.maxAge !== 12 ||
-      filters.personalities?.length > 0);
+/**
+ * @param {Object} props
+ * @param {Object} props.meta - Discovery meta (isPremium...)
+ * @param {string} props.remainingViewsLabel
+ * @param {{ hasActiveFilter: boolean, distanceLabel: string, ageLabel: string }} props.filterSummary
+ * @param {() => void} props.onOpenFilter
+ * @param {() => void} props.onUpgrade
+ */
+export const DiscoveryFilterBar = ({ meta, remainingViewsLabel, filterSummary, onOpenFilter, onUpgrade }) => {
+  const { hasActiveFilter, distanceLabel, ageLabel } = filterSummary;
 
   return (
     <div className="w-full max-w-[740px] flex flex-col gap-3 mb-6 z-10 relative">
@@ -36,7 +37,7 @@ export const DiscoveryFilterBar = ({ meta, onOpenFilter }) => {
             <div className="flex items-center gap-1 text-tertiary">
               <span className="text-base">⚡</span>
               <span className="text-xs font-semibold text-on-surface">
-                {meta?.remainingViews !== undefined ? `${meta.remainingViews} lượt` : '...'}
+                {remainingViewsLabel}
               </span>
             </div>
           </div>
@@ -44,6 +45,7 @@ export const DiscoveryFilterBar = ({ meta, onOpenFilter }) => {
             <button
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-tertiary-fixed text-on-tertiary-fixed text-xs font-semibold hover:bg-tertiary-container hover:text-on-tertiary-container transition-all shadow-sm active:scale-95 flex-shrink-0"
               type="button"
+              onClick={onUpgrade}
             >
               <span className="text-xs">👑</span>
               <span className="font-medium">Nâng cấp</span>
@@ -64,7 +66,7 @@ export const DiscoveryFilterBar = ({ meta, onOpenFilter }) => {
             <span className="text-xs">📍</span>
             <span className="text-on-surface-variant group-hover:text-on-surface">Bán kính:</span>
             <span className="font-semibold text-primary">
-              {filters?.maxDistance && filters.maxDistance !== 20 ? `${filters.maxDistance} km` : 'Tất cả'}
+              {distanceLabel}
             </span>
             <ChevronDown size={14} strokeWidth={1.75} className="text-on-surface-variant group-hover:text-primary transition-colors" />
           </button>
@@ -77,9 +79,7 @@ export const DiscoveryFilterBar = ({ meta, onOpenFilter }) => {
             <span className="text-xs">👶</span>
             <span className="text-on-surface-variant group-hover:text-on-surface">Độ tuổi:</span>
             <span className="font-semibold text-primary">
-              {(filters?.minAge !== 1 || filters?.maxAge !== 12) && filters?.minAge !== undefined
-                ? `${filters.minAge}-${filters.maxAge} tuổi`
-                : 'Tất cả'}
+              {ageLabel}
             </span>
             <ChevronDown size={14} strokeWidth={1.75} className="text-on-surface-variant group-hover:text-primary transition-colors" />
           </button>

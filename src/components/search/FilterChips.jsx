@@ -90,7 +90,7 @@ export const FilterChips = ({
         <button
           type="button"
           onClick={onClear}
-          className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-full text-xs font-medium text-text-muted hover:text-[#ba1a1a] transition-colors"
+          className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-full text-xs font-medium text-text-muted hover:text-error transition-colors"
         >
           <X className="w-3.5 h-3.5" />
           <span>Đặt lại</span>

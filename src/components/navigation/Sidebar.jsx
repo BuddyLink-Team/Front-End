@@ -45,7 +45,7 @@ export const Sidebar = ({
             type="button"
             onClick={onToggle}
             aria-label={collapsed ? 'Mở rộng menu' : 'Thu gọn menu'}
-            className="p-1.5 rounded-lg text-text-muted hover:text-text-primary hover:bg-[#f0f4f2] transition-colors shrink-0"
+            className="p-1.5 rounded-lg text-text-muted hover:text-text-primary hover:bg-surface-muted transition-colors shrink-0"
           >
             {collapsed ? (
               <ChevronRight className="w-4 h-4" />
@@ -69,7 +69,7 @@ export const Sidebar = ({
                   'flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150',
                   isActive
                     ? 'bg-primary text-white shadow-xs'
-                    : 'text-text-muted hover:text-text-primary hover:bg-[#f0f4f2]',
+                    : 'text-text-muted hover:text-text-primary hover:bg-surface-muted',
                   collapsed && 'justify-center px-0'
                 )
               }

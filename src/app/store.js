@@ -2,6 +2,9 @@ import { configureStore } from '@reduxjs/toolkit';
 import authReducer from '../modules/auth/redux/authSlice';
 import childReducer from '../modules/child/redux/childSlice';
 import parentReducer from '../modules/parent/redux/parentSlice';
+import subscriptionReducer from '../modules/subscription/redux/subscriptionSlice';
+import chatReducer from '../modules/chat/redux/chatSlice';
+import safetyReducer from '../modules/safety/redux/safetySlice';
 import discoveryReducer from '../modules/discovery/redux/discoverySlice';
 
 export const store = configureStore({
@@ -9,13 +12,16 @@ export const store = configureStore({
     auth: authReducer,
     child: childReducer,
     parent: parentReducer,
+    subscription: subscriptionReducer,
+    chat: chatReducer,
+    safety: safetyReducer,
     discovery: discoveryReducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
       serializableCheck: false,
     }),
-  devTools: process.env.NODE_ENV !== 'production',
+  devTools: import.meta.env.DEV,
 });
 
 export default store;

@@ -29,15 +29,17 @@ export const API_ENDPOINTS = {
     BASE: '/children',
   },
   DISCOVERY: {
-    MATCH: '/discovery/match',
-    NEARBY: '/discovery/nearby',
+    BASE: '/discovery',
+    SWIPE: '/discovery/swipe',
   },
   PLAYDATE: {
     BASE: '/playdates',
   },
   CHAT: {
-    CONVERSATIONS: '/chats/conversations',
-    MESSAGES: '/chats/messages',
+    CONVERSATIONS: '/chat/conversations',
+    PLAYDATE: '/chat/playdate',
+    MESSAGES: '/chat/conversations',
+    UPLOAD: '/chat/upload',
   },
   AI_ASSISTANT: {
     RECOMMEND: '/ai/recommendations',
