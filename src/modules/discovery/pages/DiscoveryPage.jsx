@@ -44,7 +44,7 @@ export const DiscoveryPage = () => {
   const renderContent = () => {
     if (isLoading && profiles.length === 0) {
       return (
-        <div className="flex flex-col items-center justify-center h-full text-on-surface-variant">
+        <div className="flex flex-col items-center justify-center py-24 text-on-surface-variant">
           <Spinner size="lg" className="mb-4" />
           <p>Đang tìm kiếm bạn bè quanh đây...</p>
         </div>
@@ -105,8 +105,9 @@ export const DiscoveryPage = () => {
         onUpgrade={goToUpgrade}
       />
 
-      {/* Card stack area */}
-      <div className="relative w-full mt-3 pb-6 min-h-100vh">
+      {/* Card stack area: cards share one grid cell, so its height follows the tallest card
+          and nothing below (footer) is overlapped */}
+      <div className="grid w-full mt-3 pb-6">
         {renderContent()}
       </div>
 

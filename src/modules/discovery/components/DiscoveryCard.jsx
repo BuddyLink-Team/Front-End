@@ -65,9 +65,6 @@ export const DiscoveryCard = ({
         rotate,
         opacity,
         zIndex: 10 - index,
-        left: 0,
-        right: 0,
-        margin: '0 auto',
       }}
       drag={isTop ? 'x' : false}
       dragConstraints={{ left: 0, right: 0 }}
@@ -78,7 +75,8 @@ export const DiscoveryCard = ({
         y: isTop ? 0 : index * 10,
       }}
       transition={{ type: 'spring', stiffness: 300, damping: 24 }}
-      className={`absolute w-full ${!isTop ? 'pointer-events-none' : ''}`}
+      // Stacked in a single grid cell (see DiscoveryPage) so the stack takes the height of the tallest card
+      className={`relative col-start-1 row-start-1 w-full ${!isTop ? 'pointer-events-none' : ''}`}
     >
       {/* Swipe halo (outside the clipped card so the glow is visible) */}
       {isTop && (
