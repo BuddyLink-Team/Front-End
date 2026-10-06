@@ -1,12 +1,13 @@
-import React from 'react';
+import React, { lazy } from 'react';
 import { Route, Navigate } from 'react-router-dom';
 import { MainLayout } from '../layouts/MainLayout';
 import PlaceholderPage from '../components/feedback/PlaceholderPage';
-import ChatPage from '../modules/chat/pages/ChatPage';
-import ParentProfilePage from '../modules/parent/pages/ParentProfilePage';
 
-import ChildrenManagementPage from '../modules/child/pages/ChildrenManagementPage';
-import ChildFormPage from '../modules/child/pages/ChildFormPage';
+// Pages are code-split: each route downloads its own chunk on first visit
+const ChatPage = lazy(() => import('../modules/chat/pages/ChatPage'));
+const ParentProfilePage = lazy(() => import('../modules/parent/pages/ParentProfilePage'));
+const ChildrenManagementPage = lazy(() => import('../modules/child/pages/ChildrenManagementPage'));
+const ChildFormPage = lazy(() => import('../modules/child/pages/ChildFormPage'));
 
 /**
  * Full route definitions for Parent features.

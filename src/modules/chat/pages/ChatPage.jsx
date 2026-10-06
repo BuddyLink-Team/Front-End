@@ -37,6 +37,7 @@ export const ChatPage = () => {
     handleSelectImage,
     handleClearImage,
     handleSendMessage,
+    handleRetryMessage,
     handleSendTyping,
   } = useChat({
     initialConversationId: conversationId,
@@ -83,7 +84,9 @@ export const ChatPage = () => {
         onSearchChange={setSearchQuery}
         totalUnreadCount={totalUnreadCount}
         isLoading={isLoadingConversations}
-        className={activeConversationId || playdateError ? 'hidden lg:flex' : 'flex'}
+        className={
+          activeConversationId || playdateError ? 'hidden lg:flex' : 'flex'
+        }
       />
 
       {/* Cột phải: Playdate Group Chat / Direct Chat / Error State / Empty State */}
@@ -152,6 +155,7 @@ export const ChatPage = () => {
             onSelectImage={handleSelectImage}
             onClearImage={handleClearImage}
             onSendMessage={handleSendMessage}
+            onRetryMessage={handleRetryMessage}
             onSendTyping={handleSendTyping}
             onBack={handleBackToConversations}
             className={!activeConversationId ? 'hidden lg:flex' : 'flex'}

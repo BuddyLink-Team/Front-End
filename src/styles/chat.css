@@ -10,8 +10,8 @@
 
 /* 2. Conversations Sidebar */
 .chat-conversation-item-active {
-  background-color: #F0F7F2;
-  border-color: #CDE5D3;
+  background-color: theme('colors.primary.bubble-soft');
+  border-color: theme('colors.primary.bubble-border');
 }
 
 /* 3. Messages Stream Canvas */
@@ -21,35 +21,35 @@
 
 /* 4. Chat Message Bubbles */
 .chat-bubble-user {
-  background-color: #E3F0E5;
-  color: #2D3748;
+  background-color: theme('colors.primary.bubble');
+  color: theme('colors.text-primary');
   border-bottom-right-radius: 0.25rem;
 }
 
 .chat-bubble-partner {
-  background-color: #FFFFFF;
-  color: #121C2C;
+  background-color: theme('colors.surface.container-lowest');
+  color: theme('colors.on-surface');
   border: 1px solid rgba(237, 242, 240, 0.85);
   border-bottom-left-radius: 0.25rem;
 }
 
 /* 5. Realtime Typing Indicator */
 .chat-typing-bubble {
-  background-color: #FFFFFF;
+  background-color: theme('colors.surface.container-lowest');
   border: 1px solid rgba(237, 242, 240, 0.85);
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
 }
 
 /* 6. Media Attachment Thumbnail */
 .chat-image-preview-card {
-  border: 2px solid #7BAE7F;
+  border: 2px solid theme('colors.primary.DEFAULT');
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
 }
 
 /* 7. Quick Emoji Popover Container */
 .chat-emoji-popover {
-  background-color: #FFFFFF;
-  border: 1px solid #EDF2F0;
+  background-color: theme('colors.surface.container-lowest');
+  border: 1px solid theme('colors.hairline');
   box-shadow: 0 10px 25px -5px rgba(45, 55, 72, 0.1), 0 8px 10px -6px rgba(45, 55, 72, 0.1);
 }
 

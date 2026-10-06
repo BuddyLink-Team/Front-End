@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import {
@@ -17,6 +17,7 @@ import AuthCardLayout from '../components/AuthCardLayout';
 import { Input, Button } from '../../../components';
 
 export const ForgotPasswordPage = () => {
+  const navigate = useNavigate();
   const { isSubmitting, errorMessage, handleForgotPassword } = useAuth();
   const [submittedEmail, setSubmittedEmail] = useState(null);
 
@@ -156,6 +157,15 @@ export const ForgotPasswordPage = () => {
 
           {/* Action Buttons */}
           <div className="space-y-3">
+            <Button
+              type="button"
+              className="w-full py-3 rounded-xl font-semibold text-sm"
+              onClick={() => navigate('/reset-password', { state: { email: submittedEmail } })}
+              rightIcon={<ArrowRight className="w-4 h-4" />}
+            >
+              Nhập mã khôi phục
+            </Button>
+
             <Button
               type="button"
               variant="outline"

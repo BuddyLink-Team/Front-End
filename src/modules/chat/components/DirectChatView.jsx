@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useLayoutEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import dayjs from 'dayjs';
@@ -15,7 +15,6 @@ import {
   UserX,
   Phone,
 } from 'lucide-react';
-import { useToast } from '../../../hooks/useToast.js';
 import { Avatar } from '../../../components/ui/Avatar';
 import { VerifiedBadge } from '../../../components/badges/VerifiedBadge';
 import { ConfirmDialog } from '../../../components/feedback/ConfirmDialog';
@@ -24,7 +23,7 @@ import { MessageItem } from './MessageItem.jsx';
 import { EmojiPopover } from './EmojiPopover.jsx';
 import { cn } from '../../../utils/cn';
 import { CHAT_FILE_INPUT_ACCEPT } from '../constants/chatConstants.js';
-import safetyApi from '../../safety/api/safetyApi.js';
+import { useSafetyActions } from '../../safety/hooks/useSafetyActions.js';
 
 const formatMessageDateGroup = (date) => {
   if (!date) return '';
@@ -49,12 +48,13 @@ export const DirectChatView = ({
   onSelectImage,
   onClearImage,
   onSendMessage,
+  onRetryMessage,
   onSendTyping,
   onBack,
   className,
 }) => {
   const navigate = useNavigate();
-  const toast = useToast();
+  const { isSubmitting: isSubmittingSafety, blockUser, reportUser } = useSafetyActions();
   const currentParent = useSelector((state) => state.auth?.parent);
   const currentUser = useSelector((state) => state.auth?.user);
   const currentParentId = currentParent?._id || currentParent?.id || currentUser?._id || currentUser?.id;
@@ -67,9 +67,11 @@ export const DirectChatView = ({
   const [showBlockDialog, setShowBlockDialog] = useState(false);
   const [showReportDialog, setShowReportDialog] = useState(false);
   const [showVoiceCallDialog, setShowVoiceCallDialog] = useState(false);
-  const [isSubmittingSafety, setIsSubmittingSafety] = useState(false);
 
   const messagesEndRef = useRef(null);
+  const messagesContainerRef = useRef(null);
+  // Distance from the bottom saved before older messages are prepended
+  const restoreScrollOffsetRef = useRef(null);
   const textareaRef = useRef(null);
   const fileInputRef = useRef(null);
   const lastMsgIdRef = useRef(null);
@@ -103,6 +105,26 @@ export const DirectChatView = ({
       lastMsgIdRef.current = currentLastId;
     }
   }, [messages, isPartnerTyping]);
+
+  // Keep the viewport on the same messages after older ones are prepended
+  useLayoutEffect(() => {
+    const container = messagesContainerRef.current;
+    if (!container || restoreScrollOffsetRef.current === null || isLoadingOlder) return;
+
+    // Jump instantly: the container uses smooth scrolling for new messages
+    container.style.scrollBehavior = 'auto';
+    container.scrollTop = container.scrollHeight - restoreScrollOffsetRef.current;
+    container.style.scrollBehavior = '';
+    restoreScrollOffsetRef.current = null;
+  }, [messages, isLoadingOlder]);
+
+  const handleLoadOlderClick = () => {
+    const container = messagesContainerRef.current;
+    if (container) {
+      restoreScrollOffsetRef.current = container.scrollHeight - container.scrollTop;
+    }
+    onLoadOlderMessages?.();
+  };
 
   // Clean up typing timeout on unmount
   useEffect(() => {
@@ -178,46 +200,24 @@ export const DirectChatView = ({
   // Block user action
   const handleConfirmBlock = async () => {
     const targetId = partner?.id || partner?._id;
-    if (!targetId) {
-      toast.error('Không tìm thấy thông tin đối phương để chặn');
-      return;
-    }
-
-    try {
-      setIsSubmittingSafety(true);
-      await safetyApi.blockUser({ blockedId: targetId, reason: 'Chặn từ cuộc trò chuyện' });
+    const result = await blockUser(targetId, partnerName);
+    if (result.success) {
       setShowBlockDialog(false);
-      toast.success(`Đã chặn người dùng ${partnerName}`);
       if (onBack) onBack();
-    } catch (error) {
-      toast.error(error.message || 'Chặn người dùng thất bại. Vui lòng thử lại.');
-    } finally {
-      setIsSubmittingSafety(false);
     }
   };
 
   // Report user action
   const handleConfirmReport = async () => {
     const targetId = partner?.id || partner?._id;
-    if (!targetId) {
-      toast.error('Không tìm thấy thông tin đối phương để báo cáo');
-      return;
-    }
-
-    try {
-      setIsSubmittingSafety(true);
-      await safetyApi.reportUser({
-        reportedUserId: targetId,
-        targetType: 'user',
-        reason: 'Báo cáo vi phạm từ cuộc trò chuyện',
-        description: 'Báo cáo người dùng từ màn hình trò chuyện trực tiếp.',
-      });
+    const result = await reportUser({
+      reportedUserId: targetId,
+      targetType: 'user',
+      reason: 'Báo cáo vi phạm từ cuộc trò chuyện',
+      description: 'Báo cáo người dùng từ màn hình trò chuyện trực tiếp.',
+    });
+    if (result.success) {
       setShowReportDialog(false);
-      toast.success('Báo cáo đã được gửi tới Quản trị viên BuddyLink để xem xét.');
-    } catch (error) {
-      toast.error(error.message || 'Gửi báo cáo thất bại. Vui lòng thử lại.');
-    } finally {
-      setIsSubmittingSafety(false);
     }
   };
 
@@ -339,13 +339,16 @@ export const DirectChatView = ({
       </div>
 
       {/* 2. Messages Stream */}
-      <div className="flex-1 overflow-y-auto px-5 py-4 space-y-4 chat-stream-canvas scroll-smooth">
+      <div
+        ref={messagesContainerRef}
+        className="flex-1 overflow-y-auto overscroll-contain px-5 py-4 space-y-4 chat-stream-canvas scroll-smooth"
+      >
         {/* Load older messages button */}
         {hasMoreMessages && (
           <div className="flex justify-center my-2">
             <button
               type="button"
-              onClick={onLoadOlderMessages}
+              onClick={handleLoadOlderClick}
               disabled={isLoadingOlder}
               className="px-3.5 py-1.5 rounded-full text-xs font-medium text-primary hover:bg-primary-container/20 border border-primary/20 transition-all flex items-center gap-1.5 disabled:opacity-60"
             >
@@ -394,6 +397,7 @@ export const DirectChatView = ({
                   partnerName={partnerName}
                   currentParentId={currentParentId}
                   onImageClick={(url) => setLightboxImageUrl(url)}
+                  onRetry={onRetryMessage}
                 />
               </React.Fragment>
             );

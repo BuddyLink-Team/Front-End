@@ -17,7 +17,25 @@ export const Checkbox = React.forwardRef(
     },
     ref
   ) => {
-    const checkboxId = id || props.name || React.useId();
+    // Hooks must run unconditionally on every render
+    const generatedId = React.useId();
+    const checkboxId = id || props.name || generatedId;
+
+    const inputProps = {
+      ref,
+      type: 'checkbox',
+      id: checkboxId,
+      disabled,
+      className: 'peer sr-only',
+      ...props,
+    };
+
+    if (checked !== undefined) {
+      inputProps.checked = checked;
+    }
+    if (onChange !== undefined) {
+      inputProps.onChange = onChange;
+    }
 
     const inputProps = {
       ref,

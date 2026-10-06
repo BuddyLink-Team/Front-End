@@ -5,14 +5,11 @@ export const StatusChip = ({ status, className }) => {
   const normalizedStatus = (status || '').toLowerCase();
 
   const statusStyles = {
-    pending: 'bg-[#fef7e6] text-[#755a1b] border-[#fae4b2]',
-    confirmed: 'bg-[#eaf3ec] text-[#3d6841] border-[#d2e7d7]',
-    accepted: 'bg-[#eaf3ec] text-[#3d6841] border-[#d2e7d7]',
-    declined: 'bg-[#ffdad6] text-[#ba1a1a] border-[#ffb4ab]',
-    cancelled: 'bg-[#edf2f0] text-[#718096] border-[#d9e2de]',
-    reported: 'bg-[#ffdad6] text-[#ba1a1a] border-[#ffb4ab]',
-    completed: 'bg-[#e7eeff] text-[#30647b] border-[#b1e4fe]',
-    upcoming: 'bg-[#eaf3ec] text-[#3d6841] border-[#d2e7d7]',
+    pending: 'bg-tertiary-soft text-tertiary-dark border-tertiary-border',
+    confirmed: 'bg-primary-soft text-primary-ink border-primary-border',
+    cancelled: 'bg-hairline text-text-muted border-hairline-strong',
+    reported: 'bg-error-container text-error border-error-container-hover',
+    completed: 'bg-surface-container text-secondary-dark border-secondary-container',
   };
 
   const statusLabels = {

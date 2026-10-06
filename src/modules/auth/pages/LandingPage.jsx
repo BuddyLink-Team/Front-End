@@ -82,7 +82,7 @@ export const LandingPage = () => {
     {
       name: 'Bé Bo',
       age: '5 tuổi',
-      avatarBg: 'bg-[#ebf4ee] text-primary-dark',
+      avatarBg: 'bg-primary/10 text-primary-dark',
       avatarLetter: 'B',
       desc: 'Thích lắp ghép xếp hình, vẽ tranh và hoạt động ngoài trời.',
       interests: ['Lắp ghép', 'Vẽ tranh', 'Vận động'],
@@ -90,7 +90,7 @@ export const LandingPage = () => {
     {
       name: 'Bé Miu',
       age: '4 tuổi',
-      avatarBg: 'bg-[#e7eeff] text-[#30647b]',
+      avatarBg: 'bg-surface-container text-secondary-dark',
       avatarLetter: 'M',
       desc: 'Thích đất nặn tạo hình, âm nhạc và dạo chơi công viên.',
       interests: ['Sáng tạo', 'Âm nhạc', 'Dã ngoại'],
@@ -98,7 +98,7 @@ export const LandingPage = () => {
     {
       name: 'Bé Tom',
       age: '6 tuổi',
-      avatarBg: 'bg-[#fef7e6] text-[#755a1b]',
+      avatarBg: 'bg-tertiary/15 text-tertiary-dark',
       avatarLetter: 'T',
       desc: 'Năng động, thích cờ vua, đạp xe và khám phá trò chơi mới.',
       interests: ['Cờ vua', 'Đạp xe', 'Khám phá'],
@@ -114,14 +114,14 @@ export const LandingPage = () => {
         {/* ===================== HERO SECTION ===================== */}
         <section className="relative overflow-hidden pt-8 pb-16 lg:pt-16 lg:pb-24">
           {/* Subtle Ambient Background Gradient */}
-          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-[1600px] h-[650px] bg-gradient-to-b from-[#eaf3ec]/40 via-[#f0f3ff]/20 to-transparent pointer-events-none -z-10" />
+          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-[1600px] h-[650px] bg-gradient-to-b from-primary/15/40 via-surface-container-low/20 to-transparent pointer-events-none -z-10" />
 
           <div className="max-w-[1600px] mx-auto px-6 sm:px-10 lg:px-16">
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-14 items-center">
               {/* Left Column: Heading & Value Proposition */}
               <div className="lg:col-span-8 space-y-6 text-center lg:text-left">
                 {/* AI Badge pill */}
-                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#eaf3ec] text-[#3d6841] text-xs font-semibold border border-[#d2e7d7] shadow-xs">
+                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/15 text-primary-dark text-xs font-semibold border border-primary/25 shadow-xs">
                   <Sparkles className="w-4 h-4 text-primary fill-primary/20" />
                   <span>
                     Nền tảng kết nối bạn chơi cho trẻ ứng dụng AI đầu tiên
@@ -175,11 +175,11 @@ export const LandingPage = () => {
                     Phụ huynh xác thực 100%
                   </span>
                   <span className="flex items-center gap-2 font-medium text-text-primary">
-                    <Sparkles className="w-4 h-4 text-[#755a1b] shrink-0" />
+                    <Sparkles className="w-4 h-4 text-tertiary-dark shrink-0" />
                     Gợi ý thông minh với AI
                   </span>
                   <span className="flex items-center gap-2 font-medium text-text-primary">
-                    <Heart className="w-4 h-4 text-red-500 shrink-0" />
+                    <Heart className="w-4 h-4 text-error shrink-0" />
                     Cộng đồng ba mẹ văn minh
                   </span>
                 </div>
@@ -197,7 +197,7 @@ export const LandingPage = () => {
                     {/* Header with Child Avatar and Verified Badge */}
                     <div className="flex items-start justify-between">
                       <div className="flex items-center gap-3.5">
-                        <div className="w-14 h-14 rounded-2xl bg-[#ebf4ee] text-primary-dark font-bold text-2xl flex items-center justify-center border-2 border-white shadow-xs">
+                        <div className="w-14 h-14 rounded-2xl bg-primary/10 text-primary-dark font-bold text-2xl flex items-center justify-center border-2 border-white shadow-xs">
                           B
                         </div>
                         <div>
@@ -217,8 +217,8 @@ export const LandingPage = () => {
 
                     {/* Bio Statement */}
                     <div className="p-3.5 rounded-2xl bg-canvas border border-hairline text-xs sm:text-sm text-text-muted leading-relaxed">
-                      "Thích lắp ghép Lego, vẽ tranh màu nước và vui chơi công
-                      viên cuối tuần."
+                      &ldquo;Thích lắp ghép Lego, vẽ tranh màu nước và vui chơi công
+                      viên cuối tuần.&rdquo;
                     </div>
 
                     {/* Interest Tags */}
@@ -241,15 +241,15 @@ export const LandingPage = () => {
                       <div className="flex flex-wrap gap-1.5">
                         <InterestTag
                           label="Sáng tạo"
-                          className="bg-amber-500/10 text-amber-800 border-amber-500/20"
+                          className="bg-tertiary/15 text-tertiary-dark border-tertiary/40"
                         />
                         <InterestTag
                           label="Hòa đồng"
-                          className="bg-amber-500/10 text-amber-800 border-amber-500/20"
+                          className="bg-tertiary/15 text-tertiary-dark border-tertiary/40"
                         />
                         <InterestTag
                           label="Tò mò"
-                          className="bg-amber-500/10 text-amber-800 border-amber-500/20"
+                          className="bg-tertiary/15 text-tertiary-dark border-tertiary/40"
                         />
                       </div>
                     </div>
@@ -274,7 +274,7 @@ export const LandingPage = () => {
             <div className="relative rounded-3xl overflow-hidden shadow-sm border border-hairline bg-white">
               <div className="grid grid-cols-1 lg:grid-cols-12 items-center">
                 <div className="lg:col-span-7 p-8 sm:p-12 lg:p-14 space-y-4">
-                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-[#fef7e6] text-[#755a1b]">
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-tertiary/15 text-tertiary-dark">
                     <Award className="w-3.5 h-3.5" />
                     Không gian gắn kết gia đình
                   </span>
@@ -354,7 +354,7 @@ export const LandingPage = () => {
 
               {/* Feature 2 */}
               <Card className="rounded-3xl p-8 space-y-5 hover:shadow-elevated transition-all border border-hairline">
-                <div className="w-14 h-14 rounded-2xl bg-secondary/20 text-[#30647b] flex items-center justify-center">
+                <div className="w-14 h-14 rounded-2xl bg-secondary/20 text-secondary-dark flex items-center justify-center">
                   <Sparkles className="w-7 h-7" />
                 </div>
                 <h3 className="text-xl font-bold text-text-primary">
@@ -365,7 +365,7 @@ export const LandingPage = () => {
                   công viên, quán café trẻ em thân thiện và tự động tạo lịch hẹn
                   chỉ trong vài giây.
                 </p>
-                <div className="pt-2 text-xs font-semibold text-[#30647b] inline-flex items-center gap-1.5">
+                <div className="pt-2 text-xs font-semibold text-secondary-dark inline-flex items-center gap-1.5">
                   <span>Cá nhân hóa theo độ tuổi bé</span>
                   <ArrowRight className="w-3.5 h-3.5 shrink-0 inline-block" />
                 </div>
@@ -373,7 +373,7 @@ export const LandingPage = () => {
 
               {/* Feature 3 */}
               <Card className="rounded-3xl p-8 space-y-5 hover:shadow-elevated transition-all border border-hairline">
-                <div className="w-14 h-14 rounded-2xl bg-tertiary/20 text-[#755a1b] flex items-center justify-center">
+                <div className="w-14 h-14 rounded-2xl bg-tertiary/20 text-tertiary-dark flex items-center justify-center">
                   <ShieldCheck className="w-7 h-7" />
                 </div>
                 <h3 className="text-xl font-bold text-text-primary">
@@ -384,7 +384,7 @@ export const LandingPage = () => {
                   chiều và nút báo cáo hành vi vi phạm bảo vệ không gian trong
                   sạch cho trẻ thơ.
                 </p>
-                <div className="pt-2 text-xs font-semibold text-[#755a1b] inline-flex items-center gap-1.5">
+                <div className="pt-2 text-xs font-semibold text-tertiary-dark inline-flex items-center gap-1.5">
                   <span>100% Phụ huynh có trách nhiệm</span>
                   <ArrowRight className="w-3.5 h-3.5 shrink-0 inline-block" />
                 </div>
@@ -451,7 +451,7 @@ export const LandingPage = () => {
                     </div>
 
                     <p className="text-xs sm:text-sm text-text-muted leading-relaxed line-clamp-3">
-                      "{kid.desc}"
+                      &ldquo;{kid.desc}&rdquo;
                     </p>
 
                     <div className="flex flex-wrap gap-1.5">
@@ -547,8 +547,8 @@ export const LandingPage = () => {
           <div className="max-w-[1600px] mx-auto px-6 sm:px-10 lg:px-16">
             <div className="bg-white rounded-3xl p-8 sm:p-14 border border-hairline shadow-soft grid grid-cols-1 lg:grid-cols-12 gap-10 items-center">
               <div className="lg:col-span-7 space-y-6">
-                <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#ffdad6]/50 text-[#ba1a1a] text-xs font-semibold border border-[#ffdad6]">
-                  <ShieldCheck className="w-4 h-4 text-[#ba1a1a]" />
+                <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-error-container/50 text-error text-xs font-semibold border border-error-container">
+                  <ShieldCheck className="w-4 h-4 text-error" />
                   <span>Cam kết an toàn tuyệt đối</span>
                 </div>
 
@@ -651,14 +651,14 @@ export const LandingPage = () => {
                   className="rounded-3xl p-8 space-y-5 border border-hairline bg-canvas/40 hover:bg-white hover:shadow-elevated transition-all flex flex-col justify-between"
                 >
                   <div className="space-y-4">
-                    <div className="flex items-center gap-1 text-[#f6d186]">
+                    <div className="flex items-center gap-1 text-tertiary">
                       {[...Array(item.rating)].map((_, rIdx) => (
-                        <Star key={rIdx} className="w-4 h-4 fill-[#f6d186]" />
+                        <Star key={rIdx} className="w-4 h-4 fill-tertiary" />
                       ))}
                     </div>
 
                     <p className="text-sm text-text-muted leading-relaxed italic">
-                      "{item.content}"
+                      &ldquo;{item.content}&rdquo;
                     </p>
                   </div>
 
@@ -725,7 +725,7 @@ export const LandingPage = () => {
         </section>
 
         {/* ===================== BOTTOM CTA BANNER ===================== */}
-        <section className="py-20 bg-gradient-to-b from-white to-[#eaf3ec]/40 border-t border-hairline">
+        <section className="py-20 bg-gradient-to-b from-white to-primary/15/40 border-t border-hairline">
           <div className="max-w-5xl mx-auto px-6 sm:px-10 text-center space-y-8">
             <div className="w-16 h-16 rounded-3xl bg-primary text-white flex items-center justify-center mx-auto shadow-md shadow-primary/30">
               <Sparkles className="w-8 h-8" />

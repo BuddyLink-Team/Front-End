@@ -12,7 +12,8 @@ vi.mock('react-router-dom', () => ({
 }));
 
 vi.mock('react-redux', () => ({
-  useSelector: (fn) => fn({ auth: { parent: { _id: 'my-parent-id' } } }),
+  useSelector: (fn) => fn({ auth: { parent: { _id: 'my-parent-id' } }, safety: { isSubmitting: false } }),
+  useDispatch: () => vi.fn(),
 }));
 
 describe('Chat UI Components (TASK-FE-10)', () => {
@@ -161,6 +162,38 @@ describe('Chat UI Components (TASK-FE-10)', () => {
 
     expect(screen.getByText('Tin nhắn từ chính tôi')).toBeInTheDocument();
     expect(screen.getByText('Đã gửi')).toBeInTheDocument();
+  });
+
+  it('5b. MessageItem: should show sending/failed delivery states and retry a failed message', () => {
+    const handleRetry = vi.fn();
+    const baseMessage = {
+      id: 'tmp-1',
+      tempId: 'tmp-1',
+      content: 'Tin đang gửi',
+      senderId: 'my-id-456',
+      createdAt: new Date().toISOString(),
+    };
+
+    const { rerender } = render(
+      <MessageItem
+        message={{ ...baseMessage, status: 'sending' }}
+        currentParentId="my-id-456"
+        onRetry={handleRetry}
+      />
+    );
+    expect(screen.getByText('Đang gửi')).toBeInTheDocument();
+    expect(screen.queryByText('Gửi lại')).not.toBeInTheDocument();
+
+    rerender(
+      <MessageItem
+        message={{ ...baseMessage, status: 'failed' }}
+        currentParentId="my-id-456"
+        onRetry={handleRetry}
+      />
+    );
+    expect(screen.getByText('Gửi lỗi')).toBeInTheDocument();
+    fireEvent.click(screen.getByText('Gửi lại'));
+    expect(handleRetry).toHaveBeenCalledWith('tmp-1');
   });
 
   it('6. DirectChatView: should render pagination button when hasMoreMessages is true', () => {

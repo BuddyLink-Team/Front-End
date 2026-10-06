@@ -202,8 +202,6 @@ export const useProfileSecurity = ({ profile, onUpdate, onChangePassword }) => {
     return res;
   };
 
-  const isSocialAccount = !profile?.passwordHash && profile?.email?.includes('@');
-
   return {
     isProfileHidden,
     setIsProfileHidden,
@@ -214,7 +212,6 @@ export const useProfileSecurity = ({ profile, onUpdate, onChangePassword }) => {
     isChangingPassword,
     handleSavePrivacy,
     handleChangePasswordSubmit,
-    isSocialAccount,
   };
 };
 

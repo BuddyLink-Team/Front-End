@@ -100,7 +100,7 @@ export const ConversationList = ({
       </div>
 
       {/* 4. Conversations List Stream */}
-      <div className="flex-1 overflow-y-auto space-y-1.5 pr-0.5">
+      <div className="flex-1 overflow-y-auto overscroll-contain space-y-1.5 pr-0.5">
         {isLoading ? (
           <div className="space-y-3 py-2">
             {[1, 2, 3, 4].map((i) => (
