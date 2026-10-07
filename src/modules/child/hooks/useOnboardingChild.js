@@ -112,7 +112,6 @@ export const useOnboardingChild = () => {
             min: Number(formData.ageMin) || 2,
             max: Number(formData.ageMax) || 8,
           },
-          languages: ['Vietnamese'],
         },
       };
 

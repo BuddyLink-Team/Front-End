@@ -55,12 +55,13 @@ export const Navbar = ({ onLogout } = {}) => {
 
   return (
     <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-hairline transition-all">
-      <div className="max-w-[1600px] mx-auto px-6 sm:px-10 lg:px-16 h-20 flex items-center justify-between">
+      {/* md+: 3-column grid with equal side columns so the center nav sits at the true center */}
+      <div className="max-w-[1600px] mx-auto px-6 sm:px-10 lg:px-16 h-20 flex items-center justify-between md:grid md:grid-cols-[1fr_auto_1fr]">
         {/* Brand Logo */}
         <Link
           to="/"
           onClick={closeMobileMenu}
-          className="flex items-center gap-2.5 group"
+          className="flex items-center gap-2.5 group md:col-start-1 md:justify-self-start"
         >
           <img
             src={logoImg}
@@ -71,7 +72,7 @@ export const Navbar = ({ onLogout } = {}) => {
 
         {/* Center Navigation Links - Conditional based on Auth & Route */}
         {isAuthenticated ? (
-          <nav className="hidden md:flex items-center gap-1.5 bg-surface-muted p-1.5 rounded-full border border-hairline">
+          <nav className="hidden md:flex md:col-start-2 items-center gap-1.5 bg-surface-muted p-1.5 rounded-full border border-hairline">
             {NAV_LINKS.map((link) => {
               const Icon = link.icon;
               const isActive = location.pathname.startsWith(link.href);
@@ -92,7 +93,7 @@ export const Navbar = ({ onLogout } = {}) => {
             })}
           </nav>
         ) : isLandingPage ? (
-          <nav className="hidden md:flex items-center gap-8 text-sm font-medium text-text-muted">
+          <nav className="hidden md:flex md:col-start-2 items-center gap-8 text-sm font-medium text-text-muted">
             <a
               href="#features"
               className="hover:text-primary transition-colors py-1"
@@ -127,7 +128,7 @@ export const Navbar = ({ onLogout } = {}) => {
         ) : null}
 
         {/* Right Action Icons */}
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 md:col-start-3 md:justify-self-end">
           {isAuthenticated ? (
             <>
               <button

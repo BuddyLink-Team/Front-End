@@ -59,7 +59,7 @@ export const DiscoveryPage = () => {
           description={errorMessage}
           actionLabel="Thử lại"
           onAction={refetch}
-          className="max-w-[740px] mx-auto mt-10"
+          className="w-full mx-auto mt-10"
         />
       );
     }
@@ -70,7 +70,7 @@ export const DiscoveryPage = () => {
           icon={<Compass size={24} strokeWidth={1.5} />}
           title="Bạn đã xem hết các hồ sơ quanh đây!"
           description="Hãy thử mở rộng bán kính tìm kiếm hoặc thay đổi bộ lọc để khám phá thêm nhiều người bạn thú vị khác cho bé nhé."
-          className="max-w-[740px] mx-auto mt-10"
+          className="w-full mx-auto mt-10"
         />
       );
     }

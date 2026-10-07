@@ -13,7 +13,6 @@ export const parentInfoSchema = z.object({
     .optional(),
   city: z.string().trim().min(1, 'Vui lòng chọn hoặc nhập Tỉnh / Thành phố'),
   area: z.string().trim().min(1, 'Vui lòng chọn hoặc nhập Phường / Xã / Quận'),
-  address: z.string().trim().optional(),
 });
 
 export const changePasswordSchema = z

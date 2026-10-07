@@ -44,7 +44,6 @@ export const useProfileInfo = ({ profile, onUpdate }) => {
       bio: profile?.bio || '',
       city: profile?.location?.city || '',
       area: profile?.location?.area || '',
-      address: profile?.location?.address || '',
     },
   });
 
@@ -55,15 +54,14 @@ export const useProfileInfo = ({ profile, onUpdate }) => {
         bio: profile.bio || '',
         city: profile.location?.city || '',
         area: profile.location?.area || '',
-        address: profile.location?.address || '',
       });
     }
   }, [profile, reset]);
 
   const onSubmit = async (data) => {
-    const resolvedAddress = data.address?.trim()
-      ? data.address.trim()
-      : [data.area, data.city].filter(Boolean).join(', ');
+    // The form has no address field: always rebuild it from the area and city just entered,
+    // otherwise the previously saved address would be sent back unchanged
+    const resolvedAddress = [data.area?.trim(), data.city?.trim()].filter(Boolean).join(', ');
 
     return onUpdate?.({
       fullName: data.fullName,
