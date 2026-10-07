@@ -63,20 +63,32 @@ export const TIME_SLOT_OPTIONS = [
 export const LOCATION_PREFERENCE_OPTIONS = [
   { value: 'park', label: 'Công viên cây xanh' },
   { value: 'kids_cafe', label: 'Khu vui chơi / Kids Cafe' },
-  { value: 'indoor', label: 'Khu thể thao trong nhà' },
+  { value: 'indoor', label: 'Khu vui chơi trong nhà' },
   { value: 'outdoor', label: 'Khu vui chơi ngoài trời' },
   { value: 'home', label: 'Giao lưu tại nhà' },
+  { value: 'library', label: 'Thư viện / Nhà sách thiếu nhi' },
+  { value: 'museum', label: 'Bảo tàng / Triển lãm trải nghiệm' },
+  { value: 'mall', label: 'Trung tâm thương mại' },
+  { value: 'sports_center', label: 'Trung tâm thể thao / Sân bóng' },
+  { value: 'pool', label: 'Hồ bơi / Công viên nước' },
 ];
 
 /**
- * Mapping of Backend Error Codes to Vietnamese User-friendly Messages for Child & Onboarding
+ * Codes returned by the /children endpoints and the onboarding preferences endpoint
+ * (child.service, subscription quota, parent.service); shared middleware codes are in
+ * constants/error.constants.js.
  */
-export const CHILD_ERROR_MESSAGES = {
+export const CHILD_ERROR_CODES = Object.freeze({
+  CHILD_QUOTA_EXCEEDED: 'CHILD_QUOTA_EXCEEDED',
+});
+
+export const CHILD_ERROR_MESSAGES = Object.freeze({
   CHILD_NOT_FOUND: 'Không tìm thấy hồ sơ trẻ em hoặc bạn không có quyền truy cập.',
   PARENT_NOT_FOUND: 'Không tìm thấy hồ sơ phụ huynh tương ứng.',
+  [CHILD_ERROR_CODES.CHILD_QUOTA_EXCEEDED]:
+    'Gói hiện tại đã đạt giới hạn số hồ sơ bé. Nâng cấp lên gói Premium để quản lý không giới hạn hồ sơ của con và mở khóa đầy đủ tính năng kết nối!',
+  INVALID_PREFERENCES: 'Tiêu chí chưa hợp lệ: độ tuổi tối thiểu phải nhỏ hơn hoặc bằng tối đa và bán kính từ 1 đến 100km.',
+  INVALID_COORDINATES: 'Tọa độ vị trí không hợp lệ.',
   VALIDATION_ERROR: 'Thông tin hồ sơ bé hoặc tiêu chí chưa hợp lệ. Vui lòng kiểm tra lại!',
-  AUTHENTICATION_REQUIRED: 'Vui lòng đăng nhập để thực hiện thao tác.',
-  FORBIDDEN: 'Bạn không có quyền thực hiện thao tác này.',
-  TOO_MANY_REQUESTS: 'Thao tác quá thường xuyên. Vui lòng thử lại sau ít phút!',
-};
+});
 

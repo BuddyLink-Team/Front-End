@@ -16,20 +16,21 @@ export const API_ENDPOINTS = {
     VERIFY_EMAIL_OTP: '/auth/email/verify-otp',
   },
   USER: {
-    PROFILE: '/users/profile',
-    UPDATE_PROFILE: '/users/profile',
+    ME: '/user/me',
+    UPDATE_ME: '/user/me',
+    AVATAR: '/user/me/avatar',
+    PASSWORD: '/user/me/password',
   },
   PARENT: {
     ME: '/parent/me',
     ONBOARDING_PREFERENCES: '/parent/preferences/onboarding',
-    VERIFICATION: '/parents/verify',
   },
   CHILD: {
     BASE: '/children',
   },
   DISCOVERY: {
-    MATCH: '/discovery/match',
-    NEARBY: '/discovery/nearby',
+    BASE: '/discovery',
+    SWIPE: '/discovery/swipe',
   },
   PLAYDATE: {
     BASE: '/playdates',
@@ -38,8 +39,10 @@ export const API_ENDPOINTS = {
     NEARBY: '/places/nearby',
   },
   CHAT: {
-    CONVERSATIONS: '/chats/conversations',
-    MESSAGES: '/chats/messages',
+    CONVERSATIONS: '/chat/conversations',
+    PLAYDATE: '/chat/playdate',
+    MESSAGES: '/chat/conversations',
+    UPLOAD: '/chat/upload',
   },
   AI_ASSISTANT: {
     RECOMMEND: '/ai/recommendations',
@@ -59,6 +62,7 @@ export const API_ENDPOINTS = {
   SUBSCRIPTION: {
     PLANS: '/subscriptions/plans',
     CHECKOUT: '/subscriptions/checkout',
+    MY_QUOTA: '/subscriptions/my',
   },
   RATING_FEEDBACK: {
     BASE: '/ratings',

@@ -2,11 +2,14 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Mail, ArrowRight, LogIn } from 'lucide-react';
+import { Mail, LogIn } from 'lucide-react';
 import { loginSchema } from '../validation/authValidation';
 import { Input, PasswordInput, Button, Checkbox } from '../../../components';
+import { useRememberedEmail } from '../hooks/useRememberedEmail';
 
 export const LoginForm = ({ onSubmit, isLoading }) => {
+  const { rememberedEmail, saveRememberedEmail } = useRememberedEmail();
+
   const {
     register,
     handleSubmit,
@@ -14,14 +17,22 @@ export const LoginForm = ({ onSubmit, isLoading }) => {
   } = useForm({
     resolver: zodResolver(loginSchema),
     defaultValues: {
-      email: '',
+      email: rememberedEmail,
       password: '',
-      rememberMe: false,
+      rememberMe: Boolean(rememberedEmail),
     },
   });
 
+  const handleFormSubmit = async (data) => {
+    saveRememberedEmail(data.email, data.rememberMe);
+
+    if (onSubmit) {
+      await onSubmit(data);
+    }
+  };
+
   return (
-    <form className="space-y-4" onSubmit={handleSubmit(onSubmit)} noValidate>
+    <form className="space-y-4" onSubmit={handleSubmit(handleFormSubmit)} noValidate>
       {/* Email Field */}
       <Input
         id="login-email"

@@ -6,8 +6,8 @@ export const InterestTag = ({ label, className, onClick }) => {
     <span
       onClick={onClick}
       className={cn(
-        'inline-flex items-center text-xs font-medium px-3 py-1 rounded-full bg-[#f0f3ff] text-[#30647b] border border-[#dee8ff] transition-colors',
-        onClick && 'cursor-pointer hover:bg-[#dee8ff]',
+        'inline-flex items-center text-xs font-medium px-3 py-1 rounded-full bg-surface-container-low text-secondary-dark border border-surface-container-high transition-colors',
+        onClick && 'cursor-pointer hover:bg-surface-container-high',
         className
       )}
     >

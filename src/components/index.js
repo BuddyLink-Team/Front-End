@@ -7,6 +7,7 @@ export { Checkbox } from './ui/Checkbox';
 export { Switch } from './ui/Switch';
 export { Select } from './ui/Select';
 export { Avatar } from './ui/Avatar';
+export { UpgradeButton } from './ui/UpgradeButton';
 export { DataTable } from './ui/DataTable';
 export {
   Dropdown,
@@ -40,6 +41,7 @@ export { Footer } from './navigation/Footer';
 export { Sidebar } from './navigation/Sidebar';
 export { Tabs } from './navigation/Tabs';
 export { Pagination } from './navigation/Pagination';
+export { ScrollToTop } from './navigation/ScrollToTop';
 
 // Search & Filtering
 export { SearchBar } from './search/SearchBar';

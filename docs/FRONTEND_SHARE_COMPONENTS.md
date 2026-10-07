@@ -43,6 +43,7 @@ src/components/
 │   ├── Switch.jsx       # Nút gạt bật/tắt (Toggle) mượt mà
 │   ├── Select.jsx       # Menu thả lựa chọn bo tròn mềm mại
 │   ├── Avatar.jsx       # Ảnh đại diện (bé, phụ huynh, trạng thái online)
+│   ├── UpgradeButton.jsx# Nút nâng cấp Premium (vương miện, nền vàng) dùng chung
 │   └── DataTable.jsx    # Bảng dữ liệu có phân trang, sắp xếp và lọc
 ├── badges/              # Nhãn trạng thái & định danh
 │   ├── VerifiedBadge.jsx# Huy hiệu Phụ huynh đã xác thực (Matcha Shield)
@@ -83,7 +84,8 @@ src/components/
 | **UI** | `Checkbox` | `components/ui/Checkbox.jsx` | ✅ Đã code | Bo góc, hiệu ứng checkmark matcha |
 | **UI** | `Switch` | `components/ui/Switch.jsx` | ✅ Đã code | Toggle chuyển động mượt 3 kích thước |
 | **UI** | `Select` | `components/ui/Select.jsx` | ✅ Đã code | Custom chevron, hỗ trợ options/children |
-| **UI** | `Avatar` | `components/ui/Avatar.jsx` | ✅ Đã code | Kích thước sm/md/lg/xl, online badge |
+| **UI** | `Avatar` | `components/ui/Avatar.jsx` | ✅ Đã code | Kích thước sm/md/lg/xl/2xl (2xl: ảnh hồ sơ lớn), online badge |
+| **UI** | `UpgradeButton` | `components/ui/UpgradeButton.jsx` | ✅ Đã code | CTA nâng cấp Premium, size sm/md/lg, đổi chữ qua children |
 | **UI** | `Dropdown` | `components/ui/Dropdown.jsx` | ✅ Đã code | Dropdown menu bo góc kèm Item, Header, Divider |
 | **UI** | `DataTable` | `components/ui/DataTable.jsx` | ✅ Đã code | Bảng dữ liệu đa năng |
 | **Badges** | `VerifiedBadge` | `components/badges/VerifiedBadge.jsx` | ✅ Đã code | Matcha ShieldCheck icon |
@@ -143,6 +145,12 @@ src/components/
 #### 🔽 `Select.jsx`
 - **Mục đích**: Chọn khoảng cách bán kính tìm kiếm (3km, 5km, 10km), chọn nhóm tuổi, giới tính của bé.
 - **Quy chuẩn**: Dropdown bo góc 12px, có icon chevron tinh gọn, tương thích chuẩn form validation.
+
+#### 👑 `UpgradeButton.jsx`
+- **Mục đích**: Nút kêu gọi nâng cấp Premium dùng chung ở mọi trang (Quản lý hồ sơ bé, Popup hết hạn mức, Thanh lọc Khám phá...). Style chuẩn lấy từ nút "Nâng cấp để thêm bé" ở trang Quản lý hồ sơ bé.
+- **Quy chuẩn**: Dựng trên `Button`, nền vàng `bg-amber-400`, chữ trắng, icon `Crown`, `rounded-xl`, `shadow-md`, `font-semibold`.
+- **Props**: `size` (`sm`, `md` mặc định, `lg`), `children` (chữ hiển thị, mặc định *"Nâng cấp"*), `onClick`, `className`.
+- **Lưu ý**: Chỉ là UI — trang gọi tự xử lý điều hướng, ví dụ `onClick={() => navigate('/subscription')}`.
 
 #### 🖼️ `Avatar.jsx`
 - **Mục đích**: Hiển thị ảnh đại diện phụ huynh, avatar bé, hoặc chatbot AI.

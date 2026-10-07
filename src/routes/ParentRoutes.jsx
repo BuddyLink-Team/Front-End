@@ -1,9 +1,17 @@
-import { Route } from 'react-router-dom';
+import React, { lazy } from 'react';
+import { Route, Navigate } from 'react-router-dom';
 import { MainLayout } from '../layouts/MainLayout';
 import PlaceholderPage from '../components/feedback/PlaceholderPage';
-import PlaydateListPage from '../modules/playdate/pages/PlaydateListPage';
-import CreatePlaydatePage from '../modules/playdate/pages/CreatePlaydatePage';
-import PlaydateDetailPage from '../modules/playdate/pages/PlaydateDetailPage';
+
+import DiscoveryPage from '../modules/discovery/pages/DiscoveryPage';
+// Pages are code-split: each route downloads its own chunk on first visit
+const ChatPage = lazy(() => import('../modules/chat/pages/ChatPage'));
+const ParentProfilePage = lazy(() => import('../modules/parent/pages/ParentProfilePage'));
+const ChildrenManagementPage = lazy(() => import('../modules/child/pages/ChildrenManagementPage'));
+const ChildFormPage = lazy(() => import('../modules/child/pages/ChildFormPage'));
+const PlaydateListPage = lazy(() => import('../modules/playdate/pages/PlaydateListPage'));
+const CreatePlaydatePage = lazy(() => import('../modules/playdate/pages/CreatePlaydatePage'));
+const PlaydateDetailPage = lazy(() => import('../modules/playdate/pages/PlaydateDetailPage'));
 
 /**
  * Full route definitions for Parent features.
@@ -13,7 +21,7 @@ export const ParentRoutes = () => (
     {/* Discovery & Peer Matching */}
     <Route
       path="/discovery"
-      element={<PlaceholderPage title="Khám phá bạn chơi" description="Gợi ý bạn chơi phù hợp dựa trên độ tuổi, sở thích và vị trí lân cận." />}
+      element={<DiscoveryPage />}
     />
 
     {/* Playdate Management */}
@@ -31,14 +39,9 @@ export const ParentRoutes = () => (
     />
 
     {/* Communication */}
-    <Route
-      path="/chat"
-      element={<PlaceholderPage title="Tin nhắn trò chuyện" description="Danh sách trò chuyện trực tiếp 1-1 với phụ huynh đã kết nối." />}
-    />
-    <Route
-      path="/chat/:conversationId"
-      element={<PlaceholderPage title="Khung chat trực tiếp" description="Trò chuyện thời gian thực và chia sẻ hình ảnh cùng phụ huynh." />}
-    />
+    <Route path="/chat" element={<ChatPage />} />
+    <Route path="/chat/playdate/:playdateId" element={<ChatPage />} />
+    <Route path="/chat/:conversationId" element={<ChatPage />} />
 
     {/* AI Assistant */}
     <Route
@@ -49,25 +52,22 @@ export const ParentRoutes = () => (
     {/* Child Profiles */}
     <Route
       path="/children"
-      element={<PlaceholderPage title="Hồ sơ các bé" description="Quản lý thông tin, độ tuổi, nhóm tính cách và sở thích của con." />}
+      element={<ChildrenManagementPage />}
     />
     <Route
       path="/children/create"
-      element={<PlaceholderPage title="Thêm hồ sơ bé" description="Tạo hồ sơ bé mới với sở thích, ảnh và đặc điểm phát triển." />}
+      element={<ChildFormPage />}
     />
     <Route
       path="/children/:id/edit"
-      element={<PlaceholderPage title="Chỉnh sửa hồ sơ bé" description="Cập nhật thông tin chi tiết và quyền riêng tư cho bé." />}
+      element={<ChildFormPage />}
     />
 
     {/* Parent Account & Profile */}
-    <Route
-      path="/profile"
-      element={<PlaceholderPage title="Hồ sơ phụ huynh" description="Xem và chỉnh sửa thông tin cá nhân, định vị khu vực và huy hiệu xác thực." />}
-    />
+    <Route path="/profile" element={<ParentProfilePage />} />
     <Route
       path="/profile/edit"
-      element={<PlaceholderPage title="Chỉnh sửa thông tin" description="Cập nhật thông tin tài khoản phụ huynh." />}
+      element={<Navigate to="/profile" replace />}
     />
     <Route
       path="/profile/verification"

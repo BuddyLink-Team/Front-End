@@ -31,20 +31,20 @@ export const ConfirmDialog = ({
   const variantConfig = {
     danger: {
       icon: Trash2,
-      iconColor: 'text-[#ba1a1a]',
-      bg: 'bg-[#ffdad6]/60',
+      iconColor: 'text-error',
+      bg: 'bg-error-container/60',
       btnVariant: 'danger',
     },
     warning: {
       icon: AlertTriangle,
-      iconColor: 'text-[#755a1b]',
-      bg: 'bg-[#ffdf9f]/50',
+      iconColor: 'text-tertiary-dark',
+      bg: 'bg-tertiary-fixed/50',
       btnVariant: 'primary',
     },
     info: {
       icon: Info,
       iconColor: 'text-primary-dark',
-      bg: 'bg-[#baf0bc]/40',
+      bg: 'bg-primary-fixed/40',
       btnVariant: 'primary',
     },
   };
@@ -56,7 +56,7 @@ export const ConfirmDialog = ({
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       {/* Backdrop */}
       <div
-        className="fixed inset-0 bg-[#2d3748]/30 backdrop-blur-sm transition-opacity"
+        className="fixed inset-0 bg-text-primary/30 backdrop-blur-sm transition-opacity"
         onClick={onCancel}
       />
 

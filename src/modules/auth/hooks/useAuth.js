@@ -1,328 +1,174 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
-import { toast } from 'react-hot-toast';
-import { authApi } from '../api/authApi';
-import { setCredentials, setLoading, updateVerification } from '../redux/authSlice';
-import { getRoleHomePath } from '../../../constants/role.constants';
+import { useToast } from '../../../hooks/useToast';
+import {
+  registerUser,
+  loginUser,
+  loginWithGoogle,
+  requestPasswordReset,
+  resetPassword,
+  sendPhoneOtp,
+  verifyPhoneOtp,
+  verifyFirebasePhone,
+  sendEmailOtp,
+  verifyEmailOtp,
+  logoutUser,
+} from '../redux/authSlice';
+import { clearParentState } from '../../parent/redux/parentSlice';
+import { resetChildState } from '../../child/redux/childSlice';
+import { resetSubscriptionState } from '../../subscription/redux/subscriptionSlice';
+import { resetChatState } from '../../chat/redux/chatSlice';
+import { getRoleHomePath, USER_ROLES } from '../../../constants/role.constants';
+import socketService from '../../../services/socket';
 import { getApiErrorMsg } from '../../../utils/errorUtils';
 import { AUTH_ERROR_MESSAGES } from '../constants/authConstants';
+import { needsVerification } from '../utils/verification';
 
+/**
+ * Authentication UI flows. API calls and session state live in the auth slice thunks;
+ * this hook handles submit state, toasts, error messages and navigation.
+ */
 export const useAuth = () => {
+  const toast = useToast();
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState(null);
 
   /**
-   * Handle Parent / User Registration
+   * Dispatch a thunk and normalize the outcome to { success, data } / { success: false, error }
+   * @param {Object} thunkAction - Result of calling a thunk action creator
+   * @param {string} fallbackError - Message shown when the error code has no mapping
+   * @param {(data: any) => string|void} [onSuccess] - Optional side effects; may return a toast message
    */
-  const handleRegister = async (data) => {
-    setIsSubmitting(true);
-    setErrorMessage(null);
-    dispatch(setLoading(true));
+  const runAuthAction = useCallback(
+    async (thunkAction, fallbackError, onSuccess) => {
+      setIsSubmitting(true);
+      setErrorMessage(null);
+      try {
+        const data = await dispatch(thunkAction).unwrap();
+        const successMessage = onSuccess?.(data);
+        if (successMessage) toast.success(successMessage);
+        return { success: true, data, message: successMessage };
+      } catch (error) {
+        const msg = getApiErrorMsg(AUTH_ERROR_MESSAGES, error, fallbackError);
+        setErrorMessage(msg);
+        toast.error(msg);
+        return { success: false, error: msg };
+      } finally {
+        setIsSubmitting(false);
+      }
+    },
+    [dispatch, toast],
+  );
 
-    try {
-      const response = await authApi.register({
+  const goToHomeOrVerification = useCallback(
+    ({ user, parent }) => {
+      navigate(needsVerification(user, parent) ? '/verify-otp' : getRoleHomePath(user?.role), {
+        replace: true,
+      });
+    },
+    [navigate],
+  );
+
+  const handleRegister = (data) =>
+    runAuthAction(
+      registerUser({
         fullName: data.fullName,
         phone: data.phone,
         email: data.email,
         password: data.password,
-      });
-
-      const payload = response.data || response;
-      const { user, parent, tokens } = payload;
-
-      dispatch(
-        setCredentials({
-          user,
-          parent,
-          token: tokens?.accessToken,
-          refreshToken: tokens?.refreshToken,
-        }),
-      );
-
-      toast.success('Đăng ký tài khoản thành công! Vui lòng xác thực tài khoản để tiếp tục.');
-      
-      navigate('/verify-otp', { replace: true });
-      return { success: true, data: payload };
-    } catch (error) {
-      const msg = getApiErrorMsg(
-        AUTH_ERROR_MESSAGES,
-        error,
-        'Đăng ký không thành công. Vui lòng thử lại!',
-      );
-      setErrorMessage(msg);
-      toast.error(msg);
-      return { success: false, error: msg };
-    } finally {
-      setIsSubmitting(false);
-      dispatch(setLoading(false));
-    }
-  };
-
-  /**
-   * Handle User Login (Email + Password)
-   */
-  const handleLogin = async (data) => {
-    setIsSubmitting(true);
-    setErrorMessage(null);
-    dispatch(setLoading(true));
-
-    try {
-      const response = await authApi.login({
-        email: data.email,
-        password: data.password,
-      });
-
-      const payload = response.data || response;
-      const { user, parent, tokens } = payload;
-
-      dispatch(
-        setCredentials({
-          user,
-          parent,
-          token: tokens?.accessToken,
-          refreshToken: tokens?.refreshToken,
-        }),
-      );
-
-      toast.success('Đăng nhập thành công! Rất vui được gặp lại ba mẹ.');
-      
-      const isPhoneVerified = !!parent?.verification?.isPhoneVerified;
-      const isEmailVerified = !!parent?.verification?.isEmailVerified;
-      const isVerified = isPhoneVerified && (isEmailVerified || !!user?.googleId);
-
-      if (user?.role === 'parent' && !isVerified) {
+      }),
+      'Đăng ký không thành công. Vui lòng thử lại!',
+      () => {
         navigate('/verify-otp', { replace: true });
-      } else {
-        const homePath = getRoleHomePath(user?.role);
-        navigate(homePath, { replace: true });
-      }
-      return { success: true, data: payload };
-    } catch (error) {
-      const msg = getApiErrorMsg(
-        AUTH_ERROR_MESSAGES,
-        error,
-        'Email hoặc mật khẩu không chính xác!',
-      );
-      setErrorMessage(msg);
-      toast.error(msg);
-      return { success: false, error: msg };
-    } finally {
-      setIsSubmitting(false);
-      dispatch(setLoading(false));
-    }
-  };
+        return 'Đăng ký tài khoản thành công! Vui lòng xác thực tài khoản để tiếp tục.';
+      },
+    );
+
+  const handleLogin = (data) =>
+    runAuthAction(
+      loginUser({ email: data.email, password: data.password }),
+      'Email hoặc mật khẩu không chính xác!',
+      (payload) => {
+        goToHomeOrVerification(payload);
+        return payload?.user?.role === USER_ROLES.PARENT
+          ? 'Đăng nhập thành công! Rất vui được gặp lại ba mẹ.'
+          : 'Đăng nhập quản trị viên thành công!';
+      },
+    );
+
+  const handleGoogleLogin = (idToken) =>
+    runAuthAction(loginWithGoogle(idToken), 'Đăng nhập Google thất bại. Vui lòng thử lại!', (payload) => {
+      goToHomeOrVerification(payload);
+      return 'Đăng nhập với Google thành công!';
+    });
+
+  const handleForgotPassword = (data) =>
+    runAuthAction(
+      requestPasswordReset(data.email),
+      'Không thể gửi yêu cầu đặt lại mật khẩu. Vui lòng thử lại!',
+      () => 'Mã đặt lại mật khẩu đã được gửi đến email của bạn nếu tài khoản tồn tại.',
+    );
+
+  const handleResetPassword = ({ email, token, newPassword }) =>
+    runAuthAction(
+      resetPassword({ email, token, newPassword }),
+      'Không thể đặt lại mật khẩu. Vui lòng kiểm tra mã khôi phục!',
+      () => {
+        navigate('/login', { replace: true });
+        return 'Đặt lại mật khẩu thành công! Vui lòng đăng nhập bằng mật khẩu mới.';
+      },
+    );
+
+  const handleSendPhoneOtp = (phone) =>
+    runAuthAction(
+      sendPhoneOtp(phone),
+      'Không thể gửi mã OTP tới số điện thoại. Vui lòng thử lại!',
+      () => 'Mã OTP đã được gửi đến số điện thoại của bạn!',
+    );
+
+  const handleVerifyPhoneOtp = (phone, otp) =>
+    runAuthAction(
+      verifyPhoneOtp({ phone, otp }),
+      'Mã OTP không đúng hoặc đã hết hạn!',
+      () => 'Xác thực số điện thoại thành công!',
+    );
+
+  const handleVerifyFirebasePhone = (idToken) =>
+    runAuthAction(
+      verifyFirebasePhone(idToken),
+      'Xác thực số điện thoại qua Firebase thất bại!',
+      () => 'Xác thực số điện thoại qua Firebase thành công!',
+    );
+
+  const handleSendEmailOtp = () =>
+    runAuthAction(
+      sendEmailOtp(),
+      'Không thể gửi mã xác thực email!',
+      () => 'Mã xác thực OTP đã được gửi về email của bạn!',
+    );
+
+  const handleVerifyEmailOtp = (otp) =>
+    runAuthAction(
+      verifyEmailOtp(otp),
+      'Mã xác thực email không đúng hoặc đã hết hạn!',
+      () => 'Xác thực email thành công! Tài khoản của bạn đã được chứng nhận an toàn.',
+    );
 
   /**
-   * Handle Google OAuth Sign-in
+   * Logout: revoke the refresh token on the server, then clear every piece of session state.
+   * logoutUser never rejects, so local cleanup always runs (even offline).
    */
-  const handleGoogleLogin = async (idToken) => {
-    setIsSubmitting(true);
-    setErrorMessage(null);
-    dispatch(setLoading(true));
-
-    try {
-      const response = await authApi.googleLogin({ idToken });
-      const payload = response.data || response;
-      const { user, parent, tokens } = payload;
-
-      dispatch(
-        setCredentials({
-          user,
-          parent,
-          token: tokens?.accessToken,
-          refreshToken: tokens?.refreshToken,
-        }),
-      );
-
-      toast.success('Đăng nhập với Google thành công!');
-
-      const isPhoneVerified = !!parent?.verification?.isPhoneVerified;
-      if (user?.role === 'parent' && !isPhoneVerified) {
-        navigate('/verify-otp', { replace: true });
-      } else {
-        navigate(getRoleHomePath(user?.role), { replace: true });
-      }
-      return { success: true, data: payload };
-    } catch (error) {
-      const msg = getApiErrorMsg(
-        AUTH_ERROR_MESSAGES,
-        error,
-        'Đăng nhập Google thất bại. Vui lòng thử lại!',
-      );
-      setErrorMessage(msg);
-      toast.error(msg);
-      return { success: false, error: msg };
-    } finally {
-      setIsSubmitting(false);
-      dispatch(setLoading(false));
-    }
-  };
-
-  /**
-   * Handle Forgot Password Request
-   */
-  const handleForgotPassword = async (data) => {
-    setIsSubmitting(true);
-    setErrorMessage(null);
-
-    try {
-      const response = await authApi.forgotPassword({
-        email: data.email,
-      });
-
-      const message =
-        response.data?.message ||
-        response.message ||
-        'Mã đặt lại mật khẩu đã được gửi đến email của bạn nếu tài khoản tồn tại.';
-
-      toast.success(message);
-      return { success: true, message };
-    } catch (error) {
-      const msg = getApiErrorMsg(
-        AUTH_ERROR_MESSAGES,
-        error,
-        'Không thể gửi yêu cầu đặt lại mật khẩu. Vui lòng thử lại!',
-      );
-      setErrorMessage(msg);
-      toast.error(msg);
-      return { success: false, error: msg };
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  /**
-   * Send Phone OTP
-   */
-  const handleSendPhoneOtp = async (phone) => {
-    setIsSubmitting(true);
-    setErrorMessage(null);
-    try {
-      const response = await authApi.sendPhoneOtp({ phone });
-      const msg = response.data?.message || response.message || 'Mã OTP đã được gửi đến số điện thoại!';
-      toast.success(msg);
-      return { success: true, message: msg };
-    } catch (error) {
-      const msg = getApiErrorMsg(
-        AUTH_ERROR_MESSAGES,
-        error,
-        'Không thể gửi mã OTP tới số điện thoại. Vui lòng thử lại!',
-      );
-      setErrorMessage(msg);
-      toast.error(msg);
-      return { success: false, error: msg };
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  /**
-   * Verify Phone OTP via Backend
-   */
-  const handleVerifyPhoneOtp = async (phone, otp) => {
-    setIsSubmitting(true);
-    setErrorMessage(null);
-    try {
-      const response = await authApi.verifyPhoneOtp({ phone, otp });
-      const payload = response.data || response;
-      dispatch(updateVerification({ verification: payload, phone }));
-      toast.success('Xác thực số điện thoại thành công!');
-      return { success: true, data: payload };
-    } catch (error) {
-      const msg = getApiErrorMsg(
-        AUTH_ERROR_MESSAGES,
-        error,
-        'Mã OTP không đúng hoặc đã hết hạn!',
-      );
-      setErrorMessage(msg);
-      toast.error(msg);
-      return { success: false, error: msg };
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  /**
-   * Verify Phone via Firebase ID Token
-   */
-  const handleVerifyFirebasePhone = async (idToken) => {
-    setIsSubmitting(true);
-    setErrorMessage(null);
-    try {
-      const response = await authApi.verifyFirebasePhone({ idToken });
-      const payload = response.data || response;
-      dispatch(updateVerification({
-        verification: payload.verification || payload,
-        phone: payload.phone
-      }));
-      toast.success('Xác thực số điện thoại qua Firebase thành công!');
-      return { success: true, data: payload };
-    } catch (error) {
-      const msg = getApiErrorMsg(
-        AUTH_ERROR_MESSAGES,
-        error,
-        'Xác thực số điện thoại qua Firebase thất bại!',
-      );
-      setErrorMessage(msg);
-      toast.error(msg);
-      return { success: false, error: msg };
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  /**
-   * Send Email OTP
-   */
-  const handleSendEmailOtp = async () => {
-    setIsSubmitting(true);
-    setErrorMessage(null);
-    try {
-      const response = await authApi.sendEmailOtp();
-      const msg = response.data?.message || response.message || 'Mã xác thực đã được gửi về email của bạn!';
-      toast.success(msg);
-      return { success: true, message: msg };
-    } catch (error) {
-      const msg = getApiErrorMsg(
-        AUTH_ERROR_MESSAGES,
-        error,
-        'Không thể gửi mã xác thực email!',
-      );
-      setErrorMessage(msg);
-      toast.error(msg);
-      return { success: false, error: msg };
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  /**
-   * Verify Email OTP
-   */
-  const handleVerifyEmailOtp = async (otp) => {
-    setIsSubmitting(true);
-    setErrorMessage(null);
-    try {
-      const response = await authApi.verifyEmailOtp({ otp });
-      const payload = response.data || response;
-      dispatch(updateVerification({ verification: payload }));
-      toast.success('Xác thực email thành công! Tài khoản của bạn đã được chứng nhận an toàn.');
-      return { success: true, data: payload };
-    } catch (error) {
-      const msg = getApiErrorMsg(
-        AUTH_ERROR_MESSAGES,
-        error,
-        'Mã xác thực email không đúng hoặc đã hết hạn!',
-      );
-      setErrorMessage(msg);
-      toast.error(msg);
-      return { success: false, error: msg };
-    } finally {
-      setIsSubmitting(false);
-    }
+  const handleLogout = async () => {
+    await dispatch(logoutUser());
+    socketService.disconnect();
+    dispatch(clearParentState());
+    dispatch(resetChildState());
+    dispatch(resetSubscriptionState());
+    dispatch(resetChatState());
+    navigate('/', { replace: true });
   };
 
   return {
@@ -333,6 +179,8 @@ export const useAuth = () => {
     handleLogin,
     handleGoogleLogin,
     handleForgotPassword,
+    handleResetPassword,
+    handleLogout,
     handleSendPhoneOtp,
     handleVerifyPhoneOtp,
     handleVerifyFirebasePhone,

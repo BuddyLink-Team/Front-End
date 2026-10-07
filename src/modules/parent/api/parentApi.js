@@ -26,11 +26,6 @@ export const parentApi = {
    * Change account password
    */
   changePassword: (payload) => apiClient.put(API_ENDPOINTS.USER.PASSWORD, payload),
-
-  /**
-   * Get children list belonging to parent
-   */
-  getMyChildren: () => apiClient.get(API_ENDPOINTS.CHILD.BASE),
 };
 
 export default parentApi;
