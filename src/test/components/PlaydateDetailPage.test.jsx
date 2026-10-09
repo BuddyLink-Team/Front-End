@@ -28,7 +28,7 @@ const mockHostPlaydate = {
   id: 'playdate-test-123',
   activity: 'Buổi chơi Lego & Công viên',
   scheduledDate: '2026-10-15T08:00:00.000Z',
-  time: '15:00 - 17:00',
+  time: '15:00',
   location: {
     name: 'Công viên Cầu Ánh Sao',
     address: 'Quận 7, TP. Hồ Chí Minh',
@@ -81,16 +81,20 @@ describe('PlaydateDetailPage Component', () => {
   });
 
   it('renders playdate title, time, location, and host badge when user is host', async () => {
-    playdateApi.getPlaydateById.mockResolvedValue({ data: mockHostPlaydate });
+    // Started yesterday: the host can mark it completed
+    playdateApi.getPlaydateById.mockResolvedValue({
+      data: { ...mockHostPlaydate, scheduledDate: new Date(Date.now() - 86400000).toISOString() },
+    });
 
     renderWithProviders(<PlaydateDetailPage />);
 
     await waitFor(() => {
       expect(screen.getByText('Buổi chơi Lego & Công viên')).toBeInTheDocument();
       expect(screen.getByText('Mẹ Lan')).toBeInTheDocument();
-      expect(screen.getByText(/công viên cầu ánh sao/i)).toBeInTheDocument();
-      expect(screen.getByText(/15:00 - 17:00/)).toBeInTheDocument();
-      expect(screen.getByText(/người tổ chức \(host\)/i)).toBeInTheDocument();
+      // Shown in the content and in the summary panel
+      expect(screen.getAllByText(/công viên cầu ánh sao/i).length).toBeGreaterThan(0);
+      expect(screen.getAllByText(/15:00/).length).toBeGreaterThan(0);
+      expect(screen.getByText(/^người tổ chức$/i)).toBeInTheDocument();
     });
 
     // Verify host buttons: Hoàn thành & Hủy hẹn
@@ -121,8 +125,8 @@ describe('PlaydateDetailPage Component', () => {
 
     fireEvent.click(screen.getByRole('button', { name: /đổi lịch hẹn/i }));
 
-    expect(screen.getByText('Đề xuất đổi lịch Playdate')).toBeInTheDocument();
-    expect(screen.getByText(/quy tắc đồng thuận/i)).toBeInTheDocument();
+    expect(screen.getByText('Đề xuất đổi lịch')).toBeInTheDocument();
+    expect(screen.getByText(/tất cả phụ huynh đã tham gia/i)).toBeInTheDocument();
   });
 
   it('renders active reschedule banner when there is a pending request', async () => {
@@ -134,7 +138,7 @@ describe('PlaydateDetailPage Component', () => {
         requestedBy: { fullName: 'Bố Minh' },
         reason: 'Cuối tuần mưa lớn dời lịch nhé',
         newDate: '2026-10-22T08:00:00.000Z',
-        newStartTime: '16:00 - 18:00',
+        newStartTime: '16:00',
         newLocation: { name: 'Công viên Gia Định Mới' },
         responses: [
           { parentId: 'parent-host', status: 'pending' },
@@ -163,6 +167,43 @@ describe('PlaydateDetailPage Component', () => {
     expect(screen.queryByRole('button', { name: /đổi lịch hẹn/i })).not.toBeInTheDocument();
   });
 
+  it('renders vote buttons when the API says the caller still has to vote', async () => {
+    playdateApi.getPlaydateById.mockResolvedValue({
+      data: { ...mockParticipantPlaydate, myParticipantStatus: 'accepted' },
+    });
+    playdateApi.getReschedule.mockResolvedValue({
+      data: {
+        id: 'resched-2',
+        status: 'pending',
+        requestedBy: { fullName: 'Mẹ Lan' },
+        newDate: '2026-10-22T08:00:00.000Z',
+        newStartTime: '16:00',
+        responses: [{ parentId: 'parent-guest-1', status: 'pending' }],
+        myVote: 'pending',
+        isRequester: false,
+      },
+    });
+    playdateApi.voteReschedule.mockResolvedValue({
+      data: { rescheduleRequest: { id: 'resched-2', status: 'declined', newDate: '2026-10-22T08:00:00.000Z', newStartTime: '16:00', myVote: 'declined' }, playdate: null },
+    });
+
+    renderWithProviders(<PlaydateDetailPage />);
+
+    const declineBtn = await screen.findByRole('button', { name: /từ chối lịch mới/i });
+    expect(screen.getByRole('button', { name: /đồng ý lịch mới/i })).toBeInTheDocument();
+
+    fireEvent.click(declineBtn);
+
+    // The vote targets the request on screen, and a decline keeps the old schedule
+    await waitFor(() => {
+      expect(playdateApi.voteReschedule).toHaveBeenCalledWith('playdate-test-123', {
+        requestId: 'resched-2',
+        status: 'declined',
+      });
+      expect(screen.getByText(/giữ lịch cũ/i)).toBeInTheDocument();
+    });
+  });
+
   it('does NOT render vote buttons when caller has already accepted or is not in pending votes', async () => {
     playdateApi.getPlaydateById.mockResolvedValue({ data: mockParticipantPlaydate });
     playdateApi.getReschedule.mockResolvedValue({
@@ -172,7 +213,7 @@ describe('PlaydateDetailPage Component', () => {
         requestedBy: { fullName: 'Mẹ Lan' },
         reason: 'Dời lịch',
         newDate: '2026-10-22T08:00:00.000Z',
-        newStartTime: '16:00 - 18:00',
+        newStartTime: '16:00',
         responses: [
           // Other parent is pending, not this user ('parent-other')
           { parentId: 'parent-other', status: 'pending' },

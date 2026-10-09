@@ -25,18 +25,6 @@ export const POPULAR_INTERESTS = [
   'Cờ vua & Board game',
 ];
 
-export const POPULAR_ACTIVITIES = [
-  'Đạp xe công viên',
-  'Bơi lội',
-  'Khu vui chơi trong nhà (Kids Cafe)',
-  'Dã ngoại ngoài trời',
-  'Trượt patin',
-  'Bóng đá / Thể thao',
-  'Thư viện / Đọc sách',
-  'Ghé thăm viện bảo tàng',
-  'Trò chơi tương tác / Board games',
-  'Thủ công sáng tạo',
-];
 
 export const PERSONALITY_TRAITS = [
   'Năng động & Thích vận động',

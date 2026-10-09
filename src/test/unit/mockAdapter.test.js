@@ -37,7 +37,7 @@ describe('Centralized Mock Server Engine (Axios Adapter)', () => {
       hostChildId: 'child-host-1',
       activity: 'Buổi vẽ tranh ngoài trời',
       scheduledDate: '2026-10-20T09:00:00.000Z',
-      time: '09:00 - 11:00',
+      time: '09:00',
       location: { name: 'Công viên Gia Định' },
     });
 
@@ -49,6 +49,11 @@ describe('Centralized Mock Server Engine (Axios Adapter)', () => {
   });
 
   it('intercepts playdateApi.completePlaydate()', async () => {
+    // Completing needs the start time to have passed
+    const list = playdateMockService._getStoredPlaydates();
+    list.find((p) => p.id === 'pd-mock-1').scheduledDate = new Date(Date.now() - 86400000).toISOString();
+    playdateMockService._saveStoredPlaydates(list);
+
     const res = await playdateApi.completePlaydate('pd-mock-1');
     expect(res.data.status).toBe('completed');
   });

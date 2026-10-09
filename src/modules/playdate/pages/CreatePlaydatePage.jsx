@@ -1,56 +1,62 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
-  ArrowLeft,
   Calendar as CalendarIcon,
   Clock,
   MapPin,
   Users,
   Sparkles,
-  Compass,
+  Search,
   CheckCircle2,
+  Check,
   AlertCircle,
   Plus,
   Baby,
+  MessageCircle,
+  StickyNote,
+  PencilLine,
 } from 'lucide-react';
 import { Button } from '../../../components/ui/Button';
 import { Input } from '../../../components/ui/Input';
 import { Textarea } from '../../../components/ui/Textarea';
 import { Avatar } from '../../../components/ui/Avatar';
 import { Modal } from '../../../components/feedback/Modal';
+import { FilterChips } from '../../../components/search/FilterChips';
+import { FormPageHeader } from '../../../components/form/FormPageHeader';
+import { FormSection } from '../../../components/form/FormSection';
+import { formatDate } from '../../../utils/formatters';
+import { ACTIVITIES } from '../../../constants/activity.constants';
 import { PlaceSearchModal } from '../components/PlaceSearchModal';
+import { PlaydateSummaryRow } from '../components/PlaydateSummaryRow';
 import { useCreatePlaydate } from '../hooks/useCreatePlaydate';
 
-// Quick activity suggestions
-const ACTIVITY_SUGGESTIONS = [
-  { label: 'Xếp hình Lego 🧩', value: 'Buổi chơi xếp hình Lego & giao lưu' },
-  { label: 'Dã ngoại công viên 🌳', value: 'Dã ngoại & vận động tại công viên' },
-  { label: 'Vẽ tranh & Sáng tạo 🎨', value: 'Buổi vẽ tranh sáng tạo ngoài trời' },
-  { label: 'Đá bóng & Vận động ⚽', value: 'Đá bóng & trò chơi rèn luyện thể chất' },
-  { label: 'Đọc sách & Kể chuyện 📚', value: 'Giao lưu đọc sách & kể chuyện cho bé' },
-  { label: 'Khu vui chơi giải trí 🎪', value: 'Vui chơi trải nghiệm tại khu giải trí' },
-  { label: 'Làm bánh & Nấu ăn 🧁', value: 'Lớp học làm bánh mini cho các bé' },
-];
+// Quick activity suggestions shown before "Xem tất cả" (the host child's favorites come first)
+const ACTIVITY_PREVIEW_COUNT = 8;
 
-// Quick time slot presets
-const TIME_PRESETS = [
-  '09:00 - 11:00',
-  '14:00 - 16:00',
-  '15:30 - 17:30',
-  '17:00 - 19:00',
-];
+// Quick start time presets
+const TIME_PRESETS = ['08:00', '09:00', '15:00', '16:30'].map((preset) => ({
+  id: preset,
+  label: preset,
+}));
+
+// Friends shown before "Xem thêm"
+const FRIENDS_PREVIEW_COUNT = 6;
 
 export const CreatePlaydatePage = () => {
   const navigate = useNavigate();
   const {
     isPremium,
+    playdateLimit,
     todayStr,
     myChildren,
     friends,
     selectedFriends,
     selectedChildId,
     activity,
+    scheduledDate,
     time,
+    locationName,
+    locationAddress,
     errors,
     isLoadingInitialData,
     isSubmitting,
@@ -67,67 +73,66 @@ export const CreatePlaydatePage = () => {
     handleSelectPlace,
   } = useCreatePlaydate();
 
+  const [showManualLocation, setShowManualLocation] = useState(false);
+  const [showAllFriends, setShowAllFriends] = useState(false);
+  const [showAllActivities, setShowAllActivities] = useState(false);
+
+  const selectedChild = myChildren.find((c) => (c._id || c.id)?.toString() === selectedChildId);
+
+  // Suggestions from the shared catalog: the host child's favorite activities first
+  const favorites = selectedChild?.favoriteActivities || [];
+  const activitySuggestions = [
+    ...ACTIVITIES.filter((a) => favorites.includes(a.value)),
+    ...ACTIVITIES.filter((a) => !favorites.includes(a.value)),
+  ].map(({ value, playdateTitle, icon }) => ({ id: playdateTitle, label: value, icon }));
+  const visibleActivitySuggestions = showAllActivities
+    ? activitySuggestions
+    : activitySuggestions.filter((option, index) => index < ACTIVITY_PREVIEW_COUNT || option.id === activity);
+  const visibleFriends = showAllFriends ? friends : friends.slice(0, FRIENDS_PREVIEW_COUNT);
+  // Manual inputs open by themselves when a location error can only be fixed there
+  const isManualLocationOpen = showManualLocation || (Boolean(errors.location) && !locationName);
+
+  const quotaText = isPremium
+    ? 'Gói Premium: không giới hạn cuộc hẹn'
+    : `Gói Miễn phí: tối đa ${playdateLimit} cuộc hẹn/tháng`;
+
+  const submitButton = (
+    <Button
+      type="submit"
+      variant="primary"
+      size="md"
+      isLoading={isSubmitting}
+      leftIcon={<Plus className="w-4 h-4" />}
+      className="w-full rounded-xl shadow-xs hover:shadow"
+    >
+      Tạo buổi hẹn
+    </Button>
+  );
+
   return (
-    <div className="w-full pb-16 space-y-6">
-      {/* Top Header & Breadcrumb */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div className="flex items-center gap-3">
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            onClick={() => navigate('/playdates')}
-            leftIcon={<ArrowLeft className="w-4 h-4" />}
-            className="rounded-xl border border-hairline hover:bg-white"
+    <div className="w-full max-w-6xl mx-auto pb-16 space-y-6">
+      <FormPageHeader
+        title="Tạo cuộc hẹn chơi mới"
+        description="Lên lịch buổi chơi và mời bạn bè của bé cùng tham gia"
+        onBack={() => navigate('/playdates')}
+      />
+
+      <form onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+        <div className="lg:col-span-8 bg-surface-container-lowest border border-hairline rounded-2xl p-5 sm:p-8 shadow-2xs">
+          {/* Host child */}
+          <FormSection
+            title="Bé tham gia"
+            description="Bé của bạn sẽ là chủ buổi hẹn."
+            icon={Baby}
+            required
           >
-            Quay lại
-          </Button>
-          <div>
-            <h1 className="text-xl sm:text-2xl font-semibold tracking-tight text-text-primary">
-              Tạo cuộc hẹn chơi mới
-            </h1>
-            <p className="text-sm text-text-muted mt-0.5">
-              Lên lịch Playdate, mời bạn bè cùng tham gia và tự động khởi tạo nhóm trò chuyện
-            </p>
-          </div>
-        </div>
-
-        {/* Subscription Quota Indicator Badge */}
-        {isPremium ? (
-          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/10 border border-primary/20 text-xs text-primary-dark shrink-0 self-start sm:self-auto font-medium">
-            <Sparkles className="w-3.5 h-3.5 text-primary" />
-            <span>Gói Premium: <strong>Không giới hạn cuộc hẹn</strong></span>
-          </div>
-        ) : (
-          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-surface-subtle border border-hairline text-xs text-text-muted shrink-0 self-start sm:self-auto">
-            <Sparkles className="w-3.5 h-3.5 text-secondary" />
-            <span>Gói Miễn phí: <strong>Tối đa 3 cuộc hẹn/tháng</strong></span>
-          </div>
-        )}
-      </div>
-
-      {/* Main White Card Layout */}
-      <form onSubmit={handleSubmit}>
-        <div className="bg-white border border-hairline rounded-2xl p-6 sm:p-8 md:p-10 shadow-2xs space-y-8">
-          {/* SECTION 1: CHỌN BÉ THAM GIA */}
-          <div className="space-y-3">
-            <div className="flex items-center justify-between">
-              <label className="text-sm font-semibold text-text-primary flex items-center gap-2">
-                <Baby className="w-4 h-4 text-primary" />
-                1. Chọn bé tham gia của bạn <span className="text-error">*</span>
-              </label>
-              {myChildren.length > 0 && (
-                <span className="text-xs text-text-muted">{myChildren.length} hồ sơ bé</span>
-              )}
-            </div>
-
             {isLoadingInitialData ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
-                <div className="h-16 bg-surface-subtle rounded-2xl animate-pulse" />
-                <div className="h-16 bg-surface-subtle rounded-2xl animate-pulse" />
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="h-16 bg-surface-container-low rounded-2xl animate-pulse" />
+                <div className="h-16 bg-surface-container-low rounded-2xl animate-pulse" />
               </div>
             ) : myChildren.length === 0 ? (
-              <div className="p-4 rounded-2xl bg-surface-subtle border border-hairline text-center space-y-2">
+              <div className="p-4 rounded-2xl bg-surface-container-low border border-hairline text-center space-y-2">
                 <p className="text-sm text-text-muted">Bạn chưa có hồ sơ bé nào.</p>
                 <Button
                   type="button"
@@ -139,47 +144,49 @@ export const CreatePlaydatePage = () => {
                 </Button>
               </div>
             ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {myChildren.map((child) => {
                   const childId = (child._id || child.id)?.toString();
                   const isSelected = selectedChildId === childId;
                   return (
-                    <div
+                    <button
+                      type="button"
                       key={childId}
+                      aria-pressed={isSelected}
                       onClick={() => setValue('hostChildId', childId, { shouldValidate: true })}
-                      className={`p-3.5 rounded-2xl border transition-all cursor-pointer flex items-center justify-between gap-3 ${
+                      className={`p-3.5 rounded-2xl border transition-colors text-left flex items-center justify-between gap-3 ${
                         isSelected
-                          ? 'border-primary bg-primary/5 shadow-2xs'
-                          : 'border-hairline hover:border-gray-300 hover:bg-surface-subtle'
+                          ? 'border-primary bg-primary-soft shadow-2xs'
+                          : 'border-hairline hover:border-hairline-strong hover:bg-surface-container-low'
                       }`}
                     >
-                      <div className="flex items-center gap-3">
+                      <div className="flex items-center gap-3 min-w-0 flex-1">
                         <Avatar
                           src={child.avatarUrl}
                           alt={child.displayName}
                           size="md"
-                          className="bg-primary/20 text-primary-dark font-semibold"
+                          className="text-primary-dark font-semibold"
                         />
-                        <div>
-                          <p className="text-sm font-semibold text-text-primary">
+                        <div className="min-w-0">
+                          <p className="text-sm font-semibold text-text-primary truncate">
                             {child.displayName}
                           </p>
-                          <p className="text-xs text-text-muted">
+                          <p className="text-xs text-text-muted truncate">
                             {child.gender === 'boy' ? 'Bé trai' : 'Bé gái'}
                             {child.interests?.length > 0 && ` • ${child.interests.slice(0, 2).join(', ')}`}
                           </p>
                         </div>
                       </div>
                       <div
-                        className={`w-5 h-5 rounded-full border flex items-center justify-center transition-all ${
+                        className={`w-5 h-5 shrink-0 aspect-square rounded-full border flex items-center justify-center transition-colors ${
                           isSelected
-                            ? 'border-primary bg-primary text-white'
-                            : 'border-hairline bg-white'
+                            ? 'border-primary bg-primary text-primary-on-primary'
+                            : 'border-hairline bg-surface-container-lowest'
                         }`}
                       >
-                        {isSelected && <CheckCircle2 className="w-3.5 h-3.5" />}
+                        {isSelected && <Check className="w-3 h-3" strokeWidth={3} />}
                       </div>
-                    </div>
+                    </button>
                   );
                 })}
               </div>
@@ -187,29 +194,168 @@ export const CreatePlaydatePage = () => {
             {errors.hostChildId && (
               <p className="text-xs text-error">{errors.hostChildId.message}</p>
             )}
-          </div>
+          </FormSection>
 
-          {/* SECTION 2: MỜI BẠN BÈ THAM GIA */}
-          <div className="space-y-3 pt-6 border-t border-hairline">
-            <div className="flex items-center justify-between">
-              <div>
-                <label className="text-sm font-semibold text-text-primary flex items-center gap-2">
-                  <Users className="w-4 h-4 text-secondary" />
-                  2. Mời gia đình bạn bè tham gia
-                </label>
-                <p className="text-xs text-text-muted mt-0.5">
-                  Chọn các phụ huynh trong danh sách kết nối đã chấp thuận để cùng vui chơi
-                </p>
+          {/* Activity */}
+          <FormSection
+            title="Hoạt động"
+            description="Đặt tên buổi hẹn hoặc chọn nhanh một gợi ý. Hoạt động bé yêu thích được xếp lên đầu."
+            icon={Sparkles}
+            required
+          >
+            <Input
+              placeholder="Ví dụ: Buổi chơi lego cuối tuần"
+              {...register('activity')}
+              error={errors.activity?.message}
+            />
+            <FilterChips
+              options={visibleActivitySuggestions}
+              selected={activity}
+              onChange={(value) => value && handleSelectQuickActivity(value)}
+              className="flex-wrap"
+            />
+            {activitySuggestions.length > ACTIVITY_PREVIEW_COUNT && (
+              <button
+                type="button"
+                onClick={() => setShowAllActivities((prev) => !prev)}
+                className="text-xs font-medium text-primary-dark hover:underline"
+              >
+                {showAllActivities ? 'Thu gọn gợi ý' : `Xem tất cả ${activitySuggestions.length} hoạt động`}
+              </button>
+            )}
+          </FormSection>
+
+          {/* Date & time */}
+          <FormSection title="Thời gian" icon={CalendarIcon} required>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <Input
+                label="Ngày"
+                type="date"
+                min={todayStr}
+                {...register('scheduledDate')}
+                error={errors.scheduledDate?.message}
+                leftIcon={<CalendarIcon className="w-4 h-4" />}
+              />
+              <div className="space-y-2">
+                <Input
+                  label="Giờ"
+                  type="time"
+                  {...register('time')}
+                  error={errors.time?.message}
+                  leftIcon={<Clock className="w-4 h-4" />}
+                />
+                <FilterChips
+                  options={TIME_PRESETS}
+                  selected={time}
+                  onChange={(value) => value && handleSelectTime(value)}
+                  className="flex-wrap"
+                />
               </div>
-              <span className="text-xs text-primary font-semibold">
-                Đã chọn: {selectedFriends.length} bạn bè
-              </span>
             </div>
+          </FormSection>
 
+          {/* Place */}
+          <FormSection
+            title="Địa điểm"
+            description="Tìm địa điểm vui chơi gần bạn hoặc nhập địa chỉ thủ công."
+            icon={MapPin}
+            required
+          >
+            {isManualLocationOpen ? (
+              <>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <Input
+                    label="Tên địa điểm"
+                    placeholder="Ví dụ: Công viên Biển Đông"
+                    {...register('locationName')}
+                  />
+                  <Input
+                    label="Địa chỉ cụ thể"
+                    placeholder="Ví dụ: Võ Nguyên Giáp, Phường Phước Mỹ, Đà Nẵng"
+                    {...register('locationAddress')}
+                  />
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowManualLocation(false);
+                    setShowNearbyModal(true);
+                  }}
+                  className="text-xs font-medium text-primary-dark hover:underline inline-flex items-center gap-1.5"
+                >
+                  <Search className="w-3.5 h-3.5" />
+                  Tìm địa điểm lân cận thay vì nhập tay
+                </button>
+              </>
+            ) : locationName ? (
+              <div className="p-3.5 rounded-2xl border border-primary bg-primary-soft flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-surface-container-lowest text-primary-dark flex items-center justify-center shrink-0">
+                  <MapPin className="w-5 h-5" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm font-semibold text-text-primary truncate">{locationName}</p>
+                  <p className="text-xs text-text-muted truncate">{locationAddress || 'Chưa có địa chỉ'}</p>
+                </div>
+                <div className="flex items-center gap-1 shrink-0">
+                  <Button type="button" variant="ghost" size="sm" onClick={() => setShowNearbyModal(true)}>
+                    Đổi
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    aria-label="Sửa địa chỉ thủ công"
+                    onClick={() => setShowManualLocation(true)}
+                  >
+                    <PencilLine className="w-4 h-4" />
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              <>
+                <button
+                  type="button"
+                  onClick={() => setShowNearbyModal(true)}
+                  className="w-full p-3.5 rounded-2xl border border-dashed border-hairline-strong hover:border-primary hover:bg-primary-soft/50 transition-colors flex items-center gap-3 text-left"
+                >
+                  <div className="w-10 h-10 rounded-xl bg-primary-soft text-primary-dark flex items-center justify-center shrink-0">
+                    <Search className="w-5 h-5" />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-sm font-semibold text-text-primary">Tìm địa điểm cho bé</p>
+                    <p className="text-xs text-text-muted">Công viên, khu vui chơi, thư viện… gần bạn</p>
+                  </div>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowManualLocation(true)}
+                  className="text-xs font-medium text-text-muted hover:text-text-primary hover:underline"
+                >
+                  Hoặc nhập địa chỉ thủ công
+                </button>
+              </>
+            )}
+            {errors.location && (
+              <p className="text-xs text-error">{errors.location.message}</p>
+            )}
+          </FormSection>
+
+          {/* Invited friends */}
+          <FormSection
+            title="Mời bạn bè"
+            description="Chọn bé của các phụ huynh đã kết nối với bạn."
+            icon={Users}
+            optional
+            aside={
+              selectedFriends.length > 0 && (
+                <span className="font-semibold text-primary-dark">Đã mời {selectedFriends.length} bé</span>
+              )
+            }
+          >
             {isLoadingInitialData ? (
-              <div className="h-24 bg-surface-subtle rounded-2xl animate-pulse" />
+              <div className="h-24 bg-surface-container-low rounded-2xl animate-pulse" />
             ) : friends.length === 0 ? (
-              <div className="p-4 rounded-2xl bg-surface-subtle border border-hairline text-center space-y-2">
+              <div className="p-4 rounded-2xl bg-surface-container-low border border-hairline text-center space-y-2">
                 <p className="text-sm text-text-muted">
                   Bạn chưa có phụ huynh kết nối nào có hồ sơ bé phù hợp để mời.
                 </p>
@@ -223,201 +369,134 @@ export const CreatePlaydatePage = () => {
                 </Button>
               </div>
             ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 max-h-72 overflow-y-auto pr-1">
-                {friends.map((friend) => (
-                  <div
-                    key={friend.id}
-                    className="p-3.5 rounded-2xl border border-hairline bg-surface-container-low/30 space-y-2"
-                  >
-                    <div className="flex items-center gap-2.5">
-                      <Avatar
-                        src={friend.avatarUrl}
-                        alt={friend.fullName}
-                        size="sm"
-                      />
-                      <div className="min-w-0 flex-1">
-                        <p className="text-xs font-semibold text-text-primary truncate">
-                          {friend.fullName}
-                        </p>
-                        <p className="text-[11px] text-text-muted">
-                          {friend.children?.length || 0} bé
-                        </p>
+              <>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {visibleFriends.map((friend) => (
+                    <div
+                      key={friend.id}
+                      className="p-3.5 rounded-2xl border border-hairline bg-surface-container-low/30 space-y-2"
+                    >
+                      <div className="flex items-center gap-2.5">
+                        <Avatar
+                          src={friend.avatarUrl}
+                          alt={friend.fullName}
+                          size="sm"
+                        />
+                        <div className="min-w-0 flex-1">
+                          <p className="text-xs font-semibold text-text-primary truncate">
+                            {friend.fullName}
+                          </p>
+                          <p className="text-[11px] text-text-muted">
+                            {friend.children?.length || 0} bé
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="flex flex-wrap gap-1.5 pt-2 border-t border-hairline/60">
+                        {friend.children?.map((c) => {
+                          const isInvited = selectedFriends.some(
+                            (p) => p.parentId === friend.id && p.childId === (c.id || c._id)
+                          );
+                          return (
+                            <button
+                              key={c.id || c._id}
+                              type="button"
+                              aria-pressed={isInvited}
+                              onClick={() => handleToggleFriend(friend, c)}
+                              className={`text-xs px-2.5 py-1 rounded-xl border transition-all flex items-center gap-1.5 ${
+                                isInvited
+                                  ? 'bg-primary text-primary-on-primary border-primary shadow-2xs font-medium'
+                                  : 'bg-surface-container-lowest text-text-muted border-hairline hover:border-primary-border'
+                              }`}
+                            >
+                              <span>{c.displayName}</span>
+                              {isInvited && <CheckCircle2 className="w-3 h-3" />}
+                            </button>
+                          );
+                        })}
                       </div>
                     </div>
-
-                    <div className="flex flex-wrap gap-1.5 pt-1 border-t border-hairline/60">
-                      {friend.children?.map((c) => {
-                        const isInvited = selectedFriends.some(
-                          (p) => p.parentId === friend.id && p.childId === (c.id || c._id)
-                        );
-                        return (
-                          <button
-                            key={c.id || c._id}
-                            type="button"
-                            onClick={() => handleToggleFriend(friend, c)}
-                            className={`text-xs px-2.5 py-1 rounded-xl border transition-all flex items-center gap-1.5 ${
-                              isInvited
-                                ? 'bg-primary text-white border-primary shadow-2xs font-medium'
-                                : 'bg-white text-text-muted border-hairline hover:border-primary/40'
-                            }`}
-                          >
-                            <span>{c.displayName}</span>
-                            {isInvited && <CheckCircle2 className="w-3 h-3 text-white" />}
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-
-          {/* SECTION 3: HOẠT ĐỘNG & GỢI Ý */}
-          <div className="space-y-3 pt-6 border-t border-hairline">
-            <label className="text-sm font-semibold text-text-primary flex items-center gap-2">
-              <Sparkles className="w-4 h-4 text-tertiary-dark" />
-              3. Hoạt động & Gợi ý hoạt động nhanh <span className="text-error">*</span>
-            </label>
-
-            <Input
-              placeholder="Nhập tên hoạt động hoặc buổi hẹn (Ví dụ: Buổi chơi lego cuối tuần)..."
-              {...register('activity')}
-              error={errors.activity?.message}
-            />
-
-            {/* Quick Activity Suggestion Chips */}
-            <div className="space-y-1.5">
-              <span className="text-xs text-text-muted">Gợi ý hoạt động phổ biến:</span>
-              <div className="flex flex-wrap gap-2">
-                {ACTIVITY_SUGGESTIONS.map((item) => (
-                  <button
-                    key={item.label}
-                    type="button"
-                    onClick={() => handleSelectQuickActivity(item.value)}
-                    className={`text-xs px-3 py-1.5 rounded-full border transition-all select-none ${
-                      activity === item.value
-                        ? 'bg-tertiary text-tertiary-on-container border-tertiary font-medium shadow-2xs'
-                        : 'bg-surface-subtle text-text-muted border-hairline hover:border-gray-300 hover:text-text-primary'
-                    }`}
-                  >
-                    {item.label}
-                  </button>
-                ))}
-              </div>
-            </div>
-          </div>
-
-          {/* SECTION 4: BỘ CHỌN NGÀY & GIỜ */}
-          <div className="space-y-3 pt-6 border-t border-hairline">
-            <label className="text-sm font-semibold text-text-primary flex items-center gap-2">
-              <CalendarIcon className="w-4 h-4 text-primary" />
-              4. Bộ chọn ngày & giờ thân thiện <span className="text-error">*</span>
-            </label>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <Input
-                label="Ngày diễn ra *"
-                type="date"
-                min={todayStr}
-                {...register('scheduledDate')}
-                error={errors.scheduledDate?.message}
-                leftIcon={<CalendarIcon className="w-4 h-4" />}
-              />
-
-              <div className="space-y-1.5">
-                <Input
-                  label="Khung giờ diễn ra *"
-                  placeholder="Ví dụ: 15:30 - 17:30 hoặc 09:00"
-                  {...register('time')}
-                  error={errors.time?.message}
-                  leftIcon={<Clock className="w-4 h-4" />}
-                />
-                <div className="flex flex-wrap gap-1.5 pt-0.5">
-                  {TIME_PRESETS.map((preset) => (
-                    <button
-                      key={preset}
-                      type="button"
-                      onClick={() => handleSelectTime(preset)}
-                      className={`text-[11px] px-2.5 py-1 rounded-lg border transition-all ${
-                        time === preset
-                          ? 'bg-primary/10 border-primary text-primary-dark font-medium'
-                          : 'bg-surface-subtle text-text-muted border-hairline hover:border-gray-300'
-                      }`}
-                    >
-                      {preset}
-                    </button>
                   ))}
                 </div>
-              </div>
-            </div>
-          </div>
-
-          {/* SECTION 5: ĐỊA ĐIỂM HẸN CHƠI */}
-          <div className="space-y-3 pt-6 border-t border-hairline">
-            <div className="flex items-center justify-between">
-              <label className="text-sm font-semibold text-text-primary flex items-center gap-2">
-                <MapPin className="w-4 h-4 text-error" />
-                5. Địa điểm hẹn chơi <span className="text-error">*</span>
-              </label>
-
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={() => setShowNearbyModal(true)}
-                leftIcon={<Compass className="w-4 h-4 text-secondary" />}
-                className="text-xs rounded-xl border-secondary/30 text-secondary-dark hover:bg-secondary/5"
-              >
-                Tìm kiếm địa điểm lân cận
-              </Button>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <Input
-                label="Tên địa điểm *"
-                placeholder="Ví dụ: Công viên Cầu Ánh Sao"
-                {...register('locationName')}
-              />
-              <Input
-                label="Địa chỉ cụ thể *"
-                placeholder="Ví dụ: Khu đô thị Phú Mỹ Hưng, Quận 7, TP.HCM"
-                {...register('locationAddress')}
-              />
-            </div>
-            {errors.location && (
-              <p className="text-xs text-error mt-1">{errors.location.message}</p>
+                {friends.length > FRIENDS_PREVIEW_COUNT && (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setShowAllFriends((prev) => !prev)}
+                    className="w-full rounded-xl border border-hairline"
+                  >
+                    {showAllFriends
+                      ? 'Thu gọn'
+                      : `Xem thêm ${friends.length - FRIENDS_PREVIEW_COUNT} phụ huynh`}
+                  </Button>
+                )}
+              </>
             )}
-          </div>
+          </FormSection>
 
-          {/* SECTION 6: GHI CHÚ BỔ SUNG */}
-          <div className="space-y-3 pt-6 border-t border-hairline">
+          {/* Note */}
+          <FormSection
+            title="Ghi chú"
+            description="Lời nhắn gửi kèm cho các phụ huynh được mời."
+            icon={StickyNote}
+            optional
+          >
             <Textarea
-              label="Ghi chú thêm cho phụ huynh (Tùy chọn)"
               rows={3}
               placeholder="Nhắc nhở mang đồ dùng, trang phục, hoặc ghi chú sức khỏe cho các bé..."
               {...register('note')}
               error={errors.note?.message}
             />
-          </div>
+          </FormSection>
+        </div>
 
-          {/* FORM FOOTER ACTIONS */}
-          <div className="pt-6 border-t border-hairline flex flex-col sm:flex-row items-center justify-between gap-4">
-            <p className="text-xs text-text-muted text-center sm:text-left">
-              Hệ thống sẽ tự động tạo phòng chat nhóm cho tất cả phụ huynh được mời.
-            </p>
-
-            <Button
-              type="submit"
-              variant="primary"
-              size="md"
-              isLoading={isSubmitting}
-              leftIcon={<Plus className="w-4 h-4" />}
-              className="w-full sm:w-auto rounded-xl shadow-xs hover:shadow"
-            >
-              Tạo lời mời & Buổi hẹn
-            </Button>
+        {/* Summary panel (desktop) */}
+        <aside className="hidden lg:block lg:col-span-4 sticky top-6">
+          <div className="bg-surface-container-lowest border border-hairline rounded-2xl p-6 shadow-2xs space-y-5">
+            <p className="text-sm font-semibold text-text-primary">Tóm tắt buổi hẹn</p>
+            <div className="space-y-3.5">
+              <PlaydateSummaryRow icon={Baby} label="Bé tham gia" value={selectedChild?.displayName} />
+              <PlaydateSummaryRow icon={Sparkles} label="Hoạt động" value={activity} />
+              <PlaydateSummaryRow
+                icon={CalendarIcon}
+                label="Thời gian"
+                value={[formatDate(scheduledDate), time].filter(Boolean).join(' · ')}
+              />
+              <PlaydateSummaryRow icon={MapPin} label="Địa điểm" value={locationName} />
+              <PlaydateSummaryRow
+                icon={Users}
+                label="Bạn bè được mời"
+                value={selectedFriends.length > 0 ? `${selectedFriends.length} bé` : ''}
+              />
+            </div>
+            <div className="pt-5 border-t border-hairline space-y-3">
+              {submitButton}
+              <p className="text-xs text-text-muted flex items-start gap-2">
+                <MessageCircle className="w-3.5 h-3.5 shrink-0 mt-0.5" />
+                Nhóm chat sẽ được tạo tự động cho tất cả phụ huynh được mời.
+              </p>
+            </div>
           </div>
+          <div
+            className={`mt-3 flex items-center gap-2 px-3 py-2 rounded-xl text-xs ${
+              isPremium ? 'bg-primary/10 text-primary-dark' : 'bg-surface-container-low text-text-muted'
+            }`}
+          >
+            <Sparkles className={`w-3.5 h-3.5 shrink-0 ${isPremium ? 'text-primary' : 'text-secondary'}`} />
+            <span>{quotaText}</span>
+          </div>
+        </aside>
+
+        {/* Action bar (mobile & tablet) */}
+        <div className="lg:hidden sticky bottom-0 z-10 -mx-6 sm:mx-0 px-6 py-3 bg-surface/95 backdrop-blur border-t border-hairline sm:border sm:rounded-2xl space-y-2">
+          <div className="flex items-center justify-between gap-3 text-xs text-text-muted">
+            <span>{quotaText}</span>
+            {selectedFriends.length > 0 && (
+              <span className="font-semibold text-primary-dark shrink-0">Đã mời {selectedFriends.length} bé</span>
+            )}
+          </div>
+          {submitButton}
         </div>
       </form>
 
@@ -433,28 +512,9 @@ export const CreatePlaydatePage = () => {
         isOpen={quotaExceededModal}
         onClose={() => setQuotaExceededModal(false)}
         title="Đã đạt giới hạn cuộc hẹn"
-      >
-        <div className="space-y-4 text-center">
-          <div className="w-12 h-12 rounded-full bg-error/10 text-error flex items-center justify-center mx-auto">
-            <AlertCircle className="w-6 h-6" />
-          </div>
-          <div className="space-y-1">
-            <p className="text-sm font-semibold text-text-primary">
-              Nâng cấp gói BuddyLink Premium
-            </p>
-            <p className="text-xs text-text-muted">
-              Tài khoản gói Miễn phí được tạo tối đa <strong>3 cuộc hẹn chơi trong mỗi tháng</strong>.
-              Hãy nâng cấp lên gói BuddyLink Premium để tạo không giới hạn cuộc hẹn và nhận các tính năng kết nối thông minh!
-            </p>
-          </div>
-          <div className="flex items-center justify-center gap-3 pt-2">
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={() => setQuotaExceededModal(false)}
-              className="rounded-xl"
-            >
+        footer={
+          <>
+            <Button type="button" variant="outline" size="sm" onClick={() => setQuotaExceededModal(false)}>
               Để sau
             </Button>
             <Button
@@ -465,10 +525,24 @@ export const CreatePlaydatePage = () => {
                 setQuotaExceededModal(false);
                 navigate('/subscription');
               }}
-              className="rounded-xl shadow-xs"
             >
               Nâng cấp ngay
             </Button>
+          </>
+        }
+      >
+        <div className="space-y-4 text-center">
+          <div className="w-12 h-12 rounded-full bg-error/10 text-error flex items-center justify-center mx-auto">
+            <AlertCircle className="w-6 h-6" />
+          </div>
+          <div className="space-y-1">
+            <p className="text-sm font-semibold text-text-primary">
+              Nâng cấp gói BuddyLink Premium
+            </p>
+            <p className="text-xs text-text-muted">
+              Tài khoản gói Miễn phí được tạo tối đa <strong>{playdateLimit} cuộc hẹn chơi trong mỗi tháng</strong>.
+              Hãy nâng cấp lên gói BuddyLink Premium để tạo không giới hạn cuộc hẹn và nhận các tính năng kết nối thông minh!
+            </p>
           </div>
         </div>
       </Modal>

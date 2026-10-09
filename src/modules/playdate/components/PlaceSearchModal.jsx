@@ -1,244 +1,265 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import {
   Search,
   MapPin,
-  Star,
-  X,
   Compass,
   Trees,
   Coffee,
   Sparkles,
-  CheckCircle2,
   Building2,
-  Loader2,
+  BookOpen,
+  Palette,
+  Navigation,
+  Clock,
+  Phone,
+  Globe,
+  ExternalLink,
+  ChevronRight,
 } from 'lucide-react';
 import { Button } from '../../../components/ui/Button';
 import { Input } from '../../../components/ui/Input';
-import { playdateApi } from '../api/playdateApi';
+import { Modal } from '../../../components/feedback/Modal';
+import { FilterChips } from '../../../components/search/FilterChips';
+import { EmptyState } from '../../../components/cards/EmptyState';
+import { Spinner } from '../../../components/feedback/Spinner';
+import { usePlaceSearch } from '../hooks/usePlaceSearch';
 
+// Values follow PLACE_TYPES of the places module (Back-End)
 const CATEGORIES = [
-  { label: 'Tất cả', value: 'all', icon: Compass },
-  { label: 'Công viên', value: 'park', icon: Trees },
-  { label: 'Kids Cafe', value: 'kids_cafe', icon: Coffee },
-  { label: 'Khu vui chơi', value: 'playground', icon: Sparkles },
-  { label: 'Thể thao', value: 'sports_center', icon: Building2 },
+  { id: 'all', label: 'Tất cả', icon: Compass },
+  { id: 'park', label: 'Công viên', icon: Trees },
+  { id: 'kids_cafe', label: 'Kids Cafe', icon: Coffee },
+  { id: 'playground', label: 'Khu vui chơi', icon: Sparkles },
+  { id: 'library', label: 'Thư viện', icon: BookOpen },
+  { id: 'sports_center', label: 'Thể thao', icon: Building2 },
+  { id: 'workshop', label: 'Workshop', icon: Palette },
 ];
 
-const CURATED_FALLBACK_PLACES = [
-  {
-    id: 'place-1',
-    name: 'Công viên Gia Định',
-    address: 'Đường Hoàng Minh Giám, Phường 3, Quận Gò Vấp, TP. Hồ Chí Minh',
-    placeType: 'park',
-    rating: 4.6,
-    coordinates: [106.6741, 10.8144],
-  },
-  {
-    id: 'place-2',
-    name: 'Công viên Cầu Ánh Sao - Hồ Bán Nguyệt',
-    address: 'Khu đô thị Phú Mỹ Hưng, Phường Tân Phú, Quận 7, TP. Hồ Chí Minh',
-    placeType: 'park',
-    rating: 4.8,
-    coordinates: [106.7196, 10.7267],
-  },
-  {
-    id: 'place-3',
-    name: 'Thảo Cầm Viên Sài Gòn',
-    address: 'Số 2 Nguyễn Bỉnh Khiêm, Phường Bến Nghé, Quận 1, TP. Hồ Chí Minh',
-    placeType: 'park',
-    rating: 4.5,
-    coordinates: [106.7051, 10.7875],
-  },
-  {
-    id: 'place-4',
-    name: 'Công viên Tao Đàn',
-    address: 'Đường Trương Định, Phường Bến Thành, Quận 1, TP. Hồ Chí Minh',
-    placeType: 'park',
-    rating: 4.4,
-    coordinates: [106.6917, 10.7744],
-  },
-];
+const CATEGORY_LABELS = Object.fromEntries(CATEGORIES.map((c) => [c.id, c.label]));
 
-export const PlaceSearchModal = ({
-  isOpen,
-  onClose,
-  onSelectPlace,
-  title = 'Địa điểm gợi ý lân cận',
-}) => {
-  const [activeCategory, setActiveCategory] = useState('all');
-  const [searchTerm, setSearchTerm] = useState('');
-  const [places, setPlaces] = useState(CURATED_FALLBACK_PLACES);
-  const [isLoading, setIsLoading] = useState(false);
+const formatDistance = (meters) => {
+  if (meters === null || meters === undefined) return '';
+  if (meters < 1000) return `${Math.round(meters / 10) * 10} m`;
+  return `${(meters / 1000).toFixed(1).replace('.', ',')} km`;
+};
 
-  useEffect(() => {
-    if (!isOpen) return;
+const directionsUrl = ([lng, lat]) => `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`;
 
-    let isCurrent = true;
-    const fetchPlaces = async () => {
-      setIsLoading(true);
-      try {
-        const params = {};
-        if (activeCategory !== 'all') params.type = activeCategory;
-        if (searchTerm.trim()) params.search = searchTerm.trim();
+const toLocation = (place) => ({
+  name: place.name,
+  address: place.address || '',
+  placeId: place.placeId,
+  coordinates: place.coordinates ? { type: 'Point', coordinates: place.coordinates } : null,
+});
 
-        const res = await playdateApi.getNearbyPlaces(params);
-        if (isCurrent && res?.data) {
-          const list = Array.isArray(res.data) ? res.data : res.data.places || [];
-          setPlaces(list.length > 0 ? list : CURATED_FALLBACK_PLACES);
-        }
-      } catch (err) {
-        if (isCurrent) setPlaces(CURATED_FALLBACK_PLACES);
-      } finally {
-        if (isCurrent) setIsLoading(false);
-      }
-    };
+const PlaceMeta = ({ place }) => (
+  <div className="flex flex-wrap items-center gap-1.5 text-[11px] text-text-muted">
+    {place.placeType && (
+      <span className="font-medium px-2 py-0.5 rounded-full bg-surface-container-low">
+        {CATEGORY_LABELS[place.placeType] || place.placeType}
+      </span>
+    )}
+    {place.distanceMeters !== null && place.distanceMeters !== undefined && (
+      <span className="inline-flex items-center gap-1">
+        <Navigation className="w-3 h-3" /> {formatDistance(place.distanceMeters)}
+      </span>
+    )}
+  </div>
+);
 
-    const timer = setTimeout(fetchPlaces, 250);
-    return () => {
-      isCurrent = false;
-      clearTimeout(timer);
-    };
-  }, [isOpen, activeCategory, searchTerm]);
+const InfoRow = ({ icon: Icon, children }) => (
+  <div className="flex items-start gap-2.5 text-sm text-text-primary">
+    <Icon className="w-4 h-4 text-primary shrink-0 mt-0.5" />
+    <div className="min-w-0 break-words">{children}</div>
+  </div>
+);
 
-  if (!isOpen) return null;
+export const PlaceSearchModal = ({ isOpen, onClose, onSelectPlace, title = 'Địa điểm gợi ý lân cận' }) => {
+  const {
+    activeCategory,
+    setActiveCategory,
+    searchTerm,
+    setSearchTerm,
+    places,
+    isLoading,
+    isAreaSyncing,
+    errorMessage,
+    selectedPlace,
+    isDetailLoading,
+    openPlace,
+    closePlace,
+    loadPlaceDetail,
+  } = usePlaceSearch(isOpen);
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/45 backdrop-blur-xs animate-in fade-in">
-      <div className="bg-white rounded-2xl max-w-xl w-full p-6 space-y-4 shadow-xl border border-hairline flex flex-col max-h-[90vh]">
-        {/* Header */}
-        <div className="flex items-center justify-between pb-1 border-b border-hairline">
-          <div className="flex items-center gap-2.5">
-            <div className="w-10 h-10 rounded-xl bg-secondary/10 flex items-center justify-center text-secondary-dark">
-              <Compass className="w-5 h-5" />
-            </div>
-            <div>
-              <h3 className="text-lg font-semibold text-text-primary">
-                {title}
-              </h3>
-              <p className="text-xs text-text-muted">
-                Công viên, quán cafe trẻ em và không gian giải trí an toàn cho bé
-              </p>
-            </div>
-          </div>
-          <button
-            type="button"
-            onClick={onClose}
-            className="text-text-muted hover:text-text-primary p-1.5 rounded-xl hover:bg-gray-100 transition-colors"
-          >
-            <X className="w-5 h-5" />
-          </button>
+  // A place chosen from the list may have no address yet: the details call resolves it
+  const handleSelect = async (place) => {
+    const full = place.address ? place : await loadPlaceDetail(place);
+    onSelectPlace(toLocation(full));
+    onClose();
+  };
+
+  const renderList = () => {
+    if (isLoading) {
+      return (
+        <div className="h-48 flex flex-col items-center justify-center gap-2 text-text-muted">
+          <Spinner />
+          <span className="text-xs">Đang tìm địa điểm gần bạn...</span>
         </div>
-
-        {/* Search Input */}
-        <Input
-          placeholder="Nhập tên địa điểm, công viên hoặc quận/huyện..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          leftIcon={<Search className="w-4 h-4 text-text-muted" />}
-          autoFocus
+      );
+    }
+    if (places.length === 0 && isAreaSyncing) {
+      return (
+        <div className="h-48 flex flex-col items-center justify-center gap-2 text-center px-6" role="status">
+          <Spinner />
+          <p className="text-sm font-semibold text-text-primary">Đang tải địa điểm khu vực của bạn</p>
+          <p className="text-xs text-text-muted max-w-xs">
+            Đây là lần đầu khu vực này được tìm kiếm. Danh sách sẽ tự cập nhật sau ít phút, hoặc bạn có thể nhập địa điểm thủ công.
+          </p>
+        </div>
+      );
+    }
+    if (places.length === 0) {
+      return (
+        <EmptyState
+          icon={<MapPin className="w-6 h-6" />}
+          title={errorMessage ? 'Không thể tải danh sách địa điểm' : 'Không tìm thấy địa điểm phù hợp'}
+          description={errorMessage || 'Thử từ khóa khác, đổi danh mục hoặc nhập địa điểm thủ công.'}
         />
+      );
+    }
+    return places.map((place) => (
+      <div
+        key={place.id || place.placeId}
+        className="p-3.5 rounded-2xl border border-hairline hover:border-primary-border hover:bg-primary-soft transition-colors flex items-center gap-3 bg-surface-container-lowest"
+      >
+        <button type="button" onClick={() => openPlace(place)} className="flex-1 min-w-0 text-left space-y-1">
+          <p className="text-sm font-semibold text-text-primary truncate">{place.name}</p>
+          <p className="text-xs text-text-muted line-clamp-1">{place.address || 'Xem chi tiết để lấy địa chỉ'}</p>
+          <PlaceMeta place={place} />
+        </button>
+        <Button type="button" variant="secondary" size="sm" onClick={() => handleSelect(place)} disabled={isDetailLoading}>
+          Chọn
+        </Button>
+        <button
+          type="button"
+          onClick={() => openPlace(place)}
+          aria-label={`Xem chi tiết ${place.name}`}
+          className="p-1 rounded-full text-text-muted hover:text-text-primary hover:bg-surface-muted"
+        >
+          <ChevronRight className="w-4 h-4" />
+        </button>
+      </div>
+    ));
+  };
 
-        {/* Category Filter Chips */}
-        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 no-scrollbar shrink-0">
-          {CATEGORIES.map((cat) => {
-            const Icon = cat.icon;
-            const isActive = activeCategory === cat.value;
-            return (
-              <button
-                key={cat.value}
-                type="button"
-                onClick={() => setActiveCategory(cat.value)}
-                className={`text-xs px-3 py-1.5 rounded-full border transition-all flex items-center gap-1.5 shrink-0 font-medium ${
-                  isActive
-                    ? 'bg-secondary text-white border-secondary shadow-xs'
-                    : 'bg-surface-subtle text-text-muted border-hairline hover:border-gray-300 hover:text-text-primary'
-                }`}
-              >
-                <Icon className="w-3.5 h-3.5" />
-                <span>{cat.label}</span>
-              </button>
-            );
-          })}
-        </div>
+  const renderDetail = () => (
+    <div className="space-y-4">
+      <div className="space-y-1.5">
+        <h4 className="text-title-md text-text-primary">{selectedPlace.name}</h4>
+        <PlaceMeta place={selectedPlace} />
+      </div>
 
-        {/* Places List */}
-        <div className="space-y-2.5 overflow-y-auto pr-1 flex-1 min-h-[220px]">
-          {isLoading ? (
-            <div className="h-48 flex flex-col items-center justify-center gap-2 text-text-muted">
-              <Loader2 className="w-6 h-6 animate-spin text-primary" />
-              <span className="text-xs">Đang tìm kiếm địa điểm lân cận...</span>
-            </div>
-          ) : places.length === 0 ? (
-            <div className="h-48 flex flex-col items-center justify-center gap-2 text-text-muted text-center p-4">
-              <MapPin className="w-8 h-8 text-gray-300" />
-              <p className="text-sm font-medium">Không tìm thấy địa điểm phù hợp</p>
-              <p className="text-xs">Thử tìm kiếm với từ khóa khác hoặc đổi danh mục</p>
-            </div>
+      <div className="space-y-3 p-4 rounded-2xl bg-surface-container-low border border-hairline">
+        <InfoRow icon={MapPin}>
+          {isDetailLoading && !selectedPlace.address ? (
+            <span className="text-text-muted">Đang lấy địa chỉ...</span>
           ) : (
-            places.map((place) => (
-              <div
-                key={place.id || place.placeId}
-                onClick={() => {
-                  onSelectPlace({
-                    name: place.name,
-                    address: place.address,
-                    placeId: place.placeId,
-                    coordinates: {
-                      type: 'Point',
-                      coordinates: place.coordinates || [0, 0],
-                    },
-                  });
-                  onClose();
-                }}
-                className="p-3.5 rounded-2xl border border-hairline hover:border-primary/40 hover:bg-primary/5 transition-all cursor-pointer flex items-start justify-between gap-3 group bg-white shadow-2xs"
-              >
-                <div className="space-y-1 min-w-0 flex-1">
-                  <div className="flex items-center gap-2">
-                    <p className="text-sm font-semibold text-text-primary group-hover:text-primary-dark truncate">
-                      {place.name}
-                    </p>
-                    {place.rating > 0 && (
-                      <span className="inline-flex items-center gap-0.5 text-[11px] font-semibold text-tertiary-dark bg-tertiary-fixed/30 px-1.5 py-0.5 rounded-md border border-tertiary-fixed/50 shrink-0">
-                        <Star className="w-3 h-3 fill-tertiary text-tertiary" />
-                        {place.rating}
-                      </span>
-                    )}
-                  </div>
-                  <p className="text-xs text-text-muted line-clamp-1">
-                    {place.address}
-                  </p>
-                  <span className="inline-block text-[10px] font-medium px-2 py-0.5 rounded-full bg-surface-subtle text-text-muted capitalize">
-                    {place.placeType?.replace('_', ' ')}
-                  </span>
-                </div>
-
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  className="shrink-0 text-xs font-semibold text-primary p-2 group-hover:bg-primary group-hover:text-white rounded-xl transition-all"
-                >
-                  Chọn
-                </Button>
-              </div>
-            ))
+            selectedPlace.address || <span className="text-text-muted">Chưa có địa chỉ chi tiết, bạn có thể nhập thêm sau khi chọn.</span>
           )}
-        </div>
+        </InfoRow>
+        {selectedPlace.openingHours && <InfoRow icon={Clock}>Giờ mở cửa: {selectedPlace.openingHours}</InfoRow>}
+        {selectedPlace.phone && (
+          <InfoRow icon={Phone}>
+            <a href={`tel:${selectedPlace.phone}`} className="text-primary-dark hover:underline">
+              {selectedPlace.phone}
+            </a>
+          </InfoRow>
+        )}
+        {selectedPlace.website && (
+          <InfoRow icon={Globe}>
+            <a href={selectedPlace.website} target="_blank" rel="noopener noreferrer" className="text-primary-dark hover:underline">
+              {selectedPlace.website}
+            </a>
+          </InfoRow>
+        )}
+      </div>
 
-        {/* Footer */}
-        <div className="pt-2 flex justify-end border-t border-hairline shrink-0">
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={onClose}
-            className="rounded-xl"
+      <div className="flex flex-wrap gap-3 text-xs font-semibold">
+        {selectedPlace.coordinates && (
+          <a
+            href={directionsUrl(selectedPlace.coordinates)}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1 text-primary-dark hover:underline"
           >
-            Đóng
-          </Button>
-        </div>
+            <Navigation className="w-3.5 h-3.5" /> Chỉ đường
+          </a>
+        )}
+        {selectedPlace.osmUrl && (
+          <a
+            href={selectedPlace.osmUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1 text-primary-dark hover:underline"
+          >
+            <ExternalLink className="w-3.5 h-3.5" /> Xem trên OpenStreetMap
+          </a>
+        )}
       </div>
     </div>
+  );
+
+  const footer = selectedPlace ? (
+    <>
+      <Button type="button" variant="ghost" size="sm" onClick={closePlace}>
+        Quay lại
+      </Button>
+      <Button type="button" variant="primary" size="sm" onClick={() => handleSelect(selectedPlace)} isLoading={isDetailLoading}>
+        Chọn địa điểm này
+      </Button>
+    </>
+  ) : (
+    <Button type="button" variant="ghost" size="sm" onClick={onClose}>
+      Đóng
+    </Button>
+  );
+
+  return (
+    <Modal
+      isOpen={isOpen}
+      onClose={onClose}
+      title={selectedPlace ? 'Thông tin địa điểm' : title}
+      maxWidth="max-w-xl"
+      placement="sheet"
+      footer={footer}
+    >
+      {selectedPlace ? (
+        renderDetail()
+      ) : (
+        <div className="space-y-4">
+          <p className="text-xs text-text-muted">Công viên, kids cafe và không gian vui chơi an toàn gần nhà bạn</p>
+
+          <Input
+            placeholder="Tìm theo tên địa điểm hoặc phường..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            leftIcon={<Search className="w-4 h-4 text-text-muted" />}
+            autoFocus
+          />
+
+          <FilterChips
+            options={CATEGORIES}
+            selected={activeCategory}
+            onChange={(value) => setActiveCategory(value || 'all')}
+          />
+
+          <div className="space-y-2.5 min-h-[220px]">{renderList()}</div>
+
+          {/* ODbL attribution required for OpenStreetMap data */}
+          <p className="text-[10px] text-text-muted text-right">Dữ liệu địa điểm © OpenStreetMap contributors</p>
+        </div>
+      )}
+    </Modal>
   );
 };
 

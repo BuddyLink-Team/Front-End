@@ -6,7 +6,7 @@ const mockPlaydate = {
   id: 'playdate-123',
   activity: 'Buổi chơi Lego & Công viên',
   scheduledDate: '2026-10-15T08:00:00.000Z',
-  time: '15:00 - 17:00',
+  time: '15:00',
   location: {
     name: 'Công viên Cầu Ánh Sao',
     address: 'Quận 7, TP. HCM',
@@ -37,12 +37,22 @@ describe('PlaydateCard component', () => {
     expect(screen.getByText(/bạn là người tổ chức/i)).toBeInTheDocument();
   });
 
-  it('renders "Hoàn thành" button when user is host and playdate is upcoming', () => {
+  it('renders "Hoàn thành" for the host only once the start time has passed', () => {
     const handleComplete = vi.fn();
-    renderWithProviders(<PlaydateCard playdate={mockPlaydate} onComplete={handleComplete} />);
+    const started = { ...mockPlaydate, scheduledDate: new Date(Date.now() - 86400000).toISOString() };
+    renderWithProviders(<PlaydateCard playdate={started} onComplete={handleComplete} />);
 
     const completeBtn = screen.getByRole('button', { name: /hoàn thành/i });
     expect(completeBtn).toBeInTheDocument();
+  });
+
+  it('hides "Hoàn thành" before the start time', () => {
+    const later = { ...mockPlaydate, scheduledDate: new Date(Date.now() + 2 * 86400000).toISOString() };
+    renderWithProviders(<PlaydateCard playdate={later} />);
+
+    expect(screen.queryByRole('button', { name: /^hoàn thành$/i })).not.toBeInTheDocument();
+    // The single start time is shown, never a range
+    expect(screen.getByText(/15:00 •/)).toBeInTheDocument();
   });
 
   it('renders completed status and hides complete button when playdate is completed', () => {

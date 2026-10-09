@@ -62,6 +62,11 @@ export const playdateApi = {
    */
   getNearbyPlaces: (params = {}) =>
     apiClient.get(API_ENDPOINTS.PLACES.NEARBY, { params }),
+
+  /**
+   * Place details (address resolved, opening hours, contact, OpenStreetMap link)
+   */
+  getPlaceById: (id) => apiClient.get(`${API_ENDPOINTS.PLACES.BASE}/${id}`),
 };
 
 export default playdateApi;

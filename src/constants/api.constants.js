@@ -36,6 +36,7 @@ export const API_ENDPOINTS = {
     BASE: '/playdates',
   },
   PLACES: {
+    BASE: '/places',
     NEARBY: '/places/nearby',
   },
   CHAT: {

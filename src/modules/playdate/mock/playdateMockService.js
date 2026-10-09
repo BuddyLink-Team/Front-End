@@ -1,3 +1,4 @@
+import { getPlaydateStart, hasPlaydateStarted } from '../utils/playdateTime';
 import {
   MOCK_CURRENT_PARENT,
   MOCK_HOST_CHILDREN,
@@ -158,22 +159,56 @@ class PlaydateMockService {
   }
 
   /**
+   * Reject like the real API: { message, error: { code } } with an HTTP status
+   */
+  _fail(code, message, status = 400) {
+    const err = new Error(message);
+    err.response = { status, data: { success: false, message, error: { code } } };
+    throw err;
+  }
+
+  _findIndexOrFail(playdates, id) {
+    const idx = playdates.findIndex((p) => (p.id || p._id) === id);
+    if (idx === -1) this._fail('PLAYDATE_NOT_FOUND', 'Playdate not found', 404);
+    return idx;
+  }
+
+  _assertUpcoming(playdate) {
+    if (playdate.status === 'completed') this._fail('ALREADY_COMPLETED', 'Playdate already completed');
+    if (playdate.status === 'cancelled') this._fail('ALREADY_CANCELLED', 'Playdate already cancelled');
+  }
+
+  // Cancel a pending reschedule when the playdate is closed (same as the API)
+  _cancelPendingReschedule(playdateId) {
+    const reschedules = this._getStoredReschedules();
+    if (reschedules[playdateId]?.status === 'pending') {
+      reschedules[playdateId] = { ...reschedules[playdateId], status: 'cancelled', resolvedAt: new Date().toISOString() };
+      this._saveStoredReschedules(reschedules);
+    }
+  }
+
+  // Same fields as RescheduleResponseDTO.toResponse(request, currentParentId)
+  _toRescheduleResponse(request) {
+    if (!request) return null;
+    const myResponse = (request.responses || []).find((r) => r.parentId === MOCK_CURRENT_PARENT.id);
+    return {
+      ...request,
+      isRequester: request.requestedBy?.id === MOCK_CURRENT_PARENT.id,
+      myVote: myResponse ? myResponse.status : null,
+    };
+  }
+
+  /**
    * GET /api/v1/playdates/:id (Single playdate details)
    */
   async getPlaydateById(id) {
     await delay();
     const playdates = this._getStoredPlaydates();
-    const found = playdates.find((p) => (p.id || p._id) === id);
-
-    if (!found) {
-      const err = new Error('Không tìm thấy cuộc hẹn chơi');
-      err.response = { data: { message: 'Không tìm thấy cuộc hẹn chơi', error: { code: 'PLAYDATE_NOT_FOUND' } } };
-      throw err;
-    }
+    const found = playdates[this._findIndexOrFail(playdates, id)];
 
     return {
       success: true,
-      message: 'Lấy chi tiết cuộc hẹn thành công',
+      message: 'Playdate retrieved successfully',
       data: found,
     };
   }
@@ -186,26 +221,33 @@ class PlaydateMockService {
     const playdates = this._getStoredPlaydates();
     const newId = `pd-mock-${Date.now()}`;
 
+    // Same past check as the API (calendar date + start of the time slot)
+    if (getPlaydateStart(payload.scheduledDate, payload.time).getTime() <= Date.now()) {
+      this._fail('PLAYDATE_IN_PAST', 'Playdate must start in the future');
+    }
+
     // Resolve host child details
     const selectedChild =
       MOCK_HOST_CHILDREN.find((c) => (c.id || c._id) === payload.hostChildId) ||
       MOCK_HOST_CHILDREN[0];
 
-    // Resolve invited participants details
+    // Only connected friends can be invited
     const formattedParticipants = (payload.participants || []).map((p) => {
       const friend = MOCK_FRIENDS.find((f) => (f.id || f._id) === p.parentId);
-      const child = friend?.children?.find((c) => (c.id || c._id) === p.childId);
+      if (!friend) this._fail('NOT_CONNECTED_FRIEND', 'Participant is not a connected friend');
+      const child = friend.children?.find((c) => (c.id || c._id) === p.childId);
+      if (!child) this._fail('INVALID_PARTICIPANT_CHILD', 'Child does not belong to the invited parent');
       return {
         parentId: p.parentId,
         parent: {
           id: p.parentId,
-          fullName: friend?.fullName || 'Phụ huynh khách',
-          avatarUrl: friend?.avatarUrl || '',
+          fullName: friend.fullName,
+          avatarUrl: friend.avatarUrl || '',
           isVerified: true,
         },
         child: {
           id: p.childId,
-          displayName: child?.displayName || 'Bé khách',
+          displayName: child.displayName,
         },
         status: 'pending',
       };
@@ -220,7 +262,7 @@ class PlaydateMockService {
       location: payload.location,
       note: payload.note || '',
       status: 'upcoming',
-      displayStatus: 'confirmed',
+      displayStatus: formattedParticipants.length > 0 ? 'pending' : 'confirmed',
       isHost: true,
       myParticipantStatus: 'host',
       chatConversationId: `mock-conv-${Date.now()}`,
@@ -229,6 +271,7 @@ class PlaydateMockService {
         fullName: MOCK_CURRENT_PARENT.fullName,
         avatarUrl: MOCK_CURRENT_PARENT.avatarUrl,
         isVerified: true,
+        location: { area: MOCK_CURRENT_PARENT.location?.area, city: MOCK_CURRENT_PARENT.location?.city },
       },
       hostChild: {
         id: selectedChild.id || selectedChild._id,
@@ -244,22 +287,20 @@ class PlaydateMockService {
 
     return {
       success: true,
-      message: 'Khởi tạo cuộc hẹn chơi thành công!',
+      message: 'Playdate created successfully',
       data: newPlaydate,
     };
   }
 
   /**
-   * GET /api/v1/playdates/friends (Invitable connected friends)
+   * GET /api/v1/playdates/friends (Invitable connected friends, array like the API)
    */
   async getFriends() {
     await delay();
     return {
       success: true,
-      message: 'Lấy danh sách bạn bè kết nối thành công',
-      data: {
-        friends: MOCK_FRIENDS,
-      },
+      message: 'Invitable friends retrieved successfully',
+      data: MOCK_FRIENDS,
     };
   }
 
@@ -269,19 +310,27 @@ class PlaydateMockService {
   async completePlaydate(id) {
     await delay();
     const playdates = this._getStoredPlaydates();
-    const idx = playdates.findIndex((p) => (p.id || p._id) === id);
+    const idx = this._findIndexOrFail(playdates, id);
+    const playdate = playdates[idx];
 
-    if (idx === -1) {
-      throw new Error('Không tìm thấy cuộc hẹn');
+    if (!playdate.isHost) this._fail('FORBIDDEN_COMPLETE_PLAYDATE', 'Only the host can complete this playdate', 403);
+    this._assertUpcoming(playdate);
+    if (!hasPlaydateStarted(playdate.scheduledDate, playdate.time)) {
+      this._fail('CANNOT_COMPLETE_YET', 'Playdate can only be completed after it starts');
     }
 
-    playdates[idx].status = 'completed';
-    playdates[idx].displayStatus = 'completed';
+    playdates[idx] = {
+      ...playdate,
+      status: 'completed',
+      displayStatus: 'completed',
+      completedAt: new Date().toISOString(),
+    };
     this._saveStoredPlaydates(playdates);
+    this._cancelPendingReschedule(id);
 
     return {
       success: true,
-      message: 'Đã hoàn thành cuộc hẹn chơi thành công',
+      message: 'Playdate completed successfully',
       data: playdates[idx],
     };
   }
@@ -292,20 +341,28 @@ class PlaydateMockService {
   async cancelPlaydate(id, payload = {}) {
     await delay();
     const playdates = this._getStoredPlaydates();
-    const idx = playdates.findIndex((p) => (p.id || p._id) === id);
+    const idx = this._findIndexOrFail(playdates, id);
+    const playdate = playdates[idx];
 
-    if (idx === -1) {
-      throw new Error('Không tìm thấy cuộc hẹn');
-    }
+    if (!playdate.isHost) this._fail('FORBIDDEN_CANCEL_PLAYDATE', 'Only the host can cancel this playdate', 403);
+    this._assertUpcoming(playdate);
 
-    playdates[idx].status = 'cancelled';
-    playdates[idx].displayStatus = 'cancelled';
-    playdates[idx].cancellationReason = payload.reason || 'Người tổ chức đã hủy cuộc hẹn';
+    playdates[idx] = {
+      ...playdate,
+      status: 'cancelled',
+      displayStatus: 'cancelled',
+      cancellation: {
+        cancelledBy: MOCK_CURRENT_PARENT.id,
+        reason: payload.reason || 'Cancelled by host',
+        cancelledAt: new Date().toISOString(),
+      },
+    };
     this._saveStoredPlaydates(playdates);
+    this._cancelPendingReschedule(id);
 
     return {
       success: true,
-      message: 'Đã hủy cuộc hẹn chơi thành công',
+      message: 'Playdate cancelled successfully',
       data: playdates[idx],
     };
   }
@@ -316,58 +373,86 @@ class PlaydateMockService {
   async respondToPlaydate(id, status) {
     await delay();
     const playdates = this._getStoredPlaydates();
-    const idx = playdates.findIndex((p) => (p.id || p._id) === id);
+    const idx = this._findIndexOrFail(playdates, id);
+    const playdate = playdates[idx];
 
-    if (idx === -1) {
-      throw new Error('Không tìm thấy cuộc hẹn');
-    }
+    if (playdate.isHost) this._fail('HOST_CANNOT_RSVP', 'Host does not need to respond');
+    if (playdate.status === 'cancelled') this._fail('CANNOT_RESPOND_CANCELLED', 'Playdate is cancelled');
+    if (playdate.status === 'completed') this._fail('CANNOT_RESPOND_COMPLETED', 'Playdate is completed');
+    const mine = (playdate.participants || []).find((p) => p.parentId === MOCK_CURRENT_PARENT.id);
+    if (!mine) this._fail('NOT_INVITED', 'You are not invited to this playdate', 403);
+    if (mine.status !== 'pending') this._fail('ALREADY_RESPONDED', 'You already responded to this invitation');
 
-    playdates[idx].myParticipantStatus = status;
-    playdates[idx].displayStatus = status === 'accepted' ? 'confirmed' : 'declined';
-
-    // Update participant record in array
-    if (playdates[idx].participants) {
-      playdates[idx].participants = playdates[idx].participants.map((p) =>
-        p.parentId === MOCK_CURRENT_PARENT.id ? { ...p, status } : p
-      );
-    }
-
+    playdates[idx] = {
+      ...playdate,
+      myParticipantStatus: status,
+      displayStatus: status === 'accepted' ? 'confirmed' : 'cancelled',
+      participants: playdate.participants.map((p) => (p.parentId === MOCK_CURRENT_PARENT.id ? { ...p, status } : p)),
+    };
     this._saveStoredPlaydates(playdates);
+
+    // A parent who accepts while a reschedule is pending becomes a voter too
+    if (status === 'accepted') {
+      const reschedules = this._getStoredReschedules();
+      const pending = reschedules[id];
+      if (pending?.status === 'pending' && !pending.responses.some((r) => r.parentId === MOCK_CURRENT_PARENT.id)) {
+        pending.responses.push({ parentId: MOCK_CURRENT_PARENT.id, status: 'pending' });
+        this._saveStoredReschedules(reschedules);
+      }
+    }
 
     return {
       success: true,
-      message: status === 'accepted' ? 'Đã chấp nhận tham gia cuộc hẹn!' : 'Đã từ chối cuộc hẹn',
+      message: 'Response recorded successfully',
       data: playdates[idx],
     };
   }
 
   /**
-   * GET /api/v1/playdates/:id/reschedule (Active reschedule request)
+   * GET /api/v1/playdates/:id/reschedule (Latest reschedule request)
    */
   async getReschedule(id) {
     await delay();
     const reschedules = this._getStoredReschedules();
     return {
       success: true,
-      message: 'Thành công',
-      data: reschedules[id] || null,
+      message: 'Reschedule request retrieved successfully',
+      data: this._toRescheduleResponse(reschedules[id]),
     };
   }
 
   /**
-   * POST /api/v1/playdates/:id/reschedule (Propose reschedule)
+   * POST /api/v1/playdates/:id/reschedule (Host proposes a new schedule, PROJECT_OVERVIEW 6.2)
    */
   async createReschedule(id, payload) {
     await delay();
     const reschedules = this._getStoredReschedules();
     const playdates = this._getStoredPlaydates();
-    const pIdx = playdates.findIndex((p) => (p.id || p._id) === id);
+    const idx = this._findIndexOrFail(playdates, id);
+    const playdate = playdates[idx];
+
+    if (!playdate.isHost) this._fail('FORBIDDEN_RESCHEDULE', 'Only the host can propose a reschedule', 403);
+    if (playdate.status !== 'upcoming') {
+      this._fail('INVALID_PLAYDATE_STATUS_FOR_RESCHEDULE', 'Only upcoming playdates can be rescheduled');
+    }
+    const { newLocation } = payload;
+    if (newLocation && (!newLocation.name?.trim() || !newLocation.address?.trim())) {
+      this._fail('INVALID_RESCHEDULE_LOCATION', 'New location needs both a name and an address');
+    }
+    if (getPlaydateStart(payload.newDate, payload.newStartTime).getTime() <= Date.now()) {
+      this._fail('RESCHEDULE_IN_PAST', 'New schedule must be in the future');
+    }
+
+    // Voters are the accepted participants; with none, the new schedule applies at once
+    const voters = (playdate.participants || []).filter((p) => p.status === 'accepted');
+    const isAutoApplied = voters.length === 0;
+    const requestId = `resched-mock-${Date.now()}`;
 
     const proposal = {
-      _id: `resched-mock-${Date.now()}`,
-      id: `resched-mock-${Date.now()}`,
+      _id: requestId,
+      id: requestId,
       playdateId: id,
-      status: 'pending',
+      status: isAutoApplied ? 'accepted' : 'pending',
       requestedBy: {
         id: MOCK_CURRENT_PARENT.id,
         fullName: MOCK_CURRENT_PARENT.fullName,
@@ -375,66 +460,71 @@ class PlaydateMockService {
       reason: payload.reason,
       newDate: payload.newDate,
       newStartTime: payload.newStartTime,
-      newLocation: payload.newLocation || { name: 'Địa điểm mới', address: '' },
-      responses: [
-        {
-          parentId: 'parent-friend-1',
-          status: 'pending',
-        },
-      ],
+      newLocation: newLocation || null,
+      responses: voters.map((v) => ({ parentId: v.parentId, status: 'pending' })),
       createdAt: new Date().toISOString(),
+      resolvedAt: isAutoApplied ? new Date().toISOString() : null,
     };
 
+    if (isAutoApplied) {
+      playdates[idx] = this._applySchedule(playdate, proposal);
+      this._saveStoredPlaydates(playdates);
+    }
+    // A new proposal replaces the previous pending one
     reschedules[id] = proposal;
     this._saveStoredReschedules(reschedules);
 
     return {
       success: true,
-      message: 'Đã gửi đề xuất dời lịch thành công!',
+      message: isAutoApplied ? 'Playdate rescheduled successfully' : 'Reschedule request created successfully',
       data: {
-        rescheduleRequest: proposal,
-        isAutoApplied: false,
-        playdate: pIdx !== -1 ? playdates[pIdx] : null,
+        rescheduleRequest: this._toRescheduleResponse(proposal),
+        isAutoApplied,
+        playdate: playdates[idx],
       },
     };
   }
 
+  _applySchedule(playdate, proposal) {
+    return {
+      ...playdate,
+      scheduledDate: proposal.newDate,
+      time: proposal.newStartTime,
+      ...(proposal.newLocation?.name ? { location: proposal.newLocation } : {}),
+    };
+  }
+
   /**
-   * PUT /api/v1/playdates/:id/reschedule/vote (Vote on reschedule request)
+   * PUT /api/v1/playdates/:id/reschedule/vote (Accepted participants vote; all must agree)
    */
   async voteReschedule(id, payload) {
     await delay();
     const reschedules = this._getStoredReschedules();
     const playdates = this._getStoredPlaydates();
+    const idx = this._findIndexOrFail(playdates, id);
 
     const proposal = reschedules[id];
-    if (!proposal) {
-      throw new Error('Không tìm thấy yêu cầu dời lịch');
+    if (!proposal || proposal.status !== 'pending' || (payload.requestId && payload.requestId !== proposal.id)) {
+      this._fail('RESCHEDULE_NOT_FOUND', 'No pending reschedule request found', 404);
     }
+    const myResponse = proposal.responses.find((r) => r.parentId === MOCK_CURRENT_PARENT.id);
+    if (!myResponse) this._fail('NOT_AUTHORIZED_TO_VOTE', 'You are not allowed to vote on this request', 403);
+    if (myResponse.status !== 'pending') this._fail('ALREADY_VOTED', 'You already voted on this request');
 
     const { status } = payload; // 'accepted' | 'declined'
+    proposal.responses = proposal.responses.map((r) =>
+      r.parentId === MOCK_CURRENT_PARENT.id ? { ...r, status, respondedAt: new Date().toISOString() } : r,
+    );
 
-    // Update vote response
-    if (proposal.responses) {
-      proposal.responses = proposal.responses.map((r) =>
-        r.parentId === MOCK_CURRENT_PARENT.id ? { ...r, status } : r
-      );
-    }
-
-    const pIdx = playdates.findIndex((p) => (p.id || p._id) === id);
-
-    if (status === 'accepted') {
-      if (pIdx !== -1) {
-        playdates[pIdx].scheduledDate = proposal.newDate;
-        playdates[pIdx].time = proposal.newStartTime;
-        if (proposal.newLocation?.name) {
-          playdates[pIdx].location = proposal.newLocation;
-        }
-        this._saveStoredPlaydates(playdates);
-      }
-      proposal.status = 'accepted';
-    } else {
+    if (status === 'declined') {
+      // One decline keeps the old schedule
       proposal.status = 'declined';
+      proposal.resolvedAt = new Date().toISOString();
+    } else if (proposal.responses.every((r) => r.status === 'accepted')) {
+      playdates[idx] = this._applySchedule(playdates[idx], proposal);
+      this._saveStoredPlaydates(playdates);
+      proposal.status = 'accepted';
+      proposal.resolvedAt = new Date().toISOString();
     }
 
     reschedules[id] = proposal;
@@ -442,10 +532,10 @@ class PlaydateMockService {
 
     return {
       success: true,
-      message: status === 'accepted' ? 'Đã đồng ý lịch mới!' : 'Đã từ chối đề xuất dời lịch',
+      message: 'Vote recorded successfully',
       data: {
-        rescheduleRequest: proposal,
-        playdate: pIdx !== -1 ? playdates[pIdx] : null,
+        rescheduleRequest: this._toRescheduleResponse(proposal),
+        playdate: playdates[idx],
       },
     };
   }
@@ -473,9 +563,19 @@ class PlaydateMockService {
 
     return {
       success: true,
-      message: 'Lấy danh sách địa điểm thành công',
-      data: list,
+      message: 'Nearby places retrieved successfully',
+      data: list.sort((a, b) => a.distanceMeters - b.distanceMeters),
     };
+  }
+
+  /**
+   * GET /api/v1/places/:id (Place details)
+   */
+  async getPlaceById(id) {
+    await delay();
+    const place = MOCK_NEARBY_PLACES.find((p) => p.id === id);
+    if (!place) this._fail('PLACE_NOT_FOUND', 'Place not found', 404);
+    return { success: true, message: 'Place retrieved successfully', data: place };
   }
 
   /**

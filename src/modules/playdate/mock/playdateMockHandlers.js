@@ -76,11 +76,18 @@ export const playdateMockHandlers = [
     handler: ({ body }) => playdateMockService.createPlaydate(body),
   },
 
-  // 11. Nearby child-friendly venues adapter
+  // 11. Nearby child-friendly venues adapter (before :id)
   {
     method: 'GET',
     pattern: API_ENDPOINTS.PLACES.NEARBY,
     handler: ({ query }) => playdateMockService.getNearbyPlaces(query),
+  },
+
+  // 11b. Place details
+  {
+    method: 'GET',
+    pattern: `${API_ENDPOINTS.PLACES.BASE}/:id`,
+    handler: ({ params }) => playdateMockService.getPlaceById(params.id),
   },
 
   // 12. Host children list (for Create Playdate page child selection)

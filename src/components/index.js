@@ -26,6 +26,10 @@ export { Card } from './cards/Card';
 export { StatCard } from './cards/StatCard';
 export { EmptyState } from './cards/EmptyState';
 
+// Form Layout
+export { FormPageHeader } from './form/FormPageHeader';
+export { FormSection } from './form/FormSection';
+
 // Feedback & Interaction
 export { Modal } from './feedback/Modal';
 export { ConfirmDialog } from './feedback/ConfirmDialog';

@@ -1,34 +1,38 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import toast from 'react-hot-toast';
-import { childApi } from '../../child/api/childApi';
-import { playdateApi } from '../api/playdateApi';
+import { useToast } from '../../../hooks/useToast';
+import { fetchMyChildren } from '../../child/redux/childSlice';
+import { fetchInvitableFriends, createPlaydate } from '../redux/playdateSlice';
+import { useSubscriptionQuota } from '../../subscription/hooks/useSubscriptionQuota';
 import { createPlaydateSchema } from '../validation/playdateValidation';
 import { getLocalDateString } from '../../../utils/formatters';
-import { getApiErrorMsg } from '../../../utils/errorUtils';
-import { PLAYDATE_ERROR_MAP } from '../../../constants/playdate.constants';
+import { getApiErrorMsg, getErrorCode } from '../../../utils/errorUtils';
+import { PLAYDATE_ERROR_CODES, PLAYDATE_ERROR_MAP } from '../constants/playdateConstants';
 
+/**
+ * Create playdate form: host child, invited friends (connected parents only), date, time and place.
+ * API calls live in the child / playdate slice thunks.
+ */
 export const useCreatePlaydate = () => {
   const navigate = useNavigate();
-  const { user, parent } = useSelector((state) => state.auth || {});
+  const dispatch = useDispatch();
+  const toast = useToast();
+  const myChildren = useSelector((state) => state.child.children);
+  const friends = useSelector((state) => state.playdate.friends);
+  const isSubmitting = useSelector((state) => state.playdate.isActionLoading);
 
-  // Check subscription tier: Premium has unlimited playdates
-  const isPremium = Boolean(
-    user?.isPremium ||
-    user?.subscriptionTier === 'premium' ||
-    parent?.isPremium ||
-    parent?.planCode === 'premium'
-  );
+  // Premium has unlimited playdates per month (-1 = unlimited)
+  const { limits } = useSubscriptionQuota();
+  const isPremium = limits.playdatesCreatedPerMonth === -1;
+  // Free plan default until the quota is loaded
+  const playdateLimit = limits.playdatesCreatedPerMonth ?? 3;
 
-  const [myChildren, setMyChildren] = useState([]);
-  const [friends, setFriends] = useState([]);
   const [selectedFriends, setSelectedFriends] = useState([]);
   const [locationCoordinates, setLocationCoordinates] = useState(null);
   const [isLoadingInitialData, setIsLoadingInitialData] = useState(true);
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const [showNearbyModal, setShowNearbyModal] = useState(false);
   const [quotaExceededModal, setQuotaExceededModal] = useState(false);
 
@@ -67,36 +71,21 @@ export const useCreatePlaydate = () => {
 
     const fetchInitialData = async () => {
       setIsLoadingInitialData(true);
-      try {
-        const [childrenRes, friendsRes] = await Promise.allSettled([
-          childApi.getMyChildren(),
-          playdateApi.getFriends(),
-        ]);
+      const [childrenRes, friendsRes] = await Promise.allSettled([
+        dispatch(fetchMyChildren()).unwrap(),
+        dispatch(fetchInvitableFriends()).unwrap(),
+      ]);
+      if (!isMounted) return;
 
-        if (isMounted) {
-          if (childrenRes.status === 'fulfilled' && childrenRes.value?.data) {
-            const list = Array.isArray(childrenRes.value.data)
-              ? childrenRes.value.data
-              : childrenRes.value.data.children || [];
-            setMyChildren(list);
-            if (list.length > 0) {
-              const defaultChildId = (list[0]._id || list[0].id)?.toString();
-              setValue('hostChildId', defaultChildId);
-            }
-          }
-
-          if (friendsRes.status === 'fulfilled' && friendsRes.value?.data) {
-            const list = Array.isArray(friendsRes.value.data)
-              ? friendsRes.value.data
-              : friendsRes.value.data.friends || [];
-            setFriends(list);
-          }
-        }
-      } catch (err) {
-        toast.error('Không thể tải dữ liệu ban đầu. Vui lòng thử lại sau.');
-      } finally {
-        if (isMounted) setIsLoadingInitialData(false);
+      if (childrenRes.status === 'fulfilled') {
+        const list = Array.isArray(childrenRes.value) ? childrenRes.value : childrenRes.value?.children || [];
+        if (list.length > 0) setValue('hostChildId', (list[0]._id || list[0].id)?.toString());
       }
+      if (childrenRes.status === 'rejected' || friendsRes.status === 'rejected') {
+        const failed = childrenRes.status === 'rejected' ? childrenRes.reason : friendsRes.reason;
+        toast.error(getApiErrorMsg(PLAYDATE_ERROR_MAP, failed, 'Không thể tải dữ liệu ban đầu. Vui lòng thử lại sau.'));
+      }
+      setIsLoadingInitialData(false);
     };
 
     fetchInitialData();
@@ -104,7 +93,7 @@ export const useCreatePlaydate = () => {
     return () => {
       isMounted = false;
     };
-  }, [setValue]);
+  }, [dispatch, setValue, toast]);
 
   // Friend participant toggling
   const handleToggleFriend = useCallback((friend, child) => {
@@ -144,51 +133,42 @@ export const useCreatePlaydate = () => {
     if (place.coordinates) {
       setLocationCoordinates(place.coordinates);
     }
-    toast.success(`Đã chọn địa điểm: ${place.name}`);
   }, [setValue]);
 
   const onSubmitForm = async (formData) => {
-    setIsSubmitting(true);
-    try {
-      const payload = {
-        hostChildId: formData.hostChildId,
-        scheduledDate: new Date(formData.scheduledDate).toISOString(),
-        time: formData.time,
-        activity: formData.activity,
-        location: {
-          name: formData.locationName,
-          address: formData.locationAddress,
-          coordinates: locationCoordinates || undefined,
-        },
-        participants: selectedFriends.map((f) => ({
-          parentId: f.parentId,
-          childId: f.childId,
-        })),
-        note: formData.note || '',
-      };
+    const payload = {
+      hostChildId: formData.hostChildId,
+      scheduledDate: new Date(formData.scheduledDate).toISOString(),
+      time: formData.time,
+      activity: formData.activity,
+      location: {
+        name: formData.locationName,
+        address: formData.locationAddress,
+        coordinates: locationCoordinates || undefined,
+      },
+      participants: selectedFriends.map((f) => ({
+        parentId: f.parentId,
+        childId: f.childId,
+      })),
+      note: formData.note || '',
+    };
 
-      await playdateApi.createPlaydate(payload);
-      toast.success('Khởi tạo cuộc hẹn chơi thành công! Lời mời đã được gửi tới bạn bè.');
+    try {
+      await dispatch(createPlaydate(payload)).unwrap();
+      toast.success('Đã tạo buổi hẹn chơi! Lời mời đã được gửi tới bạn bè.');
       navigate('/playdates');
     } catch (err) {
-      const errorCode = err.response?.data?.error?.code || err.response?.data?.message;
-      if (errorCode === 'QUOTA_EXCEEDED') {
+      if (getErrorCode(err) === PLAYDATE_ERROR_CODES.QUOTA_EXCEEDED) {
         setQuotaExceededModal(true);
-      } else {
-        const errorMsg = getApiErrorMsg(
-          PLAYDATE_ERROR_MAP,
-          err,
-          'Có lỗi xảy ra khi tạo cuộc hẹn chơi. Vui lòng kiểm tra lại.'
-        );
-        toast.error(errorMsg);
+        return;
       }
-    } finally {
-      setIsSubmitting(false);
+      toast.error(getApiErrorMsg(PLAYDATE_ERROR_MAP, err, 'Có lỗi xảy ra khi tạo cuộc hẹn chơi. Vui lòng kiểm tra lại.'));
     }
   };
 
   return {
     isPremium,
+    playdateLimit,
     todayStr,
     myChildren,
     friends,

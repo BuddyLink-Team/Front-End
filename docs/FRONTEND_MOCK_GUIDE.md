@@ -35,7 +35,7 @@ npm run dev:mock
 ### Cơ chế hoạt động:
 - Lệnh trên kích hoạt `vite --mode mock`.
 - Vite nạp biến môi trường từ `.env.mock` (`VITE_USE_MOCK=true`).
-- Tại file khởi chạy ứng dụng [src/main.jsx](file:///d:/buddy-ssh/Front-End/src/main.jsx), engine mock sẽ được kích hoạt ngay trước khi React render:
+- Tại file khởi chạy ứng dụng [src/main.jsx](../src/main.jsx), engine mock sẽ được kích hoạt ngay trước khi React render:
 
 ```javascript
 // src/main.jsx
@@ -173,7 +173,7 @@ export default chatMockHandlers;
 
 ### Bước 3: Đăng ký Handler vào Central Mock Server Engine
 
-Mở file [src/mock/index.js](file:///d:/buddy-ssh/Front-End/src/mock/index.js) và thêm bộ handlers của bạn vào mảng `mockHandlers`:
+Mở file [src/mock/index.js](../src/mock/index.js) và thêm bộ handlers của bạn vào mảng `mockHandlers`:
 
 ```javascript
 // src/mock/index.js
@@ -188,13 +188,13 @@ const mockHandlers = [
 
 **Xong!** Ngay lập tức:
 - Khi code của bạn gọi `chatApi.getConversations()` (vốn chỉ là gọi `apiClient.get(...)`), Axios Adapter sẽ tự động chặn request và trả về mock data từ `chatMockService`.
-- File [chatApi.js](file:///d:/buddy-ssh/Front-End/src/modules/chat/api/chatApi.js) của bạn giữ nguyên 100% code sạch (Pure Axios Calls)!
+- File [chatApi.js](../src/modules/chat/api/chatApi.js) của bạn giữ nguyên 100% code sạch (Pure Axios Calls)!
 
 ---
 
 ## 🛡️ 5. Bằng chứng: Mã API Chức năng hoàn toàn sạch (100% Pure Code)
 
-Xem ví dụ thực tế tại [src/modules/playdate/api/playdateApi.js](file:///d:/buddy-ssh/Front-End/src/modules/playdate/api/playdateApi.js):
+Xem ví dụ thực tế tại [src/modules/playdate/api/playdateApi.js](../src/modules/playdate/api/playdateApi.js):
 
 ```javascript
 // src/modules/playdate/api/playdateApi.js
@@ -219,7 +219,7 @@ export const playdateApi = {
 export default playdateApi;
 ```
 
-Tương tự, [src/modules/child/api/childApi.js](file:///d:/buddy-ssh/Front-End/src/modules/child/api/childApi.js) cũng hoàn toàn không cần biết mock là gì:
+Tương tự, [src/modules/child/api/childApi.js](../src/modules/child/api/childApi.js) cũng hoàn toàn không cần biết mock là gì:
 
 ```javascript
 // src/modules/child/api/childApi.js
@@ -241,7 +241,7 @@ export default childApi;
 
 Các trang trong dự án thường được bọc bởi `ProtectedRoute`. Để dev có thể truy cập thẳng vào trang tính năng mà không bị điều hướng ngược về `/login`:
 
-- [src/mock/index.js](file:///d:/buddy-ssh/Front-End/src/mock/index.js) tự động kiểm tra `localStorage`.
+- [src/mock/index.js](../src/mock/index.js) tự động kiểm tra `localStorage`.
 - Nếu chưa có token, engine sẽ tự động seed các thông tin mẫu:
   - `ACCESS_TOKEN`: `'mock-jwt-token-playdates'`
   - `USER_INFO`: Tài khoản người dùng mẫu có quyền truy cập và cờ `isPremium: true`.
@@ -252,9 +252,9 @@ Các trang trong dự án thường được bọc bởi `ProtectedRoute`. Để
 ## 🧪 7. Kiểm thử Tự động (Unit Tests)
 
 Dự án có sẵn kiểm thử tự động cho hệ thống Centralized Mock Engine:
-- Kiểm thử tích hợp adapter: [src/test/unit/mockAdapter.test.js](file:///d:/buddy-ssh/Front-End/src/test/unit/mockAdapter.test.js)
+- Kiểm thử tích hợp adapter: [src/test/unit/mockAdapter.test.js](../src/test/unit/mockAdapter.test.js)
   - Xác minh rằng khi gọi `playdateApi` hoặc `childApi` thực tế, request được chặn và xử lý bởi mock engine một cách trong suốt.
-- Kiểm thử logic dịch vụ: [src/test/unit/playdateMockService.test.js](file:///d:/buddy-ssh/Front-End/src/test/unit/playdateMockService.test.js)
+- Kiểm thử logic dịch vụ: [src/test/unit/playdateMockService.test.js](../src/test/unit/playdateMockService.test.js)
 
 Chạy kiểm thử:
 ```bash
@@ -278,9 +278,9 @@ npx vitest run
 
 ## 🌟 9. Tham chiếu Triển khai Mẫu
 
-- **Central Mock Server Engine**: [src/mock/index.js](file:///d:/buddy-ssh/Front-End/src/mock/index.js)
-- **Feature Mock Handlers**: [src/modules/playdate/mock/playdateMockHandlers.js](file:///d:/buddy-ssh/Front-End/src/modules/playdate/mock/playdateMockHandlers.js)
-- **Feature Mock Service**: [src/modules/playdate/mock/playdateMockService.js](file:///d:/buddy-ssh/Front-End/src/modules/playdate/mock/playdateMockService.js)
-- **Feature Mock Data**: [src/modules/playdate/mock/playdateMockData.js](file:///d:/buddy-ssh/Front-End/src/modules/playdate/mock/playdateMockData.js)
-- **Pure Production API**: [src/modules/playdate/api/playdateApi.js](file:///d:/buddy-ssh/Front-End/src/modules/playdate/api/playdateApi.js) & [src/modules/child/api/childApi.js](file:///d:/buddy-ssh/Front-End/src/modules/child/api/childApi.js)
-- **Integration Test**: [src/test/unit/mockAdapter.test.js](file:///d:/buddy-ssh/Front-End/src/test/unit/mockAdapter.test.js)
+- **Central Mock Server Engine**: [src/mock/index.js](../src/mock/index.js)
+- **Feature Mock Handlers**: [src/modules/playdate/mock/playdateMockHandlers.js](../src/modules/playdate/mock/playdateMockHandlers.js)
+- **Feature Mock Service**: [src/modules/playdate/mock/playdateMockService.js](../src/modules/playdate/mock/playdateMockService.js)
+- **Feature Mock Data**: [src/modules/playdate/mock/playdateMockData.js](../src/modules/playdate/mock/playdateMockData.js)
+- **Pure Production API**: [src/modules/playdate/api/playdateApi.js](../src/modules/playdate/api/playdateApi.js) & [src/modules/child/api/childApi.js](../src/modules/child/api/childApi.js)
+- **Integration Test**: [src/test/unit/mockAdapter.test.js](../src/test/unit/mockAdapter.test.js)

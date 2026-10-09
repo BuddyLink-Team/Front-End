@@ -30,8 +30,8 @@ export const PlaydateFilterTabs = ({
             className={cn(
               'flex items-center gap-2 px-3.5 py-1.5 md:px-4 md:py-2 rounded-full text-xs md:text-sm font-medium transition-all duration-150 select-none whitespace-nowrap',
               isActive
-                ? 'bg-primary text-white shadow-xs font-semibold'
-                : 'text-text-muted hover:text-text-primary hover:bg-white/60'
+                ? 'bg-primary text-primary-on-primary shadow-xs font-semibold'
+                : 'text-text-muted hover:text-text-primary hover:bg-surface-container-lowest'
             )}
           >
             <span>{tab.label}</span>
@@ -40,8 +40,8 @@ export const PlaydateFilterTabs = ({
                 className={cn(
                   'text-[10px] md:text-xs px-2 py-0.5 rounded-full font-semibold',
                   isActive
-                    ? 'bg-white/20 text-white'
-                    : 'bg-white text-text-muted border border-hairline'
+                    ? 'bg-primary-on-primary/20 text-primary-on-primary'
+                    : 'bg-surface-container-lowest text-text-muted border border-hairline'
                 )}
               >
                 {tab.count}

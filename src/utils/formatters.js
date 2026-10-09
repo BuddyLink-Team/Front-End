@@ -49,7 +49,7 @@ export const removeAccents = (str) =>
  * @param {string} [format='DD/MM/YYYY'] - Target date format.
  * @returns {string} Formatted date string or empty string if falsy.
  */
-export const formatDate = (date, format = 'DD/MM/YYYY') => {
+export const formatDate = (date) => {
   if (!date) return '';
   const d = new Date(date);
   return d.toLocaleDateString('vi-VN');

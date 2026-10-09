@@ -1,153 +1,111 @@
 import { useEffect, useCallback, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import toast from 'react-hot-toast';
-import playdateApi from '../api/playdateApi';
+import { useToast } from '../../../hooks/useToast';
+import { getApiErrorMsg } from '../../../utils/errorUtils';
 import {
-  setPlaydates,
-  setCounts,
+  fetchPlaydates as fetchPlaydatesThunk,
+  completePlaydate,
+  cancelPlaydate,
   setActiveTab,
   setViewMode,
   setSearchQuery,
-  setLoading,
-  setError,
-  markPlaydateCompleted,
 } from '../redux/playdateSlice';
-import { getApiErrorMsg } from '../../../utils/errorUtils';
+import { PLAYDATE_ERROR_MAP } from '../constants/playdateConstants';
 
-const PLAYDATE_ERROR_MAP = {
-  PARENT_NOT_FOUND: 'Không tìm thấy thông tin phụ huynh.',
-  PLAYDATE_NOT_FOUND: 'Không tìm thấy thông tin buổi hẹn chơi.',
-  FORBIDDEN: 'Chỉ người tổ chức mới có quyền hoàn thành buổi hẹn này.',
-  INVALID_PLAYDATE_STATUS: 'Trạng thái buổi hẹn không hợp lệ để thao tác.',
-};
+const SEARCH_DEBOUNCE_MS = 350;
 
+/**
+ * Playdate list page: tabs, search, view mode, complete / cancel / reschedule entry points.
+ * API calls live in the playdate slice thunks.
+ */
 export const usePlaydate = () => {
   const dispatch = useDispatch();
-  const {
-    items,
-    counts,
-    selectedPlaydate,
-    activeTab,
-    viewMode,
-    searchQuery,
-    isLoading,
-    error,
-  } = useSelector((state) => state.playdate);
+  const toast = useToast();
+  const { items, counts, selectedPlaydate, activeTab, viewMode, searchQuery, isLoading, error } = useSelector(
+    (state) => state.playdate,
+  );
 
   const [completingId, setCompletingId] = useState(null);
   const [confirmCompleteId, setConfirmCompleteId] = useState(null);
   const [debouncedSearch, setDebouncedSearch] = useState(searchQuery);
+  const [reschedulingPlaydate, setReschedulingPlaydate] = useState(null);
+  const [cancellingPlaydate, setCancellingPlaydate] = useState(null);
+  const [isCancelling, setIsCancelling] = useState(false);
 
   // Debounce search query to prevent excessive API requests while typing
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setDebouncedSearch(searchQuery);
-    }, 350);
+    const timer = setTimeout(() => setDebouncedSearch(searchQuery), SEARCH_DEBOUNCE_MS);
     return () => clearTimeout(timer);
   }, [searchQuery]);
 
-  /**
-   * Fetch playdates from API
-   */
   const fetchPlaydates = useCallback(async () => {
-    dispatch(setLoading(true));
-    dispatch(setError(null));
+    const params = {};
+    if (activeTab && activeTab !== 'all') params.status = activeTab;
+    if (debouncedSearch?.trim()) params.search = debouncedSearch.trim();
+
     try {
-      const params = {};
-      if (activeTab && activeTab !== 'all') {
-        params.status = activeTab;
-      }
-      if (debouncedSearch?.trim()) {
-        params.search = debouncedSearch.trim();
-      }
-
-      const response = await playdateApi.getPlaydates(params);
-      const data = response?.data || response;
-
-      if (data?.playdates) {
-        dispatch(setPlaydates(data.playdates));
-      } else if (Array.isArray(data)) {
-        dispatch(setPlaydates(data));
-      }
-
-      if (data?.counts) {
-        dispatch(setCounts(data.counts));
-      }
+      await dispatch(fetchPlaydatesThunk(params)).unwrap();
     } catch (err) {
-      const msg = getApiErrorMsg(PLAYDATE_ERROR_MAP, err, 'Không thể tải danh sách cuộc hẹn.');
-      dispatch(setError(msg));
-      toast.error(msg);
-    } finally {
-      dispatch(setLoading(false));
+      toast.error(getApiErrorMsg(PLAYDATE_ERROR_MAP, err, 'Không thể tải danh sách cuộc hẹn.'));
     }
-  }, [activeTab, debouncedSearch, dispatch]);
+  }, [activeTab, debouncedSearch, dispatch, toast]);
 
   useEffect(() => {
     fetchPlaydates();
   }, [fetchPlaydates]);
 
-  /**
-   * Tab switch handler
-   */
-  const handleTabChange = useCallback(
-    (tabId) => {
-      dispatch(setActiveTab(tabId));
-    },
-    [dispatch]
-  );
+  const handleTabChange = useCallback((tabId) => dispatch(setActiveTab(tabId)), [dispatch]);
+  const handleViewModeChange = useCallback((mode) => dispatch(setViewMode(mode)), [dispatch]);
+  const handleSearchChange = useCallback((query) => dispatch(setSearchQuery(query)), [dispatch]);
 
-  /**
-   * View mode toggle handler ('list' | 'calendar')
-   */
-  const handleViewModeChange = useCallback(
-    (mode) => {
-      dispatch(setViewMode(mode));
-    },
-    [dispatch]
-  );
+  const promptCompletePlaydate = useCallback((id) => setConfirmCompleteId(id), []);
+  const closeConfirmModal = useCallback(() => setConfirmCompleteId(null), []);
 
-  /**
-   * Search input handler
-   */
-  const handleSearchChange = useCallback(
-    (query) => {
-      dispatch(setSearchQuery(query));
-    },
-    [dispatch]
-  );
-
-  /**
-   * Prompt confirmation for completing playdate
-   */
-  const promptCompletePlaydate = useCallback((id) => {
-    setConfirmCompleteId(id);
-  }, []);
-
-  const closeConfirmModal = useCallback(() => {
-    setConfirmCompleteId(null);
-  }, []);
-
-  /**
-   * Execute playdate completion
-   */
   const handleCompletePlaydate = useCallback(
     async (id) => {
       setCompletingId(id);
       try {
-        const response = await playdateApi.completePlaydate(id);
-        const updated = response?.data || response;
-        dispatch(markPlaydateCompleted(updated));
+        await dispatch(completePlaydate(id)).unwrap();
         toast.success('Đã hoàn thành buổi hẹn chơi! Bé đã tích lũy thêm chuỗi ngày vui vẻ.');
         setConfirmCompleteId(null);
       } catch (err) {
-        const msg = getApiErrorMsg(PLAYDATE_ERROR_MAP, err, 'Không thể hoàn thành buổi hẹn.');
-        toast.error(msg);
+        toast.error(getApiErrorMsg(PLAYDATE_ERROR_MAP, err, 'Không thể hoàn thành buổi hẹn.'));
       } finally {
         setCompletingId(null);
       }
     },
-    [dispatch]
+    [dispatch, toast],
   );
+
+  // Header shortcut: reschedule the next upcoming playdate the parent hosts (only hosts may reschedule)
+  const handleTopRescheduleClick = useCallback(() => {
+    const nextHosted = items.find((p) => p.status === 'upcoming' && p.isHost);
+    if (nextHosted) {
+      setReschedulingPlaydate(nextHosted);
+    } else {
+      toast.toast('Bạn chưa tổ chức cuộc hẹn sắp tới nào để dời lịch.');
+    }
+  }, [items, toast]);
+
+  const handleConfirmCancel = useCallback(async () => {
+    if (!cancellingPlaydate) return;
+    setIsCancelling(true);
+    try {
+      await dispatch(cancelPlaydate({ id: cancellingPlaydate.id, reason: 'Hủy bởi phụ huynh tổ chức' })).unwrap();
+      toast.success('Đã hủy cuộc hẹn chơi thành công.');
+      setCancellingPlaydate(null);
+      fetchPlaydates();
+    } catch (err) {
+      toast.error(getApiErrorMsg(PLAYDATE_ERROR_MAP, err, 'Không thể hủy cuộc hẹn. Vui lòng thử lại sau.'));
+    } finally {
+      setIsCancelling(false);
+    }
+  }, [cancellingPlaydate, dispatch, fetchPlaydates, toast]);
+
+  const handleRescheduleSuccess = useCallback(() => {
+    setReschedulingPlaydate(null);
+    fetchPlaydates();
+  }, [fetchPlaydates]);
 
   return {
     playdates: items,
@@ -160,6 +118,9 @@ export const usePlaydate = () => {
     error,
     completingId,
     confirmCompleteId,
+    reschedulingPlaydate,
+    cancellingPlaydate,
+    isCancelling,
     fetchPlaydates,
     handleTabChange,
     handleViewModeChange,
@@ -167,6 +128,11 @@ export const usePlaydate = () => {
     promptCompletePlaydate,
     closeConfirmModal,
     handleCompletePlaydate,
+    handleTopRescheduleClick,
+    setReschedulingPlaydate,
+    setCancellingPlaydate,
+    handleConfirmCancel,
+    handleRescheduleSuccess,
   };
 };
 

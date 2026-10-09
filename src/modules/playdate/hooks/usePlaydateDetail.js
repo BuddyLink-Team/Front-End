@@ -1,202 +1,151 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
-import toast from 'react-hot-toast';
-import { playdateApi } from '../api/playdateApi';
-import { markPlaydateCompleted } from '../redux/playdateSlice';
+import { useToast } from '../../../hooks/useToast';
 import { getApiErrorMsg } from '../../../utils/errorUtils';
-import { PLAYDATE_ERROR_MAP } from '../../../constants/playdate.constants';
+import {
+  fetchPlaydateDetail,
+  fetchRescheduleRequest,
+  completePlaydate,
+  cancelPlaydate,
+  respondToPlaydate,
+  voteRescheduleRequest,
+} from '../redux/playdateSlice';
+import { PLAYDATE_ERROR_MAP, RESCHEDULE_STATUS } from '../constants/playdateConstants';
+import { hasPlaydateStarted } from '../utils/playdateTime';
 
+/**
+ * Playdate detail page: RSVP, complete, cancel and the reschedule vote (PROJECT_OVERVIEW 6.2).
+ * API calls live in the playdate slice thunks.
+ */
 export const usePlaydateDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const dispatch = useDispatch();
+  const toast = useToast();
 
-  const { parent } = useSelector((state) => state.auth || {});
+  const {
+    selectedPlaydate: playdate,
+    rescheduleRequest: rescheduleReq,
+    isDetailLoading,
+    isActionLoading,
+  } = useSelector((state) => state.playdate);
+  // Only show the playdate that matches the URL
+  const currentPlaydate = playdate?.id === id ? playdate : null;
 
-  const [playdate, setPlaydate] = useState(null);
-  const [rescheduleReq, setRescheduleReq] = useState(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isActionLoading, setIsActionLoading] = useState(false);
-
-  // Modals state
   const [showCancelModal, setShowCancelModal] = useState(false);
   const [cancelReason, setCancelReason] = useState('');
   const [showRescheduleModal, setShowRescheduleModal] = useState(false);
+  const [hasLoadFailed, setHasLoadFailed] = useState(false);
 
   const fetchDetail = useCallback(async () => {
-    setIsLoading(true);
+    setHasLoadFailed(false);
     try {
-      const [pdRes, reschedRes] = await Promise.allSettled([
-        playdateApi.getPlaydateById(id),
-        playdateApi.getReschedule(id),
-      ]);
-
-      if (pdRes.status === 'fulfilled' && pdRes.value?.data) {
-        setPlaydate(pdRes.value.data);
-      }
-
-      if (reschedRes.status === 'fulfilled' && reschedRes.value?.data) {
-        setRescheduleReq(reschedRes.value.data);
-      } else {
-        setRescheduleReq(null);
-      }
+      await dispatch(fetchPlaydateDetail(id)).unwrap();
     } catch (err) {
-      const msg = getApiErrorMsg(
-        PLAYDATE_ERROR_MAP,
-        err,
-        'Không thể tải thông tin chi tiết buổi hẹn chơi.'
-      );
-      toast.error(msg);
-    } finally {
-      setIsLoading(false);
+      setHasLoadFailed(true);
+      toast.error(getApiErrorMsg(PLAYDATE_ERROR_MAP, err, 'Không thể tải thông tin chi tiết buổi hẹn chơi.'));
+      return;
     }
-  }, [id]);
+    // Having no reschedule request is normal: failures are ignored here
+    dispatch(fetchRescheduleRequest(id));
+  }, [dispatch, id, toast]);
 
   useEffect(() => {
-    if (id) {
-      fetchDetail();
-    }
+    if (id) fetchDetail();
   }, [id, fetchDetail]);
 
-  const isHost = Boolean(playdate?.isHost);
-  const isUpcoming = playdate?.status === 'upcoming';
-  const isCancelled = playdate?.status === 'cancelled';
-  const isCompleted = playdate?.status === 'completed';
+  const isHost = Boolean(currentPlaydate?.isHost);
+  const isUpcoming = currentPlaydate?.status === 'upcoming';
+  const isCancelled = currentPlaydate?.status === 'cancelled';
+  const isCompleted = currentPlaydate?.status === 'completed';
 
-  // Current parent identification
-  const currentParentId =
-    (parent?.id || parent?._id || (playdate?.isHost ? playdate?.hostParent?.id : null))?.toString();
-
-  // Review 3 / Comment 13-14: Correctly check if current user has a pending vote
-  const myPendingVote =
-    rescheduleReq?.status === 'pending' &&
-    rescheduleReq.responses?.find((r) => {
-      const voterId = (r.parentId?._id || r.parentId?.id || r.parentId)?.toString();
-      return voterId === currentParentId && r.status === 'pending';
-    });
-
-  // Review 3 / Comment 15 & Spec 6.2: Only host can propose a reschedule
+  // Section 6.2: only the host proposes; voters are the accepted participants (myVote from the API)
   const canReschedule = isHost && isUpcoming;
+  // Completing is possible only after the start time
+  const canComplete = isHost && isUpcoming && hasPlaydateStarted(currentPlaydate?.scheduledDate, currentPlaydate?.time);
+  const pendingReschedule = rescheduleReq?.status === RESCHEDULE_STATUS.PENDING ? rescheduleReq : null;
+  const myPendingVote = pendingReschedule?.myVote === 'pending';
+  // Latest decided request (accepted / declined), shown so the host learns the outcome
+  const resolvedReschedule =
+    rescheduleReq && [RESCHEDULE_STATUS.ACCEPTED, RESCHEDULE_STATUS.DECLINED].includes(rescheduleReq.status)
+      ? rescheduleReq
+      : null;
 
-  // Actions
-  const handleComplete = async () => {
-    setIsActionLoading(true);
-    try {
-      const response = await playdateApi.completePlaydate(id);
-      const updated = response?.data || response;
-      setPlaydate((prev) => ({
-        ...prev,
-        ...updated,
-        status: 'completed',
-        displayStatus: 'completed',
-      }));
-      dispatch(markPlaydateCompleted(updated));
-      toast.success('Đã xác nhận hoàn thành buổi hẹn chơi thành công!');
-    } catch (err) {
-      const msg = getApiErrorMsg(
-        PLAYDATE_ERROR_MAP,
-        err,
-        'Không thể cập nhật trạng thái hoàn thành.'
-      );
-      toast.error(msg);
-    } finally {
-      setIsActionLoading(false);
-    }
-  };
+  // Group chat members are the host and accepted participants
+  const canOpenGroupChat =
+    Boolean(currentPlaydate?.chatConversationId) && (isHost || currentPlaydate?.myParticipantStatus === 'accepted');
+
+  const runAction = useCallback(
+    async (thunkAction, successMessage, fallbackError) => {
+      try {
+        const result = await dispatch(thunkAction).unwrap();
+        if (successMessage) toast.success(successMessage);
+        return result;
+      } catch (err) {
+        toast.error(getApiErrorMsg(PLAYDATE_ERROR_MAP, err, fallbackError));
+        return null;
+      }
+    },
+    [dispatch, toast],
+  );
+
+  const handleComplete = () =>
+    runAction(completePlaydate(id), 'Đã xác nhận hoàn thành buổi hẹn chơi thành công!', 'Không thể cập nhật trạng thái hoàn thành.');
 
   const handleCancel = async () => {
-    setIsActionLoading(true);
-    try {
-      const response = await playdateApi.cancelPlaydate(id, {
-        reason: cancelReason || 'Hủy bởi người tổ chức',
-      });
-      const updated = response?.data || response;
-      setPlaydate((prev) => ({
-        ...prev,
-        ...updated,
-        status: 'cancelled',
-        displayStatus: 'cancelled',
-      }));
+    const result = await runAction(
+      cancelPlaydate({ id, reason: cancelReason || 'Hủy bởi người tổ chức' }),
+      'Đã hủy buổi hẹn chơi.',
+      'Không thể hủy buổi hẹn chơi.',
+    );
+    if (result) {
       setShowCancelModal(false);
-      toast.success('Đã hủy buổi hẹn chơi.');
-    } catch (err) {
-      const msg = getApiErrorMsg(PLAYDATE_ERROR_MAP, err, 'Không thể hủy buổi hẹn chơi.');
-      toast.error(msg);
-    } finally {
-      setIsActionLoading(false);
+      dispatch(fetchRescheduleRequest(id));
     }
   };
 
   const handleRespond = async (status) => {
-    setIsActionLoading(true);
-    try {
-      const response = await playdateApi.respondToPlaydate(id, status);
-      const updated = response?.data || response;
-      setPlaydate(updated);
-      toast.success(
-        status === 'accepted'
-          ? 'Đã đồng ý tham gia! Cuộc hẹn đã được thêm vào lịch của bạn.'
-          : 'Đã từ chối lời mời tham gia buổi hẹn.'
-      );
-    } catch (err) {
-      const msg = getApiErrorMsg(
-        PLAYDATE_ERROR_MAP,
-        err,
-        'Không thể gửi phản hồi lời mời tham gia.'
-      );
-      toast.error(msg);
-    } finally {
-      setIsActionLoading(false);
-    }
+    const result = await runAction(
+      respondToPlaydate({ id, status }),
+      status === 'accepted'
+        ? 'Đã đồng ý tham gia! Cuộc hẹn đã được thêm vào lịch của bạn.'
+        : 'Đã từ chối lời mời tham gia buổi hẹn.',
+      'Không thể gửi phản hồi lời mời tham gia.',
+    );
+    // Accepting may make the parent a voter of a pending reschedule
+    if (result) dispatch(fetchRescheduleRequest(id));
   };
 
-  const handleVoteReschedule = async (voteStatus) => {
-    setIsActionLoading(true);
-    try {
-      const res = await playdateApi.voteReschedule(id, {
-        status: voteStatus,
-      });
-      const data = res?.data || res;
-      if (data?.playdate) setPlaydate(data.playdate);
-      if (data?.rescheduleRequest) setRescheduleReq(data.rescheduleRequest);
-
-      toast.success(
-        voteStatus === 'accepted'
-          ? 'Bạn đã đồng ý với lịch hẹn mới đề xuất.'
-          : 'Bạn đã từ chối lịch hẹn mới đề xuất.'
-      );
-      fetchDetail();
-    } catch (err) {
-      const msg = getApiErrorMsg(
-        PLAYDATE_ERROR_MAP,
-        err,
-        'Không thể gửi ý kiến bỏ phiếu dời lịch.'
-      );
-      toast.error(msg);
-    } finally {
-      setIsActionLoading(false);
-    }
+  const handleVoteReschedule = (voteStatus) => {
+    if (!pendingReschedule) return null;
+    return runAction(
+      // Vote on the request the parent is looking at, never on a newer one
+      voteRescheduleRequest({ id, requestId: pendingReschedule.id, status: voteStatus }),
+      voteStatus === 'accepted' ? 'Bạn đã đồng ý với lịch hẹn mới đề xuất.' : 'Bạn đã từ chối lịch hẹn mới đề xuất.',
+      'Không thể gửi ý kiến bỏ phiếu dời lịch.',
+    );
   };
 
   const handleRescheduleSuccess = () => {
     setShowRescheduleModal(false);
-    fetchDetail();
   };
 
   return {
     id,
-    playdate,
-    rescheduleReq,
-    isLoading,
+    playdate: currentPlaydate,
+    rescheduleReq: pendingReschedule,
+    resolvedReschedule,
+    isLoading: isDetailLoading || (!currentPlaydate && !hasLoadFailed),
     isActionLoading,
     isHost,
     isUpcoming,
     isCancelled,
     isCompleted,
     canReschedule,
+    canComplete,
+    canOpenGroupChat,
     myPendingVote,
-    currentParentId,
     showCancelModal,
     cancelReason,
     showRescheduleModal,

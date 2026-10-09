@@ -1,17 +1,12 @@
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
-import {
-  Clock,
-  MapPin,
-  CheckCircle2,
-  XCircle,
-  Hourglass,
-  ShieldCheck,
-  Star,
-  Sparkles,
-  X,
-} from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
+import { Clock, MapPin, CheckCircle2, Hourglass, Sparkles, X } from 'lucide-react';
 import { Button } from '../../../components/ui/Button';
+import { StatusChip } from '../../../components/badges/StatusChip';
+import { hasPlaydateStarted } from '../utils/playdateTime';
+import { ACTIVITY_CATEGORY_META, getActivityCategory } from '../../../constants/activity.constants';
+
+const WEEKDAY_SHORT = ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7'];
 
 /**
  * Format datetime display matching Stitch layout:
@@ -26,8 +21,7 @@ const formatPlaydateDateTime = (scheduledDate, time) => {
     const day = String(d.getDate()).padStart(2, '0');
     const month = String(d.getMonth() + 1).padStart(2, '0');
     const datePart = `${weekday}, ${day}/${month}`;
-    const timePart = time ? time.split('-')[0].trim() : '';
-    return timePart ? `${timePart} • ${datePart}` : datePart;
+    return time ? `${time} • ${datePart}` : datePart;
   } catch {
     return `${time || ''} • ${scheduledDate}`;
   }
@@ -65,110 +59,36 @@ export const PlaydateCard = ({
     hostParent,
     hostChild,
     participants = [],
-    imageUrl,
     category,
-    isSafetyMatched = true,
   } = playdate;
 
   const isCompleted = status === 'completed' || displayStatus === 'completed';
   const isCancelled = status === 'cancelled' || displayStatus === 'cancelled';
-  const canComplete = isHost && !isCompleted && !isCancelled;
+  const canManage = Boolean(isHost) && status === 'upcoming';
+  // The host can only mark it completed once the start time has passed
+  const canComplete = canManage && hasPlaydateStarted(scheduledDate, time);
 
-  // Deduce category tag if not set
-  const resolvedCategory = category || (() => {
-    const act = (activity || '').toLowerCase();
-    if (act.includes('ngoại') || act.includes('công viên') || act.includes('thảo cầm viên') || act.includes('picnic')) return 'Dã ngoại';
-    if (act.includes('lego') || act.includes('vẽ') || act.includes('sáng tạo') || act.includes('bánh')) return 'Sáng tạo';
-    if (act.includes('sách') || act.includes('truyện') || act.includes('khoa học') || act.includes('thư viện')) return 'Khám phá';
-    if (act.includes('bóng') || act.includes('bơi') || act.includes('vận động') || act.includes('thể thao')) return 'Vận động';
-    return 'Vui chơi';
-  })();
+  // Category tag: the given label (mock data) or deduced from the activity (shared activity catalog)
+  const categoryMeta =
+    Object.values(ACTIVITY_CATEGORY_META).find((meta) => meta.label === category) ||
+    ACTIVITY_CATEGORY_META[getActivityCategory(activity)];
+  const resolvedCategory = categoryMeta.label;
+  const CategoryIcon = categoryMeta.icon;
 
-  // Deduce image if not set
-  const resolvedImageUrl = imageUrl || (() => {
-    if (resolvedCategory === 'Dã ngoại') return 'https://images.unsplash.com/photo-1472162072942-cd5147eb3902?w=500&auto=format&fit=crop&q=80';
-    if (resolvedCategory === 'Sáng tạo') return 'https://images.unsplash.com/photo-1596461404969-9ae70f2830c1?w=500&auto=format&fit=crop&q=80';
-    if (resolvedCategory === 'Khám phá') return 'https://images.unsplash.com/photo-1503454537195-1dcabb73ffb9?w=500&auto=format&fit=crop&q=80';
-    if (resolvedCategory === 'Vận động') return 'https://images.unsplash.com/photo-1530549387789-4c1017266635?w=500&auto=format&fit=crop&q=80';
-    return 'https://images.unsplash.com/photo-1485546246426-74dc88dec4d9?w=500&auto=format&fit=crop&q=80';
-  })();
-
-  // Category Icon & Badge
-  const renderCategoryOverlay = () => {
-    let icon = '🌲';
-    if (resolvedCategory === 'Sáng tạo') icon = '🎨';
-    else if (resolvedCategory === 'Khám phá') icon = '📖';
-    else if (resolvedCategory === 'Vận động') icon = '🏊';
-    else if (resolvedCategory === 'Vui chơi') icon = '🎈';
-
-    return (
-      <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold text-white bg-black/45 backdrop-blur-md shadow-xs select-none">
-        <span>{icon}</span>
-        <span>{resolvedCategory}</span>
-      </span>
-    );
+  // Days until an upcoming playdate (calendar days in the viewer's time zone)
+  const getCountdownLabel = () => {
+    if (isCompleted || isCancelled || !scheduledDate) return null;
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const target = new Date(scheduledDate);
+    target.setHours(0, 0, 0, 0);
+    const diffDays = Math.round((target - today) / (1000 * 60 * 60 * 24));
+    if (diffDays === 0) return 'Diễn ra hôm nay';
+    if (diffDays === 1) return 'Diễn ra ngày mai';
+    if (diffDays > 1) return `Còn ${diffDays} ngày`;
+    return null;
   };
-
-  // Countdown Pill Badge
-  const renderCountdownBadge = () => {
-    if (isCompleted) {
-      return (
-        <span className="inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-0.5 rounded-full bg-sky-50 text-sky-800 border border-sky-200 whitespace-nowrap">
-          <CheckCircle2 className="w-3.5 h-3.5 text-sky-600" /> Đã hoàn thành
-        </span>
-      );
-    }
-    if (isCancelled) {
-      return (
-        <span className="inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-600 border border-slate-200 whitespace-nowrap">
-          <XCircle className="w-3.5 h-3.5 text-slate-500" /> Đã hủy
-        </span>
-      );
-    }
-    if (displayStatus === 'pending') {
-      return (
-        <span className="inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-0.5 rounded-full bg-amber-50 text-amber-800 border border-amber-200 whitespace-nowrap">
-          <Hourglass className="w-3.5 h-3.5 text-amber-600" /> Chờ phản hồi
-        </span>
-      );
-    }
-
-    if (scheduledDate) {
-      const now = new Date();
-      now.setHours(0, 0, 0, 0);
-      const target = new Date(scheduledDate);
-      target.setHours(0, 0, 0, 0);
-      const diffDays = Math.round((target - now) / (1000 * 60 * 60 * 24));
-
-      if (diffDays === 0) {
-        return (
-          <span className="inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-0.5 rounded-full bg-amber-100/90 text-amber-900 border border-amber-300 whitespace-nowrap">
-            <Hourglass className="w-3.5 h-3.5 text-amber-600" /> Sắp diễn ra hôm nay
-          </span>
-        );
-      }
-      if (diffDays === 1) {
-        return (
-          <span className="inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-0.5 rounded-full bg-amber-100/90 text-amber-900 border border-amber-300 whitespace-nowrap">
-            <Hourglass className="w-3.5 h-3.5 text-amber-600" /> Sắp diễn ra ngày mai
-          </span>
-        );
-      }
-      if (diffDays > 1) {
-        return (
-          <span className="inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-0.5 rounded-full bg-amber-50 text-amber-800 border border-amber-200 whitespace-nowrap">
-            <Hourglass className="w-3.5 h-3.5 text-amber-600" /> Sắp diễn ra sau {diffDays} ngày
-          </span>
-        );
-      }
-    }
-
-    return (
-      <span className="inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200 whitespace-nowrap">
-        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" /> Đã xác nhận
-      </span>
-    );
-  };
+  const countdownLabel = getCountdownLabel();
 
   // Participant Kids & Parents
   const hostChildName = hostChild?.displayName || 'Bé';
@@ -184,123 +104,137 @@ export const PlaydateCard = ({
 
   const formattedDateTime = formatPlaydateDateTime(scheduledDate, time);
 
+  const scheduled = scheduledDate ? new Date(scheduledDate) : null;
+  const dateTile =
+    scheduled && !Number.isNaN(scheduled.getTime())
+      ? {
+          weekday: WEEKDAY_SHORT[scheduled.getDay()],
+          day: String(scheduled.getDate()).padStart(2, '0'),
+          month: String(scheduled.getMonth() + 1).padStart(2, '0'),
+        }
+      : null;
+  // Tile colour follows the status (Design System tokens)
+  const tileClass = isCancelled
+    ? 'bg-surface-container-low border-hairline text-text-muted opacity-70'
+    : isCompleted
+      ? 'bg-surface-container border-secondary-container text-secondary-dark'
+      : displayStatus === 'pending'
+        ? 'bg-tertiary-soft border-tertiary-border text-tertiary-dark'
+        : 'bg-primary-soft border-primary-border text-primary-ink';
+
   return (
-    <div className="bg-white rounded-3xl p-4 sm:p-5 border border-slate-200/80 shadow-xs hover:shadow-md transition-all duration-200 flex flex-col xl:flex-row xl:items-center justify-between gap-4 sm:gap-5 group">
-      {/* Top/Left Section: Image + Details (Always side-by-side on desktop to & nhỏ) */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-5 flex-1 min-w-0">
-        {/* 1. Left Thumbnail with Category Tag */}
-        <div className="relative w-full sm:w-44 md:w-48 h-36 sm:h-32 rounded-2xl overflow-hidden shrink-0 bg-slate-100">
-          <img
-            src={resolvedImageUrl}
-            alt={activity}
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-            loading="lazy"
-          />
-          <div className="absolute top-2.5 left-2.5">
-            {renderCategoryOverlay()}
+    <div className="bg-surface-container-lowest rounded-3xl p-4 sm:p-5 border border-hairline shadow-xs hover:shadow-md transition-shadow duration-200 flex flex-col xl:flex-row xl:items-center justify-between gap-4 sm:gap-5 group">
+      <div className="flex flex-row items-start sm:items-center gap-4 sm:gap-5 flex-1 min-w-0">
+        {/* 1. Calendar tile: weekday, day, month and start time */}
+        {dateTile && (
+          <div
+            className={`w-24 shrink-0 rounded-2xl border flex flex-col items-center justify-center py-3 select-none ${tileClass}`}
+            aria-label={formattedDateTime}
+          >
+            <span className="text-label-sm uppercase tracking-wider">{dateTile.weekday}</span>
+            <span className="text-headline-lg leading-none text-text-primary">{dateTile.day}</span>
+            <span className="text-label-md">Tháng {dateTile.month}</span>
+            {time && (
+              <span className="mt-1.5 inline-flex items-center gap-1 text-xs font-semibold text-text-primary">
+                <Clock className="w-3 h-3" /> {time}
+              </span>
+            )}
           </div>
-        </div>
+        )}
 
-        {/* 2. Middle Main Content */}
+        {/* 2. Main content */}
         <div className="flex-1 min-w-0 space-y-2 w-full">
-          {/* Status badges row */}
           <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
-            {renderCountdownBadge()}
+            <StatusChip status={displayStatus} />
 
-            {/* Confirmed chip (guarantees test expectation) */}
-            {(displayStatus === 'confirmed' || (status === 'upcoming' && isHost)) && !isCompleted && !isCancelled && (
-              <span className="inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200 whitespace-nowrap">
-                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" /> Đã xác nhận
+            <span className="inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-0.5 rounded-full bg-surface-container-low text-text-muted border border-hairline whitespace-nowrap">
+              <CategoryIcon className="w-3.5 h-3.5" /> {resolvedCategory}
+            </span>
+
+            {countdownLabel && (
+              <span className="inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-0.5 rounded-full bg-tertiary-soft text-tertiary-dark border border-tertiary-border whitespace-nowrap">
+                <Hourglass className="w-3.5 h-3.5" /> {countdownLabel}
               </span>
             )}
 
-            {/* Safety match badge matching Stitch */}
-            {isSafetyMatched && (
-              <span className="inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-600 border border-slate-200 whitespace-nowrap">
-                <ShieldCheck className="w-3 h-3 text-emerald-600" /> Đã ghép cặp an toàn
-              </span>
-            )}
-
-            {/* Host indicator chip */}
             {isHost ? (
-              <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-800 bg-emerald-50/80 border border-emerald-200/70 px-2 py-0.5 rounded-full whitespace-nowrap">
-                <Sparkles className="w-2.5 h-2.5 text-emerald-600" /> Bạn là người tổ chức
+              <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-primary-ink bg-primary-soft border border-primary-border px-2 py-0.5 rounded-full whitespace-nowrap">
+                <Sparkles className="w-2.5 h-2.5" /> Bạn là người tổ chức
               </span>
             ) : (
-              <span className="text-xs text-gray-500 whitespace-nowrap">
-                Tổ chức bởi: <strong className="text-gray-700">{hostParentName}</strong>
+              <span className="text-xs text-text-muted whitespace-nowrap">
+                Tổ chức bởi: <strong className="text-text-primary">{hostParentName}</strong>
               </span>
             )}
           </div>
 
-          {/* Title */}
-          <h3
-            onClick={() => navigate(`/playdates/${id}`)}
-            className="text-base sm:text-lg font-bold text-gray-900 tracking-tight line-clamp-1 hover:text-[#2C6E3D] transition-colors cursor-pointer"
-            title={activity}
-          >
-            {activity}
+          <h3 className="text-base sm:text-title-md font-semibold text-text-primary tracking-tight line-clamp-1" title={activity}>
+            <Link to={`/playdates/${id}`} className="hover:text-primary-dark transition-colors">
+              {activity}
+            </Link>
           </h3>
 
-          {/* Time & Location */}
-          <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs sm:text-sm text-gray-600">
-            <div className="flex items-center gap-1.5 font-medium text-gray-800 shrink-0">
-              <Clock className="w-3.5 h-3.5 text-gray-500 shrink-0" />
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs sm:text-sm text-text-muted">
+            <div className="flex items-center gap-1.5 font-medium text-text-primary shrink-0">
+              <Clock className="w-3.5 h-3.5 text-text-muted shrink-0" />
               <span>{formattedDateTime}</span>
             </div>
-
-            <div className="flex items-center gap-1.5 text-gray-600 line-clamp-1" title={`${location?.name || ''} - ${location?.address || ''}`}>
-              <MapPin className="w-3.5 h-3.5 text-gray-400 shrink-0" />
-              <span>
-                <strong className="text-gray-800 font-semibold">{location?.name || location?.address}</strong>
-              </span>
+            <div
+              className="flex items-center gap-1.5 line-clamp-1"
+              title={`${location?.name || ''} - ${location?.address || ''}`}
+            >
+              <MapPin className="w-3.5 h-3.5 shrink-0" />
+              <strong className="text-text-primary font-semibold">{location?.name || location?.address}</strong>
             </div>
           </div>
 
-          {/* Participating Kids & Parents */}
           <div className="flex items-center gap-2 pt-0.5 text-xs sm:text-sm flex-wrap">
             <div className="flex items-center shrink-0">
-              <span className="w-6 h-6 rounded-full bg-[#7BAE7F] text-white font-bold text-[10px] flex items-center justify-center ring-2 ring-white shadow-2xs select-none">
+              <span className="w-6 h-6 rounded-full bg-primary text-primary-on-primary font-semibold text-[10px] flex items-center justify-center ring-2 ring-surface-container-lowest shadow-2xs select-none">
                 {hostShort.slice(0, 3)}
               </span>
               {firstParticipant && (
-                <span className="w-6 h-6 rounded-full bg-[#7DD3FC] text-slate-800 font-bold text-[10px] flex items-center justify-center ring-2 ring-white shadow-2xs -ml-2 select-none">
+                <span className="w-6 h-6 rounded-full bg-secondary text-secondary-on-fixed font-semibold text-[10px] flex items-center justify-center ring-2 ring-surface-container-lowest shadow-2xs -ml-2 select-none">
                   {guestShort.slice(0, 3)}
                 </span>
               )}
             </div>
-
-            <span className="font-semibold text-gray-800">
-              Cặp bé: {hostChildName}{hostChildAge} &amp; {guestChildName}{guestChildAge}
+            <span className="font-semibold text-text-primary">
+              Cặp bé: {hostChildName}
+              {hostChildAge}
+              {firstParticipant && ` & ${guestChildName}${guestChildAge}`}
+              {participants.length > 1 && ` +${participants.length - 1}`}
             </span>
-            <span className="text-gray-500">
-              • {hostParentName} &amp; {guestParentName}
+            <span className="text-text-muted">
+              • {hostParentName}
+              {firstParticipant && ` & ${guestParentName}`}
             </span>
           </div>
         </div>
       </div>
 
-      {/* 3. Action Buttons:
-          - On Desktop To (xl:): Aligned on the right side of the card
-          - On Desktop Nhỏ (< xl): Sits neatly in bottom action bar, right-aligned, preventing center squishing!
-      */}
-      <div className="shrink-0 flex items-center flex-wrap gap-2 justify-end pt-3 xl:pt-0 border-t xl:border-t-0 border-slate-100 w-full xl:w-auto">
-        <button
+      {/* 3. Actions: reschedule / complete / cancel are host-only (PROJECT_OVERVIEW 6.2) */}
+      <div className="shrink-0 flex items-center flex-wrap gap-2 justify-end pt-3 xl:pt-0 border-t xl:border-t-0 border-hairline w-full xl:w-auto">
+        <Button
           type="button"
+          variant="ghost"
+          size="sm"
           onClick={() => navigate(`/playdates/${id}`)}
-          className="text-xs font-semibold text-gray-700 hover:text-[#2C6E3D] px-3.5 py-1.5 rounded-full border border-gray-200 hover:border-[#7BAE7F] hover:bg-[#F2F8F3] transition-all cursor-pointer select-none"
+          className="rounded-full border border-hairline"
         >
           Chi tiết lịch trình
-        </button>
+        </Button>
 
-        {!isCompleted && !isCancelled && (
-          <button
+        {canManage && (
+          <Button
             type="button"
+            variant="secondary"
+            size="sm"
             onClick={() => (onReschedule ? onReschedule(playdate) : navigate(`/playdates/${id}`))}
-            className="text-xs font-semibold bg-[#E0F2FE] text-[#0369A1] hover:bg-[#BAE6FD] px-3.5 py-1.5 rounded-full transition-all cursor-pointer select-none"
+            className="rounded-full"
           >
             Đổi lịch hẹn
-          </button>
+          </Button>
         )}
 
         {canComplete && (
@@ -311,29 +245,19 @@ export const PlaydateCard = ({
             isLoading={isCompleting}
             onClick={() => onComplete?.(id)}
             leftIcon={<CheckCircle2 className="w-3.5 h-3.5" />}
-            className="rounded-full px-3.5 py-1.5 text-xs font-semibold shadow-2xs"
+            className="rounded-full"
           >
             Hoàn thành
           </Button>
         )}
 
-        {isCompleted && (
-          <button
-            type="button"
-            onClick={() => navigate(`/playdates/${id}`)}
-            className="flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-semibold bg-[#FDECC8] text-[#8C5E14] hover:bg-[#F9DFAC] rounded-full transition-all cursor-pointer"
-          >
-            <Star className="w-3.5 h-3.5 fill-[#D97706] text-[#D97706]" />
-            <span>Đánh giá buổi chơi</span>
-          </button>
-        )}
-
-        {!isCompleted && !isCancelled && (
+        {canManage && (
           <button
             type="button"
             onClick={() => (onCancel ? onCancel(playdate) : navigate(`/playdates/${id}`))}
-            className="w-7 h-7 rounded-full border border-gray-200 text-gray-400 hover:text-rose-600 hover:border-rose-300 hover:bg-rose-50 flex items-center justify-center transition-all cursor-pointer"
+            className="w-7 h-7 rounded-full border border-hairline text-text-muted hover:text-error hover:border-error hover:bg-error-container flex items-center justify-center transition-colors"
             title="Hủy cuộc hẹn"
+            aria-label="Hủy cuộc hẹn"
           >
             <X className="w-3.5 h-3.5" />
           </button>
