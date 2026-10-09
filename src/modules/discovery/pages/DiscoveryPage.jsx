@@ -1,65 +1,126 @@
 import React from 'react';
-import { Card } from '../../../components/cards/Card';
-import { VerifiedBadge } from '../../../components/badges/VerifiedBadge';
-import { InterestTag } from '../../../components/badges/InterestTag';
-import { Button } from '../../../components/ui/Button';
-import { SearchBar } from '../../../components/search/SearchBar';
-import { MapPin, Users } from 'lucide-react';
+import { AlertTriangle, Compass } from 'lucide-react';
+import { Spinner } from '../../../components/feedback/Spinner';
+import { EmptyState } from '../../../components/cards/EmptyState';
+import { useDiscovery } from '../hooks/useDiscovery';
+import { useDiscoveryModals } from '../hooks/useDiscoveryModals';
+import { DiscoveryFilterBar } from '../components/DiscoveryFilterBar';
+import { DiscoveryCard } from '../components/DiscoveryCard';
+import DiscoveryFilterModal from '../components/DiscoveryFilterModal';
+import ChildProfileDetailModal from '../components/ChildProfileDetailModal';
+import { VISIBLE_CARD_COUNT } from '../constants/discoveryConstants';
 
 export const DiscoveryPage = () => {
+  const {
+    selectedChildId,
+    isFilterOpen,
+    isAnyModalOpen,
+    openFilter,
+    closeFilter,
+    openChildDetail,
+    closeChildDetail,
+  } = useDiscoveryModals();
+
+  const {
+    profiles,
+    meta,
+    isLoading,
+    isSwiping,
+    errorMessage,
+    remainingViewsLabel,
+    searchingForLabel,
+    childOptions,
+    selectedChildId: matchingChildId,
+    selectChild,
+    filterSummary,
+    refetch,
+    handleSwipe,
+    goToUpgrade,
+  } = useDiscovery({ isKeyboardEnabled: !isAnyModalOpen, onViewDetail: openChildDetail });
+
+  // Render the top cards only, bottom-most first so the top card sits above the others
+  const visibleProfiles = profiles.slice(0, VISIBLE_CARD_COUNT).reverse();
+
+  const renderContent = () => {
+    if (isLoading && profiles.length === 0) {
+      return (
+        <div className="flex flex-col items-center justify-center py-24 text-on-surface-variant">
+          <Spinner size="lg" className="mb-4" />
+          <p>Đang tìm kiếm bạn bè quanh đây...</p>
+        </div>
+      );
+    }
+
+    if (errorMessage && profiles.length === 0) {
+      return (
+        <EmptyState
+          icon={<AlertTriangle size={24} strokeWidth={1.5} />}
+          title="Không tải được danh sách khám phá"
+          description={errorMessage}
+          actionLabel="Thử lại"
+          onAction={refetch}
+          className="w-full mx-auto mt-10"
+        />
+      );
+    }
+
+    if (profiles.length === 0) {
+      return (
+        <EmptyState
+          icon={<Compass size={24} strokeWidth={1.5} />}
+          title="Bạn đã xem hết các hồ sơ quanh đây!"
+          description="Hãy thử mở rộng bán kính tìm kiếm hoặc thay đổi bộ lọc để khám phá thêm nhiều người bạn thú vị khác cho bé nhé."
+          className="w-full mx-auto mt-10"
+        />
+      );
+    }
+
+    return visibleProfiles.map((profile) => {
+      const index = profiles.indexOf(profile);
+      return (
+        <DiscoveryCard
+          key={profile.childId}
+          profile={profile}
+          index={index}
+          isTop={index === 0}
+          onSwipe={(direction) => handleSwipe(profile, direction)}
+          onViewDetail={() => openChildDetail(profile.childId)}
+        />
+      );
+    });
+  };
+
   return (
-    <div className="space-y-6">
-      {/* Search & Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight text-text-primary">
-            Khám phá bạn chơi lân cận
-          </h1>
-          <p className="text-sm text-text-muted mt-1">
-            Gợi ý các bé có cùng độ tuổi, sở thích và khoảng cách gần nhất
-          </p>
-        </div>
-        <div className="w-full sm:w-72">
-          <SearchBar />
-        </div>
+    <div className="w-full flex flex-col items-center py-6 px-4 sm:px-6 max-w-2xl mx-auto select-none">
+      {/* Filter bar with modal trigger */}
+      <DiscoveryFilterBar
+        meta={meta}
+        remainingViewsLabel={remainingViewsLabel}
+        searchingForLabel={searchingForLabel}
+        childOptions={childOptions}
+        selectedChildId={matchingChildId}
+        onSelectChild={selectChild}
+        filterSummary={filterSummary}
+        onOpenFilter={openFilter}
+        onUpgrade={goToUpgrade}
+      />
+
+      {/* Card stack area: cards share one grid cell, so its height follows the tallest card
+          and nothing below (footer) is overlapped */}
+      <div className="grid w-full mt-3 pb-6">
+        {renderContent()}
       </div>
 
-      {/* Discovery List */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        <Card hoverable className="space-y-4">
-          <div className="flex items-start justify-between">
-            <div className="flex items-center gap-3">
-              <div className="w-12 h-12 rounded-full bg-secondary/20 flex items-center justify-center font-bold text-secondary text-lg">
-                B
-              </div>
-              <div>
-                <h3 className="font-semibold text-text-primary">Bé Bo (5 tuổi)</h3>
-                <p className="text-xs text-text-muted flex items-center gap-1 mt-0.5">
-                  <MapPin className="w-3.5 h-3.5" /> Cách 1.2 km • Quận 7
-                </p>
-              </div>
-            </div>
-            <VerifiedBadge size="sm" />
-          </div>
+      {/* Filter modal */}
+      <DiscoveryFilterModal isOpen={isFilterOpen} onClose={closeFilter} />
 
-          <p className="text-sm text-text-muted line-clamp-2">
-            Bé rất thích lắp ráp Lego, vẽ tranh và các trò chơi vận động ngoài trời.
-          </p>
-
-          <div className="flex flex-wrap gap-1.5">
-            <InterestTag label="Lego" />
-            <InterestTag label="Vẽ tranh" />
-            <InterestTag label="Đá bóng" />
-          </div>
-
-          <div className="pt-2 border-t border-hairline flex items-center justify-between">
-            <span className="text-xs text-text-muted flex items-center gap-1">
-              <Users className="w-3.5 h-3.5" /> Mẹ Lan Anh
-            </span>
-            <Button size="sm">Hẹn chơi</Button>
-          </div>
-        </Card>
-      </div>
+      {/* Child profile detail modal */}
+      <ChildProfileDetailModal
+        childId={selectedChildId}
+        onClose={closeChildDetail}
+        onSwipe={(direction) => handleSwipe(selectedChildId, direction)}
+        isSwiping={isSwiping}
+      />
     </div>
   );
 };

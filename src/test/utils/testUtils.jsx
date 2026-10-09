@@ -4,6 +4,9 @@ import { Provider } from 'react-redux';
 import { configureStore } from '@reduxjs/toolkit';
 import { BrowserRouter, MemoryRouter } from 'react-router-dom';
 import authReducer from '../../modules/auth/redux/authSlice';
+import childReducer from '../../modules/child/redux/childSlice';
+import subscriptionReducer from '../../modules/subscription/redux/subscriptionSlice';
+import playdateReducer from '../../modules/playdate/redux/playdateSlice';
 
 /**
  * Custom render helper that wraps components with Redux Provider and Router.
@@ -21,6 +24,9 @@ export function renderWithProviders(
     store = configureStore({
       reducer: {
         auth: authReducer,
+        child: childReducer,
+        subscription: subscriptionReducer,
+        playdate: playdateReducer,
       },
       preloadedState,
     }),

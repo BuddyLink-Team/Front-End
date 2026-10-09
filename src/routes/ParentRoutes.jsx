@@ -1,11 +1,17 @@
-import React from 'react';
+import React, { lazy } from 'react';
 import { Route, Navigate } from 'react-router-dom';
 import { MainLayout } from '../layouts/MainLayout';
 import PlaceholderPage from '../components/feedback/PlaceholderPage';
-import ParentProfilePage from '../modules/parent/pages/ParentProfilePage';
 
-import ChildrenManagementPage from '../modules/child/pages/ChildrenManagementPage';
-import ChildFormPage from '../modules/child/pages/ChildFormPage';
+import DiscoveryPage from '../modules/discovery/pages/DiscoveryPage';
+// Pages are code-split: each route downloads its own chunk on first visit
+const ChatPage = lazy(() => import('../modules/chat/pages/ChatPage'));
+const ParentProfilePage = lazy(() => import('../modules/parent/pages/ParentProfilePage'));
+const ChildrenManagementPage = lazy(() => import('../modules/child/pages/ChildrenManagementPage'));
+const ChildFormPage = lazy(() => import('../modules/child/pages/ChildFormPage'));
+const PlaydateListPage = lazy(() => import('../modules/playdate/pages/PlaydateListPage'));
+const CreatePlaydatePage = lazy(() => import('../modules/playdate/pages/CreatePlaydatePage'));
+const PlaydateDetailPage = lazy(() => import('../modules/playdate/pages/PlaydateDetailPage'));
 
 import GamificationPage from '../modules/gamification/pages/GamificationPage';
 
@@ -17,32 +23,27 @@ export const ParentRoutes = () => (
     {/* Discovery & Peer Matching */}
     <Route
       path="/discovery"
-      element={<PlaceholderPage title="Khám phá bạn chơi" description="Gợi ý bạn chơi phù hợp dựa trên độ tuổi, sở thích và vị trí lân cận." />}
+      element={<DiscoveryPage />}
     />
 
     {/* Playdate Management */}
     <Route
       path="/playdates"
-      element={<PlaceholderPage title="Danh sách cuộc hẹn chơi" description="Quản lý lịch hẹn Playdate sắp diễn ra, đã hoàn thành hoặc đã hủy." />}
+      element={<PlaydateListPage />}
     />
     <Route
       path="/playdates/create"
-      element={<PlaceholderPage title="Tạo cuộc hẹn chơi mới" description="Lên lịch Playdate, chọn bé tham gia, hoạt động và địa điểm vui chơi." />}
+      element={<CreatePlaydatePage />}
     />
     <Route
       path="/playdates/:id"
-      element={<PlaceholderPage title="Chi tiết cuộc hẹn chơi" description="Xem thông tin chi tiết cuộc hẹn, người tham gia, lịch hẹn và trao đổi nhóm." />}
+      element={<PlaydateDetailPage />}
     />
 
     {/* Communication */}
-    <Route
-      path="/chat"
-      element={<PlaceholderPage title="Tin nhắn trò chuyện" description="Danh sách trò chuyện trực tiếp 1-1 với phụ huynh đã kết nối." />}
-    />
-    <Route
-      path="/chat/:conversationId"
-      element={<PlaceholderPage title="Khung chat trực tiếp" description="Trò chuyện thời gian thực và chia sẻ hình ảnh cùng phụ huynh." />}
-    />
+    <Route path="/chat" element={<ChatPage />} />
+    <Route path="/chat/playdate/:playdateId" element={<ChatPage />} />
+    <Route path="/chat/:conversationId" element={<ChatPage />} />
 
     {/* AI Assistant */}
     <Route

@@ -28,15 +28,15 @@ export const StatCard = ({
     },
     secondary: {
       bg: 'bg-secondary/20',
-      text: 'text-[#30647b]',
+      text: 'text-secondary-dark',
     },
     tertiary: {
       bg: 'bg-tertiary/20',
-      text: 'text-[#755a1b]',
+      text: 'text-tertiary-dark',
     },
     error: {
       bg: 'bg-error-container/40',
-      text: 'text-[#ba1a1a]',
+      text: 'text-error',
     },
   };
 
@@ -76,7 +76,7 @@ export const StatCard = ({
             className={cn(
               'text-xs font-medium mt-1 flex items-center gap-1',
               isPositive && 'text-primary-dark',
-              isNegative && 'text-[#ba1a1a]',
+              isNegative && 'text-error',
               !isPositive && !isNegative && 'text-text-muted'
             )}
           >

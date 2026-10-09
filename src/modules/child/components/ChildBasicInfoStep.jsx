@@ -3,7 +3,7 @@ import { Check, ShieldCheck } from 'lucide-react';
 import { Input } from '../../../components';
 import { GENDER_OPTIONS } from '../constants/childConstants';
 
-export const ChildBasicInfoStep = ({ formData, formErrors, updateField }) => {
+export const ChildBasicInfoStep = ({ formData, formErrors, updateField, showPrivacyNote = true }) => {
   return (
     <div className="space-y-6 animate-fadeIn">
       {/* Child Name */}
@@ -64,12 +64,14 @@ export const ChildBasicInfoStep = ({ formData, formErrors, updateField }) => {
       </div>
 
       {/* Privacy Guarantee Note */}
-      <div className="p-4 rounded-2xl bg-surface-container-low/60 border border-hairline flex items-start gap-3">
-        <ShieldCheck className="w-5 h-5 text-primary shrink-0 mt-0.5" />
-        <p className="text-xs text-text-muted leading-relaxed">
-          BuddyLink cam kết bảo vệ thông tin trẻ em. Tên và hình ảnh của con chỉ hiển thị với các phụ huynh đã xác thực danh tính trên nền tảng.
-        </p>
-      </div>
+      {showPrivacyNote && (
+        <div className="p-4 rounded-2xl bg-surface-container-low/60 border border-hairline flex items-start gap-3">
+          <ShieldCheck className="w-5 h-5 text-primary shrink-0 mt-0.5" />
+          <p className="text-xs text-text-muted leading-relaxed">
+            BuddyLink cam kết bảo vệ thông tin trẻ em. Tên và hình ảnh của con chỉ hiển thị với các phụ huynh đã xác thực danh tính trên nền tảng.
+          </p>
+        </div>
+      )}
     </div>
   );
 };
