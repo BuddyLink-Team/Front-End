@@ -7,6 +7,7 @@ import ParentProfilePage from '../modules/parent/pages/ParentProfilePage';
 import ChildrenManagementPage from '../modules/child/pages/ChildrenManagementPage';
 import ChildFormPage from '../modules/child/pages/ChildFormPage';
 import DiscoveryPage from '../modules/discovery/pages/DiscoveryPage';
+import ConnectionsPage from '../modules/connection/pages/ConnectionsPage';
 
 /**
  * Full route definitions for Parent features.
@@ -77,7 +78,7 @@ export const ParentRoutes = () => (
     {/* Connections */}
     <Route
       path="/connections"
-      element={<PlaceholderPage title="Danh sách bạn bè & kết nối" description="Quản lý danh sách các gia đình đã kết nối và các yêu cầu kết nối đang chờ duyệt." />}
+      element={<ConnectionsPage />}
     />
 
     {/* Notifications */}

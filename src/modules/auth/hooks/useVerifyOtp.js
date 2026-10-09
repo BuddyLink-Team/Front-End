@@ -210,7 +210,7 @@ export const useVerifyOtp = () => {
 
       if (verifySuccess) {
         if (isEmailVerified || user?.googleId) {
-          navigate('/onboarding-child', { replace: true });
+          navigate('/', { replace: true });
         } else {
           setActiveStep('EMAIL');
           setOtpDigits(['', '', '', '', '', '']);
@@ -222,7 +222,7 @@ export const useVerifyOtp = () => {
     } else {
       const res = await handleVerifyEmailOtp(otpCode);
       if (res.success) {
-        navigate('/onboarding-child', { replace: true });
+        navigate('/', { replace: true });
       }
     }
   };

@@ -19,7 +19,7 @@ export const DiscoveryPage = () => {
   const selectedChildId = searchParams.get('childId') || null;
   const isFilterOpen = !selectedChildId && searchParams.get('filter') === 'true';
 
-  const { profiles, meta, isLoading, removeTopProfile } = useDiscovery(reduxFilters);
+  const { profiles, meta, isLoading, error, removeTopProfile } = useDiscovery(reduxFilters);
   const { handleSwipe } = useSwipe();
 
   // Sync URL when modal states change
@@ -78,6 +78,14 @@ export const DiscoveryPage = () => {
           <div className="flex flex-col items-center justify-center h-full text-on-surface-variant">
             <Loader2 size={40} strokeWidth={1.5} className="animate-spin mb-4 text-primary" />
             <p>Đang tìm kiếm bạn bè quanh đây...</p>
+          </div>
+        ) : error ? (
+          // Hiển thị giao diện báo lỗi kèm hướng dẫn thay vì màn hình trống
+          <div className="flex flex-col items-center justify-center h-full text-center px-4">
+            <p className="text-error font-medium mb-4">{error}</p>
+            <p className="text-on-surface-variant text-sm">
+              Vui lòng cập nhật vị trí của bạn trong phần <b>Hồ sơ</b> để hệ thống có thể gợi ý bạn bè xung quanh nhé!
+            </p>
           </div>
         ) : profiles.length > 0 ? (
           [...profiles].reverse().map((profile, i) => {

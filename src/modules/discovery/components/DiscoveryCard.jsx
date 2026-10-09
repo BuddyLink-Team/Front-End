@@ -67,9 +67,9 @@ export const DiscoveryCard = ({ profile, onSwipe, index, isTop, onViewDetail }) 
         y: isTop ? 0 : index * 10,
       }}
       transition={{ type: 'spring', stiffness: 300, damping: 24 }}
-      className={`absolute w-full rounded-3xl shadow-lg border border-gray-150 flex flex-col overflow-hidden ${!isTop ? 'pointer-events-none' : ''}`}
+      className={`absolute w-full rounded-3xl shadow-lg border border-gray-150 flex flex-col overflow-hidden ${!isTop ? 'pointer-events-none h-[280px]' : ''}`}
     >
-      <div className="p-5 flex flex-col gap-5 bg-white">
+      <div className={`p-5 flex flex-col gap-5 bg-white ${!isTop ? 'invisible' : ''}`} aria-hidden={!isTop}>
 
         {/* ── Header: Avatar + Info ── */}
         <div className="flex gap-4">
