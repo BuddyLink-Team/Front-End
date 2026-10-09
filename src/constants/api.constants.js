@@ -35,6 +35,10 @@ export const API_ENDPOINTS = {
   PLAYDATE: {
     BASE: '/playdates',
   },
+  PLACES: {
+    BASE: '/places',
+    NEARBY: '/places/nearby',
+  },
   CHAT: {
     CONVERSATIONS: '/chat/conversations',
     PLAYDATE: '/chat/playdate',

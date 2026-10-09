@@ -9,6 +9,9 @@ const ChatPage = lazy(() => import('../modules/chat/pages/ChatPage'));
 const ParentProfilePage = lazy(() => import('../modules/parent/pages/ParentProfilePage'));
 const ChildrenManagementPage = lazy(() => import('../modules/child/pages/ChildrenManagementPage'));
 const ChildFormPage = lazy(() => import('../modules/child/pages/ChildFormPage'));
+const PlaydateListPage = lazy(() => import('../modules/playdate/pages/PlaydateListPage'));
+const CreatePlaydatePage = lazy(() => import('../modules/playdate/pages/CreatePlaydatePage'));
+const PlaydateDetailPage = lazy(() => import('../modules/playdate/pages/PlaydateDetailPage'));
 
 /**
  * Full route definitions for Parent features.
@@ -24,15 +27,15 @@ export const ParentRoutes = () => (
     {/* Playdate Management */}
     <Route
       path="/playdates"
-      element={<PlaceholderPage title="Danh sách cuộc hẹn chơi" description="Quản lý lịch hẹn Playdate sắp diễn ra, đã hoàn thành hoặc đã hủy." />}
+      element={<PlaydateListPage />}
     />
     <Route
       path="/playdates/create"
-      element={<PlaceholderPage title="Tạo cuộc hẹn chơi mới" description="Lên lịch Playdate, chọn bé tham gia, hoạt động và địa điểm vui chơi." />}
+      element={<CreatePlaydatePage />}
     />
     <Route
       path="/playdates/:id"
-      element={<PlaceholderPage title="Chi tiết cuộc hẹn chơi" description="Xem thông tin chi tiết cuộc hẹn, người tham gia, lịch hẹn và trao đổi nhóm." />}
+      element={<PlaydateDetailPage />}
     />
 
     {/* Communication */}

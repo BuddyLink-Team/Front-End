@@ -19,6 +19,16 @@ export const ChangePasswordModal = ({
       onClose={onClose}
       title="Đổi mật khẩu tài khoản"
       maxWidth="max-w-md"
+      footer={
+        <>
+          <Button type="button" variant="outline" onClick={onClose}>
+            Hủy
+          </Button>
+          <Button type="submit" form="change-password-form" isLoading={isSubmitting}>
+            Lưu mật khẩu mới
+          </Button>
+        </>
+      }
     >
       <div className="space-y-5">
         <p className="text-xs text-text-muted">
@@ -26,7 +36,7 @@ export const ChangePasswordModal = ({
         </p>
 
         {/* Form */}
-        <form className="space-y-4" onSubmit={handleSubmit} noValidate>
+        <form id="change-password-form" className="space-y-4" onSubmit={handleSubmit} noValidate>
           <PasswordInput
             id="modal-currentPassword"
             label="Mật khẩu hiện tại"
@@ -51,23 +61,6 @@ export const ChangePasswordModal = ({
             {...register('confirmNewPassword')}
           />
 
-          <div className="flex items-center justify-end gap-3 pt-3 border-t border-hairline/60">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={onClose}
-              className="rounded-xl px-4 py-2.5 text-xs font-semibold"
-            >
-              Hủy
-            </Button>
-            <Button
-              type="submit"
-              className="rounded-xl px-5 py-2.5 text-xs font-semibold shadow-md"
-              isLoading={isSubmitting}
-            >
-              Lưu mật khẩu mới
-            </Button>
-          </div>
         </form>
       </div>
     </Modal>

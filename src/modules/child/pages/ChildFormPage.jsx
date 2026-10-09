@@ -2,8 +2,9 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Baby,
-  ArrowLeft,
+  Heart,
   Save,
+  ShieldCheck,
   Sparkles,
   Trash2,
   Crown,
@@ -15,6 +16,8 @@ import {
   ConfirmDialog,
   Modal,
   UpgradeButton,
+  FormPageHeader,
+  FormSection,
 } from '../../../components';
 import { ChildBasicInfoStep, ChildInterestsStep } from '../components';
 import { useChildForm } from '../hooks/useChildForm';
@@ -51,93 +54,87 @@ export const ChildFormPage = () => {
   }
 
   return (
-    <Card className="w-full py-4 space-y-6">
-      {/* Header Badge & Title */}
-      <div className="mb-8">
-        <div className="flex items-center justify-between gap-4 mb-4">
-          <div className="inline-flex items-center gap-2 bg-primary/10 text-primary px-3.5 py-1.5 rounded-full border border-primary/20 text-xs font-semibold uppercase tracking-wider">
-            <Sparkles className="w-3.5 h-3.5" />
-            <span>
-              {isEditMode ? 'Chỉnh sửa hồ sơ bé' : 'Thêm hồ sơ bé mới'}
-            </span>
-          </div>
-        </div>
+    <div className="w-full max-w-5xl mx-auto pb-16 space-y-6">
+      <FormPageHeader
+        title={isEditMode ? `Chỉnh sửa hồ sơ · ${formData.displayName || 'bé'}` : 'Thêm hồ sơ bé'}
+        description={
+          isEditMode
+            ? 'Cập nhật thông tin để BuddyLink gợi ý bạn chơi chính xác hơn cho con.'
+            : 'Giới thiệu về con để BuddyLink tìm những người bạn chơi phù hợp nhất.'
+        }
+        onBack={onCancel}
+      />
 
-        <h1 className="text-2xl sm:text-3xl font-extrabold text-on-surface tracking-tight font-display mb-1.5">
-          {isEditMode
-            ? `Hồ sơ bé ${formData.displayName || ''}`
-            : 'Hồ sơ & Sở thích của bé'}
-        </h1>
-        <p className="text-sm text-text-muted">
-          {isEditMode
-            ? 'Cập nhật lại tên gọi, ngày sinh, sở thích và tính cách của con để luôn có những gợi ý bạn chơi chính xác nhất.'
-            : 'Giới thiệu thông tin, sở thích và tính cách để BuddyLink tìm bạn phù hợp nhất với con.'}
-        </p>
-      </div>
+      <form onSubmit={handleSubmit} noValidate>
+        <Card padding="lg" className="animate-fadeIn">
+          <FormSection
+            title="Thông tin cơ bản"
+            description="Tên gọi, ngày sinh và giới tính của bé."
+            icon={Baby}
+          >
+            <ChildBasicInfoStep
+              formData={formData}
+              formErrors={formErrors}
+              updateField={updateField}
+              showPrivacyNote={false}
+            />
+          </FormSection>
 
-      {/* Form Form Body (Reusing ChildBasicInfoStep and ChildInterestsStep) */}
-      <form
-        onSubmit={handleSubmit}
-        className="space-y-8 animate-fadeIn"
-        noValidate
-      >
-        {/* Section 1: Child Basic Info */}
-        <div>
-          <div className="flex items-center gap-2 mb-4 text-sm font-bold text-on-surface">
-            <Baby className="w-4 h-4 text-primary" />
-            <span>Thông tin cơ bản</span>
-          </div>
-          <ChildBasicInfoStep
-            formData={formData}
-            formErrors={formErrors}
-            updateField={updateField}
-          />
-        </div>
+          <FormSection
+            title="Sở thích & tính cách"
+            description="Chọn ít nhất 1 mục ở mỗi nhóm để gợi ý bạn chơi chính xác hơn."
+            icon={Heart}
+          >
+            <ChildInterestsStep
+              formData={formData}
+              formErrors={formErrors}
+              toggleArrayItem={toggleArrayItem}
+            />
+          </FormSection>
+        </Card>
 
-        {/* Section 2: Interests & Personality */}
-        <div className="border-t border-hairline pt-6">
-          <ChildInterestsStep
-            formData={formData}
-            formErrors={formErrors}
-            toggleArrayItem={toggleArrayItem}
-          />
-        </div>
-
-        {/* Form Actions Footer */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mt-8 pt-6 border-t border-hairline">
+        {/* Form Actions Footer (sticks to the bottom of the screen on mobile) */}
+        <div className="sticky bottom-0 z-10 -mx-6 sm:mx-0 mt-6 px-6 sm:px-0 py-3 sm:py-0 bg-surface/95 sm:bg-transparent backdrop-blur sm:backdrop-blur-none border-t border-hairline sm:border-0 sm:static flex flex-col-reverse sm:flex-row sm:items-center justify-between gap-3">
+          <p className="hidden sm:flex items-center gap-2 text-xs text-text-muted">
+            <ShieldCheck className="w-4 h-4 text-primary shrink-0" />
+            Thông tin của con chỉ hiển thị với phụ huynh đã xác thực danh tính.
+          </p>
           <div className="flex items-center gap-3">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={onCancel}
-              leftIcon={<ArrowLeft className="w-4 h-4" />}
-            >
+            <Button type="button" variant="ghost" onClick={onCancel} className="flex-1 sm:flex-none">
               Hủy
             </Button>
-
-            {isEditMode && (
-              <Button
-                type="button"
-                variant="ghost"
-                onClick={() => setShowDeleteModal(true)}
-                className="text-error hover:bg-error/10 text-sm font-semibold"
-                leftIcon={<Trash2 className="w-4 h-4" />}
-              >
-                Xóa hồ sơ bé
-              </Button>
-            )}
+            <Button
+              type="submit"
+              isLoading={isLoading}
+              leftIcon={<Save className="w-4 h-4" />}
+              className="flex-1 sm:flex-none px-6 font-semibold shadow-md"
+            >
+              {isEditMode ? 'Lưu thay đổi' : 'Tạo hồ sơ bé'}
+            </Button>
           </div>
-
-          <Button
-            type="submit"
-            isLoading={isLoading}
-            rightIcon={<Save className="w-4 h-4" />}
-            className="px-6 py-3 font-semibold shadow-md"
-          >
-            {isEditMode ? 'Lưu thay đổi' : 'Tạo hồ sơ bé'}
-          </Button>
         </div>
       </form>
+
+      {/* Danger Zone: delete is kept away from the main actions */}
+      {isEditMode && (
+        <Card className="border-error/30 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <p className="text-sm font-semibold text-error">Xóa hồ sơ bé</p>
+            <p className="text-xs text-text-muted mt-0.5">
+              Hồ sơ của bé sẽ bị gỡ khỏi hệ thống và không thể khôi phục.
+            </p>
+          </div>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => setShowDeleteModal(true)}
+            className="text-error border-error/40 hover:bg-error/10 shrink-0"
+            leftIcon={<Trash2 className="w-4 h-4" />}
+          >
+            Xóa hồ sơ
+          </Button>
+        </Card>
+      )}
 
       {/* Confirm Delete Dialog */}
       <ConfirmDialog
@@ -162,6 +159,21 @@ export const ChildFormPage = () => {
         onClose={() => setQuotaExceededError(null)}
         title="Đã đạt giới hạn hồ sơ bé"
         maxWidth="max-w-md"
+        footer={
+          <>
+            <Button type="button" variant="outline" onClick={() => setQuotaExceededError(null)}>
+              Để sau
+            </Button>
+            <UpgradeButton
+              onClick={() => {
+                setQuotaExceededError(null);
+                navigate('/subscription');
+              }}
+            >
+              Nâng cấp Premium ngay
+            </UpgradeButton>
+          </>
+        }
       >
         <div className="space-y-5 py-2">
           <div className="w-14 h-14 rounded-2xl bg-tertiary/15 text-tertiary-dark flex items-center justify-center mx-auto">
@@ -190,27 +202,9 @@ export const ChildFormPage = () => {
               <li>Hỏi đáp không giới hạn với Trợ lý AI</li>
             </ul>
           </div>
-
-          <div className="flex items-center justify-end gap-3 pt-2">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => setQuotaExceededError(null)}
-            >
-              Để sau
-            </Button>
-            <UpgradeButton
-              onClick={() => {
-                setQuotaExceededError(null);
-                navigate('/subscription');
-              }}
-            >
-              Nâng cấp Premium ngay
-            </UpgradeButton>
-          </div>
         </div>
       </Modal>
-    </Card>
+    </div>
   );
 };
 

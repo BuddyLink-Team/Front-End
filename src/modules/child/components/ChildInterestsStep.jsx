@@ -2,15 +2,20 @@ import React from 'react';
 import { Heart, Compass, Smile } from 'lucide-react';
 import {
   POPULAR_INTERESTS,
-  POPULAR_ACTIVITIES,
   PERSONALITY_TRAITS,
 } from '../constants/childConstants';
+import { ACTIVITIES, ACTIVITY_GROUPS } from '../../../constants/activity.constants';
 
 export const ChildInterestsStep = ({
   formData,
   formErrors,
   toggleArrayItem,
 }) => {
+  // Saved activities that are no longer in the catalog stay visible so they can be removed
+  const otherActivities = formData.favoriteActivities.filter(
+    (value) => !ACTIVITIES.some((a) => a.value === value)
+  );
+
   return (
     <div className="space-y-6 animate-fadeIn">
       {/* Interests Chips */}
@@ -55,24 +60,51 @@ export const ChildInterestsStep = ({
           </label>
           <span className="text-xs text-text-muted">Đã chọn: {formData.favoriteActivities.length}</span>
         </div>
-        <div className="flex flex-wrap gap-2">
-          {POPULAR_ACTIVITIES.map((act) => {
-            const isSelected = formData.favoriteActivities.includes(act);
-            return (
-              <button
-                key={act}
-                type="button"
-                onClick={() => toggleArrayItem('favoriteActivities', act)}
-                className={`px-3.5 py-2 rounded-full text-xs sm:text-sm font-medium transition-all border ${
-                  isSelected
-                    ? 'bg-primary text-white border-primary shadow-xs'
-                    : 'bg-surface-container-low text-on-surface-variant border-hairline hover:bg-surface-container'
-                }`}
-              >
-                {act}
-              </button>
-            );
-          })}
+        <div className="space-y-3">
+          {ACTIVITY_GROUPS.map((group) => (
+            <div key={group.category} className="space-y-1.5">
+              <p className="text-[11px] font-semibold uppercase tracking-wide text-text-muted">{group.label}</p>
+              <div className="flex flex-wrap gap-2">
+                {group.activities.map(({ value, icon: Icon }) => {
+                  const isSelected = formData.favoriteActivities.includes(value);
+                  return (
+                    <button
+                      key={value}
+                      type="button"
+                      aria-pressed={isSelected}
+                      onClick={() => toggleArrayItem('favoriteActivities', value)}
+                      className={`px-3.5 py-2 rounded-full text-xs sm:text-sm font-medium transition-all border inline-flex items-center gap-1.5 ${
+                        isSelected
+                          ? 'bg-primary text-white border-primary shadow-xs'
+                          : 'bg-surface-container-low text-on-surface-variant border-hairline hover:bg-surface-container'
+                      }`}
+                    >
+                      <Icon className="w-3.5 h-3.5 shrink-0" />
+                      {value}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
+          {otherActivities.length > 0 && (
+            <div className="space-y-1.5">
+              <p className="text-[11px] font-semibold uppercase tracking-wide text-text-muted">Khác</p>
+              <div className="flex flex-wrap gap-2">
+                {otherActivities.map((value) => (
+                  <button
+                    key={value}
+                    type="button"
+                    aria-pressed
+                    onClick={() => toggleArrayItem('favoriteActivities', value)}
+                    className="px-3.5 py-2 rounded-full text-xs sm:text-sm font-medium transition-all border bg-primary text-white border-primary shadow-xs"
+                  >
+                    {value}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
         {formErrors.favoriteActivities && (
           <p className="text-xs text-error mt-1.5">{formErrors.favoriteActivities}</p>

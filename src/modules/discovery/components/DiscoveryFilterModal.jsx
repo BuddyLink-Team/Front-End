@@ -19,7 +19,21 @@ const DiscoveryFilterModal = ({ isOpen, onClose }) => {
     useDiscoveryFilterForm(isOpen, onClose);
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title="Bộ lọc tìm kiếm">
+    <Modal
+      isOpen={isOpen}
+      onClose={onClose}
+      title="Bộ lọc tìm kiếm"
+      footer={
+        <>
+          <Button variant="ghost" onClick={reset} leftIcon={<RotateCcw size={15} strokeWidth={1.75} />} className="flex-1">
+            Đặt lại
+          </Button>
+          <Button variant="primary" onClick={apply} className="flex-1">
+            Áp dụng
+          </Button>
+        </>
+      }
+    >
       <div className="w-full">
         <div className="flex flex-col gap-6">
           {/* Distance slider */}
@@ -101,16 +115,6 @@ const DiscoveryFilterModal = ({ isOpen, onClose }) => {
               className="flex-wrap overflow-visible"
             />
           </div>
-        </div>
-
-        {/* Footer actions */}
-        <div className="flex gap-3 mt-8">
-          <Button variant="ghost" onClick={reset} leftIcon={<RotateCcw size={15} strokeWidth={1.75} />} className="flex-1">
-            Đặt lại
-          </Button>
-          <Button variant="primary" onClick={apply} className="flex-1">
-            Áp dụng
-          </Button>
         </div>
       </div>
     </Modal>

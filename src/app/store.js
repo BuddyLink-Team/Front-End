@@ -6,6 +6,7 @@ import subscriptionReducer from '../modules/subscription/redux/subscriptionSlice
 import chatReducer from '../modules/chat/redux/chatSlice';
 import safetyReducer from '../modules/safety/redux/safetySlice';
 import discoveryReducer from '../modules/discovery/redux/discoverySlice';
+import playdateReducer from '../modules/playdate/redux/playdateSlice';
 
 export const store = configureStore({
   reducer: {
@@ -16,6 +17,7 @@ export const store = configureStore({
     chat: chatReducer,
     safety: safetyReducer,
     discovery: discoveryReducer,
+    playdate: playdateReducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
