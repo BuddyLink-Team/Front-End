@@ -1,111 +1,138 @@
+import PropTypes from 'prop-types';
 import { MapPin, MessageCircle, UserMinus } from 'lucide-react';
+import { Card } from '../../../components/cards/Card';
 import { Avatar } from '../../../components/ui/Avatar';
 import { Button } from '../../../components/ui/Button';
+import { VerifiedBadge } from '../../../components/badges/VerifiedBadge';
+import { InterestTag } from '../../../components/badges/InterestTag';
+import { cn } from '../../../utils/cn';
+import { CONNECTION_ACTIONS, CONNECTION_LISTS } from '../constants/connection.constants';
+
+const MAX_INTERESTS = 3;
 
 /**
- * ConnectionCard — domain card for a single connection entry.
- *
- * Renders two layouts:
- *  - `pending` : incoming request with Accept (primary) + Decline (ghost) buttons.
- *  - `accepted`: connected friend with Message + Remove actions.
- *
- * Uses shared <Avatar /> (border-2 border-white, online dot built-in) and
- * shared <Button /> variants per BuddyLink Design System (DESIGN.md).
+ * One connection of the list: an incoming request (Decline / Accept), a sent request (Withdraw)
+ * or a connected family (Message / Remove). Selecting the card shows its quick profile.
  */
-const ConnectionCard = ({ connection, type, onAccept, onDecline, onRemove }) => {
-  const { childName, childAge, parentName, isVerified, interests, location, avatarUrl, isOnline } =
-    connection;
+const ConnectionCard = ({ connection, type, isSelected, isBusy, onSelect, onAction, onMessage }) => {
+  const { parentName, childName, childAge, isVerified, interests, area, avatarUrl } = connection;
+  const title = childName ? `${childName}${childAge !== null ? ` (${childAge} tuổi)` : ''}` : parentName;
 
-  const ageText = childAge !== null && childAge !== undefined ? ` (${childAge} tuổi)` : '';
+  const handleKeyDown = (event) => {
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault();
+      onSelect(connection.id);
+    }
+  };
 
   return (
-    <div className="bg-white border border-hairline rounded-2xl p-5 hover:shadow-sm transition-shadow duration-200">
+    <Card
+      padding="sm"
+      hoverable
+      role="button"
+      tabIndex={0}
+      aria-pressed={isSelected}
+      onClick={() => onSelect(connection.id)}
+      onKeyDown={handleKeyDown}
+      className={cn('focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40', isSelected && 'border-primary')}
+    >
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-        {/* ── Avatar + Info ── */}
         <div className="flex items-center gap-4 min-w-0">
-          <Avatar
-            src={avatarUrl}
-            alt={childName}
-            size="lg"
-            isOnline={isOnline}
-          />
+          <Avatar src={avatarUrl} alt={parentName} size="lg" fallbackText={parentName.slice(0, 2).toUpperCase()} />
 
-          <div className="min-w-0">
-            {/* Name row */}
+          <div className="min-w-0 space-y-1">
             <div className="flex items-center gap-2 flex-wrap">
-              <h3 className="font-semibold text-text-primary truncate">
-                {childName}{ageText}
-              </h3>
-              <span className="text-text-muted text-sm">•</span>
-              <span className="text-sm text-text-muted truncate">{parentName}</span>
-              {isVerified && (
-                <span className="inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full bg-[#EAF3EC] text-[#3D6841] text-[11px] font-medium">
-                  Uy tín
-                </span>
-              )}
+              <h3 className="text-title-md text-text-primary truncate">{title}</h3>
+              {isVerified && <VerifiedBadge size="sm" iconOnly />}
             </div>
+            {childName && <p className="text-sm text-text-muted truncate">Phụ huynh: {parentName}</p>}
 
-            {/* Interests */}
-            {interests && (
-              <p className="text-sm text-text-muted truncate mt-0.5">{interests}</p>
+            {interests.length > 0 && (
+              <div className="flex flex-wrap gap-1.5">
+                {interests.slice(0, MAX_INTERESTS).map((interest) => (
+                  <InterestTag key={interest} label={interest} />
+                ))}
+              </div>
             )}
 
-            {/* Location */}
-            {location && (
-              <p className="flex items-center gap-1 text-sm text-text-muted mt-1 truncate">
+            {area && (
+              <p className="flex items-center gap-1 text-sm text-text-muted truncate">
                 <MapPin className="w-3.5 h-3.5 shrink-0" strokeWidth={1.5} />
-                {location}
+                {area}
               </p>
             )}
           </div>
         </div>
 
-        {/* ── Actions ── */}
-        {/* stopPropagation so clicking buttons doesn't trigger card onClick */}
+        {/* Actions: stopPropagation so they do not select the card */}
         <div
           className="flex items-center gap-2 self-end sm:self-center shrink-0"
-          onClick={(e) => e.stopPropagation()}
+          onClick={(event) => event.stopPropagation()}
+          onKeyDown={(event) => event.stopPropagation()}
+          role="presentation"
         >
-          {type === 'pending' ? (
+          {type === CONNECTION_LISTS.INCOMING && (
             <>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => onDecline?.(connection.id)}
-              >
+              <Button variant="ghost" size="sm" disabled={isBusy} onClick={() => onAction(CONNECTION_ACTIONS.DECLINE, connection)}>
                 Từ chối
               </Button>
-              <Button
-                variant="primary"
-                size="sm"
-                onClick={() => onAccept?.(connection.id)}
-              >
+              <Button variant="primary" size="sm" disabled={isBusy} onClick={() => onAction(CONNECTION_ACTIONS.ACCEPT, connection)}>
                 Chấp nhận
               </Button>
             </>
-          ) : (
+          )}
+
+          {type === CONNECTION_LISTS.OUTGOING && (
+            <Button variant="outline" size="sm" disabled={isBusy} onClick={() => onAction(CONNECTION_ACTIONS.CANCEL, connection)}>
+              Thu hồi lời mời
+            </Button>
+          )}
+
+          {type === CONNECTION_LISTS.ACCEPTED && (
             <>
               <Button
-                variant="ghost"
+                variant="secondary"
                 size="sm"
                 leftIcon={<MessageCircle className="w-4 h-4" strokeWidth={1.5} />}
+                onClick={() => onMessage(connection)}
               >
                 Nhắn tin
               </Button>
-              <button
-                type="button"
+              <Button
+                variant="ghost"
+                size="sm"
+                disabled={isBusy}
+                aria-label="Hủy kết nối"
                 title="Hủy kết nối"
-                onClick={() => onRemove?.(connection.id)}
-                className="p-2 rounded-xl text-text-muted hover:bg-surface-container-low hover:text-error transition-colors"
+                onClick={() => onAction(CONNECTION_ACTIONS.REMOVE, connection)}
               >
                 <UserMinus className="w-4 h-4" strokeWidth={1.5} />
-              </button>
+              </Button>
             </>
           )}
         </div>
       </div>
-    </div>
+    </Card>
   );
+};
+
+ConnectionCard.propTypes = {
+  connection: PropTypes.shape({
+    id: PropTypes.string.isRequired,
+    parentName: PropTypes.string.isRequired,
+    childName: PropTypes.string,
+    childAge: PropTypes.number,
+    isVerified: PropTypes.bool,
+    interests: PropTypes.arrayOf(PropTypes.string),
+    area: PropTypes.string,
+    avatarUrl: PropTypes.string,
+  }).isRequired,
+  type: PropTypes.oneOf(Object.values(CONNECTION_LISTS)).isRequired,
+  isSelected: PropTypes.bool,
+  isBusy: PropTypes.bool,
+  onSelect: PropTypes.func.isRequired,
+  onAction: PropTypes.func.isRequired,
+  onMessage: PropTypes.func.isRequired,
 };
 
 export default ConnectionCard;

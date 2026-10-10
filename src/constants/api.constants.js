@@ -29,15 +29,21 @@ export const API_ENDPOINTS = {
     BASE: '/children',
   },
   DISCOVERY: {
-    MATCH: '/discovery/match',
-    NEARBY: '/discovery/nearby',
+    BASE: '/discovery',
+    SWIPE: '/discovery/swipe',
   },
   PLAYDATE: {
     BASE: '/playdates',
   },
+  PLACES: {
+    BASE: '/places',
+    NEARBY: '/places/nearby',
+  },
   CHAT: {
-    CONVERSATIONS: '/chats/conversations',
-    MESSAGES: '/chats/messages',
+    CONVERSATIONS: '/chat/conversations',
+    PLAYDATE: '/chat/playdate',
+    MESSAGES: '/chat/conversations',
+    UPLOAD: '/chat/upload',
   },
   AI_ASSISTANT: {
     RECOMMEND: '/ai/recommendations',
@@ -46,18 +52,27 @@ export const API_ENDPOINTS = {
   NOTIFICATION: {
     BASE: '/notifications',
   },
+  CONNECTION: {
+    // GET (?status=&direction=incoming|outgoing) / POST { recipientId }
+    BASE: '/connections',
+    BY_ID: (id) => `/connections/${id}`,
+    ACCEPT: (id) => `/connections/${id}/accept`,
+    DECLINE: (id) => `/connections/${id}/decline`,
+  },
   SAFETY: {
     REPORT: '/safety/report',
     BLOCK: '/safety/block',
   },
   GAMIFICATION: {
-    POINTS: '/gamification/points',
-    BADGES: '/gamification/badges',
+    // Streak + badges of the current parent
+    ACHIEVEMENTS: '/gamification',
   },
   SUBSCRIPTION: {
     PLANS: '/subscriptions/plans',
     CHECKOUT: '/subscriptions/checkout',
     MY_QUOTA: '/subscriptions/my',
+    VERIFY_PAYMENT: (orderCode) => `/subscriptions/payments/verify/${orderCode}`,
+    HISTORY: '/subscriptions/payments/history',
   },
   RATING_FEEDBACK: {
     BASE: '/ratings',

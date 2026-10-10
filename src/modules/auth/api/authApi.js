@@ -23,14 +23,9 @@ export const authApi = {
   adminLogin: (payload) => apiClient.post(API_ENDPOINTS.AUTH.ADMIN_LOGIN, payload),
 
   /**
-   * Refresh auth access token
+   * Logout: revoke the stored refresh token
    */
-  refreshToken: (payload) => apiClient.post(API_ENDPOINTS.AUTH.REFRESH_TOKEN, payload),
-
-  /**
-   * Logout user and invalidate token
-   */
-  logout: (payload) => apiClient.post(API_ENDPOINTS.AUTH.LOGOUT, payload),
+  logout: (refreshToken) => apiClient.post(API_ENDPOINTS.AUTH.LOGOUT, { refreshToken }),
 
   /**
    * Get current authenticated user profile

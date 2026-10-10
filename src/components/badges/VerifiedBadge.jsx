@@ -7,6 +7,7 @@ export const VerifiedBadge = ({
   className,
   showIcon = true,
   size = 'md',
+  iconOnly = false,
 }) => {
   const sizes = {
     sm: 'text-[11px] px-2 py-0.5 gap-1',
@@ -20,10 +21,23 @@ export const VerifiedBadge = ({
     lg: 'w-4 h-4',
   };
 
+  // Compact rows (member lists, side panels): only the shield, label kept for tooltip / screen readers
+  if (iconOnly) {
+    return (
+      <ShieldCheck
+        role="img"
+        aria-label={text}
+        className={cn(iconSizes[size], 'shrink-0 text-primary fill-primary/20', className)}
+      >
+        <title>{text}</title>
+      </ShieldCheck>
+    );
+  }
+
   return (
     <span
       className={cn(
-        'inline-flex items-center font-medium bg-[#eaf3ec] text-[#3d6841] rounded-full border border-[#d2e7d7] shadow-xs select-none',
+        'inline-flex items-center font-medium bg-primary-soft text-primary-ink rounded-full border border-primary-border shadow-xs select-none',
         sizes[size],
         className
       )}

@@ -2,6 +2,7 @@ import React from 'react';
 import { Card } from '../../../components/cards/Card';
 import { Sparkles, Send } from 'lucide-react';
 import { Button } from '../../../components/ui/Button';
+import { Input } from '../../../components/ui/Input';
 
 export const AIAssistantPage = () => {
   return (
@@ -24,11 +25,13 @@ export const AIAssistantPage = () => {
         </div>
 
         <div className="pt-4 border-t border-hairline flex gap-2">
-          <input
-            type="text"
-            placeholder="Hỏi AI bất kỳ điều gì về hoạt động vui chơi của bé..."
-            className="flex-1 bg-surface-low border border-hairline rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/25"
-          />
+          <div className="flex-1">
+            <Input
+              type="text"
+              aria-label="Câu hỏi cho trợ lý AI"
+              placeholder="Hỏi AI bất kỳ điều gì về hoạt động vui chơi của bé..."
+            />
+          </div>
           <Button rightIcon={<Send className="w-4 h-4" />}>Gửi</Button>
         </div>
       </Card>

@@ -19,6 +19,7 @@ export default {
           'container-highest': '#d9e3f9',
           variant: '#d9e3f9',
           tint: '#396940',
+          muted: '#f0f4f2', // Ghost hover / pill track background (DESIGN.md)
         },
         'on-surface': '#121c2c',
         'on-surface-variant': '#414940',
@@ -31,6 +32,7 @@ export default {
           variant: '#c1c9be',
         },
         hairline: '#edf2f0',
+        'hairline-strong': '#d9e2de',
 
         // --- Primary Brand (Matcha Green) ---
         primary: {
@@ -47,6 +49,16 @@ export default {
           'fixed-dim': '#9fd3a2',
           'on-fixed': '#002109',
           'on-fixed-variant': '#20502a',
+          // Soft surfaces from DESIGN.md (verified pill, active chip, secondary button)
+          soft: '#eaf3ec',
+          tint: '#ebf4ee',
+          'tint-hover': '#dcefe1',
+          border: '#d2e7d7',
+          ink: '#3d6841',
+          // Chat bubbles
+          bubble: '#e3f0e5',
+          'bubble-soft': '#f0f7f2',
+          'bubble-border': '#cde5d3',
         },
 
         // --- Secondary Brand (Cloud Blue) ---
@@ -75,6 +87,9 @@ export default {
           'fixed-dim': '#e6c278',
           'on-fixed': '#261a00',
           'on-fixed-variant': '#5b4303',
+          // Pending chip (DESIGN.md)
+          soft: '#fef7e6',
+          border: '#fae4b2',
         },
 
         // --- Error States ---
@@ -84,6 +99,7 @@ export default {
           container: '#ffdad6',
           'on-container': '#93000a',
           'on-error-container': '#93000a',
+          'container-hover': '#ffb4ab',
         },
 
         // --- Neutrals & Backgrounds ---
@@ -138,6 +154,19 @@ export default {
         soft: '0 2px 8px rgba(0,0,0,0.02)',
         elevated: '0 8px 24px -4px rgba(45, 55, 72, 0.04), 0 2px 6px -2px rgba(45, 55, 72, 0.02)',
         modal: '0 16px 40px -8px rgba(45, 55, 72, 0.08)',
+        // Swipe feedback halo; colorize with a shadow color utility (e.g. shadow-glow shadow-primary/50)
+        glow: '0 0 40px 8px rgba(45, 55, 72, 0.1)',
+      },
+
+      keyframes: {
+        // Celebration items (badge / streak popup)
+        'pop-in': {
+          '0%': { opacity: '0', transform: 'scale(0.92) translateY(6px)' },
+          '100%': { opacity: '1', transform: 'scale(1) translateY(0)' },
+        },
+      },
+      animation: {
+        'pop-in': 'pop-in 320ms cubic-bezier(0.34, 1.56, 0.64, 1) both',
       },
     },
   },

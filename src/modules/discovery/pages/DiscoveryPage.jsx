@@ -1,111 +1,114 @@
-import React, { useEffect, useCallback } from 'react';
-import { useSearchParams } from 'react-router-dom';
-import { useSelector } from 'react-redux';
+import React from 'react';
+import { AlertTriangle, Compass } from 'lucide-react';
+import { Spinner } from '../../../components/feedback/Spinner';
+import { EmptyState } from '../../../components/cards/EmptyState';
 import { useDiscovery } from '../hooks/useDiscovery';
-import { useSwipe } from '../hooks/useSwipe';
+import { useDiscoveryModals } from '../hooks/useDiscoveryModals';
 import { DiscoveryFilterBar } from '../components/DiscoveryFilterBar';
 import { DiscoveryCard } from '../components/DiscoveryCard';
-import { EmptyDiscovery } from '../components/EmptyDiscovery';
 import DiscoveryFilterModal from '../components/DiscoveryFilterModal';
 import ChildProfileDetailModal from '../components/ChildProfileDetailModal';
-import { Loader2 } from 'lucide-react';
+import { VISIBLE_CARD_COUNT } from '../constants/discoveryConstants';
 
 export const DiscoveryPage = () => {
-  const reduxFilters = useSelector((s) => s.discovery?.filters);
+  const {
+    selectedChildId,
+    isFilterOpen,
+    isAnyModalOpen,
+    openFilter,
+    closeFilter,
+    openChildDetail,
+    closeChildDetail,
+  } = useDiscoveryModals();
 
-  // URL params sync: ?filter=true, ?childId=:id
-  const [searchParams, setSearchParams] = useSearchParams();
-  // Single source of truth = URL; childId takes priority so the two modals never overlap
-  const selectedChildId = searchParams.get('childId') || null;
-  const isFilterOpen = !selectedChildId && searchParams.get('filter') === 'true';
+  const {
+    profiles,
+    meta,
+    isLoading,
+    isSwiping,
+    errorMessage,
+    remainingViewsLabel,
+    searchingForLabel,
+    childOptions,
+    selectedChildId: matchingChildId,
+    selectChild,
+    filterSummary,
+    refetch,
+    handleSwipe,
+    goToUpgrade,
+  } = useDiscovery({ isKeyboardEnabled: !isAnyModalOpen, onViewDetail: openChildDetail });
 
-  const { profiles, meta, isLoading, error, removeTopProfile } = useDiscovery(reduxFilters);
-  const { handleSwipe } = useSwipe();
+  // Render the top cards only, bottom-most first so the top card sits above the others
+  const visibleProfiles = profiles.slice(0, VISIBLE_CARD_COUNT).reverse();
 
-  // Sync URL when modal states change
-  const openFilter = useCallback(() => {
-    setSearchParams({ filter: 'true' });
-  }, [setSearchParams]);
+  const renderContent = () => {
+    if (isLoading && profiles.length === 0) {
+      return (
+        <div className="flex flex-col items-center justify-center py-24 text-on-surface-variant">
+          <Spinner size="lg" className="mb-4" />
+          <p>Đang tìm kiếm bạn bè quanh đây...</p>
+        </div>
+      );
+    }
 
-  const closeFilter = useCallback(() => {
-    setSearchParams({});
-  }, [setSearchParams]);
+    if (errorMessage && profiles.length === 0) {
+      return (
+        <EmptyState
+          icon={<AlertTriangle size={24} strokeWidth={1.5} />}
+          title="Không tải được danh sách khám phá"
+          description={errorMessage}
+          actionLabel="Thử lại"
+          onAction={refetch}
+          className="w-full mx-auto mt-10"
+        />
+      );
+    }
 
-  const openChildDetail = useCallback(
-    (childId) => {
-      setSearchParams({ childId });
-    },
-    [setSearchParams]
-  );
+    if (profiles.length === 0) {
+      return (
+        <EmptyState
+          icon={<Compass size={24} strokeWidth={1.5} />}
+          title="Bạn đã xem hết các hồ sơ quanh đây!"
+          description="Hãy thử mở rộng bán kính tìm kiếm hoặc thay đổi bộ lọc để khám phá thêm nhiều người bạn thú vị khác cho bé nhé."
+          className="w-full mx-auto mt-10"
+        />
+      );
+    }
 
-  const closeChildDetail = useCallback(() => {
-    setSearchParams({});
-  }, [setSearchParams]);
-
-  const handleCardSwipe = useCallback(
-    (direction, profile) => {
-      if (!profile) return;
-      const isLike = direction === 'LIKE';
-      handleSwipe(profile.childId, isLike, removeTopProfile);
-    },
-    [handleSwipe, removeTopProfile]
-  );
-
-  // Keyboard shortcuts: ← Pass, → Like, Enter = view detail
-  useEffect(() => {
-    const handleKeyDown = (e) => {
-      if (isFilterOpen || selectedChildId) return;
-      if (profiles.length === 0) return;
-      const topProfile = profiles[0];
-
-      if (e.key === 'ArrowLeft') handleCardSwipe('PASS', topProfile);
-      else if (e.key === 'ArrowRight') handleCardSwipe('LIKE', topProfile);
-      else if (e.key === 'Enter') openChildDetail(topProfile.childId);
-    };
-
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [profiles, handleCardSwipe, openChildDetail, isFilterOpen, selectedChildId]);
+    return visibleProfiles.map((profile) => {
+      const index = profiles.indexOf(profile);
+      return (
+        <DiscoveryCard
+          key={profile.childId}
+          profile={profile}
+          index={index}
+          isTop={index === 0}
+          onSwipe={(direction) => handleSwipe(profile, direction)}
+          onViewDetail={() => openChildDetail(profile.childId)}
+        />
+      );
+    });
+  };
 
   return (
     <div className="w-full flex flex-col items-center py-6 px-4 sm:px-6 max-w-2xl mx-auto select-none">
       {/* Filter bar with modal trigger */}
-      <DiscoveryFilterBar meta={meta} onOpenFilter={openFilter} />
+      <DiscoveryFilterBar
+        meta={meta}
+        remainingViewsLabel={remainingViewsLabel}
+        searchingForLabel={searchingForLabel}
+        childOptions={childOptions}
+        selectedChildId={matchingChildId}
+        onSelectChild={selectChild}
+        filterSummary={filterSummary}
+        onOpenFilter={openFilter}
+        onUpgrade={goToUpgrade}
+      />
 
-      {/* Card stack area */}
-      <div className="relative w-full mt-4 pb-6" style={{ minHeight: '680px' }}>
-        {isLoading && profiles.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-full text-on-surface-variant">
-            <Loader2 size={40} strokeWidth={1.5} className="animate-spin mb-4 text-primary" />
-            <p>Đang tìm kiếm bạn bè quanh đây...</p>
-          </div>
-        ) : error ? (
-          // Hiển thị giao diện báo lỗi kèm hướng dẫn thay vì màn hình trống
-          <div className="flex flex-col items-center justify-center h-full text-center px-4">
-            <p className="text-error font-medium mb-4">{error}</p>
-            <p className="text-on-surface-variant text-sm">
-              Vui lòng cập nhật vị trí của bạn trong phần <b>Hồ sơ</b> để hệ thống có thể gợi ý bạn bè xung quanh nhé!
-            </p>
-          </div>
-        ) : profiles.length > 0 ? (
-          [...profiles].reverse().map((profile, i) => {
-            const actualIndex = profiles.length - 1 - i;
-            const isTop = actualIndex === 0;
-            if (actualIndex > 1) return null;
-            return (
-              <DiscoveryCard
-                key={profile.childId}
-                profile={profile}
-                index={actualIndex}
-                isTop={isTop}
-                onSwipe={(dir) => handleCardSwipe(dir, profile)}
-                onViewDetail={() => openChildDetail(profile.childId)}
-              />
-            );
-          })
-        ) : (
-          <EmptyDiscovery />
-        )}
+      {/* Card stack area: cards share one grid cell, so its height follows the tallest card
+          and nothing below (footer) is overlapped */}
+      <div className="grid w-full mt-3 pb-6">
+        {renderContent()}
       </div>
 
       {/* Filter modal */}
@@ -115,7 +118,8 @@ export const DiscoveryPage = () => {
       <ChildProfileDetailModal
         childId={selectedChildId}
         onClose={closeChildDetail}
-        onSwipeDone={removeTopProfile}
+        onSwipe={(direction) => handleSwipe(selectedChildId, direction)}
+        isSwiping={isSwiping}
       />
     </div>
   );

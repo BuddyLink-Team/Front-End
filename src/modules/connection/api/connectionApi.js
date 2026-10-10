@@ -1,26 +1,26 @@
 import apiClient from '../../../services/apiClient';
+import { API_ENDPOINTS } from '../../../constants/api.constants';
+
+const { CONNECTION } = API_ENDPOINTS;
 
 /**
- * All HTTP requests for the Connection module.
- * Called ONLY from useConnections hook — never from components directly.
+ * HTTP calls of the Connection module (used by the connection slice thunks only)
  */
+export const connectionApi = {
+  /**
+   * @param {{ status?: string, direction?: 'incoming'|'outgoing' }} [params]
+   */
+  getConnections: (params) => apiClient.get(CONNECTION.BASE, { params }),
 
-/** GET /connections?status=pending|accepted */
-export const getConnections = (status) =>
-  apiClient.get('/connections', { params: { status } });
+  /** Send a connection request to another parent */
+  sendRequest: (recipientId) => apiClient.post(CONNECTION.BASE, { recipientId }),
 
-/** POST /connections/request  { recipientId } */
-export const sendConnectionRequest = (recipientId) =>
-  apiClient.post('/connections/request', { recipientId });
+  acceptRequest: (id) => apiClient.patch(CONNECTION.ACCEPT(id)),
 
-/** PUT /connections/accept/:id */
-export const acceptConnection = (id) =>
-  apiClient.put(`/connections/accept/${id}`);
+  declineRequest: (id) => apiClient.patch(CONNECTION.DECLINE(id)),
 
-/** PUT /connections/decline/:id */
-export const declineConnection = (id) =>
-  apiClient.put(`/connections/decline/${id}`);
+  /** Remove an accepted connection, or cancel a request the parent sent */
+  removeConnection: (id) => apiClient.delete(CONNECTION.BY_ID(id)),
+};
 
-/** DELETE /connections/remove/:id */
-export const removeConnection = (id) =>
-  apiClient.delete(`/connections/remove/${id}`);
+export default connectionApi;

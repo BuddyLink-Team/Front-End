@@ -1,198 +1,198 @@
-import { useEffect, useCallback } from 'react';
-import { useSelector, useDispatch } from 'react-redux';
-import { getApiErrorMsg } from '../../../utils/errorUtils';
+import { useEffect, useCallback, useMemo, useRef, useState } from 'react';
+import { useDebounce } from '../../../hooks/useDebounce';
+import { useDispatch, useSelector } from 'react-redux';
+import { useNavigate } from 'react-router-dom';
 import { useToast } from '../../../hooks/useToast';
+import { getApiErrorMsg } from '../../../utils/errorUtils';
+import { useSafetyActions } from '../../safety/hooks/useSafetyActions';
+import { openDirectConversation } from '../../chat/redux/chatSlice';
 import {
-  getConnections,
+  TIME_SLOT_OPTIONS,
+  LOCATION_PREFERENCE_OPTIONS,
+  PLAYDATE_DAY_OPTIONS,
+} from '../../child/constants/childConstants';
+import {
+  fetchConnectionLists,
+  fetchConnectionList,
   acceptConnection,
   declineConnection,
   removeConnection,
-} from '../api/connectionApi';
-import { CONNECTION_ERROR_MAP } from '../constants/connection.constants';
-import {
-  setPending,
-  setAccepted,
-  setLoading,
-  setError,
-  removePending,
-  removeAccepted,
 } from '../redux/connectionSlice';
+import { CONNECTION_ACTIONS, CONNECTION_ERROR_MAP, CONNECTION_LISTS } from '../constants/connection.constants';
 
-// ─── Helpers ────────────────────────────────────────────────────────────────
-
-/** Safe ObjectId/string equality check */
-const sameId = (a, b) =>
-  String(a?._id || a?.id || a) === String(b?._id || b?.id || b);
-
-/** Compute age in years from a dateOfBirth string */
-const calcAge = (dob) => {
-  if (!dob) return null;
-  const ms = Date.now() - new Date(dob).getTime();
-  return Math.max(0, Math.floor(ms / (365.25 * 24 * 3_600_000)));
-};
+const labelsOf = (values = [], options) =>
+  values.map((value) => options.find((option) => option.value === value)?.label || value);
 
 /**
- * Normalise a raw connection document into a flat card-friendly shape.
- * Both requesterId and recipientId must be populated objects from the API.
+ * ConnectionDTO -> card view model (partner = the other parent, with their first child)
  */
-const mapConnection = (conn, parentId) => {
-  const isRequester = sameId(conn.requesterId, parentId);
-  const other = isRequester ? conn.recipientId : conn.requesterId;
-  const child = other?.child ?? null;
-
+const toViewModel = (connection) => {
+  const partner = connection.partner || {};
+  const child = partner.child || null;
   return {
-    id: String(conn._id),
-    status: conn.status,
-    // keep the full partner parent object so QuickProfileCard can read it
-    partnerParent: other,
-    childName: child?.displayName || 'Bé',
-    childAge: calcAge(child?.dateOfBirth),
-    parentName: other?.fullName || 'Phụ huynh',
-    isVerified: !!other?.verification?.isVerifiedParent,
-    interests: child?.interests?.join(', ') || '',
-    location:
-      other?.location?.address ||
-      other?.location?.area ||
-      other?.location?.city ||
-      '',
-    avatarUrl:
-      child?.avatarUrl ||
-      other?.avatarUrl ||
-      `https://ui-avatars.com/api/?name=${encodeURIComponent(
-        other?.fullName || 'B'
-      )}&background=EAF3EC&color=3d6841`,
-    // presence is not yet served by the BE — always false until socket presence is added
-    isOnline: false,
+    id: connection.id,
+    status: connection.status,
+    direction: connection.direction,
+    partnerId: partner.id,
+    parentName: partner.fullName || 'Phụ huynh',
+    avatarUrl: partner.avatarUrl || null,
+    isVerified: Boolean(partner.isVerifiedParent),
+    childName: child?.displayName || null,
+    childAge: child?.age ?? null,
+    childGender: child?.gender || null,
+    interests: [...(child?.interests || []), ...(child?.favoriteActivities || [])],
+    area: [partner.location?.area, partner.location?.city].filter(Boolean).join(', '),
+    preferredDays: labelsOf(partner.preferences?.preferredPlaydateDays, PLAYDATE_DAY_OPTIONS),
+    preferredTimeSlots: labelsOf(partner.preferences?.preferredTimeSlots, TIME_SLOT_OPTIONS),
+    preferredLocations: labelsOf(partner.preferences?.preferredLocations, LOCATION_PREFERENCE_OPTIONS),
   };
 };
 
-// ─── Hook ───────────────────────────────────────────────────────────────────
+const SUCCESS_MESSAGES = {
+  [CONNECTION_ACTIONS.ACCEPT]: 'Đã chấp nhận lời mời kết nối!',
+  [CONNECTION_ACTIONS.DECLINE]: 'Đã từ chối lời mời kết nối.',
+  [CONNECTION_ACTIONS.REMOVE]: 'Đã hủy kết nối.',
+  [CONNECTION_ACTIONS.CANCEL]: 'Đã thu hồi lời mời kết nối.',
+};
+
+const ACTION_THUNKS = {
+  [CONNECTION_ACTIONS.ACCEPT]: acceptConnection,
+  [CONNECTION_ACTIONS.DECLINE]: declineConnection,
+  [CONNECTION_ACTIONS.REMOVE]: removeConnection,
+  [CONNECTION_ACTIONS.CANCEL]: removeConnection,
+};
+
+const SEARCH_DEBOUNCE_MS = 300;
+const FIRST_PAGES = Object.fromEntries(Object.values(CONNECTION_LISTS).map((list) => [list, 1]));
 
 /**
- * useConnections — domain hook for the Connection feature.
- *
- * Responsibilities:
- * - Fetch pending (incoming only) and accepted connections and store them in Redux.
- * - Expose accept / decline / remove actions with toast feedback and state updates.
- * - Map BE error codes through CONNECTION_ERROR_MAP via getApiErrorMsg.
- *
- * Pages & components MUST NOT call connectionApi.* directly.
+ * Connections page: accepted connections, incoming / outgoing requests and their actions.
+ * Lists are paginated and searched by the backend (name of the parent or of their child).
+ * Every action is confirmed first (requestAction -> confirmAction).
  */
 const useConnections = () => {
   const dispatch = useDispatch();
-  const currentParent = useSelector((state) => state.auth.parent);
-  const parentId = currentParent?._id || currentParent?.id;
-  const { pending, accepted, isLoading, error: fetchError } = useSelector(
+  const navigate = useNavigate();
+  const toast = useToast();
+  const { blockUser } = useSafetyActions();
+
+  const { accepted, incoming, outgoing, isLoading, pendingActionId, error } = useSelector(
     (state) => state.connection
   );
-  const { success, error: toastError } = useToast();
 
-  // ── fetch ────────────────────────────────────────────────────────────────
-  const fetchAll = useCallback(async () => {
-    if (!parentId) {
-      dispatch(setLoading(false));
-      return;
-    }
-    try {
-      dispatch(setLoading(true));
-      dispatch(setError(null));
+  const [activeList, setActiveList] = useState(CONNECTION_LISTS.ACCEPTED);
+  const [searchQuery, setSearchQuery] = useState('');
+  const search = useDebounce(searchQuery.trim(), SEARCH_DEBOUNCE_MS);
+  // Current page of each list (a ref: reloading after an action keeps the pages without re-rendering)
+  const pagesRef = useRef(FIRST_PAGES);
 
-      const [pendingRes, acceptedRes] = await Promise.all([
-        getConnections('pending'),
-        getConnections('accepted'),
-      ]);
+  // { action, connection } waiting for confirmation
+  const [pendingConfirm, setPendingConfirm] = useState(null);
+  const [isConfirming, setIsConfirming] = useState(false);
 
-      // apiClient wraps response: { data: { data: [...] } } or plain array
-      const unwrap = (res) => {
-        const body = res?.data ?? res;
-        return Array.isArray(body?.data) ? body.data : Array.isArray(body) ? body : [];
-      };
+  // Every list (tab counts), each on its current page
+  const refresh = useCallback(
+    () => dispatch(fetchConnectionLists({ search, pages: pagesRef.current })),
+    [dispatch, search]
+  );
 
-      const pendingRaw = unwrap(pendingRes);
-      const acceptedRaw = unwrap(acceptedRes);
-
-      // Only show INCOMING requests on the "Lời mời" tab
-      const incoming = pendingRaw.filter((c) => sameId(c.recipientId, parentId));
-
-      dispatch(setPending(incoming.map((c) => mapConnection(c, parentId))));
-      dispatch(setAccepted(acceptedRaw.map((c) => mapConnection(c, parentId))));
-    } catch (err) {
-      const msg = getApiErrorMsg(CONNECTION_ERROR_MAP, err, 'Không thể tải danh sách kết nối.');
-      dispatch(setError(msg));
-    } finally {
-      dispatch(setLoading(false));
-    }
-  }, [parentId, dispatch]);
-
+  // New search: back to the first page of every list
   useEffect(() => {
-    fetchAll();
-  }, [fetchAll]);
+    pagesRef.current = FIRST_PAGES;
+    dispatch(fetchConnectionLists({ search }));
+  }, [dispatch, search]);
 
-  // ── actions ──────────────────────────────────────────────────────────────
-  
-  const accept = useCallback(
-    async (id) => {
-      try {
-        await acceptConnection(id);
-        success('Đã chấp nhận lời mời kết nối!');
-        // Ideally we would move the connection from pending to accepted locally, 
-        // but for simplicity and data consistency, we re-fetch all.
-        await fetchAll();
-        return true;
-      } catch (err) {
-        const msg = getApiErrorMsg(CONNECTION_ERROR_MAP, err);
-        toastError(msg);
-        return false;
-      }
+  const changePage = useCallback(
+    (page) => {
+      pagesRef.current = { ...pagesRef.current, [activeList]: page };
+      dispatch(fetchConnectionList({ list: activeList, page, search }));
     },
-    [fetchAll, success, toastError]
+    [activeList, dispatch, search]
   );
 
-  const decline = useCallback(
-    async (id) => {
-      try {
-        await declineConnection(id);
-        success('Đã từ chối lời mời kết nối.');
-        dispatch(removePending(id));
-        return true;
-      } catch (err) {
-        const msg = getApiErrorMsg(CONNECTION_ERROR_MAP, err);
-        toastError(msg);
-        return false;
-      }
-    },
-    [dispatch, success, toastError]
+  const lists = useMemo(
+    () => ({
+      [CONNECTION_LISTS.ACCEPTED]: accepted.items.map(toViewModel),
+      [CONNECTION_LISTS.INCOMING]: incoming.items.map(toViewModel),
+      [CONNECTION_LISTS.OUTGOING]: outgoing.items.map(toViewModel),
+    }),
+    [accepted, incoming, outgoing]
   );
 
-  const remove = useCallback(
-    async (id) => {
+  const totals = {
+    [CONNECTION_LISTS.ACCEPTED]: accepted.pagination.total,
+    [CONNECTION_LISTS.INCOMING]: incoming.pagination.total,
+    [CONNECTION_LISTS.OUTGOING]: outgoing.pagination.total,
+  };
+  const activePagination = { accepted, incoming, outgoing }[activeList].pagination;
+
+  const requestAction = useCallback((action, connection) => setPendingConfirm({ action, connection }), []);
+  const cancelAction = useCallback(() => setPendingConfirm(null), []);
+
+  const confirmAction = useCallback(async () => {
+    if (!pendingConfirm) return;
+    const { action, connection } = pendingConfirm;
+    setIsConfirming(true);
+    try {
+      if (action === CONNECTION_ACTIONS.BLOCK) {
+        // useSafetyActions shows its own success / error toast
+        const result = await blockUser(connection.partnerId, connection.parentName, 'Blocked from connections');
+        if (result.success) refresh();
+      } else {
+        await dispatch(ACTION_THUNKS[action](connection.id)).unwrap();
+        toast.success(SUCCESS_MESSAGES[action]);
+        // Reload: the connection moved between lists and the totals changed
+        refresh();
+      }
+    } catch (err) {
+      toast.error(getApiErrorMsg(CONNECTION_ERROR_MAP, err, 'Thao tác không thành công. Vui lòng thử lại.'));
+    } finally {
+      setIsConfirming(false);
+      setPendingConfirm(null);
+    }
+  }, [pendingConfirm, blockUser, dispatch, refresh, toast]);
+
+  // Open (or create) the direct chat with the other parent
+  const openChat = useCallback(
+    async (connection) => {
       try {
-        await removeConnection(id);
-        success('Đã hủy kết nối.');
-        dispatch(removeAccepted(id));
-        return true;
+        const conversation = await dispatch(openDirectConversation(connection.partnerId)).unwrap();
+        navigate(`/chat/${conversation.id}`);
       } catch (err) {
-        const msg = getApiErrorMsg(CONNECTION_ERROR_MAP, err);
-        toastError(msg);
-        return false;
+        toast.error(getApiErrorMsg(CONNECTION_ERROR_MAP, err, 'Không thể mở cuộc trò chuyện.'));
       }
     },
-    [dispatch, success, toastError]
+    [dispatch, navigate, toast]
+  );
+
+  // Create playdate form with this friend already invited
+  const invitePlaydate = useCallback(
+    (connection) => navigate(`/playdates/create?invite=${connection.partnerId}`),
+    [navigate]
   );
 
   return {
-    /** Incoming pending connection requests (recipient = current user) */
-    pending,
-    /** Accepted (friend) connections */
-    accepted,
+    lists,
+    totals,
+    activeList,
+    setActiveList,
+    searchQuery,
+    setSearchQuery,
+    isSearching: Boolean(search),
+    page: activePagination.page,
+    totalPages: activePagination.totalPages,
+    changePage,
     isLoading,
-    /** Non-null when the initial fetch failed */
-    fetchError,
-    accept,
-    decline,
-    remove,
-    /** Manual refresh — e.g. pull-to-refresh */
-    refresh: fetchAll,
+    pendingActionId,
+    fetchError: error ? getApiErrorMsg(CONNECTION_ERROR_MAP, error, 'Không thể tải danh sách kết nối.') : null,
+    pendingConfirm,
+    isConfirming,
+    requestAction,
+    cancelAction,
+    confirmAction,
+    openChat,
+    invitePlaydate,
+    refresh,
   };
 };
 

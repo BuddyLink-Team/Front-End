@@ -1,6 +1,7 @@
 import React from 'react';
 import { AlertTriangle, Trash2, Info } from 'lucide-react';
 import { Button } from '../ui/Button';
+import { Modal } from './Modal';
 
 /**
  * ConfirmDialog – confirmation modal for dangerous/critical operations.
@@ -31,20 +32,20 @@ export const ConfirmDialog = ({
   const variantConfig = {
     danger: {
       icon: Trash2,
-      iconColor: 'text-[#ba1a1a]',
-      bg: 'bg-[#ffdad6]/60',
+      iconColor: 'text-error',
+      bg: 'bg-error-container/60',
       btnVariant: 'danger',
     },
     warning: {
       icon: AlertTriangle,
-      iconColor: 'text-[#755a1b]',
-      bg: 'bg-[#ffdf9f]/50',
+      iconColor: 'text-tertiary-dark',
+      bg: 'bg-tertiary-fixed/50',
       btnVariant: 'primary',
     },
     info: {
       icon: Info,
       iconColor: 'text-primary-dark',
-      bg: 'bg-[#baf0bc]/40',
+      bg: 'bg-primary-fixed/40',
       btnVariant: 'primary',
     },
   };
@@ -53,48 +54,45 @@ export const ConfirmDialog = ({
   const Icon = current.icon;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      {/* Backdrop */}
+    <Modal
+      isOpen
+      onClose={() => !isLoading && onCancel?.()}
+      maxWidth="max-w-sm"
+      className="bg-white"
+      bodyClassName="p-6 text-center"
+    >
       <div
-        className="fixed inset-0 bg-[#2d3748]/30 backdrop-blur-sm transition-opacity"
-        onClick={onCancel}
-      />
-
-      {/* Dialog Body */}
-      <div className="relative w-full max-w-sm bg-white rounded-3xl p-6 shadow-[0_16px_40px_-8px_rgba(45,55,72,0.12)] border border-hairline z-10 animate-in fade-in zoom-in-95 duration-150 text-center">
-        <div
-          className={`w-14 h-14 ${current.bg} ${current.iconColor} rounded-2xl flex items-center justify-center mb-4 mx-auto`}
-        >
-          <Icon className="w-7 h-7" />
-        </div>
-
-        <h3 className="text-lg font-bold text-text-primary mb-2">{title}</h3>
-        <p className="text-sm text-text-muted mb-6 leading-relaxed">
-          {description}
-        </p>
-
-        <div className="flex gap-3">
-          <Button
-            type="button"
-            variant="ghost"
-            onClick={onCancel}
-            disabled={isLoading}
-            className="flex-1 border border-hairline"
-          >
-            {cancelLabel}
-          </Button>
-          <Button
-            type="button"
-            variant={current.btnVariant}
-            onClick={onConfirm}
-            isLoading={isLoading}
-            className="flex-1"
-          >
-            {confirmLabel}
-          </Button>
-        </div>
+        className={`w-14 h-14 ${current.bg} ${current.iconColor} rounded-2xl flex items-center justify-center mb-4 mx-auto`}
+      >
+        <Icon className="w-7 h-7" />
       </div>
-    </div>
+
+      <h3 className="text-lg font-bold text-text-primary mb-2">{title}</h3>
+      <p className="text-sm text-text-muted mb-6 leading-relaxed">
+        {description}
+      </p>
+
+      <div className="flex gap-3">
+        <Button
+          type="button"
+          variant="ghost"
+          onClick={onCancel}
+          disabled={isLoading}
+          className="flex-1 border border-hairline"
+        >
+          {cancelLabel}
+        </Button>
+        <Button
+          type="button"
+          variant={current.btnVariant}
+          onClick={onConfirm}
+          isLoading={isLoading}
+          className="flex-1"
+        >
+          {confirmLabel}
+        </Button>
+      </div>
+    </Modal>
   );
 };
 

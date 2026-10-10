@@ -8,6 +8,7 @@ export const Textarea = React.forwardRef(
       error,
       helperText,
       className,
+      containerClassName,
       disabled,
       rows = 4,
       id,
@@ -18,7 +19,7 @@ export const Textarea = React.forwardRef(
     const textareaId = id || props.name;
 
     return (
-      <div className="w-full space-y-1.5 text-left">
+      <div className={cn('w-full space-y-1.5 text-left', containerClassName)}>
         {label && (
           <label
             htmlFor={textareaId}

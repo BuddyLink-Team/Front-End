@@ -1,13 +1,25 @@
-import React from 'react';
+import React, { lazy } from 'react';
 import { Route, Navigate } from 'react-router-dom';
 import { MainLayout } from '../layouts/MainLayout';
 import PlaceholderPage from '../components/feedback/PlaceholderPage';
-import ParentProfilePage from '../modules/parent/pages/ParentProfilePage';
 
-import ChildrenManagementPage from '../modules/child/pages/ChildrenManagementPage';
-import ChildFormPage from '../modules/child/pages/ChildFormPage';
 import DiscoveryPage from '../modules/discovery/pages/DiscoveryPage';
-import ConnectionsPage from '../modules/connection/pages/ConnectionsPage';
+// Pages are code-split: each route downloads its own chunk on first visit
+const ChatPage = lazy(() => import('../modules/chat/pages/ChatPage'));
+const ParentProfilePage = lazy(() => import('../modules/parent/pages/ParentProfilePage'));
+const ChildrenManagementPage = lazy(() => import('../modules/child/pages/ChildrenManagementPage'));
+const ChildFormPage = lazy(() => import('../modules/child/pages/ChildFormPage'));
+const PlaydateListPage = lazy(() => import('../modules/playdate/pages/PlaydateListPage'));
+const CreatePlaydatePage = lazy(() => import('../modules/playdate/pages/CreatePlaydatePage'));
+const PlaydateDetailPage = lazy(() => import('../modules/playdate/pages/PlaydateDetailPage'));
+const ConnectionsPage = lazy(() => import('../modules/connection/pages/ConnectionsPage'));
+
+import GamificationPage from '../modules/gamification/pages/GamificationPage';
+
+import SubscriptionPage from '../modules/subscription/pages/SubscriptionPage';
+import CheckoutPage from '../modules/subscription/pages/CheckoutPage';
+import PaymentSuccessPage from '../modules/subscription/pages/PaymentSuccessPage';
+import PaymentCancelPage from '../modules/subscription/pages/PaymentCancelPage';
 
 /**
  * Full route definitions for Parent features.
@@ -23,26 +35,21 @@ export const ParentRoutes = () => (
     {/* Playdate Management */}
     <Route
       path="/playdates"
-      element={<PlaceholderPage title="Danh sách cuộc hẹn chơi" description="Quản lý lịch hẹn Playdate sắp diễn ra, đã hoàn thành hoặc đã hủy." />}
+      element={<PlaydateListPage />}
     />
     <Route
       path="/playdates/create"
-      element={<PlaceholderPage title="Tạo cuộc hẹn chơi mới" description="Lên lịch Playdate, chọn bé tham gia, hoạt động và địa điểm vui chơi." />}
+      element={<CreatePlaydatePage />}
     />
     <Route
       path="/playdates/:id"
-      element={<PlaceholderPage title="Chi tiết cuộc hẹn chơi" description="Xem thông tin chi tiết cuộc hẹn, người tham gia, lịch hẹn và trao đổi nhóm." />}
+      element={<PlaydateDetailPage />}
     />
 
     {/* Communication */}
-    <Route
-      path="/chat"
-      element={<PlaceholderPage title="Tin nhắn trò chuyện" description="Danh sách trò chuyện trực tiếp 1-1 với phụ huynh đã kết nối." />}
-    />
-    <Route
-      path="/chat/:conversationId"
-      element={<PlaceholderPage title="Khung chat trực tiếp" description="Trò chuyện thời gian thực và chia sẻ hình ảnh cùng phụ huynh." />}
-    />
+    <Route path="/chat" element={<ChatPage />} />
+    <Route path="/chat/playdate/:playdateId" element={<ChatPage />} />
+    <Route path="/chat/:conversationId" element={<ChatPage />} />
 
     {/* AI Assistant */}
     <Route
@@ -90,14 +97,14 @@ export const ParentRoutes = () => (
     {/* Gamification */}
     <Route
       path="/gamification"
-      element={<PlaceholderPage title="Huy hiệu & Chuỗi Streak" description="Theo dõi chuỗi Playdate hàng tuần và bộ sưu tập huy hiệu đạt được." />}
+      element={<GamificationPage />}
     />
 
-    {/* Premium Subscription */}
-    <Route
-      path="/subscription"
-      element={<PlaceholderPage title="Gói hội viên Premium" description="Xem các gói quyền lợi thành viên và cổng thanh toán PayOS." />}
-    />
+    {/* Premium Subscription & PayOS Checkout */}
+    <Route path="/subscription" element={<SubscriptionPage />} />
+    <Route path="/checkout" element={<CheckoutPage />} />
+    <Route path="/payment/success" element={<PaymentSuccessPage />} />
+    <Route path="/payment/cancel" element={<PaymentCancelPage />} />
 
     {/* Safety & Settings */}
     <Route

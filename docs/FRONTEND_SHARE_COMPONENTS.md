@@ -43,6 +43,7 @@ src/components/
 │   ├── Switch.jsx       # Nút gạt bật/tắt (Toggle) mượt mà
 │   ├── Select.jsx       # Menu thả lựa chọn bo tròn mềm mại
 │   ├── Avatar.jsx       # Ảnh đại diện (bé, phụ huynh, trạng thái online)
+│   ├── UpgradeButton.jsx# Nút nâng cấp Premium (vương miện, nền vàng) dùng chung
 │   └── DataTable.jsx    # Bảng dữ liệu có phân trang, sắp xếp và lọc
 ├── badges/              # Nhãn trạng thái & định danh
 │   ├── VerifiedBadge.jsx# Huy hiệu Phụ huynh đã xác thực (Matcha Shield)
@@ -83,11 +84,12 @@ src/components/
 | **UI** | `Checkbox` | `components/ui/Checkbox.jsx` | ✅ Đã code | Bo góc, hiệu ứng checkmark matcha |
 | **UI** | `Switch` | `components/ui/Switch.jsx` | ✅ Đã code | Toggle chuyển động mượt 3 kích thước |
 | **UI** | `Select` | `components/ui/Select.jsx` | ✅ Đã code | Custom chevron, hỗ trợ options/children |
-| **UI** | `Avatar` | `components/ui/Avatar.jsx` | ✅ Đã code | Kích thước sm/md/lg/xl, online badge |
+| **UI** | `Avatar` | `components/ui/Avatar.jsx` | ✅ Đã code | Kích thước sm/md/lg/xl/2xl (2xl: ảnh hồ sơ lớn), online badge |
+| **UI** | `UpgradeButton` | `components/ui/UpgradeButton.jsx` | ✅ Đã code | CTA nâng cấp Premium, size sm/md/lg, đổi chữ qua children |
 | **UI** | `Dropdown` | `components/ui/Dropdown.jsx` | ✅ Đã code | Dropdown menu bo góc kèm Item, Header, Divider |
 | **UI** | `DataTable` | `components/ui/DataTable.jsx` | ✅ Đã code | Bảng dữ liệu đa năng |
-| **Badges** | `VerifiedBadge` | `components/badges/VerifiedBadge.jsx` | ✅ Đã code | Matcha ShieldCheck icon |
-| **Badges** | `StatusChip` | `components/badges/StatusChip.jsx` | ✅ Đã code | pending, confirmed, cancelled, reported, completed |
+| **Badges** | `VerifiedBadge` | `components/badges/VerifiedBadge.jsx` | ✅ Đã code | Matcha ShieldCheck icon, size sm/md/lg, `iconOnly` cho danh sách gọn |
+| **Badges** | `StatusChip` | `components/badges/StatusChip.jsx` | ✅ Đã code | pending, confirmed, cancelled, reported, completed; đổi chữ qua `label`, icon qua `icon` |
 | **Badges** | `InterestTag` | `components/badges/InterestTag.jsx` | ✅ Đã code | Tag sở thích trẻ em, hỗ trợ click |
 | **Cards** | `Card` | `components/cards/Card.jsx` | ✅ Đã code | Padding linh hoạt, hover elevation |
 | **Cards** | `StatCard` | `components/cards/StatCard.jsx` | ✅ Đã code | Thống kê KPI, % tăng/giảm |
@@ -144,6 +146,12 @@ src/components/
 - **Mục đích**: Chọn khoảng cách bán kính tìm kiếm (3km, 5km, 10km), chọn nhóm tuổi, giới tính của bé.
 - **Quy chuẩn**: Dropdown bo góc 12px, có icon chevron tinh gọn, tương thích chuẩn form validation.
 
+#### 👑 `UpgradeButton.jsx`
+- **Mục đích**: Nút kêu gọi nâng cấp Premium dùng chung ở mọi trang (Quản lý hồ sơ bé, Popup hết hạn mức, Thanh lọc Khám phá...). Style chuẩn lấy từ nút "Nâng cấp để thêm bé" ở trang Quản lý hồ sơ bé.
+- **Quy chuẩn**: Dựng trên `Button`, nền vàng `bg-amber-400`, chữ trắng, icon `Crown`, `rounded-xl`, `shadow-md`, `font-semibold`.
+- **Props**: `size` (`sm`, `md` mặc định, `lg`), `children` (chữ hiển thị, mặc định *"Nâng cấp"*), `onClick`, `className`.
+- **Lưu ý**: Chỉ là UI — trang gọi tự xử lý điều hướng, ví dụ `onClick={() => navigate('/subscription')}`.
+
 #### 🖼️ `Avatar.jsx`
 - **Mục đích**: Hiển thị ảnh đại diện phụ huynh, avatar bé, hoặc chatbot AI.
 - **Quy chuẩn**: Bo tròn tuyệt đối (`rounded-full`), có viền trắng 2px và chấm xanh báo trạng thái online/offline.
@@ -155,6 +163,11 @@ src/components/
 #### 🛡️ `VerifiedBadge.jsx` (Dấu ấn đặc trưng BuddyLink)
 - **Mục đích**: Hiển thị huy hiệu "Phụ huynh đã xác thực danh tính" xuất hiện trên Card ghép đôi, Hồ sơ công khai, Khung chat.
 - **Giao diện**: Chip nền matcha nhạt `#EAF3EC`, chữ `#3D6841`, icon khiên bảo vệ (ShieldCheck).
+- **Props**:
+  - `size`: `sm` | `md` (mặc định) | `lg`.
+  - `text`: Nội dung nhãn (mặc định `Đã xác thực`).
+  - `showIcon`: Ẩn/hiện icon khiên trong chip (mặc định `true`).
+  - `iconOnly`: Chỉ hiển thị icon khiên (kích thước theo `size`), không có chip và chữ; `text` dùng làm tooltip và `aria-label`. Dùng cạnh tên trong danh sách hẹp (host/participant ở panel nhóm Playdate) để không chiếm chỗ của tên.
 
 #### 🏷️ `StatusChip.jsx`
 - **Mục đích**: Hiển thị trạng thái cuộc hẹn chơi (Playdate), trạng thái thanh toán, báo cáo vi phạm.
@@ -164,6 +177,12 @@ src/components/
   - `cancelled` (Đã hủy): Nền xám nhạt `#EDF2F0`, chữ `#718096`.
   - `reported` (Vi phạm): Nền đỏ pastel `#FFDAD6`, chữ `#BA1A1A`.
   - `completed` (Đã hoàn thành): Nền mây xanh `#E7EEFF`, chữ `#30647B`.
+- **Props**: `status` (chọn màu và nhãn mặc định), `label` (thay nhãn), `icon` (icon Lucide đặt trước nhãn), `className`.
+- **Quy tắc dùng**: Chỉ 5 status trên có màu riêng; status khác (vd. `upcoming`, `accepted`, `declined`) sẽ rơi về màu `pending`. Vì vậy module phải map trạng thái nghiệp vụ sang variant có sẵn và truyền `label` riêng, không truyền thẳng status của API:
+  - Playdate (`modules/chat/constants/chatConstants.js` → `PLAYDATE_STATUS_CHIPS`): `upcoming` → `confirmed` "Sắp diễn ra", `completed` → `completed`, `cancelled` → `cancelled`.
+  - Người tham gia Playdate (`PARTICIPANT_STATUS_CHIPS`): `pending` → `pending` "Chờ phản hồi", `accepted` → `confirmed` "Đã tham gia", `declined` → `cancelled` "Đã từ chối".
+  - Huy hiệu thành tích (`BadgeCard`): đã mở khóa → `confirmed` + icon `CheckCircle2`, chưa mở → `cancelled` + icon `Lock`.
+  - Streak tuần (`StreakBanner`): đã hoàn thành tuần → `confirmed`, chưa → `pending`.
 
 #### 🎨 `InterestTag.jsx`
 - **Mục đích**: Hiển thị các nhãn sở thích của bé (Lego, Đọc sách, Bơi lội, Vẽ...) và độ tuổi (`4-6 tuổi`).

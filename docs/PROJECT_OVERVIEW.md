@@ -559,14 +559,16 @@ Verify Phone
 
 ## 14.2 Subscription Management
 
-| Function                 | Description                                              |
-| ------------------------ | -------------------------------------------------------- |
-| View Current Plan        | Xem gói hiện tại: Free hoặc Premium.                     |
-| Subscribe to Premium     | Đăng ký gói Premium.                                     |
-| Cancel Subscription      | Hủy gia hạn Premium.                                     |
-| View Subscription Status | Xem trạng thái subscription: Active, Cancelled, Expired. |
-| View Expiration Date     | Xem ngày hết hạn của Premium.                            |
-| View Payment History     | Xem lịch sử thanh toán Premium.                          |
+| Function                 | Description                                                                        |
+| ------------------------ | ---------------------------------------------------------------------------------- |
+| View Current Plan        | Xem gói hiện tại: Free hoặc Premium.                                               |
+| Subscribe to Premium     | Mua gói Premium 1 tháng hoặc 1 năm qua PayOS (VietQR).                             |
+| Renew Premium            | Mua thêm khi gói còn hạn: thời gian được cộng dồn theo tháng dương lịch.           |
+| View Subscription Status | Xem trạng thái subscription: Active, Expired.                                      |
+| View Expiration Date     | Xem ngày hết hạn của Premium.                                                      |
+| View Payment History     | Xem lịch sử thanh toán Premium.                                                    |
+
+**Lưu ý:** Premium là gói **trả trước từng lần**, không tự động trừ tiền (payOS không hỗ trợ thanh toán định kỳ), nên không có chức năng hủy gia hạn. Hết hạn mà không mua thêm thì tài khoản tự về gói Free.
 
 ---
 
@@ -614,7 +616,7 @@ Verify Phone
 | Manage Subscription Plans   | Quản lý thông tin, giá và chu kỳ của Subscription Plans.                  |
 | View Subscription Status    | Xem trạng thái Subscription của Parent.                                   |
 | View Payment History        | Xem lịch sử thanh toán Premium của Parent.                                |
-| View Subscription Analytics | Xem thống kê Free/Premium, Active, Expired, Cancelled và Conversion Rate. |
+| View Subscription Analytics | Xem thống kê Free/Premium, Active, Expired và Conversion Rate. |
 
 ## 15.6 Analytics
 

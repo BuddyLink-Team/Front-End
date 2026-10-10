@@ -25,18 +25,6 @@ export const POPULAR_INTERESTS = [
   'Cờ vua & Board game',
 ];
 
-export const POPULAR_ACTIVITIES = [
-  'Đạp xe công viên',
-  'Bơi lội',
-  'Khu vui chơi trong nhà (Kids Cafe)',
-  'Dã ngoại ngoài trời',
-  'Trượt patin',
-  'Bóng đá / Thể thao',
-  'Thư viện / Đọc sách',
-  'Ghé thăm viện bảo tàng',
-  'Trò chơi tương tác / Board games',
-  'Thủ công sáng tạo',
-];
 
 export const PERSONALITY_TRAITS = [
   'Năng động & Thích vận động',
@@ -73,35 +61,29 @@ export const LOCATION_PREFERENCE_OPTIONS = [
   { value: 'pool', label: 'Hồ bơi / Công viên nước' },
 ];
 
+// Max search distance slider (onboarding criteria + profile preferences)
+export const DISTANCE_SLIDER = Object.freeze({
+  MIN: 1,
+  MAX: 30,
+  MARKS: ['1 km (Gần nhà)', '15 km (Khu vực)', '30 km'],
+});
+
 /**
- * Mapping of Backend Error Codes & Messages to Vietnamese User-friendly Messages for Child & Onboarding
+ * Codes returned by the /children endpoints and the onboarding preferences endpoint
+ * (child.service, subscription quota, parent.service); shared middleware codes are in
+ * constants/error.constants.js.
  */
-export const CHILD_ERROR_MESSAGES = {
-  // Error codes
+export const CHILD_ERROR_CODES = Object.freeze({
+  CHILD_QUOTA_EXCEEDED: 'CHILD_QUOTA_EXCEEDED',
+});
+
+export const CHILD_ERROR_MESSAGES = Object.freeze({
   CHILD_NOT_FOUND: 'Không tìm thấy hồ sơ trẻ em hoặc bạn không có quyền truy cập.',
   PARENT_NOT_FOUND: 'Không tìm thấy hồ sơ phụ huynh tương ứng.',
+  [CHILD_ERROR_CODES.CHILD_QUOTA_EXCEEDED]:
+    'Gói hiện tại đã đạt giới hạn số hồ sơ bé. Nâng cấp lên gói Premium để quản lý không giới hạn hồ sơ của con và mở khóa đầy đủ tính năng kết nối!',
+  INVALID_PREFERENCES: 'Tiêu chí chưa hợp lệ: độ tuổi tối thiểu phải nhỏ hơn hoặc bằng tối đa và bán kính từ 1 đến 100km.',
+  INVALID_COORDINATES: 'Tọa độ vị trí không hợp lệ.',
   VALIDATION_ERROR: 'Thông tin hồ sơ bé hoặc tiêu chí chưa hợp lệ. Vui lòng kiểm tra lại!',
-  AUTHENTICATION_REQUIRED: 'Vui lòng đăng nhập để thực hiện thao tác.',
-  FORBIDDEN: 'Bạn không có quyền thực hiện thao tác này.',
-  TOO_MANY_REQUESTS: 'Thao tác quá thường xuyên. Vui lòng thử lại sau ít phút!',
-  INVALID_CHILD_ID: 'Mã định danh hồ sơ bé không hợp lệ.',
-
-  // Direct backend validation & service message mapping
-  'Child display name is required': 'Vui lòng nhập tên của bé.',
-  'Child display name must be between 2 and 50 characters': 'Tên của bé phải từ 2 đến 50 ký tự.',
-  'Child date of birth is required': 'Vui lòng chọn ngày sinh của bé.',
-  'Date of birth must be a valid date format (YYYY-MM-DD)': 'Ngày sinh không đúng định dạng.',
-  'Date of birth cannot be in the future': 'Ngày sinh của bé không thể ở tương lai.',
-  'Child gender is required': 'Vui lòng chọn giới tính của bé.',
-  'Interests must be an array of strings': 'Danh sách sở thích chưa hợp lệ.',
-  'Favorite activities must be an array of strings': 'Danh sách hoạt động ưa thích chưa hợp lệ.',
-  'Personality traits must be an array of strings': 'Danh sách đặc điểm tính cách chưa hợp lệ.',
-  'Invalid child ID format': 'Mã định danh hồ sơ bé không hợp lệ.',
-  'Child profile not found': 'Không tìm thấy thông tin hồ sơ của bé.',
-  'Parent profile not found': 'Không tìm thấy thông tin phụ huynh.',
-  'Location must be an object': 'Thông tin vị trí chưa hợp lệ.',
-  'Coordinates must be an array of [lng, lat]': 'Tọa độ vị trí không hợp lệ.',
-  'Preferences must be an object': 'Thông tin tiêu chí chưa hợp lệ.',
-  'maxDistanceKm must be a number': 'Khoảng cách tìm kiếm tối đa phải là số.',
-};
+});
 

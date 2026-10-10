@@ -2,147 +2,130 @@ import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Tabs } from '../../../components/navigation/Tabs';
 import { SearchBar } from '../../../components/search/SearchBar';
-import { useDebounce } from '../../../hooks/useDebounce';
+import { Skeleton } from '../../../components/feedback/Skeleton';
+import { ConfirmDialog } from '../../../components/feedback/ConfirmDialog';
+import { Pagination } from '../../../components/navigation/Pagination';
 import useConnections from '../hooks/useConnections';
 import ConnectionCard from '../components/ConnectionCard';
 import ConnectionEmptyState from '../components/ConnectionEmptyState';
 import QuickProfileCard from '../components/QuickProfileCard';
-
-// ─── Tab definitions ─────────────────────────────────────────────────────────
-const TAB_DEFS = [
-  { id: 'accepted', label: 'Bạn bè đã kết nối' },
-  { id: 'pending', label: 'Lời mời kết nối' },
-];
-
-// ─── Helpers ─────────────────────────────────────────────────────────────────
-
-/** Accent-insensitive Vietnamese normalisation for client-side search */
-const normalise = (s) =>
-  String(s ?? '')
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .replace(/đ/gi, 'd')
-    .toLowerCase()
-    .trim();
-
-const matchesQuery = (conn, q) =>
-  !q || [conn.childName, conn.parentName, conn.location].some((f) => normalise(f).includes(q));
-
-// ─── Page ─────────────────────────────────────────────────────────────────────
+import { CONNECTION_CONFIRM, CONNECTION_LISTS, CONNECTION_TABS } from '../constants/connection.constants';
 
 /**
- * ConnectionsPage — Main view for the /connections route.
- *
- * Data-flow (per FRONTEND_AI_GUIDE.md):
- *   Page → useConnections (hook) → connectionApi → apiClient → BE
- *
- * UI primitives used from src/components/:
- *   - Tabs (pill variant)
- *   - SearchBar
- *
- * Module components:
- *   - ConnectionCard, ConnectionEmptyState, QuickProfileCard
+ * /connections: accepted connections, incoming and sent requests (paginated and searched by the
+ * backend), with a quick profile column.
+ * Data flow: Page -> useConnections (hook) -> connection slice thunks -> connectionApi -> apiClient
  */
 const ConnectionsPage = () => {
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState('accepted');
-  const [searchQuery, setSearchQuery] = useState('');
   const [selectedId, setSelectedId] = useState(null);
 
-  const { pending, accepted, isLoading, fetchError, accept, decline, remove } = useConnections();
+  const {
+    lists,
+    totals,
+    activeList: activeTab,
+    setActiveList: setActiveTab,
+    searchQuery,
+    setSearchQuery,
+    isSearching,
+    page,
+    totalPages,
+    changePage,
+    isLoading,
+    pendingActionId,
+    fetchError,
+    pendingConfirm,
+    isConfirming,
+    requestAction,
+    cancelAction,
+    confirmAction,
+    openChat,
+    invitePlaydate,
+  } = useConnections();
 
-  // Debounce search to avoid re-filtering every keystroke
-  const debouncedQuery = useDebounce(normalise(searchQuery), 250);
+  const list = lists[activeTab];
 
-  // Active list depends on tab
-  const list = activeTab === 'pending' ? pending : accepted;
+  // Quick profile of the selected card (any list), with the list it belongs to
+  const selected = useMemo(() => {
+    for (const listId of Object.values(CONNECTION_LISTS)) {
+      const connection = lists[listId].find((c) => c.id === selectedId);
+      if (connection) return { connection, type: listId };
+    }
+    return null;
+  }, [lists, selectedId]);
 
-  // Client-side filtering
-  const filtered = useMemo(
-    () => list.filter((c) => matchesQuery(c, debouncedQuery)),
-    [list, debouncedQuery]
-  );
-
-  // Quick profile sidebar
-  const selectedConnection = useMemo(
-    () => [...pending, ...accepted].find((c) => c.id === selectedId) ?? null,
-    [pending, accepted, selectedId]
-  );
-
-  // Tabs with live counts
-  const tabs = TAB_DEFS.map((t) => ({
-    ...t,
-    count: t.id === 'pending' ? pending.length : accepted.length,
-  }));
+  const tabs = CONNECTION_TABS.map((tab) => ({ ...tab, count: totals[tab.id] }));
+  const confirmContent = pendingConfirm ? CONNECTION_CONFIRM[pendingConfirm.action] : null;
 
   return (
-    <div className="mx-auto px-margin py-space-md min-h-screen pb-20">
-      {/* ── Pill Tabs ── */}
-      <Tabs
-        tabs={tabs}
-        activeTab={activeTab}
-        onChange={setActiveTab}
-        variant="pill"
-        className="mb-space-md"
+    <div className="mx-auto px-margin py-space-md pb-20 space-y-space-md">
+      <Tabs tabs={tabs} activeTab={activeTab} onChange={setActiveTab} />
+
+      <SearchBar
+        value={searchQuery}
+        onChange={setSearchQuery}
+        onClear={() => setSearchQuery('')}
+        placeholder="Tìm theo tên bé, phụ huynh hoặc khu vực..."
+        className="max-w-md"
       />
 
-      {/* ── Search bar ── */}
-      <div className="mb-space-lg">
-        <SearchBar
-          id="connections-search"
-          value={searchQuery}
-          onChange={setSearchQuery}
-          placeholder="Tìm theo tên bé, phụ huynh hoặc địa chỉ..."
-          className="max-w-md"
-        />
-      </div>
-
-      {/* ── Error banner (fetch failure) ── */}
       {fetchError && !isLoading && (
-        <div
-          role="alert"
-          className="mb-space-md px-4 py-3 rounded-xl bg-error-container text-on-error-container text-sm"
-        >
+        <div role="alert" className="px-4 py-3 rounded-xl bg-error-container text-on-error-container text-sm">
           {fetchError}
         </div>
       )}
 
-      {/* ── Main grid ── */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-space-lg items-start">
-        {/* ── Left: list ── */}
         <div className="lg:col-span-8 flex flex-col gap-space-sm">
-          {isLoading ? (
-            <div className="py-space-xl text-center text-text-muted text-sm">Đang tải...</div>
-          ) : filtered.length === 0 ? (
+          {isLoading && list.length === 0 ? (
+            Array.from({ length: 3 }, (_, index) => <Skeleton key={index} className="h-28 rounded-2xl" />)
+          ) : list.length === 0 ? (
             <ConnectionEmptyState
               type={activeTab}
-              isSearching={!!debouncedQuery && list.length > 0}
-              onAction={() => navigate('/discovery')}
+              isSearching={isSearching}
+              onDiscover={() => navigate('/discovery')}
             />
           ) : (
-            filtered.map((conn) => (
-              <div
-                key={conn.id}
-                className="cursor-pointer"
-                onClick={() => setSelectedId(conn.id)}
-              >
-                <ConnectionCard
-                  connection={conn}
-                  type={activeTab}
-                  onAccept={accept}
-                  onDecline={decline}
-                  onRemove={remove}
-                />
-              </div>
+            list.map((connection) => (
+              <ConnectionCard
+                key={connection.id}
+                connection={connection}
+                type={activeTab}
+                isSelected={connection.id === selectedId}
+                isBusy={connection.id === pendingActionId}
+                onSelect={setSelectedId}
+                onAction={requestAction}
+                onMessage={openChat}
+              />
             ))
+          )}
+          {totalPages > 1 && (
+            <Pagination currentPage={page} totalPages={totalPages} onPageChange={changePage} className="justify-center pt-2" />
           )}
         </div>
 
-        {/* ── Right: Quick Profile ── */}
-        <div className="lg:col-span-4 sticky top-24">
-          <QuickProfileCard connection={selectedConnection} />
+        <div className="lg:col-span-4 lg:sticky lg:top-24">
+          <QuickProfileCard
+            connection={selected?.connection || null}
+            type={selected?.type}
+            onAction={requestAction}
+            onMessage={openChat}
+            onInvite={invitePlaydate}
+          />
         </div>
       </div>
+
+      <ConfirmDialog
+        open={Boolean(confirmContent)}
+        title={confirmContent?.title}
+        description={confirmContent?.description(pendingConfirm.connection.parentName)}
+        confirmLabel={confirmContent?.confirmLabel}
+        cancelLabel="Để sau"
+        variant={confirmContent?.variant}
+        isLoading={isConfirming}
+        onConfirm={confirmAction}
+        onCancel={cancelAction}
+      />
     </div>
   );
 };

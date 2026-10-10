@@ -1,5 +1,4 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
 import {
   Smartphone,
   Mail,
@@ -9,11 +8,11 @@ import {
   RotateCcw,
   Edit2,
   Lock,
-  MessageSquare,
 } from 'lucide-react';
 import { useVerifyOtp } from '../hooks/useVerifyOtp';
 import { formatTimer, maskPhone, maskEmail } from '../../../utils/formatters';
 import { Button, Input } from '../../../components';
+import { OTP_VALIDITY_MINUTES } from '../constants/authConstants';
 
 export const VerifyOtpPage = () => {
   const {
@@ -169,9 +168,9 @@ export const VerifyOtpPage = () => {
             <div className="flex items-center gap-1.5 bg-surface-container-low/70 py-1 px-3 rounded-full border border-hairline/60">
               <Clock className="w-3.5 h-3.5 text-primary" />
               <span>
-                Mã hết hạn sau{' '}
+                Mã có hiệu lực trong{' '}
                 <strong className="text-on-surface font-semibold">
-                  {formatTimer(countdown)}
+                  {activeStep === 'PHONE' ? OTP_VALIDITY_MINUTES.PHONE : OTP_VALIDITY_MINUTES.EMAIL} phút
                 </strong>
               </span>
             </div>
@@ -189,7 +188,7 @@ export const VerifyOtpPage = () => {
                 }`}
               >
                 <RotateCcw className="w-3 h-3" />
-                {canResend ? 'Gửi lại' : `Gửi lại (${countdown}s)`}
+                {canResend ? 'Gửi lại' : `Gửi lại sau ${formatTimer(countdown)}`}
               </button>
             </div>
           </div>

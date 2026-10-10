@@ -1,5 +1,6 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef } from 'react';
 import PropTypes from 'prop-types';
+import { useClickOutside } from '../../hooks/useClickOutside';
 
 /**
  * Dropdown Menu Container
@@ -17,20 +18,7 @@ export const Dropdown = ({
   const toggleDropdown = () => setIsOpen((prev) => !prev);
   const closeDropdown = () => setIsOpen(false);
 
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-        closeDropdown();
-      }
-    };
-
-    if (isOpen) {
-      document.addEventListener('mousedown', handleClickOutside);
-    }
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, [isOpen]);
+  useClickOutside(dropdownRef, isOpen, closeDropdown);
 
   const alignmentClasses = {
     left: 'left-0',
@@ -97,11 +85,15 @@ export const DropdownItem = ({
       {...props}
     >
       {Icon && (
-        <Icon
-          className={`w-4 h-4 shrink-0 ${
-            danger ? 'text-error' : 'text-text-muted group-hover:text-primary'
-          }`}
-        />
+        React.isValidElement(Icon) ? (
+          Icon
+        ) : (
+          <Icon
+            className={`w-4 h-4 shrink-0 ${
+              danger ? 'text-error' : 'text-text-muted group-hover:text-primary'
+            }`}
+          />
+        )
       )}
       <span className="flex-1">{children}</span>
     </Component>
@@ -111,7 +103,7 @@ export const DropdownItem = ({
 DropdownItem.propTypes = {
   children: PropTypes.node.isRequired,
   onClick: PropTypes.func,
-  icon: PropTypes.elementType,
+  icon: PropTypes.oneOfType([PropTypes.elementType, PropTypes.node]),
   danger: PropTypes.bool,
   className: PropTypes.string,
   as: PropTypes.elementType,

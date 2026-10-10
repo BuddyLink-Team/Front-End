@@ -9,12 +9,14 @@ import { cn } from '../../utils/cn';
  * @param {string} activeTab
  * @param {Function} onChange
  * @param {'pill'|'line'} [variant='pill']
+ * @param {boolean} [fullWidth=false] - Pill variant: stretch the bar and split it evenly between tabs
  */
 export const Tabs = ({
   tabs = [],
   activeTab,
   onChange,
   variant = 'pill',
+  fullWidth = false,
   className,
 }) => {
   if (variant === 'line') {
@@ -61,7 +63,8 @@ export const Tabs = ({
   return (
     <div
       className={cn(
-        'inline-flex items-center p-1 bg-[#f0f4f2] rounded-full border border-hairline overflow-x-auto max-w-full',
+        'inline-flex items-center p-1 bg-surface-muted rounded-full border border-hairline overflow-x-auto max-w-full',
+        fullWidth && 'flex w-full',
         className
       )}
     >
@@ -74,8 +77,10 @@ export const Tabs = ({
             key={tab.id}
             type="button"
             onClick={() => onChange?.(tab.id)}
+            aria-pressed={isActive}
             className={cn(
               'flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-all duration-150 select-none whitespace-nowrap',
+              fullWidth && 'flex-1 justify-center',
               isActive
                 ? 'bg-primary text-white shadow-xs font-semibold'
                 : 'text-text-muted hover:text-text-primary hover:bg-white/60'

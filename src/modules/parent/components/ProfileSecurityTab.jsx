@@ -2,12 +2,7 @@ import React from 'react';
 import {
   Shield,
   Lock,
-  Eye,
-  EyeOff,
   KeyRound,
-  UserX,
-  CheckCircle2,
-  AlertTriangle,
   Save,
 } from 'lucide-react';
 import { Card, Button, Switch } from '../../../components';
@@ -31,7 +26,6 @@ export const ProfileSecurityTab = ({
     isChangingPassword,
     handleSavePrivacy,
     handleChangePasswordSubmit,
-    isSocialAccount,
   } = useProfileSecurity({ profile, onUpdate, onChangePassword });
 
   return (

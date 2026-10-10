@@ -23,7 +23,8 @@ export const registerSchema = z
       .string()
       .trim()
       .min(1, AUTH_VALIDATION_MESSAGES.PHONE_REQUIRED)
-      .regex(/(84|0[3|5|7|8|9])+([0-9]{8})\b/, AUTH_VALIDATION_MESSAGES.PHONE_INVALID),
+      // Vietnamese mobile: 0 or +84 / 84, then a 3|5|7|8|9 carrier prefix and 8 digits
+      .regex(/^(?:\+?84|0)[35789][0-9]{8}$/, AUTH_VALIDATION_MESSAGES.PHONE_INVALID),
     email: z
       .string()
       .trim()
@@ -34,7 +35,7 @@ export const registerSchema = z
       .min(6, AUTH_VALIDATION_MESSAGES.PASSWORD_MIN),
     confirmPassword: z
       .string()
-      .min(1, 'Vui lòng xác nhận mật khẩu'),
+      .min(1, AUTH_VALIDATION_MESSAGES.CONFIRM_PASSWORD_REQUIRED),
   })
   .refine((data) => data.password === data.confirmPassword, {
     message: AUTH_VALIDATION_MESSAGES.PASSWORD_MISMATCH,
@@ -48,3 +49,26 @@ export const forgotPasswordSchema = z.object({
     .min(1, AUTH_VALIDATION_MESSAGES.EMAIL_REQUIRED)
     .email(AUTH_VALIDATION_MESSAGES.EMAIL_INVALID),
 });
+
+export const resetPasswordSchema = z
+  .object({
+    email: z
+      .string()
+      .trim()
+      .min(1, AUTH_VALIDATION_MESSAGES.EMAIL_REQUIRED)
+      .email(AUTH_VALIDATION_MESSAGES.EMAIL_INVALID),
+    token: z
+      .string()
+      .trim()
+      .regex(/^\d{6}$/, AUTH_VALIDATION_MESSAGES.RESET_CODE_INVALID),
+    newPassword: z
+      .string()
+      .min(6, AUTH_VALIDATION_MESSAGES.PASSWORD_MIN),
+    confirmNewPassword: z
+      .string()
+      .min(1, AUTH_VALIDATION_MESSAGES.CONFIRM_PASSWORD_REQUIRED),
+  })
+  .refine((data) => data.newPassword === data.confirmNewPassword, {
+    message: AUTH_VALIDATION_MESSAGES.PASSWORD_MISMATCH,
+    path: ['confirmNewPassword'],
+  });

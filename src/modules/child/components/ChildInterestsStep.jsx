@@ -1,16 +1,27 @@
 import React from 'react';
 import { Heart, Compass, Smile } from 'lucide-react';
+import { SelectableOptions } from '../../../components';
 import {
   POPULAR_INTERESTS,
-  POPULAR_ACTIVITIES,
   PERSONALITY_TRAITS,
 } from '../constants/childConstants';
+import { ACTIVITIES, ACTIVITY_GROUPS } from '../../../constants/activity.constants';
+
+const toOptions = (values) => values.map((value) => ({ value, label: value }));
+
+const INTEREST_OPTIONS = toOptions(POPULAR_INTERESTS);
+const PERSONALITY_OPTIONS = toOptions(PERSONALITY_TRAITS);
 
 export const ChildInterestsStep = ({
   formData,
   formErrors,
   toggleArrayItem,
 }) => {
+  // Saved activities that are no longer in the catalog stay visible so they can be removed
+  const otherActivities = formData.favoriteActivities.filter(
+    (value) => !ACTIVITIES.some((a) => a.value === value)
+  );
+
   return (
     <div className="space-y-6 animate-fadeIn">
       {/* Interests Chips */}
@@ -22,25 +33,11 @@ export const ChildInterestsStep = ({
           </label>
           <span className="text-xs text-text-muted">Đã chọn: {formData.interests.length}</span>
         </div>
-        <div className="flex flex-wrap gap-2">
-          {POPULAR_INTERESTS.map((item) => {
-            const isSelected = formData.interests.includes(item);
-            return (
-              <button
-                key={item}
-                type="button"
-                onClick={() => toggleArrayItem('interests', item)}
-                className={`px-3.5 py-2 rounded-full text-xs sm:text-sm font-medium transition-all border ${
-                  isSelected
-                    ? 'bg-primary text-white border-primary shadow-xs'
-                    : 'bg-surface-container-low text-on-surface-variant border-hairline hover:bg-surface-container'
-                }`}
-              >
-                {item}
-              </button>
-            );
-          })}
-        </div>
+        <SelectableOptions
+          options={INTEREST_OPTIONS}
+          selected={formData.interests}
+          onToggle={(value) => toggleArrayItem('interests', value)}
+        />
         {formErrors.interests && (
           <p className="text-xs text-error mt-1.5">{formErrors.interests}</p>
         )}
@@ -55,24 +52,27 @@ export const ChildInterestsStep = ({
           </label>
           <span className="text-xs text-text-muted">Đã chọn: {formData.favoriteActivities.length}</span>
         </div>
-        <div className="flex flex-wrap gap-2">
-          {POPULAR_ACTIVITIES.map((act) => {
-            const isSelected = formData.favoriteActivities.includes(act);
-            return (
-              <button
-                key={act}
-                type="button"
-                onClick={() => toggleArrayItem('favoriteActivities', act)}
-                className={`px-3.5 py-2 rounded-full text-xs sm:text-sm font-medium transition-all border ${
-                  isSelected
-                    ? 'bg-primary text-white border-primary shadow-xs'
-                    : 'bg-surface-container-low text-on-surface-variant border-hairline hover:bg-surface-container'
-                }`}
-              >
-                {act}
-              </button>
-            );
-          })}
+        <div className="space-y-3">
+          {ACTIVITY_GROUPS.map((group) => (
+            <div key={group.category} className="space-y-1.5">
+              <p className="text-[11px] font-semibold uppercase tracking-wide text-text-muted">{group.label}</p>
+              <SelectableOptions
+                options={group.activities.map(({ value, icon }) => ({ value, label: value, icon }))}
+                selected={formData.favoriteActivities}
+                onToggle={(value) => toggleArrayItem('favoriteActivities', value)}
+              />
+            </div>
+          ))}
+          {otherActivities.length > 0 && (
+            <div className="space-y-1.5">
+              <p className="text-[11px] font-semibold uppercase tracking-wide text-text-muted">Khác</p>
+              <SelectableOptions
+                options={toOptions(otherActivities)}
+                selected={otherActivities}
+                onToggle={(value) => toggleArrayItem('favoriteActivities', value)}
+              />
+            </div>
+          )}
         </div>
         {formErrors.favoriteActivities && (
           <p className="text-xs text-error mt-1.5">{formErrors.favoriteActivities}</p>
@@ -88,25 +88,11 @@ export const ChildInterestsStep = ({
           </label>
           <span className="text-xs text-text-muted">Đã chọn: {formData.personality.length}</span>
         </div>
-        <div className="flex flex-wrap gap-2">
-          {PERSONALITY_TRAITS.map((trait) => {
-            const isSelected = formData.personality.includes(trait);
-            return (
-              <button
-                key={trait}
-                type="button"
-                onClick={() => toggleArrayItem('personality', trait)}
-                className={`px-3.5 py-2 rounded-full text-xs sm:text-sm font-medium transition-all border ${
-                  isSelected
-                    ? 'bg-primary text-white border-primary shadow-xs'
-                    : 'bg-surface-container-low text-on-surface-variant border-hairline hover:bg-surface-container'
-                }`}
-              >
-                {trait}
-              </button>
-            );
-          })}
-        </div>
+        <SelectableOptions
+          options={PERSONALITY_OPTIONS}
+          selected={formData.personality}
+          onToggle={(value) => toggleArrayItem('personality', value)}
+        />
         {formErrors.personality && (
           <p className="text-xs text-error mt-1.5">{formErrors.personality}</p>
         )}

@@ -1,3 +1,0 @@
-// Placeholder — add connection Redux slice here if global state is needed.
-// Currently useConnections hook manages local state; promote to Redux when
-// cross-module access (e.g. notification badge count) is required.
