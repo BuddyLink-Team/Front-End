@@ -54,7 +54,7 @@ export const ChildFormPage = () => {
   }
 
   return (
-    <div className="w-full max-w-5xl mx-auto pb-16 space-y-6">
+    <div className="w-full mx-auto pb-16 space-y-6">
       <FormPageHeader
         title={isEditMode ? `Chỉnh sửa hồ sơ · ${formData.displayName || 'bé'}` : 'Thêm hồ sơ bé'}
         description={

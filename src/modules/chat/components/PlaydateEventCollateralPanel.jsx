@@ -18,7 +18,11 @@ import { VerifiedBadge } from '../../../components/badges/VerifiedBadge';
 import { StatusChip } from '../../../components/badges/StatusChip';
 import { InterestTag } from '../../../components/badges/InterestTag';
 import { cn } from '../../../utils/cn';
-import { PLAYDATE_PARTICIPANT_STATUS } from '../constants/chatConstants.js';
+import {
+  PLAYDATE_PARTICIPANT_STATUS,
+  PLAYDATE_STATUS_CHIPS,
+  PARTICIPANT_STATUS_CHIPS,
+} from '../constants/chatConstants.js';
 
 /**
  * Format child age nicely
@@ -135,7 +139,11 @@ export const PlaydateEventCollateralPanel = ({
             <h4 className="text-base font-bold text-on-surface leading-snug">
               {title || activity || 'Cuộc hẹn chơi cùng bé'}
             </h4>
-            <StatusChip status={status} className="shrink-0" />
+            <StatusChip
+              status={PLAYDATE_STATUS_CHIPS[status]?.variant ?? status}
+              label={PLAYDATE_STATUS_CHIPS[status]?.label}
+              className="shrink-0"
+            />
           </div>
 
           {/* Time */}
@@ -213,7 +221,11 @@ export const PlaydateEventCollateralPanel = ({
                           Bé chủ trì
                         </span>
                       ) : kid.status ? (
-                        <StatusChip status={kid.status} className="text-[10px] px-2 py-0" />
+                        <StatusChip
+                          status={PARTICIPANT_STATUS_CHIPS[kid.status]?.variant ?? kid.status}
+                          label={PARTICIPANT_STATUS_CHIPS[kid.status]?.label}
+                          className="text-[10px] px-2 py-0"
+                        />
                       ) : null}
                     </div>
 
@@ -266,7 +278,7 @@ export const PlaydateEventCollateralPanel = ({
                       <span className="text-xs font-bold text-on-surface truncate">
                         {host.fullName}
                       </span>
-                      {host.verification?.isVerifiedParent && <VerifiedBadge size="sm" />}
+                      {host.verification?.isVerifiedParent && <VerifiedBadge size="sm" iconOnly />}
                     </div>
                     <span className="text-[11px] text-outline truncate block">
                       {host.location?.area || host.location?.city || 'Khu vực chưa cập nhật'}
@@ -302,7 +314,7 @@ export const PlaydateEventCollateralPanel = ({
                         <span className="text-xs font-semibold text-on-surface truncate">
                           {parent.fullName}
                         </span>
-                        {parent.verification?.isVerifiedParent && <VerifiedBadge size="sm" />}
+                        {parent.verification?.isVerifiedParent && <VerifiedBadge size="sm" iconOnly />}
                       </div>
                       <span className="text-[11px] text-outline truncate block">
                         {parent.location?.area || parent.location?.city || 'Khu vực chưa cập nhật'}
@@ -310,7 +322,11 @@ export const PlaydateEventCollateralPanel = ({
                     </div>
                   </div>
 
-                  <StatusChip status={item.status} className="shrink-0 text-[10px] px-2 py-0.5" />
+                  <StatusChip
+                    status={PARTICIPANT_STATUS_CHIPS[item.status]?.variant ?? item.status}
+                    label={PARTICIPANT_STATUS_CHIPS[item.status]?.label}
+                    className="shrink-0 text-[10px] px-2 py-0.5"
+                  />
                 </div>
               );
             })}

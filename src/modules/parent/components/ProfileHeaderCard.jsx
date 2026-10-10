@@ -7,7 +7,7 @@ import {
   Flame,
   Sparkles,
 } from 'lucide-react';
-import { Card, Avatar, VerifiedBadge } from '../../../components';
+import { Card, Avatar, VerifiedBadge, Button } from '../../../components';
 import { useProfileAvatar } from '../hooks/useParentTabHooks';
 
 export const ProfileHeaderCard = ({
@@ -40,19 +40,16 @@ export const ProfileHeaderCard = ({
             alt={profile?.fullName || 'Phụ huynh'}
             size="2xl"
           />
-          <button
+          <Button
             type="button"
             onClick={() => fileInputRef.current?.click()}
-            disabled={isUploadingAvatar}
-            className="absolute bottom-0 right-0 p-2 rounded-full bg-primary text-white shadow-md hover:bg-primary-dark transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-primary/40 disabled:opacity-50"
+            isLoading={isUploadingAvatar}
+            aria-label="Thay đổi ảnh đại diện"
+            className="absolute bottom-0 right-0 p-2 rounded-full shadow-md hover:bg-primary-dark hover:scale-100 gap-0"
             title="Thay đổi ảnh đại diện"
           >
-            {isUploadingAvatar ? (
-              <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin block" />
-            ) : (
-              <Camera className="w-4 h-4" />
-            )}
-          </button>
+            {!isUploadingAvatar && <Camera className="w-4 h-4" />}
+          </Button>
           <input
             ref={fileInputRef}
             type="file"

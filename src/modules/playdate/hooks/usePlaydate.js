@@ -1,6 +1,7 @@
 import { useEffect, useCallback, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useToast } from '../../../hooks/useToast';
+import { useDebounce } from '../../../hooks/useDebounce';
 import { getApiErrorMsg } from '../../../utils/errorUtils';
 import {
   fetchPlaydates as fetchPlaydatesThunk,
@@ -27,16 +28,12 @@ export const usePlaydate = () => {
 
   const [completingId, setCompletingId] = useState(null);
   const [confirmCompleteId, setConfirmCompleteId] = useState(null);
-  const [debouncedSearch, setDebouncedSearch] = useState(searchQuery);
   const [reschedulingPlaydate, setReschedulingPlaydate] = useState(null);
   const [cancellingPlaydate, setCancellingPlaydate] = useState(null);
   const [isCancelling, setIsCancelling] = useState(false);
 
   // Debounce search query to prevent excessive API requests while typing
-  useEffect(() => {
-    const timer = setTimeout(() => setDebouncedSearch(searchQuery), SEARCH_DEBOUNCE_MS);
-    return () => clearTimeout(timer);
-  }, [searchQuery]);
+  const debouncedSearch = useDebounce(searchQuery, SEARCH_DEBOUNCE_MS);
 
   const fetchPlaydates = useCallback(async () => {
     const params = {};

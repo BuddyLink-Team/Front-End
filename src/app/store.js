@@ -7,6 +7,8 @@ import chatReducer from '../modules/chat/redux/chatSlice';
 import safetyReducer from '../modules/safety/redux/safetySlice';
 import discoveryReducer from '../modules/discovery/redux/discoverySlice';
 import playdateReducer from '../modules/playdate/redux/playdateSlice';
+import gamificationReducer from '../modules/gamification/redux/gamificationSlice';
+import ratingFeedbackReducer from '../modules/rating-feedback/redux/ratingFeedbackSlice';
 
 export const store = configureStore({
   reducer: {
@@ -18,6 +20,8 @@ export const store = configureStore({
     safety: safetyReducer,
     discovery: discoveryReducer,
     playdate: playdateReducer,
+    gamification: gamificationReducer,
+    ratingFeedback: ratingFeedbackReducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({

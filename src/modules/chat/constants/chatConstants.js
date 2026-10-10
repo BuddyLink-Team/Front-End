@@ -18,6 +18,20 @@ export const PLAYDATE_PARTICIPANT_STATUS = Object.freeze({
   DECLINED: 'declined',
 });
 
+// Playdate / participant status -> existing StatusChip variant (components/badges/StatusChip.jsx) + label.
+// StatusChip only styles pending/confirmed/cancelled/reported/completed, other statuses fall back to pending.
+export const PLAYDATE_STATUS_CHIPS = Object.freeze({
+  upcoming: { variant: 'confirmed', label: 'Sắp diễn ra' },
+  completed: { variant: 'completed', label: 'Đã hoàn thành' },
+  cancelled: { variant: 'cancelled', label: 'Đã hủy' },
+});
+
+export const PARTICIPANT_STATUS_CHIPS = Object.freeze({
+  [PLAYDATE_PARTICIPANT_STATUS.PENDING]: { variant: 'pending', label: 'Chờ phản hồi' },
+  [PLAYDATE_PARTICIPANT_STATUS.ACCEPTED]: { variant: 'confirmed', label: 'Đã tham gia' },
+  [PLAYDATE_PARTICIPANT_STATUS.DECLINED]: { variant: 'cancelled', label: 'Đã từ chối' },
+});
+
 // Client-only delivery states of optimistic messages (persisted messages have no status)
 export const MESSAGE_STATUS = Object.freeze({
   SENDING: 'sending',
@@ -51,6 +65,10 @@ export const SOCKET_EVENTS = Object.freeze({
 export const ALLOWED_IMAGE_EXTENSIONS = Object.freeze(['.jpg', '.jpeg', '.png', '.webp', '.gif']);
 export const ALLOWED_IMAGE_TYPES = Object.freeze(['image/jpeg', 'image/png', 'image/webp', 'image/gif']);
 export const CHAT_FILE_INPUT_ACCEPT = '.jpg,.jpeg,.png,.webp,.gif,image/jpeg,image/png,image/webp,image/gif';
+
+// Composer textarea: the shared Textarea without its form-field frame (the composer pill draws it)
+export const COMPOSER_TEXTAREA_CLASS =
+  'bg-transparent border-none shadow-none rounded-none text-on-surface placeholder:text-outline text-sm py-2 px-1 focus:outline-none focus:ring-0 resize-none max-h-24 scrollbar-none';
 
 export const MAX_IMAGE_SIZE_BYTES = 5 * 1024 * 1024;
 

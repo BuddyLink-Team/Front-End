@@ -157,6 +157,17 @@ export default {
         // Swipe feedback halo; colorize with a shadow color utility (e.g. shadow-glow shadow-primary/50)
         glow: '0 0 40px 8px rgba(45, 55, 72, 0.1)',
       },
+
+      keyframes: {
+        // Celebration items (badge / streak popup)
+        'pop-in': {
+          '0%': { opacity: '0', transform: 'scale(0.92) translateY(6px)' },
+          '100%': { opacity: '1', transform: 'scale(1) translateY(0)' },
+        },
+      },
+      animation: {
+        'pop-in': 'pop-in 320ms cubic-bezier(0.34, 1.56, 0.64, 1) both',
+      },
     },
   },
   plugins: [],

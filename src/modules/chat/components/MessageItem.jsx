@@ -31,8 +31,9 @@ export const MessageItem = ({
   return (
     <div
       className={cn(
-        'flex items-end gap-2.5 max-w-[85%] sm:max-w-[75%]',
-        isMine ? 'self-end justify-end' : 'self-start justify-start'
+        // w-fit + auto margin: the message list is a block container, so self-* alone has no effect
+        'flex w-fit items-end gap-2.5 max-w-[85%] sm:max-w-[75%]',
+        isMine ? 'ml-auto self-end justify-end' : 'mr-auto self-start justify-start'
       )}
     >
       {/* Partner Avatar for incoming messages */}

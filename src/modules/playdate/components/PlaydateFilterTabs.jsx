@@ -1,4 +1,6 @@
+import React from 'react';
 import { PLAYDATE_TABS } from '../constants/playdateConstants';
+import { Tabs } from '../../../components/navigation/Tabs';
 import { cn } from '../../../utils/cn';
 
 export const PlaydateFilterTabs = ({
@@ -13,44 +15,12 @@ export const PlaydateFilterTabs = ({
   }));
 
   return (
-    <div
-      className={cn(
-        'inline-flex items-center p-1 bg-surface-container-low rounded-full border border-hairline overflow-x-auto max-w-full no-scrollbar',
-        className
-      )}
-    >
-      {tabsWithCounts.map((tab) => {
-        const isActive = tab.id === activeTab;
-
-        return (
-          <button
-            key={tab.id}
-            type="button"
-            onClick={() => onChange?.(tab.id)}
-            className={cn(
-              'flex items-center gap-2 px-3.5 py-1.5 md:px-4 md:py-2 rounded-full text-xs md:text-sm font-medium transition-all duration-150 select-none whitespace-nowrap',
-              isActive
-                ? 'bg-primary text-primary-on-primary shadow-xs font-semibold'
-                : 'text-text-muted hover:text-text-primary hover:bg-surface-container-lowest'
-            )}
-          >
-            <span>{tab.label}</span>
-            {typeof tab.count !== 'undefined' && (
-              <span
-                className={cn(
-                  'text-[10px] md:text-xs px-2 py-0.5 rounded-full font-semibold',
-                  isActive
-                    ? 'bg-primary-on-primary/20 text-primary-on-primary'
-                    : 'bg-surface-container-lowest text-text-muted border border-hairline'
-                )}
-              >
-                {tab.count}
-              </span>
-            )}
-          </button>
-        );
-      })}
-    </div>
+    <Tabs
+      tabs={tabsWithCounts}
+      activeTab={activeTab}
+      onChange={onChange}
+      className={cn('no-scrollbar', className)}
+    />
   );
 };
 

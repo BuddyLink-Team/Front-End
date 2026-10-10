@@ -13,6 +13,8 @@ const PlaydateListPage = lazy(() => import('../modules/playdate/pages/PlaydateLi
 const CreatePlaydatePage = lazy(() => import('../modules/playdate/pages/CreatePlaydatePage'));
 const PlaydateDetailPage = lazy(() => import('../modules/playdate/pages/PlaydateDetailPage'));
 
+import GamificationPage from '../modules/gamification/pages/GamificationPage';
+
 /**
  * Full route definitions for Parent features.
  */
@@ -89,7 +91,7 @@ export const ParentRoutes = () => (
     {/* Gamification */}
     <Route
       path="/gamification"
-      element={<PlaceholderPage title="Huy hiệu & Chuỗi Streak" description="Theo dõi chuỗi Playdate hàng tuần và bộ sưu tập huy hiệu đạt được." />}
+      element={<GamificationPage />}
     />
 
     {/* Premium Subscription */}

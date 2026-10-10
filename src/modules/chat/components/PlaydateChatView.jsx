@@ -23,7 +23,11 @@ import { Dropdown, DropdownItem } from '../../../components/ui/Dropdown';
 import { MessageItem } from './MessageItem.jsx';
 import { EmojiPopover } from './EmojiPopover.jsx';
 import { PlaydateEventCollateralPanel } from './PlaydateEventCollateralPanel.jsx';
-import { CHAT_FILE_INPUT_ACCEPT } from '../constants/chatConstants.js';
+import { ImageLightbox } from './ImageLightbox.jsx';
+import { Button } from '../../../components/ui/Button';
+import { Textarea } from '../../../components/ui/Textarea';
+import { Spinner } from '../../../components/feedback/Spinner';
+import { CHAT_FILE_INPUT_ACCEPT, COMPOSER_TEXTAREA_CLASS } from '../constants/chatConstants.js';
 import { cn } from '../../../utils/cn';
 
 /**
@@ -68,7 +72,7 @@ export const PlaydateChatView = ({
   const [showMobileCollateral, setShowMobileCollateral] = useState(false);
   const [showReportDialog, setShowReportDialog] = useState(false);
 
-  const messagesEndRef = useRef(null);
+  const messagesContainerRef = useRef(null);
   const textareaRef = useRef(null);
   const fileInputRef = useRef(null);
   const lastTypingEmitRef = useRef(0);
@@ -79,9 +83,14 @@ export const PlaydateChatView = ({
   const participantsCount = (conversation?.participants?.length || 0);
 
   // Auto scroll to bottom
+  // Scroll only the message list: scrollIntoView would also scroll the page down to the input
   const scrollToBottom = (behavior = 'smooth') => {
-    if (typeof messagesEndRef.current?.scrollIntoView === 'function') {
-      messagesEndRef.current.scrollIntoView({ behavior });
+    const container = messagesContainerRef.current;
+    if (!container) return;
+    if (typeof container.scrollTo === 'function') {
+      container.scrollTo({ top: container.scrollHeight, behavior });
+    } else {
+      container.scrollTop = container.scrollHeight;
     }
   };
 
@@ -180,13 +189,15 @@ export const PlaydateChatView = ({
           <div className="flex items-center gap-3 min-w-0">
             {/* Back button for mobile view */}
             {onBack && (
-              <button
+              <Button
                 type="button"
+                variant="ghost"
                 onClick={onBack}
+                aria-label="Quay lại"
                 className="lg:hidden p-1.5 -ml-1 text-on-surface-variant hover:text-on-surface rounded-full hover:bg-surface-container-low transition-colors"
               >
                 <ArrowLeft className="w-5 h-5" />
-              </button>
+              </Button>
             )}
 
             {/* Group Playdate Avatar */}
@@ -234,23 +245,25 @@ export const PlaydateChatView = ({
           <div className="flex items-center gap-1.5 shrink-0">
             {/* Direct Playdate Link */}
             {playdate?.id && (
-              <button
+              <Button
                 type="button"
+                variant="ghost"
                 onClick={() => navigate(`/playdates/${playdate.id}`)}
-                className="hidden sm:flex px-3 py-1.5 rounded-full bg-primary-container/20 text-on-primary-container hover:bg-primary-container/35 text-xs font-semibold items-center gap-1.5 transition-all active:scale-95"
+                className="hidden sm:inline-flex px-3 py-1.5 rounded-full bg-primary-container/20 text-on-primary-container hover:bg-primary-container/35 text-xs font-semibold items-center gap-1.5 transition-all active:scale-95"
                 title="Xem chi tiết sự kiện Playdate"
               >
                 <Calendar className="w-4 h-4 text-primary" />
                 <span>Chi tiết hẹn</span>
-              </button>
+              </Button>
             )}
 
             {/* Desktop Collateral Panel Toggle Button */}
-            <button
+            <Button
               type="button"
+              variant="ghost"
               onClick={() => setIsCollateralOpen((prev) => !prev)}
               className={cn(
-                'hidden lg:flex w-8 h-8 rounded-full items-center justify-center transition-colors',
+                'hidden lg:inline-flex w-8 h-8 p-0 rounded-full items-center justify-center transition-colors',
                 isCollateralOpen
                   ? 'bg-primary-container/30 text-primary'
                   : 'text-on-surface-variant hover:bg-surface-container-low hover:text-on-surface'
@@ -262,28 +275,31 @@ export const PlaydateChatView = ({
               ) : (
                 <PanelRight className="w-4 h-4" />
               )}
-            </button>
+            </Button>
 
             {/* Mobile Collateral Panel Toggle Button */}
-            <button
+            <Button
               type="button"
+              variant="ghost"
               onClick={() => setShowMobileCollateral(true)}
-              className="lg:hidden w-8 h-8 rounded-full flex items-center justify-center text-on-surface-variant hover:bg-surface-container-low hover:text-primary transition-colors"
+              className="lg:hidden w-8 h-8 p-0 rounded-full text-on-surface-variant hover:bg-surface-container-low hover:text-primary transition-colors"
               title="Xem thông tin sự kiện"
             >
               <Calendar className="w-4 h-4" />
-            </button>
+            </Button>
 
             {/* Menu More / Report (reported against the host, so hidden for the host) */}
             {canReport && onReport && (
               <Dropdown
                 trigger={
-                  <button
+                  <Button
                     type="button"
-                    className="w-8 h-8 rounded-full flex items-center justify-center text-on-surface-variant hover:bg-surface-container-low hover:text-on-surface transition-colors"
+                    variant="ghost"
+                    aria-label="Tuỳ chọn khác"
+                    className="w-8 h-8 p-0 rounded-full text-on-surface-variant hover:bg-surface-container-low hover:text-on-surface"
                   >
                     <MoreVertical className="w-4 h-4" />
-                  </button>
+                  </Button>
                 }
                 placement="bottom-end"
               >
@@ -300,7 +316,7 @@ export const PlaydateChatView = ({
         </div>
 
         {/* 2. Messages Stream */}
-        <div className="flex-1 overflow-y-auto px-5 py-4 space-y-4 chat-stream-canvas scroll-smooth">
+        <div ref={messagesContainerRef} className="flex-1 overflow-y-auto px-5 py-4 space-y-4 chat-stream-canvas scroll-smooth">
           {/* Playdate Scheduled Event Banner inside chat stream */}
           <div className="p-3.5 rounded-2xl bg-surface-container-lowest border border-hairline shadow-xs flex items-center justify-between gap-3 mx-auto max-w-xl">
             <div className="flex items-center gap-3">
@@ -317,41 +333,44 @@ export const PlaydateChatView = ({
               </div>
             </div>
             {playdate?.id && (
-              <button
+              <Button
                 type="button"
+                variant="ghost"
+                size="sm"
                 onClick={() => navigate(`/playdates/${playdate.id}`)}
-                className="text-xs text-primary font-bold hover:underline shrink-0 px-2 py-1"
+                className="text-xs text-primary font-bold hover:underline hover:bg-transparent shrink-0 px-2 py-1"
               >
                 Xem lịch &rarr;
-              </button>
+              </Button>
             )}
           </div>
 
           {/* Load older messages button */}
           {hasMoreMessages && (
             <div className="flex justify-center my-2">
-              <button
+              <Button
                 type="button"
+                variant="ghost"
                 onClick={onLoadOlderMessages}
                 disabled={isLoadingOlder}
                 className="px-3.5 py-1.5 rounded-full text-xs font-medium text-primary hover:bg-primary-container/20 border border-primary/20 transition-all flex items-center gap-1.5 disabled:opacity-60"
               >
                 {isLoadingOlder ? (
                   <>
-                    <div className="w-3.5 h-3.5 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+                    <Spinner size="sm" />
                     <span>Đang tải tin nhắn cũ...</span>
                   </>
                 ) : (
                   <span>Tải tin nhắn cũ hơn</span>
                 )}
-              </button>
+              </Button>
             </div>
           )}
 
           {/* Loading State */}
           {isLoadingMessages ? (
             <div className="flex flex-col items-center justify-center py-10 space-y-2 text-on-surface-variant text-xs">
-              <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+              <Spinner />
               <span>Đang tải tin nhắn nhóm...</span>
             </div>
           ) : messages.length === 0 ? (
@@ -408,7 +427,6 @@ export const PlaydateChatView = ({
             </div>
           )}
 
-          <div ref={messagesEndRef} />
         </div>
 
         {/* 3. Message Input Composer */}
@@ -428,13 +446,15 @@ export const PlaydateChatView = ({
                 alt="Preview"
                 className="w-20 h-20 object-cover rounded-xl chat-image-preview-card"
               />
-              <button
+              <Button
                 type="button"
+                variant="ghost"
                 onClick={onClearImage}
-                className="absolute -top-2 -right-2 w-5 h-5 rounded-full bg-on-surface text-white flex items-center justify-center shadow-xs hover:bg-error transition-colors"
+                aria-label="Bỏ ảnh"
+                className="absolute -top-2 -right-2 w-5 h-5 p-0 rounded-full bg-on-surface text-white flex items-center justify-center shadow-xs hover:bg-error transition-colors"
               >
                 <X className="w-3 h-3" />
-              </button>
+              </Button>
             </div>
           )}
 
@@ -453,42 +473,46 @@ export const PlaydateChatView = ({
             />
 
             {/* Add Image Button */}
-            <button
+            <Button
               type="button"
+              variant="ghost"
               onClick={() => fileInputRef.current?.click()}
               className="p-2 rounded-full text-on-surface-variant hover:text-primary hover:bg-surface-container transition-colors shrink-0"
               title="Đính kèm ảnh"
             >
               <ImageIcon className="w-5 h-5" />
-            </button>
+            </Button>
 
             {/* Emoji Button */}
-            <button
+            <Button
               type="button"
+              variant="ghost"
               onClick={() => setIsEmojiOpen((prev) => !prev)}
               className="p-2 rounded-full text-on-surface-variant hover:text-secondary hover:bg-surface-container transition-colors shrink-0"
               title="Chọn biểu cảm icon"
             >
               <Smile className="w-5 h-5" />
-            </button>
+            </Button>
 
             {/* Elastic Textarea */}
-            <textarea
+            <Textarea
               ref={textareaRef}
               rows={1}
               value={inputText}
               onChange={handleTextChange}
               onKeyDown={handleKeyDown}
               placeholder="Nhắn tin với nhóm các phụ huynh..."
-              className="flex-1 bg-transparent border-none text-on-surface placeholder:text-outline text-sm py-2 px-1 focus:outline-none resize-none max-h-24 scrollbar-none"
+              containerClassName="flex-1 [&>div]:shadow-none"
+              className={COMPOSER_TEXTAREA_CLASS}
             />
 
             {/* Send Button */}
-            <button
+            <Button
               type="submit"
               disabled={(!inputText.trim() && !selectedImageFile) || isSending}
+              aria-label="Gửi tin nhắn nhóm"
               className={cn(
-                'p-2.5 rounded-full transition-all flex items-center justify-center shrink-0 shadow-xs active:scale-95',
+                'p-2.5 rounded-full transition-all flex items-center justify-center shrink-0 shadow-xs active:scale-95 disabled:opacity-100',
                 (inputText.trim() || selectedImageFile) && !isSending
                   ? 'bg-primary text-white hover:bg-primary-hover'
                   : 'bg-surface-container text-outline cursor-not-allowed'
@@ -496,7 +520,7 @@ export const PlaydateChatView = ({
               title="Gửi tin nhắn nhóm"
             >
               <Send className="w-4 h-4" />
-            </button>
+            </Button>
           </form>
 
           {/* Security & Helper Note */}
@@ -543,27 +567,7 @@ export const PlaydateChatView = ({
       {/* ============================================================== */}
       {/* Fullsize Image Lightbox Modal                                  */}
       {/* ============================================================== */}
-      {lightboxImageUrl && (
-        <div
-          onClick={() => setLightboxImageUrl(null)}
-          className="fixed inset-0 z-50 chat-lightbox-overlay flex items-center justify-center p-4"
-        >
-          <div className="relative max-w-3xl max-h-[90vh]">
-            <img
-              src={lightboxImageUrl}
-              alt="Full size"
-              className="max-h-[85vh] w-auto object-contain rounded-2xl shadow-2xl"
-            />
-            <button
-              type="button"
-              onClick={() => setLightboxImageUrl(null)}
-              className="absolute -top-3 -right-3 w-8 h-8 rounded-full bg-white text-on-surface flex items-center justify-center shadow-lg hover:bg-surface-container-low"
-            >
-              <X className="w-5 h-5" />
-            </button>
-          </div>
-        </div>
-      )}
+      <ImageLightbox imageUrl={lightboxImageUrl} onClose={() => setLightboxImageUrl(null)} />
 
       {/* ============================================================== */}
       {/* Report Group Modal                                             */}

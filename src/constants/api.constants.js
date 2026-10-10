@@ -57,8 +57,8 @@ export const API_ENDPOINTS = {
     BLOCK: '/safety/block',
   },
   GAMIFICATION: {
-    POINTS: '/gamification/points',
-    BADGES: '/gamification/badges',
+    // Streak + badges of the current parent
+    ACHIEVEMENTS: '/gamification',
   },
   SUBSCRIPTION: {
     PLANS: '/subscriptions/plans',

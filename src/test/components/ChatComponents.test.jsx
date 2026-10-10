@@ -234,12 +234,6 @@ describe('Chat UI Components (TASK-FE-10)', () => {
     // Verify location is accurately displayed and not hardcoded to TP. Hồ Chí Minh
     expect(screen.getByText('Quận Cầu Giấy, Hà Nội')).toBeInTheDocument();
     expect(screen.queryByText('TP. Hồ Chí Minh')).not.toBeInTheDocument();
-
-    // Verify Voice call dialog triggers
-    const phoneBtn = screen.getByTitle('Gọi thoại an tâm');
-    fireEvent.click(phoneBtn);
-    expect(screen.getByText('Gọi thoại An tâm')).toBeInTheDocument();
-    expect(screen.getByText(/Tính năng Gọi thoại An tâm đang trong giai đoạn hoàn thiện/)).toBeInTheDocument();
   });
 });
 

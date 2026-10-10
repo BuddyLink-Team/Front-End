@@ -71,7 +71,7 @@ Every commit message MUST follow the **Conventional Commits** specification:
 | `chat` | 1-1 parent chat, playdate group messaging, realtime sockets |
 | `ai` | AI Assistant agent prompt, activity suggestions |
 | `safety` | Account reporting, blocking, safety tips |
-| `gamification` | Streaks, Badges, leaderboard |
+| `gamification` | Streaks, Badges, achievement popup |
 | `subscription` | Membership plans, PayOS checkout |
 | `admin` | Admin dashboard, content moderation |
 | `router` | `appRoutes.jsx`, route guards (`ProtectedRoute`, `RoleRoute`) |
