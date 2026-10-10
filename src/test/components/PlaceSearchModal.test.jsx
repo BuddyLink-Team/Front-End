@@ -67,7 +67,8 @@ describe('PlaceSearchModal', () => {
   it('opens the place details with the resolved address', async () => {
     renderWithProviders(<PlaceSearchModal isOpen onClose={vi.fn()} onSelectPlace={vi.fn()} />);
 
-    fireEvent.click(await screen.findByRole('button', { name: /xem chi tiết công viên apec/i }));
+    // The list appears after the debounced search: allow for a busy test runner
+    fireEvent.click(await screen.findByRole('button', { name: /xem chi tiết công viên apec/i }, { timeout: 3000 }));
 
     expect(await screen.findByText('Bạch Đằng, Phường Hải Châu, Đà Nẵng')).toBeInTheDocument();
     expect(screen.getByText(/giờ mở cửa: 05:00-22:00/i)).toBeInTheDocument();

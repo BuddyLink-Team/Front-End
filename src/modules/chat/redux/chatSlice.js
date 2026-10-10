@@ -36,6 +36,11 @@ export const markConversationReadRest = createApiThunk('chat/markConversationRea
 // Returns { mediaUrl, publicId }
 export const uploadChatImage = createApiThunk('chat/uploadImage', (file) => chatApi.uploadImage(file));
 
+// Get (or create) the direct conversation with another parent, e.g. "Nhắn tin" on the connections page
+export const openDirectConversation = createApiThunk('chat/openDirectConversation', (targetParentId) =>
+  chatApi.createDirectConversation(targetParentId),
+);
+
 const LIST_STATUS = Object.freeze({
   IDLE: 'idle',
   LOADING: 'loading',

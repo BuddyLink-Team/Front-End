@@ -15,8 +15,16 @@ export const PlaydateCalendarView = ({
   playdates = [],
   onComplete,
   completingId,
+  displayedMonth,
+  onMonthChange,
 }) => {
-  const [currentDate, setCurrentDate] = useState(new Date());
+  // Controlled by `displayedMonth` / `onMonthChange` (the page loads the playdates of that month), or uncontrolled
+  const [ownMonth, setOwnMonth] = useState(new Date());
+  const currentDate = displayedMonth || ownMonth;
+  const setCurrentDate = (date) => {
+    setOwnMonth(date);
+    onMonthChange?.(date);
+  };
   const [selectedDate, setSelectedDate] = useState(new Date());
 
   const year = currentDate.getFullYear();

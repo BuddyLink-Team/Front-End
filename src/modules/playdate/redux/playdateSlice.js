@@ -21,7 +21,7 @@ export const fetchRescheduleRequest = createApiThunk(
 
 export const fetchInvitableFriends = createApiThunk(
   'playdate/fetchFriends',
-  () => playdateApi.getFriends(),
+  (params) => playdateApi.getFriends(params),
 );
 
 // meta.areaSyncing: the Back-End is fetching the places of this area, search again shortly
@@ -82,6 +82,9 @@ const initialState = {
   activeTab: 'all',
   viewMode: PLAYDATE_VIEW_MODES.LIST, // 'list' | 'calendar'
   searchQuery: '',
+  // List view page, and the pagination of the last list response
+  page: 1,
+  pagination: null,
   isLoading: false,
   isDetailLoading: false,
   isActionLoading: false,
@@ -149,12 +152,18 @@ export const playdateSlice = createSlice({
     },
     setActiveTab: (state, action) => {
       state.activeTab = action.payload;
+      state.page = 1;
     },
     setViewMode: (state, action) => {
       state.viewMode = action.payload;
+      state.page = 1;
     },
     setSearchQuery: (state, action) => {
       state.searchQuery = action.payload;
+      state.page = 1;
+    },
+    setPage: (state, action) => {
+      state.page = action.payload;
     },
     setLoading: (state, action) => {
       state.isLoading = action.payload;
@@ -181,6 +190,7 @@ export const playdateSlice = createSlice({
         state.isLoading = false;
         const data = action.payload;
         state.items = Array.isArray(data) ? data : data?.playdates || [];
+        state.pagination = data?.pagination || null;
         if (data?.counts) state.counts = { ...state.counts, ...data.counts };
       })
       .addCase(fetchPlaydates.rejected, (state, action) => {
@@ -277,6 +287,7 @@ export const {
   setActiveTab,
   setViewMode,
   setSearchQuery,
+  setPage,
   setLoading,
   setError,
   clearPlaydateDetail,

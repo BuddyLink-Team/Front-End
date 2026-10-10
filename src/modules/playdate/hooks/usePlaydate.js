@@ -10,10 +10,25 @@ import {
   setActiveTab,
   setViewMode,
   setSearchQuery,
+  setPage,
 } from '../redux/playdateSlice';
-import { PLAYDATE_ERROR_MAP } from '../constants/playdateConstants';
+import {
+  PLAYDATE_ERROR_MAP,
+  PLAYDATE_VIEW_MODES,
+  PLAYDATE_PAGE_SIZE,
+  PLAYDATE_CALENDAR_LIMIT,
+} from '../constants/playdateConstants';
 
 const SEARCH_DEBOUNCE_MS = 350;
+// The calendar grid also shows the end of the previous month and the start of the next one
+const CALENDAR_PADDING_DAYS = 7;
+
+/** Date range loaded for the calendar month (with the padding days shown around it) */
+const getCalendarRange = (month) => {
+  const from = new Date(month.getFullYear(), month.getMonth(), 1 - CALENDAR_PADDING_DAYS);
+  const to = new Date(month.getFullYear(), month.getMonth() + 1, CALENDAR_PADDING_DAYS, 23, 59, 59);
+  return { fromDate: from.toISOString(), toDate: to.toISOString() };
+};
 
 /**
  * Playdate list page: tabs, search, view mode, complete / cancel / reschedule entry points.
@@ -22,9 +37,13 @@ const SEARCH_DEBOUNCE_MS = 350;
 export const usePlaydate = () => {
   const dispatch = useDispatch();
   const toast = useToast();
-  const { items, counts, selectedPlaydate, activeTab, viewMode, searchQuery, isLoading, error } = useSelector(
-    (state) => state.playdate,
-  );
+  const { items, counts, selectedPlaydate, activeTab, viewMode, searchQuery, page, pagination, isLoading, error } =
+    useSelector((state) => state.playdate);
+  // First day of the month shown by the calendar view
+  const [calendarMonth, setCalendarMonth] = useState(() => {
+    const today = new Date();
+    return new Date(today.getFullYear(), today.getMonth(), 1);
+  });
 
   const [completingId, setCompletingId] = useState(null);
   const [confirmCompleteId, setConfirmCompleteId] = useState(null);
@@ -39,13 +58,19 @@ export const usePlaydate = () => {
     const params = {};
     if (activeTab && activeTab !== 'all') params.status = activeTab;
     if (debouncedSearch?.trim()) params.search = debouncedSearch.trim();
+    // List: one page at a time. Calendar: every playdate of the displayed month.
+    if (viewMode === PLAYDATE_VIEW_MODES.CALENDAR) {
+      Object.assign(params, getCalendarRange(calendarMonth), { limit: PLAYDATE_CALENDAR_LIMIT });
+    } else {
+      Object.assign(params, { page, limit: PLAYDATE_PAGE_SIZE });
+    }
 
     try {
       await dispatch(fetchPlaydatesThunk(params)).unwrap();
     } catch (err) {
       toast.error(getApiErrorMsg(PLAYDATE_ERROR_MAP, err, 'Không thể tải danh sách cuộc hẹn.'));
     }
-  }, [activeTab, debouncedSearch, dispatch, toast]);
+  }, [activeTab, debouncedSearch, viewMode, calendarMonth, page, dispatch, toast]);
 
   useEffect(() => {
     fetchPlaydates();
@@ -54,6 +79,11 @@ export const usePlaydate = () => {
   const handleTabChange = useCallback((tabId) => dispatch(setActiveTab(tabId)), [dispatch]);
   const handleViewModeChange = useCallback((mode) => dispatch(setViewMode(mode)), [dispatch]);
   const handleSearchChange = useCallback((query) => dispatch(setSearchQuery(query)), [dispatch]);
+  const handlePageChange = useCallback((nextPage) => dispatch(setPage(nextPage)), [dispatch]);
+  const handleCalendarMonthChange = useCallback(
+    (month) => setCalendarMonth(new Date(month.getFullYear(), month.getMonth(), 1)),
+    [],
+  );
 
   const promptCompletePlaydate = useCallback((id) => setConfirmCompleteId(id), []);
   const closeConfirmModal = useCallback(() => setConfirmCompleteId(null), []);
@@ -111,6 +141,9 @@ export const usePlaydate = () => {
     activeTab,
     viewMode,
     searchQuery,
+    page,
+    totalPages: pagination?.totalPages || 1,
+    calendarMonth,
     isLoading,
     error,
     completingId,
@@ -122,6 +155,8 @@ export const usePlaydate = () => {
     handleTabChange,
     handleViewModeChange,
     handleSearchChange,
+    handlePageChange,
+    handleCalendarMonthChange,
     promptCompletePlaydate,
     closeConfirmModal,
     handleCompletePlaydate,

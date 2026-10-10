@@ -12,6 +12,7 @@ const ChildFormPage = lazy(() => import('../modules/child/pages/ChildFormPage'))
 const PlaydateListPage = lazy(() => import('../modules/playdate/pages/PlaydateListPage'));
 const CreatePlaydatePage = lazy(() => import('../modules/playdate/pages/CreatePlaydatePage'));
 const PlaydateDetailPage = lazy(() => import('../modules/playdate/pages/PlaydateDetailPage'));
+const ConnectionsPage = lazy(() => import('../modules/connection/pages/ConnectionsPage'));
 
 import GamificationPage from '../modules/gamification/pages/GamificationPage';
 
@@ -84,7 +85,7 @@ export const ParentRoutes = () => (
     {/* Connections */}
     <Route
       path="/connections"
-      element={<PlaceholderPage title="Danh sách bạn bè & kết nối" description="Quản lý danh sách các gia đình đã kết nối và các yêu cầu kết nối đang chờ duyệt." />}
+      element={<ConnectionsPage />}
     />
 
     {/* Notifications */}

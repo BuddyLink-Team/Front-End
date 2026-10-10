@@ -20,6 +20,7 @@ import { Input } from '../../../components/ui/Input';
 import { Textarea } from '../../../components/ui/Textarea';
 import { Avatar } from '../../../components/ui/Avatar';
 import { FilterChips } from '../../../components/search/FilterChips';
+import { SearchBar } from '../../../components/search/SearchBar';
 import { FormPageHeader } from '../../../components/form/FormPageHeader';
 import { FormSection } from '../../../components/form/FormSection';
 import { formatDate } from '../../../utils/formatters';
@@ -48,6 +49,9 @@ export const CreatePlaydatePage = () => {
     todayStr,
     myChildren,
     friends,
+    friendSearch,
+    setFriendSearch,
+    isSearchingFriends,
     selectedFriends,
     selectedChildId,
     activity,
@@ -350,7 +354,7 @@ export const CreatePlaydatePage = () => {
           >
             {isLoadingInitialData ? (
               <div className="h-24 bg-surface-container-low rounded-2xl animate-pulse" />
-            ) : friends.length === 0 ? (
+            ) : !friendSearch && friends.length === 0 ? (
               <div className="p-4 rounded-2xl bg-surface-container-low border border-hairline text-center space-y-2">
                 <p className="text-sm text-text-muted">
                   Bạn chưa có phụ huynh kết nối nào có hồ sơ bé phù hợp để mời.
@@ -365,7 +369,21 @@ export const CreatePlaydatePage = () => {
                 </Button>
               </div>
             ) : (
-              <>
+              <div className="space-y-3">
+                <SearchBar
+                  value={friendSearch}
+                  onChange={setFriendSearch}
+                  onClear={() => setFriendSearch('')}
+                  placeholder="Tìm phụ huynh theo tên..."
+                />
+                {isSearchingFriends ? (
+                  <div className="h-24 bg-surface-container-low rounded-2xl animate-pulse" />
+                ) : friends.length === 0 ? (
+                  <p className="text-sm text-text-muted text-center py-4">
+                    Không tìm thấy phụ huynh nào khớp với &quot;{friendSearch}&quot;.
+                  </p>
+                ) : (
+                <>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   {visibleFriends.map((friend) => (
                     <div
@@ -427,7 +445,9 @@ export const CreatePlaydatePage = () => {
                       : `Xem thêm ${friends.length - FRIENDS_PREVIEW_COUNT} phụ huynh`}
                   </Button>
                 )}
-              </>
+                </>
+                )}
+              </div>
             )}
           </FormSection>
 

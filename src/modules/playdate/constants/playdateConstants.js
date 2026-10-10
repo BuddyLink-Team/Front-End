@@ -86,3 +86,8 @@ export const PLAYDATE_ERROR_MAP = Object.freeze({
   [PLAYDATE_ERROR_CODES.QUOTA_EXCEEDED]:
     'Bạn đã đạt giới hạn của gói hiện tại. Nâng cấp Premium để không giới hạn!',
 });
+
+// List view: playdates per page (GET /playdates?page=&limit=)
+export const PLAYDATE_PAGE_SIZE = 10;
+// Calendar view: every playdate of the displayed month is loaded at once (backend max limit)
+export const PLAYDATE_CALENDAR_LIMIT = 100;

@@ -5,6 +5,7 @@ import { Button } from '../../../components/ui/Button';
 import { EmptyState } from '../../../components/cards/EmptyState';
 import { ConfirmDialog } from '../../../components/feedback/ConfirmDialog';
 import { SearchBar } from '../../../components/search/SearchBar';
+import { Pagination } from '../../../components/navigation/Pagination';
 import { useToast } from '../../../hooks/useToast';
 import { cn } from '../../../utils/cn';
 import { PlaydateCard } from '../components/PlaydateCard';
@@ -28,6 +29,9 @@ export const PlaydateListPage = () => {
     activeTab,
     viewMode,
     searchQuery,
+    page,
+    totalPages,
+    calendarMonth,
     isLoading,
     completingId,
     confirmCompleteId,
@@ -37,6 +41,8 @@ export const PlaydateListPage = () => {
     handleTabChange,
     handleViewModeChange,
     handleSearchChange,
+    handlePageChange,
+    handleCalendarMonthChange,
     promptCompletePlaydate,
     closeConfirmModal,
     handleCompletePlaydate,
@@ -125,7 +131,13 @@ export const PlaydateListPage = () => {
           ))}
         </div>
       ) : viewMode === PLAYDATE_VIEW_MODES.CALENDAR ? (
-        <PlaydateCalendarView playdates={playdates} onComplete={promptCompletePlaydate} completingId={completingId} />
+        <PlaydateCalendarView
+          playdates={playdates}
+          onComplete={promptCompletePlaydate}
+          completingId={completingId}
+          displayedMonth={calendarMonth}
+          onMonthChange={handleCalendarMonthChange}
+        />
       ) : playdates.length === 0 ? (
         <EmptyState
           icon={<CalendarIcon className="w-7 h-7" />}
@@ -150,6 +162,9 @@ export const PlaydateListPage = () => {
               isCompleting={completingId === item.id}
             />
           ))}
+          {totalPages > 1 && (
+            <Pagination currentPage={page} totalPages={totalPages} onPageChange={handlePageChange} className="justify-center pt-2" />
+          )}
         </div>
       )}
 

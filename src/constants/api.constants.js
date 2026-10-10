@@ -52,6 +52,13 @@ export const API_ENDPOINTS = {
   NOTIFICATION: {
     BASE: '/notifications',
   },
+  CONNECTION: {
+    // GET (?status=&direction=incoming|outgoing) / POST { recipientId }
+    BASE: '/connections',
+    BY_ID: (id) => `/connections/${id}`,
+    ACCEPT: (id) => `/connections/${id}/accept`,
+    DECLINE: (id) => `/connections/${id}/decline`,
+  },
   SAFETY: {
     REPORT: '/safety/report',
     BLOCK: '/safety/block',

@@ -20,7 +20,11 @@ export const playdateApi = {
   /**
    * Get connected friends that can be invited to a playdate
    */
-  getFriends: () => apiClient.get(`${API_ENDPOINTS.PLAYDATE.BASE}/friends`),
+  /**
+   * Connected friends that can be invited
+   * @param {{ search?: string, limit?: number }} [params]
+   */
+  getFriends: (params) => apiClient.get(`${API_ENDPOINTS.PLAYDATE.BASE}/friends`, { params }),
 
   /**
    * Host marks playdate as completed

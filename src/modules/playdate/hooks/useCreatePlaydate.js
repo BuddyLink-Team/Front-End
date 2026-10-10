@@ -1,9 +1,10 @@
-import { useState, useEffect, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState, useEffect, useCallback, useRef } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useToast } from '../../../hooks/useToast';
+import { useDebounce } from '../../../hooks/useDebounce';
 import { fetchMyChildren } from '../../child/redux/childSlice';
 import { fetchInvitableFriends, createPlaydate } from '../redux/playdateSlice';
 import { useSubscriptionQuota } from '../../subscription/hooks/useSubscriptionQuota';
@@ -22,6 +23,9 @@ export const useCreatePlaydate = () => {
   const toast = useToast();
   const myChildren = useSelector((state) => state.child.children);
   const friends = useSelector((state) => state.playdate.friends);
+  // ?invite=<parentId> (e.g. "Mời hẹn chơi" on the connections page) preselects that friend's first child
+  const [searchParams] = useSearchParams();
+  const invitedParentId = searchParams.get('invite');
   const isSubmitting = useSelector((state) => state.playdate.isActionLoading);
 
   // Premium has unlimited playdates per month (-1 = unlimited)
@@ -31,6 +35,11 @@ export const useCreatePlaydate = () => {
   const playdateLimit = limits.playdatesCreatedPerMonth ?? 3;
 
   const [selectedFriends, setSelectedFriends] = useState([]);
+  // Friend name search, sent to the backend (GET /playdates/friends?search=)
+  const [friendSearch, setFriendSearch] = useState('');
+  const [isSearchingFriends, setIsSearchingFriends] = useState(false);
+  const debouncedFriendSearch = useDebounce(friendSearch, 350);
+  const isFirstFriendSearch = useRef(true);
   const [locationCoordinates, setLocationCoordinates] = useState(null);
   const [isLoadingInitialData, setIsLoadingInitialData] = useState(true);
   const [showNearbyModal, setShowNearbyModal] = useState(false);
@@ -80,6 +89,22 @@ export const useCreatePlaydate = () => {
         const list = Array.isArray(childrenRes.value) ? childrenRes.value : childrenRes.value?.children || [];
         if (list.length > 0) setValue('hostChildId', (list[0]._id || list[0].id)?.toString());
       }
+      if (friendsRes.status === 'fulfilled' && invitedParentId) {
+        const list = Array.isArray(friendsRes.value) ? friendsRes.value : friendsRes.value?.friends || [];
+        const invited = list.find((friend) => friend.id === invitedParentId);
+        const invitedChild = invited?.children?.[0];
+        if (invited && invitedChild) {
+          setSelectedFriends([
+            {
+              parentId: invited.id,
+              parentName: invited.fullName,
+              avatarUrl: invited.avatarUrl,
+              childId: invitedChild.id || invitedChild._id,
+              childName: invitedChild.displayName,
+            },
+          ]);
+        }
+      }
       if (childrenRes.status === 'rejected' || friendsRes.status === 'rejected') {
         const failed = childrenRes.status === 'rejected' ? childrenRes.reason : friendsRes.reason;
         toast.error(getApiErrorMsg(PLAYDATE_ERROR_MAP, failed, 'Không thể tải dữ liệu ban đầu. Vui lòng thử lại sau.'));
@@ -92,7 +117,21 @@ export const useCreatePlaydate = () => {
     return () => {
       isMounted = false;
     };
-  }, [dispatch, setValue, toast]);
+  }, [dispatch, setValue, toast, invitedParentId]);
+
+  // Search friends by name (the initial list is loaded with the page data above)
+  useEffect(() => {
+    if (isFirstFriendSearch.current) {
+      isFirstFriendSearch.current = false;
+      return;
+    }
+    const search = debouncedFriendSearch.trim();
+    setIsSearchingFriends(true);
+    dispatch(fetchInvitableFriends(search ? { search } : undefined))
+      .unwrap()
+      .catch((err) => toast.error(getApiErrorMsg(PLAYDATE_ERROR_MAP, err, 'Không thể tìm bạn bè.')))
+      .finally(() => setIsSearchingFriends(false));
+  }, [debouncedFriendSearch, dispatch, toast]);
 
   // Friend participant toggling
   const handleToggleFriend = useCallback((friend, child) => {
@@ -169,6 +208,9 @@ export const useCreatePlaydate = () => {
     todayStr,
     myChildren,
     friends,
+    friendSearch,
+    setFriendSearch,
+    isSearchingFriends,
     selectedFriends,
     selectedChildId,
     activity,
