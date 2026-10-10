@@ -13,7 +13,6 @@ import {
   Lock,
   Flag,
   UserX,
-  Phone,
 } from 'lucide-react';
 import { Avatar } from '../../../components/ui/Avatar';
 import { VerifiedBadge } from '../../../components/badges/VerifiedBadge';
@@ -21,10 +20,14 @@ import { ConfirmDialog } from '../../../components/feedback/ConfirmDialog';
 import { Dropdown, DropdownItem } from '../../../components/ui/Dropdown';
 import { MessageItem } from './MessageItem.jsx';
 import { EmojiPopover } from './EmojiPopover.jsx';
+import { ImageLightbox } from './ImageLightbox.jsx';
+import { Spinner } from '../../../components/feedback/Spinner';
 import { cn } from '../../../utils/cn';
-import { CHAT_FILE_INPUT_ACCEPT } from '../constants/chatConstants.js';
+import { CHAT_FILE_INPUT_ACCEPT, COMPOSER_TEXTAREA_CLASS } from '../constants/chatConstants.js';
 import { useSafetyActions } from '../../safety/hooks/useSafetyActions.js';
 import { REPORT_TARGET_TYPES } from '../../safety/constants/safetyConstants.js';
+import { Button } from '../../../components/ui/Button.jsx';
+import Textarea from '../../../components/ui/Textarea.jsx';
 
 const formatMessageDateGroup = (date) => {
   if (!date) return '';
@@ -64,12 +67,10 @@ export const DirectChatView = ({
   const [isEmojiOpen, setIsEmojiOpen] = useState(false);
   const [lightboxImageUrl, setLightboxImageUrl] = useState(null);
 
-  // Safety & Voice Call dialogs
+  // Safety dialogs
   const [showBlockDialog, setShowBlockDialog] = useState(false);
   const [showReportDialog, setShowReportDialog] = useState(false);
-  const [showVoiceCallDialog, setShowVoiceCallDialog] = useState(false);
 
-  const messagesEndRef = useRef(null);
   const messagesContainerRef = useRef(null);
   // Distance from the bottom saved before older messages are prepended
   const restoreScrollOffsetRef = useRef(null);
@@ -89,9 +90,14 @@ export const DirectChatView = ({
   const isPartnerOnline = Boolean(conversation?.isPartnerOnline || partner?.isOnline);
 
   // Auto scroll to bottom only on new messages or typing
+  // Scroll only the message list: scrollIntoView would also scroll the page down to the input
   const scrollToBottom = (behavior = 'smooth') => {
-    if (typeof messagesEndRef.current?.scrollIntoView === 'function') {
-      messagesEndRef.current.scrollIntoView({ behavior });
+    const container = messagesContainerRef.current;
+    if (!container) return;
+    if (typeof container.scrollTo === 'function') {
+      container.scrollTo({ top: container.scrollHeight, behavior });
+    } else {
+      container.scrollTop = container.scrollHeight;
     }
   };
 
@@ -234,13 +240,15 @@ export const DirectChatView = ({
         <div className="flex items-center gap-3">
           {/* Back button for mobile view */}
           {onBack && (
-            <button
+            <Button
               type="button"
+              variant="ghost"
               onClick={onBack}
+              aria-label="Quay lại"
               className="lg:hidden p-1.5 -ml-1 text-on-surface-variant hover:text-on-surface rounded-full hover:bg-surface-container-low transition-colors"
             >
               <ArrowLeft className="w-5 h-5" />
-            </button>
+            </Button>
           )}
 
           {/* Partner Avatar */}
@@ -288,36 +296,29 @@ export const DirectChatView = ({
 
         {/* Action Buttons */}
         <div className="flex items-center gap-1.5">
-          {/* Gọi thoại an tâm */}
-          <button
-            type="button"
-            onClick={() => setShowVoiceCallDialog(true)}
-            className="w-8 h-8 sm:w-9 sm:h-9 rounded-full flex items-center justify-center text-on-surface-variant hover:bg-surface-container-low hover:text-primary transition-all"
-            title="Gọi thoại an tâm"
-          >
-            <Phone className="w-4 h-4" />
-          </button>
-
           {/* Lên lịch hẹn chơi */}
-          <button
+          <Button
             type="button"
+            variant="ghost"
             onClick={() => navigate('/playdates/create')}
             className="px-3 py-1.5 rounded-full bg-primary-container/20 text-on-primary-container hover:bg-primary-container/35 text-xs font-semibold flex items-center gap-1.5 transition-all active:scale-95"
             title="Lên lịch hẹn chơi cho các bé"
           >
             <CalendarPlus className="w-4 h-4 text-primary" />
             <span className="hidden sm:inline">Hẹn chơi</span>
-          </button>
+          </Button>
 
           {/* Menu Báo cáo / Chặn */}
           <Dropdown
             trigger={
-              <button
+              <Button
                 type="button"
-                className="w-8 h-8 rounded-full flex items-center justify-center text-on-surface-variant hover:bg-surface-container-low hover:text-on-surface transition-colors"
+                variant="ghost"
+                aria-label="Tuỳ chọn khác"
+                className="w-8 h-8 p-0 rounded-full text-on-surface-variant hover:bg-surface-container-low hover:text-on-surface"
               >
                 <MoreVertical className="w-4 h-4" />
-              </button>
+              </Button>
             }
             placement="bottom-end"
           >
@@ -347,28 +348,29 @@ export const DirectChatView = ({
         {/* Load older messages button */}
         {hasMoreMessages && (
           <div className="flex justify-center my-2">
-            <button
+            <Button
               type="button"
+              variant="ghost"
               onClick={handleLoadOlderClick}
               disabled={isLoadingOlder}
               className="px-3.5 py-1.5 rounded-full text-xs font-medium text-primary hover:bg-primary-container/20 border border-primary/20 transition-all flex items-center gap-1.5 disabled:opacity-60"
             >
               {isLoadingOlder ? (
                 <>
-                  <div className="w-3.5 h-3.5 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+                  <Spinner size="sm" />
                   <span>Đang tải tin nhắn cũ...</span>
                 </>
               ) : (
                 <span>Tải tin nhắn cũ hơn</span>
               )}
-            </button>
+            </Button>
           </div>
         )}
 
         {/* Loading state */}
         {isLoadingMessages ? (
           <div className="flex flex-col items-center justify-center py-10 space-y-2 text-on-surface-variant text-xs">
-            <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+            <Spinner />
             <span>Đang tải tin nhắn...</span>
           </div>
         ) : messages.length === 0 ? (
@@ -420,7 +422,6 @@ export const DirectChatView = ({
           </div>
         )}
 
-        <div ref={messagesEndRef} />
       </div>
 
       {/* 3. Message Input Composer */}
@@ -440,13 +441,15 @@ export const DirectChatView = ({
               alt="Preview"
               className="w-20 h-20 object-cover rounded-xl chat-image-preview-card"
             />
-            <button
+            <Button
               type="button"
+              variant="ghost"
               onClick={onClearImage}
-              className="absolute -top-2 -right-2 w-5 h-5 rounded-full bg-on-surface text-white flex items-center justify-center shadow-xs hover:bg-error transition-colors"
+              aria-label="Bỏ ảnh"
+              className="absolute -top-2 -right-2 w-5 h-5 p-0 rounded-full bg-on-surface text-white flex items-center justify-center shadow-xs hover:bg-error transition-colors"
             >
               <X className="w-3 h-3" />
-            </button>
+            </Button>
           </div>
         )}
 
@@ -467,42 +470,46 @@ export const DirectChatView = ({
           />
 
           {/* Add Image Button */}
-          <button
+          <Button
             type="button"
+            variant="ghost"
             onClick={() => fileInputRef.current?.click()}
             className="p-2 rounded-full text-on-surface-variant hover:text-primary hover:bg-surface-container transition-colors shrink-0"
             title="Đính kèm ảnh bé chơi"
           >
             <ImageIcon className="w-5 h-5" />
-          </button>
+          </Button>
 
           {/* Emoji Button */}
-          <button
+          <Button
             type="button"
+            variant="ghost"
             onClick={() => setIsEmojiOpen((prev) => !prev)}
             className="p-2 rounded-full text-on-surface-variant hover:text-secondary hover:bg-surface-container transition-colors shrink-0"
             title="Chọn biểu cảm icon"
           >
             <Smile className="w-5 h-5" />
-          </button>
+          </Button>
 
           {/* Elastic Textarea */}
-          <textarea
+          <Textarea
             ref={textareaRef}
             rows={1}
             value={inputText}
             onChange={handleTextChange}
             onKeyDown={handleKeyDown}
             placeholder={`Nhắn tin cùng ${partnerName}...`}
-            className="flex-1 bg-transparent border-none text-on-surface placeholder:text-outline text-sm py-2 px-1 focus:outline-none resize-none max-h-24 scrollbar-none"
+            containerClassName="flex-1 [&>div]:shadow-none"
+            className={COMPOSER_TEXTAREA_CLASS}
           />
 
           {/* Send Button */}
-          <button
+          <Button
             type="submit"
             disabled={(!inputText.trim() && !selectedImageFile) || isSending}
+            aria-label="Gửi tin nhắn"
             className={cn(
-              'p-2.5 rounded-full transition-all flex items-center justify-center shrink-0 shadow-xs active:scale-95',
+              'p-2.5 rounded-full transition-all flex items-center justify-center shrink-0 shadow-xs active:scale-95 disabled:opacity-100',
               (inputText.trim() || selectedImageFile) && !isSending
                 ? 'bg-primary text-white hover:bg-primary-hover'
                 : 'bg-surface-container text-outline cursor-not-allowed'
@@ -510,7 +517,7 @@ export const DirectChatView = ({
             title="Gửi tin nhắn"
           >
             <Send className="w-4 h-4" />
-          </button>
+          </Button>
         </form>
 
         {/* Security & Helper Note */}
@@ -524,27 +531,7 @@ export const DirectChatView = ({
       </div>
 
       {/* 4. Lightbox Modal for Full Image View */}
-      {lightboxImageUrl && (
-        <div
-          onClick={() => setLightboxImageUrl(null)}
-          className="fixed inset-0 z-50 chat-lightbox-overlay flex items-center justify-center p-4"
-        >
-          <div className="relative max-w-3xl max-h-[90vh]">
-            <img
-              src={lightboxImageUrl}
-              alt="Full size"
-              className="max-h-[85vh] w-auto object-contain rounded-2xl shadow-2xl"
-            />
-            <button
-              type="button"
-              onClick={() => setLightboxImageUrl(null)}
-              className="absolute -top-3 -right-3 w-8 h-8 rounded-full bg-white text-on-surface flex items-center justify-center shadow-lg hover:bg-surface-container-low"
-            >
-              <X className="w-5 h-5" />
-            </button>
-          </div>
-        </div>
-      )}
+      <ImageLightbox imageUrl={lightboxImageUrl} onClose={() => setLightboxImageUrl(null)} />
 
       {/* 5. Block User Confirm Dialog */}
       <ConfirmDialog
@@ -570,18 +557,6 @@ export const DirectChatView = ({
         isLoading={isSubmittingSafety}
         onConfirm={handleConfirmReport}
         onCancel={() => setShowReportDialog(false)}
-      />
-
-      {/* 7. Voice Call Coming Soon Dialog */}
-      <ConfirmDialog
-        open={showVoiceCallDialog}
-        title="Gọi thoại An tâm"
-        description="Tính năng Gọi thoại An tâm đang trong giai đoạn hoàn thiện để bảo đảm mã hóa đầu cuối và bảo vệ số điện thoại của phụ huynh. Tính năng sẽ sớm được phát hành!"
-        confirmLabel="Đã hiểu"
-        cancelLabel="Đóng"
-        variant="info"
-        onConfirm={() => setShowVoiceCallDialog(false)}
-        onCancel={() => setShowVoiceCallDialog(false)}
       />
     </section>
   );

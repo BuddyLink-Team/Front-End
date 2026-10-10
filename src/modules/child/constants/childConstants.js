@@ -61,6 +61,13 @@ export const LOCATION_PREFERENCE_OPTIONS = [
   { value: 'pool', label: 'Hồ bơi / Công viên nước' },
 ];
 
+// Max search distance slider (onboarding criteria + profile preferences)
+export const DISTANCE_SLIDER = Object.freeze({
+  MIN: 1,
+  MAX: 30,
+  MARKS: ['1 km (Gần nhà)', '15 km (Khu vực)', '30 km'],
+});
+
 /**
  * Codes returned by the /children endpoints and the onboarding preferences endpoint
  * (child.service, subscription quota, parent.service); shared middleware codes are in

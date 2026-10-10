@@ -1,23 +1,11 @@
-import React, { useRef, useEffect } from 'react';
+import React, { useRef } from 'react';
+import { useClickOutside } from '../../../hooks/useClickOutside';
 import { QUICK_EMOJIS } from '../constants/chatConstants.js';
 
 export const EmojiPopover = ({ isOpen, onClose, onSelectEmoji }) => {
   const popoverRef = useRef(null);
 
-  useEffect(() => {
-    const handleOutsideClick = (e) => {
-      if (popoverRef.current && !popoverRef.current.contains(e.target)) {
-        onClose();
-      }
-    };
-
-    if (isOpen) {
-      document.addEventListener('mousedown', handleOutsideClick);
-    }
-    return () => {
-      document.removeEventListener('mousedown', handleOutsideClick);
-    };
-  }, [isOpen, onClose]);
+  useClickOutside(popoverRef, isOpen, onClose);
 
   if (!isOpen) return null;
 

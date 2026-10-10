@@ -1,7 +1,10 @@
 import React from 'react';
 import dayjs from 'dayjs';
-import { Search, ShieldCheck, Calendar, Users, X, MessageSquare } from 'lucide-react';
+import { ShieldCheck, Calendar, Users, MessageSquare } from 'lucide-react';
 import { Avatar } from '../../../components/ui/Avatar';
+import { SearchBar } from '../../../components/search/SearchBar';
+import { FilterChips } from '../../../components/search/FilterChips';
+import { Skeleton } from '../../../components/feedback/Skeleton';
 import { CHAT_TABS, CONVERSATION_TYPES } from '../constants/chatConstants.js';
 import { cn } from '../../../utils/cn';
 
@@ -57,58 +60,32 @@ export const ConversationList = ({
       </div>
 
       {/* 2. Search Input */}
-      <div className="relative w-full mb-3">
-        <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-on-surface-variant pointer-events-none" />
-        <input
-          type="text"
-          value={searchQuery}
-          onChange={(e) => onSearchChange(e.target.value)}
-          placeholder="Tìm phụ huynh hoặc tên bé..."
-          className="w-full pl-10 pr-8 py-2 rounded-full bg-surface-container-low text-on-surface placeholder:text-outline text-sm focus:outline-none focus:bg-surface-container transition-all"
-        />
-        {searchQuery && (
-          <button
-            type="button"
-            onClick={() => onSearchChange('')}
-            className="absolute right-3 top-1/2 -translate-y-1/2 text-on-surface-variant hover:text-on-surface p-0.5 rounded-full"
-          >
-            <X className="w-3.5 h-3.5" />
-          </button>
-        )}
-      </div>
+      <SearchBar
+        value={searchQuery}
+        onChange={onSearchChange}
+        onClear={() => onSearchChange('')}
+        placeholder="Tìm phụ huynh hoặc tên bé..."
+        className="mb-3"
+      />
 
       {/* 3. Category Filter Tabs */}
-      <div className="flex items-center gap-1.5 pb-3 overflow-x-auto scrollbar-none">
-        {CHAT_TABS.map((tab) => {
-          const isActive = selectedTab === tab.id;
-          return (
-            <button
-              key={tab.id}
-              type="button"
-              onClick={() => onTabChange(tab.id)}
-              className={cn(
-                'px-3.5 py-1 rounded-full text-xs font-medium transition-all shrink-0 select-none',
-                isActive
-                  ? 'bg-primary text-white font-semibold shadow-xs'
-                  : 'bg-surface-container-low text-on-surface-variant hover:text-on-surface hover:bg-surface-container'
-              )}
-            >
-              {tab.label}
-            </button>
-          );
-        })}
-      </div>
+      <FilterChips
+        options={CHAT_TABS}
+        selected={selectedTab}
+        onChange={(tabId) => tabId && onTabChange(tabId)}
+        className="pb-3"
+      />
 
       {/* 4. Conversations List Stream */}
       <div className="flex-1 overflow-y-auto overscroll-contain space-y-1.5 pr-0.5">
         {isLoading ? (
           <div className="space-y-3 py-2">
             {[1, 2, 3, 4].map((i) => (
-              <div key={i} className="flex items-center gap-3 p-3 rounded-xl bg-surface-container-low/50 animate-pulse">
-                <div className="w-11 h-11 rounded-full bg-surface-container" />
+              <div key={i} className="flex items-center gap-3 p-3 rounded-xl">
+                <Skeleton className="w-11 h-11 rounded-full shrink-0" />
                 <div className="flex-1 space-y-2">
-                  <div className="h-3.5 bg-surface-container rounded-sm w-3/5" />
-                  <div className="h-3 bg-surface-container rounded-sm w-4/5" />
+                  <Skeleton className="h-3.5 w-3/5" />
+                  <Skeleton className="h-3 w-4/5" />
                 </div>
               </div>
             ))}

@@ -128,7 +128,10 @@ export const useChat = ({ initialConversationId = null, initialPlaydateId = null
       .then((conversation) => {
         if (!isCurrent || !conversation?.id) return;
         setActiveConversationId(conversation.id);
-        setSelectedTab(CONVERSATION_TYPES.PLAYDATE);
+        // Keep "All" when the group was picked from it; only leave a tab that would hide the group
+        setSelectedTab((current) =>
+          current === CONVERSATION_TYPES.ALL ? current : CONVERSATION_TYPES.PLAYDATE,
+        );
       })
       .catch((error) => {
         if (!isCurrent) return;

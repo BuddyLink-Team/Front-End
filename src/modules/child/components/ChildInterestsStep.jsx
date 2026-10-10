@@ -1,10 +1,16 @@
 import React from 'react';
 import { Heart, Compass, Smile } from 'lucide-react';
+import { SelectableOptions } from '../../../components';
 import {
   POPULAR_INTERESTS,
   PERSONALITY_TRAITS,
 } from '../constants/childConstants';
 import { ACTIVITIES, ACTIVITY_GROUPS } from '../../../constants/activity.constants';
+
+const toOptions = (values) => values.map((value) => ({ value, label: value }));
+
+const INTEREST_OPTIONS = toOptions(POPULAR_INTERESTS);
+const PERSONALITY_OPTIONS = toOptions(PERSONALITY_TRAITS);
 
 export const ChildInterestsStep = ({
   formData,
@@ -27,25 +33,11 @@ export const ChildInterestsStep = ({
           </label>
           <span className="text-xs text-text-muted">Đã chọn: {formData.interests.length}</span>
         </div>
-        <div className="flex flex-wrap gap-2">
-          {POPULAR_INTERESTS.map((item) => {
-            const isSelected = formData.interests.includes(item);
-            return (
-              <button
-                key={item}
-                type="button"
-                onClick={() => toggleArrayItem('interests', item)}
-                className={`px-3.5 py-2 rounded-full text-xs sm:text-sm font-medium transition-all border ${
-                  isSelected
-                    ? 'bg-primary text-white border-primary shadow-xs'
-                    : 'bg-surface-container-low text-on-surface-variant border-hairline hover:bg-surface-container'
-                }`}
-              >
-                {item}
-              </button>
-            );
-          })}
-        </div>
+        <SelectableOptions
+          options={INTEREST_OPTIONS}
+          selected={formData.interests}
+          onToggle={(value) => toggleArrayItem('interests', value)}
+        />
         {formErrors.interests && (
           <p className="text-xs text-error mt-1.5">{formErrors.interests}</p>
         )}
@@ -64,45 +56,21 @@ export const ChildInterestsStep = ({
           {ACTIVITY_GROUPS.map((group) => (
             <div key={group.category} className="space-y-1.5">
               <p className="text-[11px] font-semibold uppercase tracking-wide text-text-muted">{group.label}</p>
-              <div className="flex flex-wrap gap-2">
-                {group.activities.map(({ value, icon: Icon }) => {
-                  const isSelected = formData.favoriteActivities.includes(value);
-                  return (
-                    <button
-                      key={value}
-                      type="button"
-                      aria-pressed={isSelected}
-                      onClick={() => toggleArrayItem('favoriteActivities', value)}
-                      className={`px-3.5 py-2 rounded-full text-xs sm:text-sm font-medium transition-all border inline-flex items-center gap-1.5 ${
-                        isSelected
-                          ? 'bg-primary text-white border-primary shadow-xs'
-                          : 'bg-surface-container-low text-on-surface-variant border-hairline hover:bg-surface-container'
-                      }`}
-                    >
-                      <Icon className="w-3.5 h-3.5 shrink-0" />
-                      {value}
-                    </button>
-                  );
-                })}
-              </div>
+              <SelectableOptions
+                options={group.activities.map(({ value, icon }) => ({ value, label: value, icon }))}
+                selected={formData.favoriteActivities}
+                onToggle={(value) => toggleArrayItem('favoriteActivities', value)}
+              />
             </div>
           ))}
           {otherActivities.length > 0 && (
             <div className="space-y-1.5">
               <p className="text-[11px] font-semibold uppercase tracking-wide text-text-muted">Khác</p>
-              <div className="flex flex-wrap gap-2">
-                {otherActivities.map((value) => (
-                  <button
-                    key={value}
-                    type="button"
-                    aria-pressed
-                    onClick={() => toggleArrayItem('favoriteActivities', value)}
-                    className="px-3.5 py-2 rounded-full text-xs sm:text-sm font-medium transition-all border bg-primary text-white border-primary shadow-xs"
-                  >
-                    {value}
-                  </button>
-                ))}
-              </div>
+              <SelectableOptions
+                options={toOptions(otherActivities)}
+                selected={otherActivities}
+                onToggle={(value) => toggleArrayItem('favoriteActivities', value)}
+              />
             </div>
           )}
         </div>
@@ -120,25 +88,11 @@ export const ChildInterestsStep = ({
           </label>
           <span className="text-xs text-text-muted">Đã chọn: {formData.personality.length}</span>
         </div>
-        <div className="flex flex-wrap gap-2">
-          {PERSONALITY_TRAITS.map((trait) => {
-            const isSelected = formData.personality.includes(trait);
-            return (
-              <button
-                key={trait}
-                type="button"
-                onClick={() => toggleArrayItem('personality', trait)}
-                className={`px-3.5 py-2 rounded-full text-xs sm:text-sm font-medium transition-all border ${
-                  isSelected
-                    ? 'bg-primary text-white border-primary shadow-xs'
-                    : 'bg-surface-container-low text-on-surface-variant border-hairline hover:bg-surface-container'
-                }`}
-              >
-                {trait}
-              </button>
-            );
-          })}
-        </div>
+        <SelectableOptions
+          options={PERSONALITY_OPTIONS}
+          selected={formData.personality}
+          onToggle={(value) => toggleArrayItem('personality', value)}
+        />
         {formErrors.personality && (
           <p className="text-xs text-error mt-1.5">{formErrors.personality}</p>
         )}

@@ -1,12 +1,15 @@
 import React, { useEffect, useState } from 'react';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import toast from 'react-hot-toast';
 import RatingModal from './RatingModal';
 import { ratingFeedbackApi } from '../api/ratingFeedbackApi';
 import { USER_ROLES } from '../../../constants/role.constants';
+import { APP_EVENTS } from '../../../constants/event.constants';
+import { setRatingPromptOpen } from '../redux/ratingFeedbackSlice';
 
 // Mounted once in the parent layout: detects completed playdates on any screen.
 export default function RatingPrompt() {
+  const dispatch = useDispatch();
   const { isAuthenticated, user } = useSelector(state => state.auth);
   const paywallOpen = useSelector(state => state.subscription?.isPaywallOpen);
   const [pending, setPending] = useState([]);
@@ -41,13 +44,19 @@ export default function RatingPrompt() {
     };
   }, [enabled, userId]);
   const playdate = pending.find(item => !dismissed.has(item._id));
-  if (!enabled || !playdate || paywallOpen) return null;
+  const isOpen = Boolean(enabled && playdate && !paywallOpen);
+  // Let other popups (e.g. achievement celebration) wait until the rating is done
+  useEffect(() => {
+    dispatch(setRatingPromptOpen(isOpen));
+  }, [dispatch, isOpen]);
+  useEffect(() => () => dispatch(setRatingPromptOpen(false)), [dispatch]);
+  if (!isOpen) return null;
   const close = () => setDismissed(previous => new Set([...previous, playdate._id]));
   const submitted = () => {
     close();
     setPending(previous => previous.filter(item => item._id !== playdate._id));
     toast.success('Đã gửi đánh giá. Cảm ơn bạn!');
-    window.dispatchEvent(new Event('playdate-rating-submitted'));
+    window.dispatchEvent(new Event(APP_EVENTS.PLAYDATE_RATING_SUBMITTED));
   };
   return <RatingModal key={playdate._id} playdate={playdate} onClose={close} onSubmitted={submitted} />;
 }

@@ -3,6 +3,12 @@ export const AUTH_MODES = {
   REGISTER: 'register',
 };
 
+// Mode switcher tabs on the auth page
+export const AUTH_MODE_TABS = [
+  { id: AUTH_MODES.REGISTER, label: 'Đăng ký tài khoản' },
+  { id: AUTH_MODES.LOGIN, label: 'Đăng nhập' },
+];
+
 // Must match OTP_CONFIG on the backend
 export const OTP_VALIDITY_MINUTES = Object.freeze({
   PHONE: 5,
