@@ -17,6 +17,7 @@ export const Checkbox = React.forwardRef(
     },
     ref
   ) => {
+    // Hooks must run unconditionally on every render
     const generatedId = React.useId();
     const checkboxId = id || props.name || generatedId;
 

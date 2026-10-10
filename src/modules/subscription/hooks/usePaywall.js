@@ -5,7 +5,7 @@ import {
   QUOTA_FEATURES,
   QUOTA_MESSAGES,
   PLAN_CODES,
-} from '../constants/subscription.constants';
+} from '../constants/subscriptionConstants';
 
 export const usePaywall = () => {
   const dispatch = useDispatch();
@@ -43,15 +43,8 @@ export const usePaywall = () => {
     }
 
     if (errorCode === 'QUOTA_EXCEEDED') {
-      const quotaConfig =
-        QUOTA_MESSAGES[feature] || QUOTA_MESSAGES.general;
-      dispatch(
-        openPaywall({
-          feature: feature || 'general',
-          title: quotaConfig.title,
-          message: error?.message || quotaConfig.message,
-        })
-      );
+      const quotaFeature = QUOTA_MESSAGES[feature] ? feature : QUOTA_FEATURES.GENERAL;
+      dispatch(openPaywall({ feature: quotaFeature, ...QUOTA_MESSAGES[quotaFeature] }));
       return true;
     }
 

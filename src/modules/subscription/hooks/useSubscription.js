@@ -8,7 +8,8 @@ import {
   setBillingCycle,
   setSelectedPlan,
 } from '../redux/subscriptionSlice';
-import { PLAN_CODES, BILLING_CYCLES } from '../constants/subscription.constants';
+import { PLAN_CODES, BILLING_CYCLES, SUBSCRIPTION_ERROR_MESSAGES } from '../constants/subscriptionConstants';
+import { getApiErrorMsg } from '../../../utils/errorUtils';
 
 export const useSubscription = () => {
   const dispatch = useDispatch();
@@ -23,7 +24,9 @@ export const useSubscription = () => {
     effectivePlanCode,
     isPremium,
     paymentHistory,
-    loading,
+    plansLoading,
+    loading: quotaLoading,
+    quotaLoaded,
     historyLoading,
     error,
   } = useSelector((state) => state.subscription);
@@ -48,42 +51,26 @@ export const useSubscription = () => {
     dispatch(setBillingCycle(cycle));
   };
 
-  // Find active plan objects from API data
-  const freePlan = plans.find((p) => p.planCode === PLAN_CODES.FREE) || {
-    planCode: PLAN_CODES.FREE,
-    name: 'Gói Miễn Phí',
-    price: 0,
-    currency: 'VND',
-    durationMonths: 0,
-  };
+  // Plans come from the database only: nothing is shown until they are loaded
+  const findPlan = (planCode) => plans.find((p) => p.planCode === planCode) || null;
+  const freePlan = findPlan(PLAN_CODES.FREE);
+  const monthlyPlan = findPlan(PLAN_CODES.PREMIUM_MONTHLY);
+  const yearlyPlan = findPlan(PLAN_CODES.PREMIUM_YEARLY);
+  const plansLoaded = Boolean(freePlan && monthlyPlan && yearlyPlan);
 
-  const monthlyPlan = plans.find((p) => p.planCode === PLAN_CODES.PREMIUM_MONTHLY) || {
-    planCode: PLAN_CODES.PREMIUM_MONTHLY,
-    name: 'Gói Premium Tháng',
-    price: 99000,
-    currency: 'VND',
-    durationMonths: 1,
-  };
+  const currentActivePlan = billingCycle === BILLING_CYCLES.YEARLY ? yearlyPlan : monthlyPlan;
 
-  const yearlyPlan = plans.find((p) => p.planCode === PLAN_CODES.PREMIUM_YEARLY) || {
-    planCode: PLAN_CODES.PREMIUM_YEARLY,
-    name: 'Gói Premium Năm',
-    price: 990000,
-    currency: 'VND',
-    durationMonths: 12,
-  };
-
-  const currentActivePlan =
-    billingCycle === BILLING_CYCLES.YEARLY ? yearlyPlan : monthlyPlan;
-
-  // Calculate dynamic savings percentage
+  // Saving of the yearly plan against 12 monthly payments
   const yearlySavingsPercentage =
-    monthlyPlan.price > 0 && yearlyPlan.price > 0
+    monthlyPlan?.price > 0 && yearlyPlan?.price > 0
       ? Math.max(0, Math.round((1 - yearlyPlan.price / (monthlyPlan.price * 12)) * 100))
-      : 17;
+      : 0;
+
+  // The Premium card shown is the plan in use (renewal), not just any active Premium
+  const isCurrentPremiumPlan = Boolean(isPremium && subscription?.planCode === currentActivePlan?.planCode);
 
   // Upgrade or Renew CTA action
-  const handleUpgrade = (planCodeToBuy = currentActivePlan.planCode) => {
+  const handleUpgrade = (planCodeToBuy = currentActivePlan?.planCode) => {
     dispatch(setSelectedPlan(planCodeToBuy));
     navigate(`/checkout?plan=${planCodeToBuy}`);
   };
@@ -99,6 +86,9 @@ export const useSubscription = () => {
     monthlyPlan,
     yearlyPlan,
     currentActivePlan,
+    plansLoaded,
+    isCurrentPremiumPlan,
+    quotaLoaded,
     selectedPlan,
     billingCycle,
     subscription,
@@ -107,9 +97,9 @@ export const useSubscription = () => {
     isPremium,
     effectivePlanCode,
     yearlySavingsPercentage,
-    loading,
+    loading: plansLoading || quotaLoading,
     historyLoading,
-    error,
+    error: error ? getApiErrorMsg(SUBSCRIPTION_ERROR_MESSAGES, error, 'Không thể tải thông tin gói dịch vụ.') : null,
     handleBillingCycleChange,
     handleUpgrade,
     handleHistoryPageChange,

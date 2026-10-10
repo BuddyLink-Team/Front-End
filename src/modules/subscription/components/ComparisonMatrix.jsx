@@ -1,7 +1,14 @@
 import { Check } from 'lucide-react';
-import { DEFAULT_PLAN_BENEFITS } from '../constants/subscription.constants';
+import PropTypes from 'prop-types';
+import { getPlanBenefits } from '../utils/planBenefits';
 
-export const ComparisonMatrix = () => {
+/**
+ * Free vs Premium limits, read from the plans stored in the database (plan.features)
+ */
+export const ComparisonMatrix = ({ freePlan, premiumPlan }) => {
+  const freeBenefits = getPlanBenefits(freePlan?.features, false);
+  const premiumBenefits = getPlanBenefits(premiumPlan?.features, true);
+
   return (
     <div className="w-full overflow-hidden rounded-2xl border border-outline-variant/60 bg-surface-container-lowest shadow-sm">
       <div className="px-6 py-4 border-b border-outline-variant/40 bg-surface/50">
@@ -29,7 +36,7 @@ export const ComparisonMatrix = () => {
             </tr>
           </thead>
           <tbody className="divide-y divide-outline-variant/30">
-            {DEFAULT_PLAN_BENEFITS.map((benefit, index) => (
+            {freeBenefits.map((benefit, index) => (
               <tr
                 key={benefit.key}
                 className={index % 2 === 0 ? 'bg-transparent' : 'bg-surface-container-lowest'}
@@ -37,22 +44,17 @@ export const ComparisonMatrix = () => {
                 <td className="py-4 px-6 font-medium text-on-surface">
                   <div className="flex items-center gap-1.5">
                     <span>{benefit.name}</span>
-                    {benefit.isUpcoming && (
-                      <span className="text-[10px] px-1.5 py-0.5 rounded bg-surface-container text-on-surface-variant font-normal">
-                        Sắp ra mắt
-                      </span>
-                    )}
                   </div>
                 </td>
                 <td className="py-4 px-6 text-center text-on-surface-variant">
                   <span className="inline-flex items-center gap-1.5 font-medium">
-                    {benefit.freeText}
+                    {benefit.text}
                   </span>
                 </td>
                 <td className="py-4 px-6 text-center font-bold text-primary bg-primary/5">
                   <span className="inline-flex items-center gap-1.5">
                     <Check className="w-4 h-4 text-primary" />
-                    {benefit.premiumText}
+                    {premiumBenefits[index].text}
                   </span>
                 </td>
               </tr>
@@ -62,6 +64,12 @@ export const ComparisonMatrix = () => {
       </div>
     </div>
   );
+};
+
+
+ComparisonMatrix.propTypes = {
+  freePlan: PropTypes.shape({ features: PropTypes.object }),
+  premiumPlan: PropTypes.shape({ features: PropTypes.object }),
 };
 
 export default ComparisonMatrix;

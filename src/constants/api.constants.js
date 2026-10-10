@@ -29,15 +29,21 @@ export const API_ENDPOINTS = {
     BASE: '/children',
   },
   DISCOVERY: {
-    MATCH: '/discovery/match',
-    NEARBY: '/discovery/nearby',
+    BASE: '/discovery',
+    SWIPE: '/discovery/swipe',
   },
   PLAYDATE: {
     BASE: '/playdates',
   },
+  PLACES: {
+    BASE: '/places',
+    NEARBY: '/places/nearby',
+  },
   CHAT: {
-    CONVERSATIONS: '/chats/conversations',
-    MESSAGES: '/chats/messages',
+    CONVERSATIONS: '/chat/conversations',
+    PLAYDATE: '/chat/playdate',
+    MESSAGES: '/chat/conversations',
+    UPLOAD: '/chat/upload',
   },
   AI_ASSISTANT: {
     RECOMMEND: '/ai/recommendations',
@@ -51,8 +57,8 @@ export const API_ENDPOINTS = {
     BLOCK: '/safety/block',
   },
   GAMIFICATION: {
-    POINTS: '/gamification/points',
-    BADGES: '/gamification/badges',
+    // Streak + badges of the current parent
+    ACHIEVEMENTS: '/gamification',
   },
   SUBSCRIPTION: {
     PLANS: '/subscriptions/plans',

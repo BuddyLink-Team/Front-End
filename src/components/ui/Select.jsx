@@ -18,6 +18,7 @@ export const Select = React.forwardRef(
     },
     ref
   ) => {
+    // Hooks must run unconditionally on every render
     const generatedId = React.useId();
     const selectId = id || props.name || generatedId;
 

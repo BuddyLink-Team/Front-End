@@ -6,7 +6,9 @@ export { Textarea } from './ui/Textarea';
 export { Checkbox } from './ui/Checkbox';
 export { Switch } from './ui/Switch';
 export { Select } from './ui/Select';
+export { RangeSlider } from './ui/RangeSlider';
 export { Avatar } from './ui/Avatar';
+export { UpgradeButton } from './ui/UpgradeButton';
 export { DataTable } from './ui/DataTable';
 export {
   Dropdown,
@@ -24,6 +26,11 @@ export { InterestTag } from './badges/InterestTag';
 export { Card } from './cards/Card';
 export { StatCard } from './cards/StatCard';
 export { EmptyState } from './cards/EmptyState';
+
+// Form Layout
+export { FormPageHeader } from './form/FormPageHeader';
+export { FormSection } from './form/FormSection';
+export { SelectableOptions } from './form/SelectableOptions';
 
 // Feedback & Interaction
 export { Modal } from './feedback/Modal';

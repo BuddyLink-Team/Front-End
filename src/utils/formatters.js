@@ -49,7 +49,7 @@ export const removeAccents = (str) =>
  * @param {string} [format='DD/MM/YYYY'] - Target date format.
  * @returns {string} Formatted date string or empty string if falsy.
  */
-export const formatDate = (date, format = 'DD/MM/YYYY') => {
+export const formatDate = (date) => {
   if (!date) return '';
   const d = new Date(date);
   return d.toLocaleDateString('vi-VN');
@@ -94,4 +94,18 @@ export const maskEmail = (email) => {
   if (!domain) return email;
   const maskedName = name.length > 2 ? `${name.slice(0, 2)}***` : `${name}***`;
   return `${maskedName}@${domain}`;
+};
+
+/**
+ * Return date in local YYYY-MM-DD format (avoids UTC timezone shift issues).
+ *
+ * @param {Date|string|number} [date=new Date()]
+ * @returns {string} Date string in YYYY-MM-DD format
+ */
+export const getLocalDateString = (date = new Date()) => {
+  const d = new Date(date);
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
 };

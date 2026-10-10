@@ -6,13 +6,13 @@ import {
   Navigation,
   Users,
   Save,
-  Check,
 } from 'lucide-react';
-import { Card, Button, Input } from '../../../components';
+import { Card, Button, Input, RangeSlider, SelectableOptions } from '../../../components';
 import {
   PLAYDATE_DAY_OPTIONS,
   TIME_SLOT_OPTIONS,
   LOCATION_PREFERENCE_OPTIONS,
+  DISTANCE_SLIDER,
 } from '../../child/constants/childConstants';
 import { useProfilePreferences } from '../hooks/useParentTabHooks';
 
@@ -57,34 +57,12 @@ export const ProfilePreferencesTab = ({ profile, onUpdate, isUpdating }) => {
             <span>Ngày trong tuần phù hợp</span>
             <span className="text-[11px] text-text-muted font-normal">Có thể chọn nhiều</span>
           </label>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-            {PLAYDATE_DAY_OPTIONS.map((opt) => {
-              const isSelected = preferredDays.includes(opt.value);
-              return (
-                <button
-                  key={opt.value}
-                  type="button"
-                  onClick={() => handleToggleDay(opt.value)}
-                  className={`p-3.5 rounded-2xl text-left border text-xs sm:text-sm font-medium transition-all duration-200 flex items-center justify-between cursor-pointer active:scale-[0.99] ${
-                    isSelected
-                      ? 'bg-primary/10 border-primary text-primary-dark font-semibold shadow-xs'
-                      : 'bg-white border-hairline text-on-surface-variant hover:border-outline-variant/60 hover:bg-surface-container-low/60'
-                  }`}
-                >
-                  <span>{opt.label}</span>
-                  <div
-                    className={`w-5 h-5 rounded-full flex items-center justify-center transition-all ${
-                      isSelected
-                        ? 'bg-primary text-white'
-                        : 'border border-hairline bg-surface-container-low'
-                    }`}
-                  >
-                    {isSelected && <Check className="w-3 h-3 stroke-[3]" />}
-                  </div>
-                </button>
-              );
-            })}
-          </div>
+          <SelectableOptions
+            variant="check"
+            options={PLAYDATE_DAY_OPTIONS}
+            selected={preferredDays}
+            onToggle={handleToggleDay}
+          />
         </div>
 
         {/* Time slots */}
@@ -96,26 +74,12 @@ export const ProfilePreferencesTab = ({ profile, onUpdate, isUpdating }) => {
             </span>
             <span className="text-[11px] text-text-muted font-normal">Có thể chọn nhiều</span>
           </label>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
-            {TIME_SLOT_OPTIONS.map((slot) => {
-              const isSelected = preferredSlots.includes(slot.value);
-              return (
-                <button
-                  key={slot.value}
-                  type="button"
-                  onClick={() => handleToggleSlot(slot.value)}
-                  className={`py-3 px-3.5 rounded-2xl text-center border text-xs sm:text-sm font-medium transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer active:scale-[0.99] ${
-                    isSelected
-                      ? 'bg-primary text-white border-primary shadow-xs font-semibold'
-                      : 'bg-white border-hairline text-on-surface-variant hover:border-outline-variant/60 hover:bg-surface-container-low/60'
-                  }`}
-                >
-                  {isSelected && <Check className="w-3.5 h-3.5 shrink-0" />}
-                  <span>{slot.label}</span>
-                </button>
-              );
-            })}
-          </div>
+          <SelectableOptions
+            variant="tile"
+            options={TIME_SLOT_OPTIONS}
+            selected={preferredSlots}
+            onToggle={handleToggleSlot}
+          />
         </div>
       </Card>
 
@@ -135,26 +99,12 @@ export const ProfilePreferencesTab = ({ profile, onUpdate, isUpdating }) => {
           </div>
         </div>
 
-        <div className="flex flex-wrap gap-2.5">
-          {LOCATION_PREFERENCE_OPTIONS.map((loc) => {
-            const isSelected = preferredLocs.includes(loc.value);
-            return (
-              <button
-                key={loc.value}
-                type="button"
-                onClick={() => handleToggleLoc(loc.value)}
-                className={`px-4 py-2.5 rounded-full text-xs sm:text-sm font-medium transition-all duration-200 border cursor-pointer active:scale-95 flex items-center gap-1.5 ${
-                  isSelected
-                    ? 'bg-primary text-white border-primary shadow-xs font-semibold'
-                    : 'bg-white text-on-surface-variant border-hairline hover:border-outline-variant/60 hover:bg-surface-container-low/60'
-                }`}
-              >
-                {isSelected && <Check className="w-3.5 h-3.5" />}
-                <span>{loc.label}</span>
-              </button>
-            );
-          })}
-        </div>
+        <SelectableOptions
+          variant="chip"
+          options={LOCATION_PREFERENCE_OPTIONS}
+          selected={preferredLocs}
+          onToggle={handleToggleLoc}
+        />
       </Card>
 
       {/* 3. Matching Distance & Age Criteria Section */}
@@ -203,31 +153,21 @@ export const ProfilePreferencesTab = ({ profile, onUpdate, isUpdating }) => {
           </div>
 
           {/* Search Distance Slider */}
-          <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <label className="text-xs sm:text-sm font-semibold text-on-surface flex items-center gap-1.5">
+          <RangeSlider
+            id="preferences-max-distance"
+            label={
+              <>
                 <Navigation className="w-3.5 h-3.5 text-primary" />
                 Bán kính tìm kiếm tối đa
-              </label>
-              <span className="px-2.5 py-0.5 rounded-full bg-primary/10 text-primary font-bold text-xs">
-                {maxDistanceKm} km
-              </span>
-            </div>
-            <input
-              type="range"
-              min="1"
-              max="30"
-              step="1"
-              value={maxDistanceKm}
-              onChange={(e) => setMaxDistanceKm(Number(e.target.value))}
-              className="w-full h-2.5 bg-white border border-hairline rounded-lg appearance-none cursor-pointer accent-primary mt-2 transition-all"
-            />
-            <div className="flex justify-between text-[11px] text-text-muted font-medium pt-1">
-              <span>1 km (Gần nhà)</span>
-              <span>15 km (Khu vực)</span>
-              <span>30 km</span>
-            </div>
-          </div>
+              </>
+            }
+            valueLabel={`${maxDistanceKm} km`}
+            min={DISTANCE_SLIDER.MIN}
+            max={DISTANCE_SLIDER.MAX}
+            value={maxDistanceKm}
+            onChange={setMaxDistanceKm}
+            marks={DISTANCE_SLIDER.MARKS}
+          />
         </div>
 
         {/* Save Action */}

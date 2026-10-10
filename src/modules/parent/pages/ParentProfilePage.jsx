@@ -8,7 +8,7 @@ import {
   ProfilePreferencesTab,
   ProfileSecurityTab,
 } from '../components';
-import { Spinner, Button } from '../../../components';
+import { Spinner, Button, Tabs } from '../../../components';
 
 export const ParentProfilePage = () => {
   const [activeTab, setActiveTab] = useState(PROFILE_TABS.INFO);
@@ -72,36 +72,7 @@ export const ParentProfilePage = () => {
         {/* Right Column (8 cols on lg): Horizontal Tabs & Main Content Panel */}
         <div className="lg:col-span-8 space-y-2 min-w-0">
           {/* Horizontal Navigation Tabs */}
-          <div className="bg-white rounded-2xl border border-hairline p-2 shadow-sm overflow-x-auto">
-            <nav className="flex items-center gap-3 w-full min-w-max sm:min-w-0">
-              {TAB_CONFIGS.map((tab) => {
-                const Icon = tab.icon;
-                const isActive = activeTab === tab.id;
-                const count =
-                  tab.id === PROFILE_TABS.CHILDREN
-                    ? children.length
-                    : undefined;
-
-                return (
-                  <button
-                    key={tab.id}
-                    type="button"
-                    onClick={() => setActiveTab(tab.id)}
-                    className={`flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition-all duration-200 whitespace-nowrap ${
-                      isActive
-                        ? 'bg-primary text-white shadow-sm shadow-primary/20'
-                        : 'text-text-muted hover:text-on-surface hover:bg-surface-container-low'
-                    }`}
-                  >
-                    <Icon
-                      className={`w-4 h-4 shrink-0 ${isActive ? 'text-white' : 'text-text-muted'}`}
-                    />
-                    <span>{tab.label}</span>
-                  </button>
-                );
-              })}
-            </nav>
-          </div>
+          <Tabs tabs={TAB_CONFIGS} activeTab={activeTab} onChange={setActiveTab} fullWidth />
 
           {/* Active Tab Content */}
           <div className="transition-all duration-300">

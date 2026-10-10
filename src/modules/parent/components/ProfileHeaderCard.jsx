@@ -5,11 +5,9 @@ import {
   Phone,
   MapPin,
   Flame,
-  ShieldCheck,
-  Calendar,
   Sparkles,
 } from 'lucide-react';
-import { Card, Avatar, VerifiedBadge } from '../../../components';
+import { Card, Avatar, VerifiedBadge, Button } from '../../../components';
 import { useProfileAvatar } from '../hooks/useParentTabHooks';
 
 export const ProfileHeaderCard = ({
@@ -17,9 +15,8 @@ export const ProfileHeaderCard = ({
   childrenCount = 0,
   onAvatarUpload,
   isUploadingAvatar,
-  onOpenChangePassword,
 }) => {
-  const { fileInputRef, handleFileChange, triggerUpload } = useProfileAvatar({
+  const { fileInputRef, handleFileChange } = useProfileAvatar({
     onAvatarUpload,
   });
 
@@ -42,21 +39,17 @@ export const ProfileHeaderCard = ({
             src={profile?.avatarUrl}
             alt={profile?.fullName || 'Phụ huynh'}
             size="2xl"
-            className="object-cover w-24 h-24 sm:w-28 sm:h-28"
           />
-          <button
+          <Button
             type="button"
             onClick={() => fileInputRef.current?.click()}
-            disabled={isUploadingAvatar}
-            className="absolute bottom-0 right-0 p-2 rounded-full bg-primary text-white shadow-md hover:bg-primary-dark transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-primary/40 disabled:opacity-50"
+            isLoading={isUploadingAvatar}
+            aria-label="Thay đổi ảnh đại diện"
+            className="absolute bottom-0 right-0 p-2 rounded-full shadow-md hover:bg-primary-dark hover:scale-100 gap-0"
             title="Thay đổi ảnh đại diện"
           >
-            {isUploadingAvatar ? (
-              <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin block" />
-            ) : (
-              <Camera className="w-4 h-4" />
-            )}
-          </button>
+            {!isUploadingAvatar && <Camera className="w-4 h-4" />}
+          </Button>
           <input
             ref={fileInputRef}
             type="file"
@@ -108,12 +101,12 @@ export const ProfileHeaderCard = ({
         {/* Stats & Streak Highlights Grid */}
         <div className="grid grid-cols-2 gap-2.5 w-full pt-2">
           {/* Weekly Streak Box */}
-          <div className="p-3 rounded-2xl bg-amber-500/30 border border-amber-500/20 text-amber-700 flex flex-col items-center justify-center gap-1">
-            <span className="text-[10px] font-semibold uppercase tracking-wider text-amber-600">
+          <div className="p-3 rounded-2xl bg-tertiary/35 border border-tertiary/40 text-tertiary-dark flex flex-col items-center justify-center gap-1">
+            <span className="text-[10px] font-semibold uppercase tracking-wider text-tertiary-dark">
               Streak tuần
             </span>
             <div className="flex items-center gap-1">
-              <Flame className="w-4 h-4 text-amber-500 fill-amber-500" />
+              <Flame className="w-4 h-4 text-tertiary-container fill-tertiary" />
               <span className="text-xs font-bold">{weeklyStreak} tuần</span>
             </div>
           </div>

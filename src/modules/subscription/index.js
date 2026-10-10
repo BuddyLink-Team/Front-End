@@ -9,4 +9,4 @@ export { default as useSubscription } from './hooks/useSubscription';
 export { default as useCheckout } from './hooks/useCheckout';
 export { default as usePaywall } from './hooks/usePaywall';
 export * from './redux/subscriptionSlice';
-export * from './constants/subscription.constants';
+export * from './constants/subscriptionConstants';

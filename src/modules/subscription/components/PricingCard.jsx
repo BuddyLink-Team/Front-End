@@ -8,7 +8,9 @@ import {
   Minus,
   CheckCircle2,
 } from 'lucide-react';
-import { PLAN_CODES } from '../constants/subscription.constants';
+import { Button } from '../../../components/ui/Button';
+import { PLAN_CODES } from '../constants/subscriptionConstants';
+import { getPlanBenefits } from '../utils/planBenefits';
 
 export const PricingCard = ({
   plan,
@@ -19,9 +21,15 @@ export const PricingCard = ({
   disabled,
   billingCycle,
   yearlySavingsPercentage,
+  showAction = true,
 }) => {
   const isPremiumCard = plan.planCode !== PLAN_CODES.FREE;
   const isYearly = billingCycle === 'yearly';
+
+  // Premium: renew the plan in use, buy the other cycle on top (months add up), or upgrade from Free
+  let premiumActionLabel = 'Nâng cấp ngay';
+  if (isCurrentPlan && isPremiumActive) premiumActionLabel = 'Gia hạn Premium';
+  else if (isPremiumActive) premiumActionLabel = 'Mua thêm (cộng dồn thời hạn)';
 
   // Format price
   const formattedPrice =
@@ -48,73 +56,17 @@ export const PricingCard = ({
     ? new Date(endDate).toLocaleDateString('vi-VN')
     : null;
 
-  // Benefits list matching Stitch UI and 3 core features
-  // Benefits list matching 3 core features and realistic support
-  const benefits = isPremiumCard
-    ? [
-        {
-          text: (
-            <span>
-              Quản lý <strong className="font-semibold text-primary">KHÔNG giới hạn</strong> hồ sơ bé cho gia đình
-            </span>
-          ),
-          included: true,
-        },
-        {
-          text: (
-            <span>
-              Ghép đôi <strong className="font-semibold text-primary">KHÔNG giới hạn</strong> bạn chơi cùng độ tuổi{' '}
-              <span className="text-[11px] px-1.5 py-0.5 rounded bg-surface-container text-on-surface-variant font-normal">
-                Sắp ra mắt
-              </span>
-            </span>
-          ),
-          included: true,
-        },
-        {
-          text: (
-            <span>
-              Tổ chức & khởi tạo <strong className="font-semibold text-primary">KHÔNG giới hạn</strong> cuộc hẹn Playdate{' '}
-              <span className="text-[11px] px-1.5 py-0.5 rounded bg-surface-container text-on-surface-variant font-normal">
-                Sắp ra mắt
-              </span>
-            </span>
-          ),
-          included: true,
-        },
-      ]
-    : [
-        {
-          text: (
-            <span>
-              Tối đa <strong className="font-semibold text-on-surface">1 hồ sơ bé</strong>
-            </span>
-          ),
-          included: true,
-        },
-        {
-          text: (
-            <span>
-              <strong className="font-semibold text-on-surface">5 lượt quẹt ghép đôi</strong> mỗi ngày{' '}
-              <span className="text-[11px] px-1.5 py-0.5 rounded bg-surface-container text-on-surface-variant font-normal">
-                Sắp ra mắt
-              </span>
-            </span>
-          ),
-          included: true,
-        },
-        {
-          text: (
-            <span>
-              Tối đa <strong className="font-semibold text-on-surface">3 cuộc hẹn Playdate</strong> mỗi tháng{' '}
-              <span className="text-[11px] px-1.5 py-0.5 rounded bg-surface-container text-on-surface-variant font-normal">
-                Sắp ra mắt
-              </span>
-            </span>
-          ),
-          included: true,
-        },
-      ];
+  // Benefits from the plan limits stored in the database (plan.features)
+  const benefits = getPlanBenefits(plan.features, isPremiumCard).map((benefit) => ({
+    key: benefit.key,
+    text: (
+      <span>
+        {benefit.name}:{' '}
+        <strong className={`font-semibold ${isPremiumCard ? 'text-primary' : 'text-on-surface'}`}>{benefit.text}</strong>
+      </span>
+    ),
+    included: true,
+  }));
 
   return (
     <div
@@ -202,9 +154,9 @@ export const PricingCard = ({
 
         {/* Benefits List */}
         <ul className="flex flex-col gap-3 text-sm text-on-surface mb-6">
-          {benefits.map((b, idx) => (
+          {benefits.map((b) => (
             <li
-              key={idx}
+              key={b.key}
               className={`flex items-start gap-2.5 leading-snug ${
                 !b.included ? 'text-outline-variant opacity-60' : ''
               }`}
@@ -221,46 +173,34 @@ export const PricingCard = ({
       </div>
 
       {/* Button & CTA Section */}
-      <div className="pt-2 flex flex-col gap-2">
-        {isCurrentPlan && (!isPremiumCard || isPremiumActive) ? (
-          <div className="w-full">
-            {isPremiumActive ? (
-              <button
-                type="button"
-                className="w-full py-3.5 px-6 rounded-full bg-primary-container text-on-primary-container hover:bg-primary hover:text-on-primary font-bold text-sm shadow-md hover:scale-[1.01] active:scale-[0.99] transition-all flex items-center justify-center gap-2"
-                onClick={() => onUpgrade(plan.planCode)}
-                disabled={disabled}
-              >
-                <span>Gia hạn Premium</span>
-                <ArrowRight className="w-4 h-4" />
-              </button>
-            ) : (
-              <button
-                type="button"
-                className="w-full py-3 px-6 rounded-full bg-surface-container text-on-surface-variant font-semibold text-sm flex items-center justify-center gap-1.5 cursor-default"
-                disabled
-              >
-                <Check className="w-4 h-4 text-primary" />
-                <span>Đang sử dụng</span>
-              </button>
-            )}
-          </div>
-        ) : (
-          <button
-            type="button"
-            className={`w-full py-3.5 px-6 rounded-full font-bold text-sm shadow-md hover:scale-[1.01] active:scale-[0.99] transition-all flex items-center justify-center gap-2 ${
-              isPremiumCard
-                ? 'bg-primary-container text-on-primary-container hover:bg-primary hover:text-on-primary'
-                : 'bg-surface-container hover:bg-surface-container-high text-on-surface'
-            }`}
-            onClick={() => onUpgrade(plan.planCode)}
-            disabled={disabled}
-          >
-            <span>{isPremiumCard ? 'Nâng cấp ngay' : 'Bắt đầu sử dụng'}</span>
-            {isPremiumCard && <ArrowRight className="w-4 h-4" />}
-          </button>
-        )}
-      </div>
+      {showAction && (
+        <div className="pt-2 flex flex-col gap-2">
+          {isPremiumCard ? (
+            <Button
+              type="button"
+              variant="primary"
+              size="lg"
+              className="w-full rounded-full font-semibold"
+              onClick={() => onUpgrade(plan.planCode)}
+              disabled={disabled}
+              rightIcon={<ArrowRight className="w-4 h-4" />}
+            >
+              {premiumActionLabel}
+            </Button>
+          ) : (
+            <Button
+              type="button"
+              variant="ghost"
+              size="lg"
+              className="w-full rounded-full"
+              disabled
+              leftIcon={<Check className="w-4 h-4 text-primary" />}
+            >
+              Đang sử dụng
+            </Button>
+          )}
+        </div>
+      )}
     </div>
   );
 };
@@ -281,6 +221,7 @@ PricingCard.propTypes = {
   disabled: PropTypes.bool,
   billingCycle: PropTypes.string,
   yearlySavingsPercentage: PropTypes.number,
+  showAction: PropTypes.bool,
 };
 
 export default PricingCard;

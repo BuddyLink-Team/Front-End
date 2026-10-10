@@ -43,7 +43,7 @@ src/
   2. `Kết nối` (`/connections`) - Friend requests & connections.
   3. `Tin nhắn` (`/chat`) - 1-on-1 and playdate messaging.
   4. `Hẹn chơi` (`/playdates`) - Playdate scheduling & invitations.
-  5. `Thành tích` (`/gamification`) - Badges, points & community milestones.
+  5. `Thành tích` (`/gamification`) - Weekly playdate streak & achievement badges.
 
 ### `hooks/`
 
@@ -92,7 +92,7 @@ Aligned directly with the **BuddyLink Backend Modular Monolith**:
 | **`ai-assistant/`**    | AI activity recommendations, safe play venue suggestions   |
 | **`notification/`**    | In-app alerts, playdate status updates, reminders          |
 | **`safety/`**          | Report suspicious activity, block accounts, safety tips    |
-| **`gamification/`**    | Point balance, achievement badges, community rank          |
+| **`gamification/`**    | Weekly playdate streak, achievement badges, unlock popup   |
 | **`subscription/`**    | Membership plans, quota usage, PayOS payment checkout      |
 | **`rating-feedback/`** | Post-playdate review, parent ratings, testimonials         |
 | **`admin/`**           | Management dashboard, content moderation, reports          |

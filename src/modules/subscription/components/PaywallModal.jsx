@@ -1,20 +1,32 @@
+import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 import { Crown, Check, Sparkles } from 'lucide-react';
-import { closePaywall } from '../redux/subscriptionSlice';
+import { openPaywall, closePaywall } from '../redux/subscriptionSlice';
+import { APP_EVENTS } from '../../../constants/event.constants';
+import { getPlanBenefits } from '../utils/planBenefits';
 import { Modal } from '../../../components/feedback/Modal';
 import { Button } from '../../../components/ui/Button';
 import {
+  QUOTA_FEATURES,
   QUOTA_MESSAGES,
-  DEFAULT_PLAN_BENEFITS,
-} from '../constants/subscription.constants';
+  PLAN_CODES,
+} from '../constants/subscriptionConstants';
 
 export const PaywallModal = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { isPaywallOpen, paywallReason } = useSelector(
+  const { isPaywallOpen, paywallReason, plans } = useSelector(
     (state) => state.subscription
   );
+  const premiumPlan = plans.find((plan) => plan.planCode === PLAN_CODES.PREMIUM_MONTHLY);
+
+  // Quota errors caught by apiClient (services/apiClient.js) open the paywall
+  useEffect(() => {
+    const handleQuotaExceeded = (event) => dispatch(openPaywall(event.detail));
+    window.addEventListener(APP_EVENTS.QUOTA_EXCEEDED, handleQuotaExceeded);
+    return () => window.removeEventListener(APP_EVENTS.QUOTA_EXCEEDED, handleQuotaExceeded);
+  }, [dispatch]);
 
   if (!isPaywallOpen) return null;
 
@@ -29,7 +41,7 @@ export const PaywallModal = () => {
 
   // Determine modal title & message based on quota feature reason
   const feature = paywallReason?.feature;
-  const config = QUOTA_MESSAGES[feature] || QUOTA_MESSAGES.general;
+  const config = QUOTA_MESSAGES[feature] || QUOTA_MESSAGES[QUOTA_FEATURES.GENERAL];
   const modalTitle = paywallReason?.title || config.title;
   const modalMessage = paywallReason?.message || config.message;
 
@@ -54,7 +66,7 @@ export const PaywallModal = () => {
           </p>
         </div>
 
-        {/* 3 Core Premium Benefits */}
+        {/* Premium benefits (PROJECT_OVERVIEW 14.1) */}
         <div className="space-y-3">
           <div className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-primary">
             <Sparkles className="w-3.5 h-3.5" />
@@ -62,22 +74,17 @@ export const PaywallModal = () => {
           </div>
 
           <div className="rounded-xl border border-outline-variant/50 bg-surface-container-low/40 divide-y divide-outline-variant/30 text-xs">
-            {DEFAULT_PLAN_BENEFITS.map((benefit) => (
+            {getPlanBenefits(premiumPlan?.features, true).map((benefit) => (
               <div
                 key={benefit.key}
                 className="flex items-center justify-between p-3"
               >
                 <span className="font-medium text-on-surface flex items-center gap-1.5">
                   <span>{benefit.name}</span>
-                  {benefit.isUpcoming && (
-                    <span className="text-[10px] px-1.5 py-0.5 rounded bg-surface-container font-medium text-on-surface-variant">
-                      Sắp ra mắt
-                    </span>
-                  )}
                 </span>
                 <span className="inline-flex items-center gap-1 font-bold text-primary">
                   <Check className="w-3.5 h-3.5 text-primary" />
-                  {benefit.premiumText}
+                  {benefit.text}
                 </span>
               </div>
             ))}

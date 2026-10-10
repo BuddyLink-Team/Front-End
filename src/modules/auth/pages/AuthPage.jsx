@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
-import { AUTH_MODES } from '../constants/authConstants';
+import { AUTH_MODES, AUTH_MODE_TABS } from '../constants/authConstants';
+import { Tabs } from '../../../components/navigation/Tabs';
 import AuthCardLayout from '../components/AuthCardLayout';
 import LoginForm from '../components/LoginForm';
 import RegisterForm from '../components/RegisterForm';
@@ -73,30 +74,12 @@ export const AuthPage = () => {
   return (
     <AuthCardLayout footer={authFooter}>
       {/* Mode Switcher Tabs */}
-      <div className="inline-flex p-1 bg-surface-container-low rounded-full w-full border border-hairline/80">
-        <button
-          type="button"
-          onClick={() => switchMode(AUTH_MODES.REGISTER)}
-          className={`flex-1 py-2 px-4 rounded-full text-xs sm:text-sm font-semibold text-center transition-all duration-200 ${
-            mode === AUTH_MODES.REGISTER
-              ? 'bg-primary text-white shadow-sm'
-              : 'text-text-muted hover:text-on-surface'
-          }`}
-        >
-          Đăng ký tài khoản
-        </button>
-        <button
-          type="button"
-          onClick={() => switchMode(AUTH_MODES.LOGIN)}
-          className={`flex-1 py-2 px-4 rounded-full text-xs sm:text-sm font-semibold text-center transition-all duration-200 ${
-            mode === AUTH_MODES.LOGIN
-              ? 'bg-primary text-white shadow-sm'
-              : 'text-text-muted hover:text-on-surface'
-          }`}
-        >
-          Đăng nhập
-        </button>
-      </div>
+      <Tabs
+        tabs={AUTH_MODE_TABS}
+        activeTab={mode}
+        onChange={switchMode}
+        fullWidth
+      />
 
       {/* Header Titles - fixed min-height to avoid text wrap height jumping */}
       <div className="space-y-1 min-h-[76px]">

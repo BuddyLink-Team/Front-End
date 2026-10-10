@@ -1,85 +1,51 @@
-import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import subscriptionApi from '../api/subscriptionApi';
+import { createSlice, isAnyOf } from '@reduxjs/toolkit';
+import { createApiThunk } from '../../../utils/reduxUtils';
+import { subscriptionApi } from '../api/subscriptionApi';
+import { BILLING_CYCLES, PLAN_CODES, QUOTA_FEATURES, QUOTA_MESSAGES } from '../constants/subscriptionConstants';
+import { createChild, deleteChild, completeOnboarding } from '../../child/redux/childSlice';
 
-// 1. Fetch all active subscription plans
-export const fetchActivePlans = createAsyncThunk(
-  'subscription/fetchActivePlans',
-  async (_, { rejectWithValue }) => {
-    try {
-      const response = await subscriptionApi.getActivePlans();
-      return response.data || response;
-    } catch (error) {
-      return rejectWithValue(error.message || 'Không thể tải danh sách gói cước');
-    }
-  }
+// ---- Thunks (rejected payload: API error body { message, error: { code } }) ----
+
+export const fetchActivePlans = createApiThunk('subscription/fetchActivePlans', () =>
+  subscriptionApi.getActivePlans(),
 );
 
-// 2. Fetch current subscription & usage quota
-export const fetchMySubscriptionQuota = createAsyncThunk(
-  'subscription/fetchMySubscriptionQuota',
-  async (_, { rejectWithValue }) => {
-    try {
-      const response = await subscriptionApi.getMySubscriptionQuota();
-      return response.data || response;
-    } catch (error) {
-      return rejectWithValue(error.message || 'Không thể tải thông tin gói cước');
-    }
-  }
+// { isPremium, effectivePlanCode, subscription, usage }
+export const fetchMySubscriptionQuota = createApiThunk('subscription/fetchMySubscriptionQuota', () =>
+  subscriptionApi.getMySubscriptionQuota(),
 );
 
-// 3. Create PayOS checkout session
-export const createCheckoutSession = createAsyncThunk(
+export const createCheckoutSession = createApiThunk(
   'subscription/createCheckoutSession',
-  async ({ planCode, idempotencyKey }, { rejectWithValue }) => {
-    try {
-      const response = await subscriptionApi.createCheckout({ planCode }, idempotencyKey);
-      return response.data || response;
-    } catch (error) {
-      return rejectWithValue(error.message || 'Không thể khởi tạo liên kết thanh toán PayOS');
-    }
-  }
+  ({ planCode, idempotencyKey }) => subscriptionApi.createCheckout({ planCode }, idempotencyKey),
 );
 
-// 4. Verify payment status
-export const verifyPayment = createAsyncThunk(
-  'subscription/verifyPayment',
-  async (orderCode, { rejectWithValue }) => {
-    try {
-      const response = await subscriptionApi.verifyPayment(orderCode);
-      return response.data || response;
-    } catch (error) {
-      return rejectWithValue(error.message || 'Không thể kiểm tra trạng thái thanh toán');
-    }
-  }
+export const verifyPayment = createApiThunk('subscription/verifyPayment', (orderCode) =>
+  subscriptionApi.verifyPayment(orderCode),
 );
 
-// 5. Fetch payment history
-export const fetchPaymentHistory = createAsyncThunk(
+export const fetchPaymentHistory = createApiThunk(
   'subscription/fetchPaymentHistory',
-  async (params = { page: 1, limit: 10 }, { rejectWithValue }) => {
-    try {
-      const response = await subscriptionApi.getPaymentHistory(params);
-      return response.data || response;
-    } catch (error) {
-      return rejectWithValue(error.message || 'Không thể tải lịch sử giao dịch');
-    }
-  }
+  (params = { page: 1, limit: 10 }) => subscriptionApi.getPaymentHistory(params),
 );
 
 const initialState = {
   plans: [],
-  selectedPlan: 'premium_monthly',
-  billingCycle: 'monthly',
+  selectedPlan: PLAN_CODES.PREMIUM_MONTHLY,
+  billingCycle: BILLING_CYCLES.MONTHLY,
   subscription: null,
   usage: null,
-  effectivePlanCode: 'free',
+  effectivePlanCode: PLAN_CODES.FREE,
   isPremium: false,
   currentOrder: null,
   paymentHistory: {
     items: [],
     pagination: { page: 1, limit: 10, total: 0 },
   },
+  plansLoading: false,
+  // GET /subscriptions/my (plan + usage); quotaLoaded once it answered at least once
   loading: false,
+  quotaLoaded: false,
   checkoutLoading: false,
   verifyLoading: false,
   historyLoading: false,
@@ -89,6 +55,16 @@ const initialState = {
   paywallReason: null,
 };
 
+// Keep the child-profile usage counter in sync without refetching
+const adjustChildUsage = (state, delta) => {
+  const childQuota = state.usage?.[QUOTA_FEATURES.CHILD_PROFILES];
+  if (!childQuota) return;
+  childQuota.used = Math.max(0, (childQuota.used || 0) + delta);
+  if (childQuota.limit !== -1 && childQuota.remaining !== null && childQuota.remaining !== undefined) {
+    childQuota.remaining = Math.max(0, childQuota.limit - childQuota.used);
+  }
+};
+
 const subscriptionSlice = createSlice({
   name: 'subscription',
   initialState,
@@ -96,9 +72,8 @@ const subscriptionSlice = createSlice({
     openPaywall: (state, action) => {
       state.isPaywallOpen = true;
       state.paywallReason = action.payload || {
-        feature: 'general',
-        title: 'Đã Chạm Hạn Mức Gói Miễn Phí',
-        message: 'Bạn đã chạm trần hạn mức của gói Miễn phí. Nâng cấp Premium để tiếp tục trải nghiệm không giới hạn!',
+        feature: QUOTA_FEATURES.GENERAL,
+        ...QUOTA_MESSAGES[QUOTA_FEATURES.GENERAL],
       };
     },
     closePaywall: (state) => {
@@ -111,7 +86,7 @@ const subscriptionSlice = createSlice({
     setBillingCycle: (state, action) => {
       state.billingCycle = action.payload;
       state.selectedPlan =
-        action.payload === 'yearly' ? 'premium_yearly' : 'premium_monthly';
+        action.payload === BILLING_CYCLES.YEARLY ? PLAN_CODES.PREMIUM_YEARLY : PLAN_CODES.PREMIUM_MONTHLY;
     },
     setCurrentOrder: (state, action) => {
       state.currentOrder = action.payload;
@@ -122,32 +97,24 @@ const subscriptionSlice = createSlice({
     clearSubscriptionError: (state) => {
       state.error = null;
     },
-    resetSubscriptionState: () => {
-      if (typeof sessionStorage !== 'undefined') {
-        Object.keys(sessionStorage).forEach((key) => {
-          if (key.startsWith('bl_checkout_key_')) {
-            sessionStorage.removeItem(key);
-          }
-        });
-      }
-      return initialState;
-    },
+    // Called on logout (useAuth, which also clears the checkout keys)
+    resetSubscriptionState: () => initialState,
   },
   extraReducers: (builder) => {
     builder
       // fetchActivePlans
       .addCase(fetchActivePlans.pending, (state) => {
-        state.loading = true;
+        state.plansLoading = true;
         state.error = null;
       })
       .addCase(fetchActivePlans.fulfilled, (state, action) => {
-        state.loading = false;
+        state.plansLoading = false;
         state.plans = Array.isArray(action.payload)
           ? action.payload
           : action.payload?.plans || [];
       })
       .addCase(fetchActivePlans.rejected, (state, action) => {
-        state.loading = false;
+        state.plansLoading = false;
         state.error = action.payload;
       })
 
@@ -157,10 +124,11 @@ const subscriptionSlice = createSlice({
       })
       .addCase(fetchMySubscriptionQuota.fulfilled, (state, action) => {
         state.loading = false;
+        state.quotaLoaded = true;
         if (action.payload) {
           state.subscription = action.payload.subscription || null;
           state.usage = action.payload.usage || null;
-          state.effectivePlanCode = action.payload.effectivePlanCode || 'free';
+          state.effectivePlanCode = action.payload.effectivePlanCode || PLAN_CODES.FREE;
           state.isPremium = Boolean(action.payload.isPremium);
         }
       })
@@ -227,17 +195,11 @@ const subscriptionSlice = createSlice({
         state.historyLoading = false;
       })
 
-      // Reset subscription state on auth/logout
-      .addCase('auth/logout', () => {
-        if (typeof sessionStorage !== 'undefined') {
-          Object.keys(sessionStorage).forEach((key) => {
-            if (key.startsWith('bl_checkout_key_')) {
-              sessionStorage.removeItem(key);
-            }
-          });
-        }
-        return initialState;
-      });
+      .addCase(deleteChild.fulfilled, (state) => adjustChildUsage(state, -1))
+
+      .addMatcher(isAnyOf(createChild.fulfilled, completeOnboarding.fulfilled), (state) =>
+        adjustChildUsage(state, 1),
+      );
   },
 });
 

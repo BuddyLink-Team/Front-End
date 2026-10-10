@@ -22,11 +22,11 @@ export const Footer = () => {
               Nền tảng tiên phong kết nối bạn chơi lành mạnh và tổ chức Playdate an toàn cho trẻ. Đồng hành cùng hàng ngàn phụ huynh kiến tạo tuổi thơ trọn vẹn và an tâm.
             </p>
             <div className="flex items-center gap-3 pt-2">
-              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-[#eaf3ec] text-[#3d6841] border border-[#d2e7d7]">
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-primary-soft text-primary-ink border border-primary-border">
                 <ShieldCheck className="w-3.5 h-3.5 text-primary" />
                 100% Phụ huynh xác thực
               </span>
-              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-[#f0f3ff] text-[#30647b] border border-[#dee8ff]">
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-surface-container-low text-secondary-dark border border-surface-container-high">
                 <Sparkles className="w-3.5 h-3.5 text-secondary-dark" />
                 AI Assistant
               </span>
