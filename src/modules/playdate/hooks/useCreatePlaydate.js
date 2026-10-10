@@ -34,7 +34,6 @@ export const useCreatePlaydate = () => {
   const [locationCoordinates, setLocationCoordinates] = useState(null);
   const [isLoadingInitialData, setIsLoadingInitialData] = useState(true);
   const [showNearbyModal, setShowNearbyModal] = useState(false);
-  const [quotaExceededModal, setQuotaExceededModal] = useState(false);
 
   const todayStr = getLocalDateString();
 
@@ -158,10 +157,8 @@ export const useCreatePlaydate = () => {
       toast.success('Đã tạo buổi hẹn chơi! Lời mời đã được gửi tới bạn bè.');
       navigate('/playdates');
     } catch (err) {
-      if (getErrorCode(err) === PLAYDATE_ERROR_CODES.QUOTA_EXCEEDED) {
-        setQuotaExceededModal(true);
-        return;
-      }
+      // The global PaywallModal is opened by apiClient for quota errors
+      if (getErrorCode(err) === PLAYDATE_ERROR_CODES.QUOTA_EXCEEDED) return;
       toast.error(getApiErrorMsg(PLAYDATE_ERROR_MAP, err, 'Có lỗi xảy ra khi tạo cuộc hẹn chơi. Vui lòng kiểm tra lại.'));
     }
   };
@@ -184,12 +181,10 @@ export const useCreatePlaydate = () => {
     isLoadingInitialData,
     isSubmitting,
     showNearbyModal,
-    quotaExceededModal,
     register,
     handleSubmit: handleSubmit(onSubmitForm),
     setValue,
     setShowNearbyModal,
-    setQuotaExceededModal,
     handleToggleFriend,
     handleSelectQuickActivity,
     handleSelectTime,

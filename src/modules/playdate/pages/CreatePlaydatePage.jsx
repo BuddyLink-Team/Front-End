@@ -9,7 +9,6 @@ import {
   Search,
   CheckCircle2,
   Check,
-  AlertCircle,
   Plus,
   Baby,
   MessageCircle,
@@ -20,7 +19,6 @@ import { Button } from '../../../components/ui/Button';
 import { Input } from '../../../components/ui/Input';
 import { Textarea } from '../../../components/ui/Textarea';
 import { Avatar } from '../../../components/ui/Avatar';
-import { Modal } from '../../../components/feedback/Modal';
 import { FilterChips } from '../../../components/search/FilterChips';
 import { FormPageHeader } from '../../../components/form/FormPageHeader';
 import { FormSection } from '../../../components/form/FormSection';
@@ -61,12 +59,10 @@ export const CreatePlaydatePage = () => {
     isLoadingInitialData,
     isSubmitting,
     showNearbyModal,
-    quotaExceededModal,
     register,
     handleSubmit,
     setValue,
     setShowNearbyModal,
-    setQuotaExceededModal,
     handleToggleFriend,
     handleSelectQuickActivity,
     handleSelectTime,
@@ -506,46 +502,6 @@ export const CreatePlaydatePage = () => {
         onClose={() => setShowNearbyModal(false)}
         onSelectPlace={handleSelectPlace}
       />
-
-      {/* Quota Exceeded Modal */}
-      <Modal
-        isOpen={quotaExceededModal}
-        onClose={() => setQuotaExceededModal(false)}
-        title="Đã đạt giới hạn cuộc hẹn"
-        footer={
-          <>
-            <Button type="button" variant="outline" size="sm" onClick={() => setQuotaExceededModal(false)}>
-              Để sau
-            </Button>
-            <Button
-              type="button"
-              variant="primary"
-              size="sm"
-              onClick={() => {
-                setQuotaExceededModal(false);
-                navigate('/subscription');
-              }}
-            >
-              Nâng cấp ngay
-            </Button>
-          </>
-        }
-      >
-        <div className="space-y-4 text-center">
-          <div className="w-12 h-12 rounded-full bg-error/10 text-error flex items-center justify-center mx-auto">
-            <AlertCircle className="w-6 h-6" />
-          </div>
-          <div className="space-y-1">
-            <p className="text-sm font-semibold text-text-primary">
-              Nâng cấp gói BuddyLink Premium
-            </p>
-            <p className="text-xs text-text-muted">
-              Tài khoản gói Miễn phí được tạo tối đa <strong>{playdateLimit} cuộc hẹn chơi trong mỗi tháng</strong>.
-              Hãy nâng cấp lên gói BuddyLink Premium để tạo không giới hạn cuộc hẹn và nhận các tính năng kết nối thông minh!
-            </p>
-          </div>
-        </div>
-      </Modal>
     </div>
   );
 };

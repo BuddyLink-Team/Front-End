@@ -18,6 +18,7 @@ import {
 import { clearParentState } from '../../parent/redux/parentSlice';
 import { resetChildState } from '../../child/redux/childSlice';
 import { resetSubscriptionState } from '../../subscription/redux/subscriptionSlice';
+import { clearAllCheckoutKeys } from '../../subscription/utils/checkoutKeys';
 import { resetChatState } from '../../chat/redux/chatSlice';
 import { resetGamificationState } from '../../gamification/redux/gamificationSlice';
 import { getRoleHomePath, USER_ROLES } from '../../../constants/role.constants';
@@ -168,6 +169,7 @@ export const useAuth = () => {
     dispatch(clearParentState());
     dispatch(resetChildState());
     dispatch(resetSubscriptionState());
+    clearAllCheckoutKeys();
     dispatch(resetChatState());
     dispatch(resetGamificationState());
     navigate('/', { replace: true });

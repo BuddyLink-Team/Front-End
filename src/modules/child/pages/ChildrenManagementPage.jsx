@@ -1,13 +1,17 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useDispatch } from 'react-redux';
 import { Baby, Plus, RefreshCw, Crown } from 'lucide-react';
 import { Button, UpgradeButton, Spinner, EmptyState, ConfirmDialog } from '../../../components';
 import { ChildCard } from '../components';
 import { useChildrenList } from '../hooks/useChildrenList';
 import { useSubscriptionQuota } from '../../subscription/hooks/useSubscriptionQuota';
+import { openPaywall } from '../../subscription/redux/subscriptionSlice';
+import { QUOTA_FEATURES, QUOTA_MESSAGES } from '../../subscription/constants/subscriptionConstants';
 
 export const ChildrenManagementPage = () => {
   const navigate = useNavigate();
+  const dispatch = useDispatch();
   const {
     children,
     isLoading: isChildrenLoading,
@@ -102,7 +106,9 @@ export const ChildrenManagementPage = () => {
 
         {isChildLimitReached ? (
           <UpgradeButton
-            onClick={() => navigate('/subscription')}
+            onClick={() =>
+              dispatch(openPaywall({ feature: QUOTA_FEATURES.CHILD_PROFILES, ...QUOTA_MESSAGES[QUOTA_FEATURES.CHILD_PROFILES] }))
+            }
             className="self-start sm:self-auto shrink-0"
           >
             Nâng cấp để thêm bé

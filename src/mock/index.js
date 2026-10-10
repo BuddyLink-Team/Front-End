@@ -1,5 +1,6 @@
 import apiClient from '../services/apiClient';
 import playdateMockHandlers from '../modules/playdate/mock/playdateMockHandlers';
+import subscriptionMockHandlers from '../modules/subscription/mock/subscriptionMockHandlers';
 import { STORAGE_KEYS } from '../constants/storage.constants';
 import {
   MOCK_CURRENT_USER,
@@ -12,6 +13,7 @@ import {
  */
 const mockHandlers = [
   ...playdateMockHandlers,
+  ...subscriptionMockHandlers,
   // Other developers can easily add their module mock handlers here:
   // ...chatMockHandlers,
   // ...authMockHandlers,

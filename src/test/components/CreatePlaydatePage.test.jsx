@@ -25,8 +25,14 @@ vi.mock('../../modules/subscription/api/subscriptionApi', () => ({
   },
 }));
 
+// GET /subscriptions/my: usage per feature (-1 = unlimited)
 const quotaResponse = (playdatesCreatedPerMonth) => ({
-  data: { subscription: null, quota: { limits: { playdatesCreatedPerMonth }, usage: {} } },
+  data: {
+    isPremium: playdatesCreatedPerMonth === -1,
+    effectivePlanCode: playdatesCreatedPerMonth === -1 ? 'premium_monthly' : 'free',
+    subscription: null,
+    usage: { playdates_created: { limit: playdatesCreatedPerMonth, used: 0 } },
+  },
 });
 
 describe('CreatePlaydatePage Component', () => {

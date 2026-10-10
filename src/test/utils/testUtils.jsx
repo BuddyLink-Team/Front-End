@@ -2,7 +2,7 @@ import React from 'react';
 import { render } from '@testing-library/react';
 import { Provider } from 'react-redux';
 import { configureStore } from '@reduxjs/toolkit';
-import { BrowserRouter, MemoryRouter } from 'react-router-dom';
+import { MemoryRouter } from 'react-router-dom';
 import authReducer from '../../modules/auth/redux/authSlice';
 import childReducer from '../../modules/child/redux/childSlice';
 import subscriptionReducer from '../../modules/subscription/redux/subscriptionSlice';
@@ -50,5 +50,7 @@ export function renderWithProviders(
   };
 }
 
+// Test helper module (never hot-reloaded): re-exports Testing Library next to renderWithProviders
+// eslint-disable-next-line react-refresh/only-export-components
 export * from '@testing-library/react';
 export { default as userEvent } from '@testing-library/user-event';

@@ -16,11 +16,9 @@ import { fetchMyParentProfile } from '../../parent/redux/parentSlice';
 import { PARENT_ERROR_MESSAGES } from '../../parent/constants/parentConstants';
 import { CHILD_ERROR_MESSAGES } from '../../child/constants/childConstants';
 import {
-  CONNECTION_QUOTA_EXCEEDED_MESSAGE,
   DISCOVERY_ERROR_CODES,
   DISCOVERY_ERROR_MESSAGES,
   LIKE_SUCCESS_MESSAGES,
-  QUOTA_ACTION_TYPES,
   SUBSCRIPTION_PAGE_PATH,
   SWIPE_DIRECTIONS,
   UNLIMITED_QUOTA,
@@ -31,17 +29,7 @@ const SWIPE_ERROR_FALLBACK = 'Không thể ghi nhận lựa chọn. Vui lòng th
 const PREFERENCES_ERROR_FALLBACK = 'Không tải được tiêu chí tìm bạn của bạn, đang dùng bộ lọc mặc định.';
 const CHILDREN_ERROR_FALLBACK = 'Không tải được danh sách bé, đang tìm bạn cho tất cả các bé.';
 
-/**
- * Map a swipe error to a message; QUOTA_EXCEEDED is shared by the discovery and
- * connection request quotas, told apart by error.details[0].message (the action type).
- */
-const getSwipeErrorMessage = (err) => {
-  const isConnectionQuota =
-    getErrorCode(err) === DISCOVERY_ERROR_CODES.QUOTA_EXCEEDED &&
-    err?.error?.details?.[0]?.message === QUOTA_ACTION_TYPES.CONNECTION_REQUEST;
-  if (isConnectionQuota) return CONNECTION_QUOTA_EXCEEDED_MESSAGE;
-  return getApiErrorMsg(DISCOVERY_ERROR_MESSAGES, err, SWIPE_ERROR_FALLBACK);
-};
+const getSwipeErrorMessage = (err) => getApiErrorMsg(DISCOVERY_ERROR_MESSAGES, err, SWIPE_ERROR_FALLBACK);
 
 const isTypingTarget = (target) =>
   target instanceof HTMLElement &&
@@ -199,7 +187,8 @@ export const useDiscovery = ({ isKeyboardEnabled = true, onViewDetail } = {}) =>
         // A duplicate swipe means the server already has it: keep the card removed
         if (getErrorCode(err) === DISCOVERY_ERROR_CODES.DUPLICATE_SWIPE) return true;
         if (stackProfile) dispatch(restoreProfile(stackProfile));
-        toast.error(getSwipeErrorMessage(err));
+        // Quota errors (discovery or connection request) open the global PaywallModal (services/apiClient.js)
+        if (getErrorCode(err) !== DISCOVERY_ERROR_CODES.QUOTA_EXCEEDED) toast.error(getSwipeErrorMessage(err));
         return false;
       } finally {
         pendingSwipeIds.current.delete(childId);

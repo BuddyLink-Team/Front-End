@@ -2,6 +2,7 @@ import React from 'react';
 import { Outlet } from 'react-router-dom';
 import { Navbar } from '../components/navigation/Navbar';
 import { Footer } from '../components/navigation/Footer';
+import PaywallModal from '../modules/subscription/components/PaywallModal';
 import RatingPrompt from '../modules/rating-feedback/components/RatingPrompt';
 import AchievementCelebration from '../modules/gamification/components/AchievementCelebration';
 import { useAuth } from '../modules/auth/hooks/useAuth';
@@ -18,6 +19,8 @@ export const MainLayout = () => {
       <Footer />
       <RatingPrompt />
       <AchievementCelebration />
+      {/* Global Paywall Modal */}
+      <PaywallModal />
     </div>
   );
 };

@@ -40,7 +40,6 @@ export const useChildForm = () => {
   const [formData, setFormData] = useState(EMPTY_FORM);
   const [formErrors, setFormErrors] = useState({});
   const [isFetchingChild, setIsFetchingChild] = useState(isEditMode);
-  const [quotaExceededError, setQuotaExceededError] = useState(null);
   const [isDeleting, setIsDeleting] = useState(false);
 
   // If edit mode, load existing child info (either from the store or the API)
@@ -100,8 +99,6 @@ export const useChildForm = () => {
     if (e && e.preventDefault) e.preventDefault();
     if (!validate()) return;
 
-    setQuotaExceededError(null);
-
     const payload = {
       displayName: formData.displayName.trim(),
       dateOfBirth: formData.dateOfBirth,
@@ -122,10 +119,8 @@ export const useChildForm = () => {
 
       navigate('/children');
     } catch (err) {
-      if (getErrorCode(err) === CHILD_ERROR_CODES.CHILD_QUOTA_EXCEEDED) {
-        setQuotaExceededError(CHILD_ERROR_MESSAGES[CHILD_ERROR_CODES.CHILD_QUOTA_EXCEEDED]);
-        return;
-      }
+      // The global PaywallModal is opened by apiClient for quota errors
+      if (getErrorCode(err) === CHILD_ERROR_CODES.CHILD_QUOTA_EXCEEDED) return;
 
       const fallback = isEditMode ? 'Cập nhật hồ sơ bé thất bại' : 'Tạo hồ sơ bé thất bại';
       const msg = getApiErrorMsg(CHILD_ERROR_MESSAGES, err, fallback);
@@ -158,8 +153,6 @@ export const useChildForm = () => {
     isLoading: isLoading || isFetchingChild,
     isDeleting,
     isFetchingChild,
-    quotaExceededError,
-    setQuotaExceededError,
     updateField,
     toggleArrayItem,
     handleSubmit,

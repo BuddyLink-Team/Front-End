@@ -15,6 +15,11 @@ const PlaydateDetailPage = lazy(() => import('../modules/playdate/pages/Playdate
 
 import GamificationPage from '../modules/gamification/pages/GamificationPage';
 
+import SubscriptionPage from '../modules/subscription/pages/SubscriptionPage';
+import CheckoutPage from '../modules/subscription/pages/CheckoutPage';
+import PaymentSuccessPage from '../modules/subscription/pages/PaymentSuccessPage';
+import PaymentCancelPage from '../modules/subscription/pages/PaymentCancelPage';
+
 /**
  * Full route definitions for Parent features.
  */
@@ -94,11 +99,11 @@ export const ParentRoutes = () => (
       element={<GamificationPage />}
     />
 
-    {/* Premium Subscription */}
-    <Route
-      path="/subscription"
-      element={<PlaceholderPage title="Gói hội viên Premium" description="Xem các gói quyền lợi thành viên và cổng thanh toán PayOS." />}
-    />
+    {/* Premium Subscription & PayOS Checkout */}
+    <Route path="/subscription" element={<SubscriptionPage />} />
+    <Route path="/checkout" element={<CheckoutPage />} />
+    <Route path="/payment/success" element={<PaymentSuccessPage />} />
+    <Route path="/payment/cancel" element={<PaymentCancelPage />} />
 
     {/* Safety & Settings */}
     <Route
