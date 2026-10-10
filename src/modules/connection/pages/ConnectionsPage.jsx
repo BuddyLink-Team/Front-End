@@ -58,7 +58,7 @@ const ConnectionsPage = () => {
   const confirmContent = pendingConfirm ? CONNECTION_CONFIRM[pendingConfirm.action] : null;
 
   return (
-    <div className="mx-auto px-margin py-space-md pb-20 space-y-space-md">
+    <div className="mx-auto py-space-md pb-20 space-y-space-md">
       <Tabs tabs={tabs} activeTab={activeTab} onChange={setActiveTab} />
 
       <SearchBar

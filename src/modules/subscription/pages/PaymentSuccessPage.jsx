@@ -18,7 +18,7 @@ export const PaymentSuccessPage = () => {
   }, [navigate, orderCode]);
 
   return (
-    <div className="max-w-md mx-auto py-16 text-center space-y-4">
+    <div className="mx-auto py-16 text-center space-y-4">
       <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
       <p className="text-sm text-on-surface-variant">Đang chuyển hướng xác thực giao dịch...</p>
     </div>

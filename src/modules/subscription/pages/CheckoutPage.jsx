@@ -50,7 +50,7 @@ export const CheckoutPage = () => {
 
   if (loading) {
     return (
-      <div className="max-w-2xl mx-auto py-16 text-center space-y-4">
+      <div className="mx-auto py-16 text-center space-y-4">
         <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-primary/10 text-primary animate-spin">
           <RefreshCw className="w-6 h-6" />
         </div>
@@ -62,7 +62,7 @@ export const CheckoutPage = () => {
 
   if (error && !orderData) {
     return (
-      <div className="max-w-lg mx-auto py-16 text-center space-y-6">
+      <div className="mx-auto py-16 text-center space-y-6">
         <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-error/10 text-error">
           <AlertTriangle className="w-8 h-8" />
         </div>
@@ -85,7 +85,7 @@ export const CheckoutPage = () => {
   const backToPlans = () => navigate('/subscription');
 
   return (
-    <div className="max-w-4xl mx-auto py-6 space-y-8">
+    <div className="mx-auto py-6 space-y-8">
       {/* Top navigation */}
       <div className="flex items-center justify-between">
         <Button variant="ghost" size="sm" onClick={backToPlans} leftIcon={<ArrowLeft className="w-4 h-4" />}>
