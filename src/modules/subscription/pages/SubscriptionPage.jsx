@@ -38,9 +38,8 @@ export const SubscriptionPage = () => {
     : null;
 
   // Prices for the billing toggle (plans from the database)
-  const formatPrice = (price) => `${new Intl.NumberFormat('vi-VN').format(price)}đ`;
-  const monthlyPriceText = monthlyPlan ? `Theo tháng (${formatPrice(monthlyPlan.price)})` : 'Theo tháng';
-  const yearlyPriceText = yearlyPlan ? `Theo năm (${formatPrice(yearlyPlan.price)})` : 'Theo năm';
+  const monthlyPriceText = monthlyPlan ? `Theo tháng` : 'Theo tháng';
+  const yearlyPriceText = yearlyPlan ? `Theo năm` : 'Theo năm';
 
   return (
     <div className="max-w-5xl mx-auto space-y-10 pb-16 pt-4">
