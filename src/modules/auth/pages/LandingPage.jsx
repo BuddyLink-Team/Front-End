@@ -129,9 +129,9 @@ export const LandingPage = () => {
                 </div>
 
                 {/* Primary Headline */}
-                <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-text-primary leading-[1.15]">
+                <h1 className="text-4xl/[1.2] sm:text-5xl/[1.2] lg:text-6xl/[1.1] font-bold tracking-tight text-text-primary">
                   Tìm bạn chơi lành mạnh, <br className="hidden sm:inline" />
-                  <span className="text-primary underline decoration-primary/30 decoration-wavy underline-offset-8">
+                  <span className="text-primary underline decoration-primary/30 decoration-wavy underline-offset-[0.1em]">
                     tổ chức Playdate an toàn
                   </span>{' '}
                   cho con.
@@ -319,7 +319,7 @@ export const LandingPage = () => {
           className="py-20 bg-white border-y border-hairline"
         >
           <div className="max-w-[1600px] mx-auto px-6 sm:px-10 lg:px-16 space-y-14">
-            <div className="text-center max-w-3xl mx-auto space-y-3">
+            <div className="text-center max-w-4xl mx-auto space-y-3">
               <span className="text-xs font-bold uppercase tracking-wider text-primary-dark">
                 Tính năng ưu việt
               </span>
@@ -484,7 +484,7 @@ export const LandingPage = () => {
           className="py-20 bg-white border-y border-hairline"
         >
           <div className="max-w-[1600px] mx-auto px-6 sm:px-10 lg:px-16 space-y-14">
-            <div className="text-center max-w-2xl mx-auto space-y-3">
+            <div className="text-center max-w-3xl mx-auto space-y-3">
               <span className="text-xs font-bold uppercase tracking-wider text-primary-dark">
                 Quy trình tinh gọn
               </span>
@@ -731,7 +731,7 @@ export const LandingPage = () => {
               <Sparkles className="w-8 h-8" />
             </div>
 
-            <h2 className="text-3xl sm:text-5xl font-bold tracking-tight text-text-primary leading-tight">
+            <h2 className="text-3xl/[1.2] sm:text-5xl/[1.2] font-bold tracking-tight text-text-primary">
               Sẵn sàng mang đến cho con <br />
               những buổi hẹn chơi đáng nhớ?
             </h2>

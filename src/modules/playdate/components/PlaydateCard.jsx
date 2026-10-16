@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Clock, MapPin, CheckCircle2, Hourglass, Sparkles, X } from 'lucide-react';
+import { Clock, MapPin, CheckCircle2, Hourglass, Sparkles, Star, X } from 'lucide-react';
 import { Button } from '../../../components/ui/Button';
 import { StatusChip } from '../../../components/badges/StatusChip';
 import { hasPlaydateStarted } from '../utils/playdateTime';
@@ -41,6 +41,9 @@ export const PlaydateCard = ({
   onComplete,
   onReschedule,
   onCancel,
+  onRate,
+  // 'rateable' | 'done' | null (unknown): from GET /playdates/ratings/pending
+  ratingState = null,
   isCompleting = false,
 }) => {
   const navigate = useNavigate();
@@ -60,6 +63,7 @@ export const PlaydateCard = ({
     hostChild,
     participants = [],
     category,
+    myParticipantStatus,
   } = playdate;
 
   const isCompleted = status === 'completed' || displayStatus === 'completed';
@@ -67,6 +71,10 @@ export const PlaydateCard = ({
   const canManage = Boolean(isHost) && status === 'upcoming';
   // The host can only mark it completed once the start time has passed
   const canComplete = canManage && hasPlaydateStarted(scheduledDate, time);
+  // Only the host and accepted parents attended, so only they can rate
+  const attended = Boolean(isHost) || myParticipantStatus === 'accepted';
+  const canRate = isCompleted && attended && ratingState === 'rateable' && Boolean(onRate);
+  const hasRated = isCompleted && attended && ratingState === 'done';
 
   // Category tag: the given label (mock data) or deduced from the activity (shared activity catalog)
   const categoryMeta =
@@ -248,6 +256,25 @@ export const PlaydateCard = ({
             className="rounded-full"
           >
             Hoàn thành
+          </Button>
+        )}
+
+        {hasRated && (
+          <span className="inline-flex items-center gap-1 text-xs font-semibold px-3 py-1.5 rounded-full bg-tertiary-soft text-tertiary-dark border border-tertiary-border whitespace-nowrap">
+            <Star className="w-3.5 h-3.5 fill-tertiary" /> Đã đánh giá
+          </span>
+        )}
+
+        {canRate && (
+          <Button
+            type="button"
+            variant="primary"
+            size="sm"
+            onClick={() => onRate(playdate)}
+            leftIcon={<Star className="w-3.5 h-3.5" />}
+            className="rounded-full"
+          >
+            Đánh giá
           </Button>
         )}
 

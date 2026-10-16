@@ -271,7 +271,6 @@ export const PlaydateEventCollateralPanel = ({
                     src={host.avatarUrl}
                     alt={host.fullName}
                     size="sm"
-                    fallbackText={host.fullName?.slice(0, 2).toUpperCase()}
                   />
                   <div className="min-w-0">
                     <div className="flex items-center gap-1.5">
@@ -307,7 +306,6 @@ export const PlaydateEventCollateralPanel = ({
                       src={parent.avatarUrl}
                       alt={parent.fullName}
                       size="sm"
-                      fallbackText={parent.fullName?.slice(0, 2).toUpperCase()}
                     />
                     <div className="min-w-0">
                       <div className="flex items-center gap-1.5">

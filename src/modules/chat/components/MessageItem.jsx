@@ -43,7 +43,6 @@ export const MessageItem = ({
           alt={message.sender?.fullName || partnerName || 'Đối tác'}
           size="sm"
           className="shrink-0 mb-1"
-          fallbackText={(message.sender?.fullName || partnerName || 'Đ').slice(0, 1)}
         />
       )}
 

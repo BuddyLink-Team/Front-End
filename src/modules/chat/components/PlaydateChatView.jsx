@@ -210,14 +210,9 @@ export const PlaydateChatView = ({
 
             {/* Group Title & Details */}
             <div className="min-w-0">
-              <div className="flex items-center gap-2">
-                <h3 className="text-sm sm:text-base font-bold text-on-surface leading-tight truncate">
-                  {groupTitle}
-                </h3>
-                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-secondary-container/60 text-secondary shrink-0 hidden sm:inline">
-                  Playdate Nhóm
-                </span>
-              </div>
+              <h3 className="text-sm sm:text-base font-bold text-on-surface leading-tight truncate">
+                {groupTitle}
+              </h3>
 
               <div className="flex items-center gap-2 mt-0.5 text-xs text-on-surface-variant truncate">
                 <span className="flex items-center gap-1 font-medium text-primary shrink-0">
