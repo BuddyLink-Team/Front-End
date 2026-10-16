@@ -31,7 +31,7 @@ export const OnboardingSuccessStep = ({ formData, onComplete }) => {
         <div className="flex items-center justify-between border-b border-hairline pb-2.5">
           <span className="text-xs text-text-muted">Bé yêu:</span>
           <span className="text-xs font-bold text-on-surface">
-            {formData.displayName} ({formData.gender === 'boy' ? 'Bé trai' : formData.gender === 'girl' ? 'Bé gái' : 'Khác'})
+            {formData.displayName} ({formData.gender === 'boy' ? 'Bé trai' : 'Bé gái'})
           </span>
         </div>
         <div className="flex items-center justify-between border-b border-hairline pb-2.5">

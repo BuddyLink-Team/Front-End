@@ -12,7 +12,7 @@ export const ChildCard = ({ child, onEdit, onDelete }) => {
   const childId = child.id || child._id;
   const isBoy = child.gender === CHILD_GENDERS.BOY;
   const genderOption = GENDER_OPTIONS.find((opt) => opt.value === child.gender);
-  const genderLabel = genderOption ? genderOption.label : GENDER_OPTIONS.find((opt) => opt.value === CHILD_GENDERS.OTHER)?.label || 'Khác';
+  const genderLabel = genderOption ? genderOption.label : (isBoy ? 'Bé trai' : 'Bé gái');
 
   return (
     <Card

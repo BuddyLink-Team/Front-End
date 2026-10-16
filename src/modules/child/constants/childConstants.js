@@ -1,13 +1,11 @@
 export const CHILD_GENDERS = Object.freeze({
   BOY: 'boy',
   GIRL: 'girl',
-  OTHER: 'other',
 });
 
 export const GENDER_OPTIONS = [
   { value: 'boy', label: 'Bé trai' },
   { value: 'girl', label: 'Bé gái' },
-  { value: 'other', label: 'Khác' },
 ];
 
 export const POPULAR_INTERESTS = [

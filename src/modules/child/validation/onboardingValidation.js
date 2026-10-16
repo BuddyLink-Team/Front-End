@@ -14,7 +14,7 @@ export const childSchema = z.object({
       const now = dayjs();
       return birth.isValid() && birth.isBefore(now);
     }, 'Ngày sinh phải hợp lệ và trước thời điểm hiện tại'),
-  gender: z.enum(['boy', 'girl', 'other'], {
+  gender: z.enum(['boy', 'girl'], {
     errorMap: () => ({ message: 'Vui lòng chọn giới tính của bé' }),
   }),
   interests: z

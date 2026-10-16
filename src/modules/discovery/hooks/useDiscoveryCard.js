@@ -1,5 +1,4 @@
 import { useCallback, useMemo } from 'react';
-import { CHILD_GENDERS } from '../../child/constants/childConstants';
 import {
   DAY_LABELS,
   DEFAULT_CHILD_AVATARS,
@@ -38,7 +37,7 @@ export const useDiscoveryCard = (profile, onSwipe) => {
 
     return {
       interests: mergeUniqueTags(profile.interests || [], profile.favoriteActivities || []),
-      genderLabel: GENDER_LABELS[profile.gender] || GENDER_LABELS[CHILD_GENDERS.OTHER],
+      genderLabel: GENDER_LABELS[profile.gender] || '',
       avatarSrc: DEFAULT_CHILD_AVATARS[profile.gender] || DEFAULT_CHILD_AVATARS.DEFAULT,
       distanceLabel: profile.distanceKm !== undefined ? `Cách ${profile.distanceKm} km` : 'Gần bạn',
       preferredLocations: translate(LOCATION_LABELS, preferences.preferredLocations),

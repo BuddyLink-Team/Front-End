@@ -37,7 +37,7 @@ export const ChildBasicInfoStep = ({ formData, formErrors, updateField, showPriv
           <label className="block text-sm font-semibold text-on-surface mb-1.5">
             Giới tính của bé <span className="text-error">*</span>
           </label>
-          <div className="grid grid-cols-3 gap-2">
+          <div className="grid grid-cols-2 gap-3">
             {GENDER_OPTIONS.map((g) => {
               const isSelected = formData.gender === g.value;
               return (

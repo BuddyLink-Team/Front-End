@@ -9,9 +9,7 @@ import {
   DISCOVERY_ERROR_MESSAGES,
   GENDER_LABELS,
   LOCATION_LABELS,
-  TIME_LABELS,
 } from '../constants/discoveryConstants';
-import { CHILD_GENDERS } from '../../child/constants/childConstants';
 
 const PROFILE_ERROR_FALLBACK = 'Không thể tải thông tin hồ sơ bé';
 
@@ -43,7 +41,7 @@ export const useChildProfile = (childId) => {
     if (!profile) return null;
     const preferences = profile.parent?.preferences || {};
     return {
-      genderLabel: GENDER_LABELS[profile.gender] || GENDER_LABELS[CHILD_GENDERS.OTHER],
+      genderLabel: GENDER_LABELS[profile.gender] || '',
       avatarSrc: DEFAULT_CHILD_AVATARS[profile.gender] || DEFAULT_CHILD_AVATARS.DEFAULT,
       interests: [...(profile.interests || []), ...(profile.favoriteActivities || [])],
       preferredLocations: translate(LOCATION_LABELS, preferences.preferredLocations),

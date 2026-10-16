@@ -21,7 +21,6 @@ export const SWIPE_FEEDBACK = Object.freeze({
 export const GENDER_LABELS = Object.freeze({
   [CHILD_GENDERS.BOY]: 'Bé Trai',
   [CHILD_GENDERS.GIRL]: 'Bé Gái',
-  [CHILD_GENDERS.OTHER]: 'Khác',
 });
 
 export const DEFAULT_CHILD_AVATARS = Object.freeze({
