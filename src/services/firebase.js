@@ -48,7 +48,15 @@ export const initRecaptchaVerifier = (containerId = 'recaptcha-container') => {
     }
   }
 
-  window.recaptchaVerifier = new RecaptchaVerifier(authInstance, containerId, {
+  // reCAPTCHA refuses to render twice into the same element, even after clear(),
+  // so each verifier gets a fresh child element (needed for "Gửi lại").
+  const container = document.getElementById(containerId);
+  if (!container) return null;
+  container.innerHTML = '';
+  const widgetElement = document.createElement('div');
+  container.appendChild(widgetElement);
+
+  window.recaptchaVerifier = new RecaptchaVerifier(authInstance, widgetElement, {
     size: 'invisible',
     callback: () => {
       // reCAPTCHA solved - will proceed with phone auth
@@ -59,6 +67,22 @@ export const initRecaptchaVerifier = (containerId = 'recaptcha-container') => {
   });
 
   return window.recaptchaVerifier;
+};
+
+/**
+ * Remove the reCAPTCHA widget once it is no longer needed (e.g. after the SMS was sent)
+ * @param {string} containerId - Element ID for recaptcha container
+ */
+export const clearRecaptchaVerifier = (containerId = 'recaptcha-container') => {
+  if (window.recaptchaVerifier) {
+    try {
+      window.recaptchaVerifier.clear();
+    } catch {
+      // ignore
+    }
+    window.recaptchaVerifier = null;
+  }
+  document.getElementById(containerId)?.replaceChildren();
 };
 
 /**

@@ -28,6 +28,8 @@ export const VerifyOtpPage = () => {
     inputRefs,
     countdown,
     canResend,
+    isPhoneOtpSent,
+    isSendingPhoneOtp,
     isSubmitting,
     errorMessage,
     isFormComplete,
@@ -35,9 +37,12 @@ export const VerifyOtpPage = () => {
     handleKeyDown,
     handlePaste,
     handleResendOtp,
+    handleSendPhoneCode,
     handleVerifySubmit,
     handleSavePhone,
   } = useVerifyOtp();
+
+  const isAwaitingPhoneSend = activeStep === 'PHONE' && !isPhoneOtpSent;
 
   return (
     <div className="w-full flex items-center justify-center py-6 sm:py-12 relative selection:bg-primary-container selection:text-on-primary-container">
@@ -101,7 +106,11 @@ export const VerifyOtpPage = () => {
             {activeStep === 'PHONE' ? (
               <>
                 <Smartphone className="w-4 h-4" />
-                <span>{phoneNumber ? maskPhone(phoneNumber) : 'Chưa cập nhật số điện thoại'}</span>
+                <span>
+                  {phoneNumber
+                    ? maskPhone(phoneNumber)
+                    : 'Chưa cập nhật số điện thoại'}
+                </span>
                 {!isEditingPhone && (
                   <button
                     type="button"
@@ -110,7 +119,9 @@ export const VerifyOtpPage = () => {
                     title="Cập nhật số điện thoại"
                   >
                     <Edit2 className="w-3.5 h-3.5" />
-                    <span>{phoneNumber ? 'Thay đổi' : 'Nhập số điện thoại'}</span>
+                    <span>
+                      {phoneNumber ? 'Thay đổi' : 'Nhập số điện thoại'}
+                    </span>
                   </button>
                 )}
               </>
@@ -123,9 +134,11 @@ export const VerifyOtpPage = () => {
           </div>
 
           <p className="text-sm text-on-surface-variant max-w-[460px] leading-relaxed">
-            {activeStep === 'PHONE'
-              ? 'BuddyLink đã gửi mã bảo mật 6 chữ số đến thiết bị của bạn nhằm xác thực thành viên và bảo vệ an toàn mạng lưới kết nối phụ huynh.'
-              : 'BuddyLink đã gửi mã bảo mật 6 chữ số đến hộp thư của bạn nhằm hoàn tất chứng nhận tài khoản an toàn.'}
+            {isAwaitingPhoneSend
+              ? 'Bấm "Gửi mã OTP" để BuddyLink gửi mã bảo mật 6 chữ số đến số điện thoại của bạn nhằm xác thực thành viên và bảo vệ an toàn mạng lưới kết nối phụ huynh.'
+              : activeStep === 'PHONE'
+                ? 'BuddyLink đã gửi mã bảo mật 6 chữ số đến thiết bị của bạn nhằm xác thực thành viên và bảo vệ an toàn mạng lưới kết nối phụ huynh.'
+                : 'BuddyLink đã gửi mã bảo mật 6 chữ số đến hộp thư của bạn nhằm hoàn tất chứng nhận tài khoản an toàn.'}
           </p>
         </div>
 
@@ -163,35 +176,55 @@ export const VerifyOtpPage = () => {
             ))}
           </div>
 
-          {/* Countdown & Resend Option */}
-          <div className="flex flex-wrap items-center justify-between w-full max-w-[440px] px-1 text-on-surface-variant gap-2 text-xs sm:text-sm">
-            <div className="flex items-center gap-1.5 bg-surface-container-low/70 py-1 px-3 rounded-full border border-hairline/60">
-              <Clock className="w-3.5 h-3.5 text-primary" />
-              <span>
-                Mã có hiệu lực trong{' '}
-                <strong className="text-on-surface font-semibold">
-                  {activeStep === 'PHONE' ? OTP_VALIDITY_MINUTES.PHONE : OTP_VALIDITY_MINUTES.EMAIL} phút
-                </strong>
-              </span>
-            </div>
+          {/* Phone step: the first SMS is sent on click (required by Firebase reCAPTCHA) */}
+          {isAwaitingPhoneSend ? (
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={handleSendPhoneCode}
+              isLoading={isSendingPhoneOtp}
+              disabled={!phoneNumber || isEditingPhone || isSendingPhoneOtp}
+              leftIcon={<Smartphone className="w-4 h-4" />}
+            >
+              Gửi mã OTP
+            </Button>
+          ) : (
+            /* Countdown & Resend Option */
+            <div className="flex flex-wrap items-center justify-between w-full max-w-[440px] px-1 text-on-surface-variant gap-2 text-xs sm:text-sm">
+              <div className="flex items-center gap-1.5 bg-surface-container-low/70 py-1 px-3 rounded-full border border-hairline/60">
+                <Clock className="w-3.5 h-3.5 text-primary" />
+                <span>
+                  Mã có hiệu lực trong{' '}
+                  <strong className="text-on-surface font-semibold">
+                    {activeStep === 'PHONE'
+                      ? OTP_VALIDITY_MINUTES.PHONE
+                      : OTP_VALIDITY_MINUTES.EMAIL}{' '}
+                    phút
+                  </strong>
+                </span>
+              </div>
 
-            <div className="flex items-center gap-1.5">
-              <span className="text-text-muted">Chưa nhận được?</span>
-              <button
-                type="button"
-                onClick={handleResendOtp}
-                disabled={!canResend || isSubmitting}
-                className={`font-semibold transition-colors inline-flex items-center gap-1 ${
-                  canResend
-                    ? 'text-primary hover:underline cursor-pointer'
-                    : 'text-text-muted cursor-not-allowed opacity-70'
-                }`}
-              >
-                <RotateCcw className="w-3 h-3" />
-                {canResend ? 'Gửi lại' : `Gửi lại sau ${formatTimer(countdown)}`}
-              </button>
+              <div className="flex items-center gap-1.5">
+                <span className="text-text-muted">Chưa nhận được?</span>
+                <button
+                  type="button"
+                  onClick={handleResendOtp}
+                  disabled={!canResend || isSubmitting}
+                  className={`font-semibold transition-colors inline-flex items-center gap-1 ${
+                    canResend
+                      ? 'text-primary hover:underline cursor-pointer'
+                      : 'text-text-muted cursor-not-allowed opacity-70'
+                  }`}
+                >
+                  <RotateCcw className="w-3 h-3" />
+                  {canResend
+                    ? 'Gửi lại'
+                    : `Gửi lại sau ${formatTimer(countdown)}`}
+                </button>
+              </div>
             </div>
-          </div>
+          )}
         </div>
 
         {/* Change Phone Modal / Toggle Row */}
