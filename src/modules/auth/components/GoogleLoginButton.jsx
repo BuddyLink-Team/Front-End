@@ -17,13 +17,14 @@ export const GoogleLoginButton = ({
         Container wrapping the custom Stitch button with the official GoogleLogin overlaid invisibly.
         This provides 100% pixel-perfect Stitch UI while returning the required JWT ID Token to backend.
       */}
-      <div className="relative w-full overflow-hidden rounded-xl">
+      {/* `group` lives here because the invisible GSI overlay sits above the button and swallows its own :hover */}
+      <div className="group relative w-full overflow-hidden rounded-xl">
         {/* Custom Stitch Designed UI Button */}
         <button
           type="button"
           onClick={!hasClientId ? onClick : undefined}
           disabled={disabled || isLoading}
-          className="w-full py-3 px-4 rounded-xl bg-surface-container-low hover:bg-surface-container text-on-surface text-sm font-semibold transition-all duration-200 flex items-center justify-center gap-3 border border-hairline shadow-soft active:scale-[0.99] hover:border-outline-variant/60 focus:outline-none focus:ring-2 focus:ring-primary/20 disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer"
+          className="w-full py-3 px-4 rounded-xl bg-surface-container-low text-on-surface text-sm font-semibold transition-all duration-200 flex items-center justify-center gap-3 border border-hairline shadow-soft cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary/20 group-hover:bg-surface-container group-hover:border-primary-border group-hover:shadow-md group-hover:text-primary-dark group-active:scale-[0.99] group-focus-within:ring-2 group-focus-within:ring-primary/20 disabled:opacity-60 disabled:cursor-not-allowed disabled:group-hover:bg-surface-container-low disabled:group-hover:border-hairline disabled:group-hover:shadow-soft disabled:group-hover:text-on-surface"
         >
           {isLoading ? (
             <Loader2 className="w-5 h-5 text-primary animate-spin shrink-0" />

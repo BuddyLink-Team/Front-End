@@ -58,7 +58,7 @@ const QuickProfileCard = ({ connection, type, onAction, onMessage, onInvite }) =
       <span className="text-label-sm uppercase tracking-wider text-text-muted">Hồ sơ xem nhanh</span>
 
       <div className="flex flex-col items-center text-center gap-2">
-        <Avatar src={avatarUrl} alt={parentName} size="xl" fallbackText={parentName.slice(0, 2).toUpperCase()} />
+        <Avatar src={avatarUrl} alt={parentName} size="xl" />
         <h3 className="text-headline-md text-text-primary">{childName ? `${childName} & ${parentName}` : parentName}</h3>
         <p className="text-body-md text-text-muted">{subtitle}</p>
         {isVerified && <VerifiedBadge text="Phụ huynh đã xác thực" size="sm" />}

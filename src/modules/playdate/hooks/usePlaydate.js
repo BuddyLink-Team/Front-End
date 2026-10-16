@@ -3,6 +3,8 @@ import { useDispatch, useSelector } from 'react-redux';
 import { useToast } from '../../../hooks/useToast';
 import { useDebounce } from '../../../hooks/useDebounce';
 import { getApiErrorMsg } from '../../../utils/errorUtils';
+import { APP_EVENTS } from '../../../constants/event.constants';
+import { ratingFeedbackApi } from '../../rating-feedback/api/ratingFeedbackApi';
 import {
   fetchPlaydates as fetchPlaydatesThunk,
   completePlaydate,
@@ -50,6 +52,10 @@ export const usePlaydate = () => {
   const [reschedulingPlaydate, setReschedulingPlaydate] = useState(null);
   const [cancellingPlaydate, setCancellingPlaydate] = useState(null);
   const [isCancelling, setIsCancelling] = useState(false);
+  // Completed playdates the parent attended but has not rated yet (GET /playdates/ratings/pending)
+  // null until loaded, so cards do not flash "Đã đánh giá" before the list arrives
+  const [rateableIds, setRateableIds] = useState(null);
+  const [ratingPlaydate, setRatingPlaydate] = useState(null);
 
   // Debounce search query to prevent excessive API requests while typing
   const debouncedSearch = useDebounce(searchQuery, SEARCH_DEBOUNCE_MS);
@@ -75,6 +81,32 @@ export const usePlaydate = () => {
   useEffect(() => {
     fetchPlaydates();
   }, [fetchPlaydates]);
+
+  const fetchRateableIds = useCallback(async () => {
+    try {
+      const response = await ratingFeedbackApi.getPending();
+      setRateableIds(new Set((response?.data || []).map((item) => String(item._id))));
+    } catch {
+      // Without this list the rating state is simply hidden; the global RatingPrompt still works
+      setRateableIds(null);
+    }
+  }, []);
+
+  // Refresh after every list load (a playdate may just have been completed) and after any rating
+  useEffect(() => {
+    fetchRateableIds();
+  }, [items, fetchRateableIds]);
+
+  useEffect(() => {
+    window.addEventListener(APP_EVENTS.PLAYDATE_RATING_SUBMITTED, fetchRateableIds);
+    return () => window.removeEventListener(APP_EVENTS.PLAYDATE_RATING_SUBMITTED, fetchRateableIds);
+  }, [fetchRateableIds]);
+
+  const handleRatingSubmitted = useCallback(() => {
+    setRatingPlaydate(null);
+    toast.success('Đã gửi đánh giá. Cảm ơn bạn!');
+    window.dispatchEvent(new Event(APP_EVENTS.PLAYDATE_RATING_SUBMITTED));
+  }, [toast]);
 
   const handleTabChange = useCallback((tabId) => dispatch(setActiveTab(tabId)), [dispatch]);
   const handleViewModeChange = useCallback((mode) => dispatch(setViewMode(mode)), [dispatch]);
@@ -151,6 +183,10 @@ export const usePlaydate = () => {
     reschedulingPlaydate,
     cancellingPlaydate,
     isCancelling,
+    rateableIds,
+    ratingPlaydate,
+    setRatingPlaydate,
+    handleRatingSubmitted,
     fetchPlaydates,
     handleTabChange,
     handleViewModeChange,

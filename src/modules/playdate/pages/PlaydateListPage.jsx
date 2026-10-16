@@ -12,6 +12,7 @@ import { PlaydateCard } from '../components/PlaydateCard';
 import { PlaydateCalendarView } from '../components/PlaydateCalendarView';
 import { PlaydateFilterTabs } from '../components/PlaydateFilterTabs';
 import { RescheduleModal } from '../components/RescheduleModal';
+import { RatingModal } from '../../rating-feedback/components/RatingModal';
 import { usePlaydate } from '../hooks/usePlaydate';
 import { PLAYDATE_VIEW_MODES } from '../constants/playdateConstants';
 
@@ -38,6 +39,10 @@ export const PlaydateListPage = () => {
     reschedulingPlaydate,
     cancellingPlaydate,
     isCancelling,
+    rateableIds,
+    ratingPlaydate,
+    setRatingPlaydate,
+    handleRatingSubmitted,
     handleTabChange,
     handleViewModeChange,
     handleSearchChange,
@@ -159,6 +164,8 @@ export const PlaydateListPage = () => {
               onComplete={promptCompletePlaydate}
               onReschedule={setReschedulingPlaydate}
               onCancel={setCancellingPlaydate}
+              onRate={setRatingPlaydate}
+              ratingState={rateableIds && (rateableIds.has(String(item.id)) ? 'rateable' : 'done')}
               isCompleting={completingId === item.id}
             />
           ))}
@@ -225,6 +232,16 @@ export const PlaydateListPage = () => {
           playdate={reschedulingPlaydate}
           onClose={() => setReschedulingPlaydate(null)}
           onSuccess={handleRescheduleSuccess}
+        />
+      )}
+
+      {ratingPlaydate && (
+        <RatingModal
+          key={ratingPlaydate.id}
+          // The rating hook posts to /playdates/:_id/ratings
+          playdate={{ ...ratingPlaydate, _id: ratingPlaydate.id }}
+          onClose={() => setRatingPlaydate(null)}
+          onSubmitted={handleRatingSubmitted}
         />
       )}
     </div>

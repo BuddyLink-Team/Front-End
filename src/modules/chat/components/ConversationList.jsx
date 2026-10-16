@@ -1,6 +1,6 @@
 import React from 'react';
 import dayjs from 'dayjs';
-import { ShieldCheck, Calendar, Users, MessageSquare } from 'lucide-react';
+import { ShieldCheck, Users, MessageSquare } from 'lucide-react';
 import { Avatar } from '../../../components/ui/Avatar';
 import { SearchBar } from '../../../components/search/SearchBar';
 import { FilterChips } from '../../../components/search/FilterChips';
@@ -135,7 +135,6 @@ export const ConversationList = ({
                         alt={title}
                         size="md"
                         isOnline={true}
-                        fallbackText={title.slice(0, 2).toUpperCase()}
                       />
                     )}
                   </div>
@@ -179,8 +178,8 @@ export const ConversationList = ({
                     {conv.playdate && (
                       <div className="flex items-center gap-1.5 mt-1.5">
                         <span className="inline-flex items-center gap-1 text-[11px] text-secondary bg-secondary-container/40 px-2 py-0.5 rounded-full">
-                          <Calendar className="w-3 h-3" />
-                          <span>Hẹn chơi {dayjs(conv.playdate.scheduledDate).format('DD/MM')}{conv.playdate.time ? ` • ${conv.playdate.time}` : ''}</span>
+                          <Users className="w-3 h-3" />
+                          <span>Playdate Nhóm</span>
                         </span>
                       </div>
                     )}

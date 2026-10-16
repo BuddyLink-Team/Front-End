@@ -36,9 +36,12 @@ export default function RatingPrompt() {
     const timer = window.setInterval(check, 30000);
     window.addEventListener('focus', check);
     document.addEventListener('visibilitychange', check);
+    // A playdate rated elsewhere (e.g. the playdate list) must not pop up here again
+    window.addEventListener(APP_EVENTS.PLAYDATE_RATING_SUBMITTED, check);
     return () => {
       active = false;
       window.clearInterval(timer);
+      window.removeEventListener(APP_EVENTS.PLAYDATE_RATING_SUBMITTED, check);
       window.removeEventListener('focus', check);
       document.removeEventListener('visibilitychange', check);
     };

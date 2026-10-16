@@ -25,6 +25,7 @@ import { FormPageHeader } from '../../../components/form/FormPageHeader';
 import { FormSection } from '../../../components/form/FormSection';
 import { RescheduleModal } from '../components/RescheduleModal';
 import { PlaydateSummaryRow } from '../components/PlaydateSummaryRow';
+import { PlaydateRatingsSection } from '../../rating-feedback/components/PlaydateRatingsSection';
 import { usePlaydateDetail } from '../hooks/usePlaydateDetail';
 import { formatDate } from '../../../utils/formatters';
 
@@ -397,6 +398,9 @@ export const PlaydateDetailPage = () => {
               })
             )}
           </FormSection>
+
+          {/* Ratings & feedback once the playdate is over */}
+          {playdate.status === 'completed' && <PlaydateRatingsSection playdate={playdate} />}
         </div>
 
         {/* Summary & actions: on top of the content on mobile, sticky on the right on desktop */}

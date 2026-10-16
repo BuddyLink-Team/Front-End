@@ -38,7 +38,7 @@ const ConnectionCard = ({ connection, type, isSelected, isBusy, onSelect, onActi
     >
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div className="flex items-center gap-4 min-w-0">
-          <Avatar src={avatarUrl} alt={parentName} size="lg" fallbackText={parentName.slice(0, 2).toUpperCase()} />
+          <Avatar src={avatarUrl} alt={parentName} size="lg" />
 
           <div className="min-w-0 space-y-1">
             <div className="flex items-center gap-2 flex-wrap">

@@ -71,6 +71,7 @@ const initialState = {
   items: [],
   counts: {
     all: 0,
+    upcoming: 0,
     confirmed: 0,
     pending: 0,
     completed: 0,
@@ -123,7 +124,10 @@ const applyCompleted = (state, updatedItem) => {
       displayStatus: 'completed',
     };
   }
-  // Re-adjust counts according to the previous status
+  // Re-adjust counts according to the previous status ('upcoming' covers both confirmed and pending)
+  if (prevItem?.status === 'upcoming' && state.counts.upcoming > 0) {
+    state.counts.upcoming -= 1;
+  }
   if (prevStatus === 'confirmed' && state.counts.confirmed > 0) {
     state.counts.confirmed -= 1;
   } else if (prevStatus === 'pending' && state.counts.pending > 0) {
