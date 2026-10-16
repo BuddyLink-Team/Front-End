@@ -6,10 +6,14 @@ import { getRoleHomePath } from '../../../constants/role.constants';
 import {
   isFirebaseConfigured,
   initRecaptchaVerifier,
+  clearRecaptchaVerifier,
   sendFirebasePhoneOtp,
 } from '../../../services/firebase';
 import { getApiErrorMsg } from '../../../utils/errorUtils';
-import { AUTH_ERROR_MESSAGES, OTP_RESEND_COOLDOWN_SECONDS } from '../constants/authConstants';
+import {
+  AUTH_ERROR_MESSAGES,
+  OTP_RESEND_COOLDOWN_SECONDS,
+} from '../constants/authConstants';
 
 /**
  * Custom hook encapsulating the full business logic and state for OTP Verification.
@@ -59,6 +63,11 @@ export const useVerifyOtp = () => {
   const [countdown, setCountdown] = useState(OTP_RESEND_COOLDOWN_SECONDS);
   const [canResend, setCanResend] = useState(false);
 
+  // The phone SMS is only sent on a user click: an invisible reCAPTCHA executed on page load,
+  // without any interaction, is rejected by Firebase (auth/invalid-app-credential)
+  const [isPhoneOtpSent, setIsPhoneOtpSent] = useState(false);
+  const [isSendingPhoneOtp, setIsSendingPhoneOtp] = useState(false);
+
   // Auto trigger initial OTP when arriving at screen
   const hasTriggeredInitialOtp = useRef(false);
   useEffect(() => {
@@ -71,17 +80,15 @@ export const useVerifyOtp = () => {
         return;
       }
 
-      const targetPhone = user?.phone || phoneNumber;
-      if (activeStep === 'PHONE' && targetPhone) {
-        sendPhoneVerificationOtp(targetPhone);
-      } else if (activeStep === 'EMAIL') {
+      // The phone step waits for the "Gửi mã OTP" click (see isPhoneOtpSent)
+      if (activeStep === 'EMAIL') {
         handleSendEmailOtp();
       }
     }
-    // Runs once per screen visit (guarded by the ref). The send helpers are declared below and
-    // recreated every render, so listing them would only re-run this guarded effect.
+    // Runs once per screen visit (guarded by the ref). The send helper is recreated every
+    // render, so listing it would only re-run this guarded effect.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeStep, user?.phone, phoneNumber]);
+  }, [activeStep]);
 
   // Countdown timer effect
   useEffect(() => {
@@ -138,17 +145,27 @@ export const useVerifyOtp = () => {
   const confirmationResultRef = useRef(null);
 
   // Send Phone OTP: Priority Firebase Phone SMS -> Fallback to Backend Console SMS
-  const sendPhoneVerificationOtp = async (phone) => {
+  const requestPhoneOtp = async (phone) => {
     setErrorMessage(null);
     confirmationResultRef.current = null;
 
     if (isFirebaseConfigured) {
       try {
         const appVerifier = initRecaptchaVerifier('recaptcha-container');
-        const confirmationResult = await sendFirebasePhoneOtp(phone, appVerifier);
+        const confirmationResult = await sendFirebasePhoneOtp(
+          phone,
+          appVerifier,
+        );
         confirmationResultRef.current = confirmationResult;
+        clearRecaptchaVerifier('recaptcha-container');
         return { success: true };
-      } catch {
+      } catch (error) {
+        console.warn(
+          '[Firebase Phone OTP] send failed:',
+          error?.code,
+          error?.message,
+        );
+        clearRecaptchaVerifier('recaptcha-container');
         // Fallback to backend SMS endpoint if Firebase quota / config / carrier fails
         return await handleSendPhoneOtp(phone);
       }
@@ -157,17 +174,34 @@ export const useVerifyOtp = () => {
     return await handleSendPhoneOtp(phone);
   };
 
+  const sendPhoneVerificationOtp = async (phone) => {
+    setIsSendingPhoneOtp(true);
+    try {
+      const res = await requestPhoneOtp(phone);
+      if (res.success) {
+        setIsPhoneOtpSent(true);
+        setCountdown(OTP_RESEND_COOLDOWN_SECONDS);
+        setCanResend(false);
+        setOtpDigits(['', '', '', '', '', '']);
+      }
+      return res;
+    } finally {
+      setIsSendingPhoneOtp(false);
+    }
+  };
+
+  // First phone OTP send, triggered by the user's click
+  const handleSendPhoneCode = async () => {
+    if (!phoneNumber || isSendingPhoneOtp) return;
+    await sendPhoneVerificationOtp(phoneNumber);
+  };
+
   // Resend OTP
   const handleResendOtp = async () => {
     if (!canResend || isSubmitting) return;
 
     if (activeStep === 'PHONE') {
-      const res = await sendPhoneVerificationOtp(phoneNumber);
-      if (res.success) {
-        setCountdown(OTP_RESEND_COOLDOWN_SECONDS);
-        setCanResend(false);
-        setOtpDigits(['', '', '', '', '', '']);
-      }
+      await sendPhoneVerificationOtp(phoneNumber);
     } else {
       const res = await handleSendEmailOtp();
       if (res.success) {
@@ -194,13 +228,18 @@ export const useVerifyOtp = () => {
       // Never fall back to the backend here, because the backend did not issue this code.
       if (confirmationResultRef.current) {
         try {
-          const userCredential = await confirmationResultRef.current.confirm(otpCode);
+          const userCredential =
+            await confirmationResultRef.current.confirm(otpCode);
           const idToken = await userCredential.user.getIdToken();
           const res = await handleVerifyFirebasePhone(idToken);
           verifySuccess = res.success;
         } catch (error) {
           setErrorMessage(
-            getApiErrorMsg(AUTH_ERROR_MESSAGES, error, 'Mã OTP không đúng hoặc đã hết hạn!'),
+            getApiErrorMsg(
+              AUTH_ERROR_MESSAGES,
+              error,
+              'Mã OTP không đúng hoặc đã hết hạn!',
+            ),
           );
         }
       } else {
@@ -236,9 +275,6 @@ export const useVerifyOtp = () => {
     setPhoneNumber(newPhoneInput);
     setIsEditingPhone(false);
     await sendPhoneVerificationOtp(newPhoneInput);
-    setCountdown(OTP_RESEND_COOLDOWN_SECONDS);
-    setCanResend(false);
-    setOtpDigits(['', '', '', '', '', '']);
   };
 
   const isFormComplete = otpDigits.every((d) => d !== '');
@@ -258,6 +294,8 @@ export const useVerifyOtp = () => {
     inputRefs,
     countdown,
     canResend,
+    isPhoneOtpSent,
+    isSendingPhoneOtp,
     isSubmitting,
     errorMessage,
     isFormComplete,
@@ -265,6 +303,7 @@ export const useVerifyOtp = () => {
     handleKeyDown,
     handlePaste,
     handleResendOtp,
+    handleSendPhoneCode,
     handleVerifySubmit,
     handleSavePhone,
   };
