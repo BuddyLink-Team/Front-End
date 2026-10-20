@@ -13,6 +13,7 @@ const PlaydateListPage = lazy(() => import('../modules/playdate/pages/PlaydateLi
 const CreatePlaydatePage = lazy(() => import('../modules/playdate/pages/CreatePlaydatePage'));
 const PlaydateDetailPage = lazy(() => import('../modules/playdate/pages/PlaydateDetailPage'));
 const ConnectionsPage = lazy(() => import('../modules/connection/pages/ConnectionsPage'));
+const NotificationPage = lazy(() => import('../modules/notification/pages/NotificationPage'));
 
 import GamificationPage from '../modules/gamification/pages/GamificationPage';
 
@@ -91,7 +92,7 @@ export const ParentRoutes = () => (
     {/* Notifications */}
     <Route
       path="/notifications"
-      element={<PlaceholderPage title="Thông báo hệ thống" description="Xem thông báo lịch hẹn, tin nhắn mới và cập nhật điểm thưởng." />}
+      element={<NotificationPage />}
     />
 
     {/* Gamification */}

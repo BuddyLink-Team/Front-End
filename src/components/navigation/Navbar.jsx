@@ -20,6 +20,8 @@ import { clearParentState } from '../../modules/parent/redux/parentSlice';
 import socketService from '../../services/socket';
 import { NAV_LINKS } from '../../constants/navigation.constants';
 import logoImg from '../../assets/images/logo.png';
+import NotificationDropdown from '../../modules/notification/components/NotificationDropdown';
+import useNotificationSocket from '../../modules/notification/hooks/useNotificationSocket';
 
 /**
  * @param {Object} props
@@ -31,7 +33,11 @@ export const Navbar = ({ onLogout } = {}) => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const { isAuthenticated, user, parent } = useSelector((state) => state.auth);
+  const { unreadCount } = useSelector((state) => state.notification);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  // Activate realtime notifications listening
+  useNotificationSocket();
 
   const handleLogout = () => {
     if (onLogout) {
@@ -131,14 +137,7 @@ export const Navbar = ({ onLogout } = {}) => {
         <div className="flex items-center gap-3 md:col-start-3 md:justify-self-end">
           {isAuthenticated ? (
             <>
-              <button
-                type="button"
-                className="relative p-2.5 rounded-full text-text-muted hover:text-text-primary hover:bg-gray-100 transition-colors"
-                aria-label="Thông báo"
-              >
-                <Bell className="w-5 h-5" />
-                <span className="absolute top-2 right-2 w-2 h-2 rounded-full bg-red-500 ring-2 ring-white" />
-              </button>
+              <NotificationDropdown />
 
               <Dropdown
                 align="right"
@@ -253,6 +252,21 @@ export const Navbar = ({ onLogout } = {}) => {
               })}
 
               <div className="pt-3 mt-2 border-t border-hairline flex flex-col gap-1">
+                <Link
+                  to="/notifications"
+                  onClick={closeMobileMenu}
+                  className="flex items-center justify-between px-4 py-2.5 rounded-xl text-sm font-semibold text-text-primary hover:bg-canvas"
+                >
+                  <div className="flex items-center gap-3">
+                    <Bell className="w-4 h-4 text-text-muted" />
+                    <span>Thông báo</span>
+                  </div>
+                  {unreadCount > 0 && (
+                    <span className="px-2 py-0.5 rounded-full text-[11px] font-bold bg-red-500 text-white">
+                      {unreadCount}
+                    </span>
+                  )}
+                </Link>
                 <Link
                   to="/profile"
                   onClick={closeMobileMenu}

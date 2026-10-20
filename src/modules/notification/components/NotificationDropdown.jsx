@@ -1,0 +1,244 @@
+import React, { useState, useRef, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useSelector, useDispatch } from 'react-redux';
+import {
+  Bell,
+  CheckCheck,
+  ArrowRight,
+  Inbox,
+} from 'lucide-react';
+import { useClickOutside } from '../../../hooks/useClickOutside';
+import {
+  fetchNotifications,
+  markNotificationAsRead,
+  markAllNotificationsAsRead,
+} from '../redux/notificationSlice';
+import { getNotificationMeta } from '../constants/notification.constants';
+import { formatRelativeTime } from '../utils/notificationFormatters';
+import { Avatar } from '../../../components/ui/Avatar';
+
+export const NotificationDropdown = () => {
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
+  const dropdownRef = useRef(null);
+  const [isOpen, setIsOpen] = useState(false);
+
+  const { items, unreadCount, isLoading, isMarkingRead } = useSelector(
+    (state) => state.notification
+  );
+
+  useClickOutside(dropdownRef, isOpen, () => setIsOpen(false));
+
+  // Load preview notifications when dropdown opens
+  useEffect(() => {
+    if (isOpen) {
+      dispatch(fetchNotifications({ page: 1, limit: 6 }));
+    }
+  }, [isOpen, dispatch]);
+
+  const toggleDropdown = () => {
+    setIsOpen((prev) => !prev);
+  };
+
+  const handleItemClick = (notification) => {
+    if (!notification.isRead) {
+      dispatch(markNotificationAsRead(notification.id));
+    }
+    setIsOpen(false);
+    const meta = getNotificationMeta(notification.type);
+    const targetPath = meta.getActionPath(notification.data);
+    if (targetPath) {
+      navigate(targetPath);
+    }
+  };
+
+  const handleMarkAllRead = (e) => {
+    e.stopPropagation();
+    if (unreadCount > 0 && !isMarkingRead) {
+      dispatch(markAllNotificationsAsRead());
+    }
+  };
+
+  const handleViewAll = () => {
+    setIsOpen(false);
+    navigate('/notifications');
+  };
+
+  const previewItems = items.slice(0, 6);
+
+  return (
+    <div className="relative inline-block text-left" ref={dropdownRef}>
+      {/* Bell Trigger Button */}
+      <button
+        type="button"
+        onClick={toggleDropdown}
+        aria-label="Thông báo"
+        className={`relative p-2.5 rounded-full transition-all duration-200 outline-none focus:outline-none ${
+          isOpen
+            ? 'bg-primary-soft text-primary-dark shadow-xs'
+            : 'text-text-muted hover:text-text-primary hover:bg-gray-100'
+        }`}
+      >
+        <Bell className="w-5 h-5 transition-transform duration-200 group-hover:scale-105" />
+
+        {/* Unread count badge */}
+        {unreadCount > 0 && (
+          <span className="absolute top-1 right-1 min-w-[18px] h-[18px] px-1 rounded-full bg-red-500 text-white text-[10px] font-bold flex items-center justify-center ring-2 ring-white shadow-xs animate-in zoom-in duration-150">
+            {unreadCount > 99 ? '99+' : unreadCount}
+          </span>
+        )}
+      </button>
+
+      {/* Popover Dropdown */}
+      {isOpen && (
+        <div
+          role="menu"
+          tabIndex="-1"
+          className="absolute right-0 mt-3 w-80 sm:w-96 origin-top-right rounded-2xl bg-white/95 backdrop-blur-xl p-0 shadow-2xl shadow-surface-tint/15 border border-hairline ring-1 ring-black/5 focus:outline-none z-50 animate-in fade-in-0 zoom-in-95 duration-150 overflow-hidden"
+        >
+          {/* Header */}
+          <div className="flex items-center justify-between px-4 py-3.5 border-b border-hairline bg-surface/40">
+            <div className="flex items-center gap-2">
+              <h3 className="text-sm font-bold text-text-primary">Thông báo</h3>
+              {unreadCount > 0 && (
+                <span className="px-2 py-0.5 rounded-full text-[11px] font-semibold bg-primary-soft text-primary-dark border border-primary-border">
+                  {unreadCount} mới
+                </span>
+              )}
+            </div>
+
+            {unreadCount > 0 && (
+              <button
+                type="button"
+                onClick={handleMarkAllRead}
+                disabled={isMarkingRead}
+                className="flex items-center gap-1.5 text-xs font-medium text-text-muted hover:text-primary transition-colors disabled:opacity-50"
+                title="Đánh dấu tất cả đã đọc"
+              >
+                <CheckCheck className="w-3.5 h-3.5" />
+                <span>Đã đọc tất cả</span>
+              </button>
+            )}
+          </div>
+
+          {/* List Content */}
+          <div className="max-h-[380px] overflow-y-auto divide-y divide-hairline/60">
+            {isLoading && previewItems.length === 0 ? (
+              <div className="p-4 space-y-3">
+                {[1, 2, 3].map((n) => (
+                  <div key={n} className="flex gap-3 animate-pulse">
+                    <div className="w-10 h-10 rounded-xl bg-gray-200 shrink-0" />
+                    <div className="flex-1 space-y-2 py-1">
+                      <div className="h-3 bg-gray-200 rounded w-3/4" />
+                      <div className="h-2.5 bg-gray-100 rounded w-5/6" />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : previewItems.length === 0 ? (
+              <div className="py-10 px-4 text-center">
+                <div className="w-12 h-12 mx-auto rounded-2xl bg-surface-muted flex items-center justify-center text-text-muted mb-2.5">
+                  <Inbox className="w-6 h-6" />
+                </div>
+                <p className="text-sm font-semibold text-text-primary">Không có thông báo mới</p>
+                <p className="text-xs text-text-muted mt-1 max-w-[240px] mx-auto">
+                  Bạn đã cập nhật tất cả thông báo gần đây.
+                </p>
+              </div>
+            ) : (
+              previewItems.map((notification) => {
+                const meta = getNotificationMeta(notification.type);
+                const Icon = meta.icon;
+                const sender = notification.data?.sender;
+
+                return (
+                  <div
+                    key={notification.id}
+                    onClick={() => handleItemClick(notification)}
+                    className={`relative flex items-start gap-3 p-3.5 transition-colors duration-150 cursor-pointer ${
+                      !notification.isRead
+                        ? 'bg-primary-soft/25 hover:bg-primary-soft/40'
+                        : 'hover:bg-surface-container-low/60'
+                    }`}
+                  >
+                    {/* Unread indicator bar */}
+                    {!notification.isRead && (
+                      <span className="absolute left-1 top-4 w-1.5 h-8 rounded-full bg-primary" />
+                    )}
+
+                    {/* Icon or Avatar */}
+                    <div className="relative shrink-0">
+                      {sender?.avatarUrl ? (
+                        <div className="relative">
+                          <Avatar
+                            src={sender.avatarUrl}
+                            name={sender.fullName}
+                            size="md"
+                            className="rounded-xl ring-2 ring-white shadow-xs"
+                          />
+                          <div
+                            className={`absolute -bottom-1 -right-1 p-0.5 rounded-full border border-white ${meta.bgClass}`}
+                          >
+                            <Icon className="w-3 h-3" />
+                          </div>
+                        </div>
+                      ) : (
+                        <div
+                          className={`w-10 h-10 rounded-xl flex items-center justify-center border shadow-xs ${meta.bgClass}`}
+                        >
+                          <Icon className="w-5 h-5" />
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Content */}
+                    <div className="flex-1 min-w-0 pr-1">
+                      <div className="flex items-center justify-between gap-2">
+                        <span
+                          className={`text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-md border ${meta.badgeClass}`}
+                        >
+                          {meta.badgeText}
+                        </span>
+                        <span className="text-[11px] text-text-muted whitespace-nowrap">
+                          {formatRelativeTime(notification.createdAt)}
+                        </span>
+                      </div>
+
+                      <p
+                        className={`text-xs mt-1 leading-snug line-clamp-1 ${
+                          !notification.isRead
+                            ? 'font-bold text-text-primary'
+                            : 'font-medium text-text-primary'
+                        }`}
+                      >
+                        {notification.title}
+                      </p>
+
+                      <p className="text-xs text-text-muted mt-0.5 line-clamp-2 leading-relaxed">
+                        {notification.body}
+                      </p>
+                    </div>
+                  </div>
+                );
+              })
+            )}
+          </div>
+
+          {/* Footer */}
+          <div className="p-2 border-t border-hairline bg-surface/30">
+            <button
+              type="button"
+              onClick={handleViewAll}
+              className="w-full py-2 px-3 rounded-xl flex items-center justify-center gap-1.5 text-xs font-semibold text-primary hover:text-primary-dark hover:bg-white transition-all duration-150"
+            >
+              <span>Xem tất cả lịch sử thông báo</span>
+              <ArrowRight className="w-3.5 h-3.5" />
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default NotificationDropdown;

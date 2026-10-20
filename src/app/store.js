@@ -10,6 +10,7 @@ import playdateReducer from '../modules/playdate/redux/playdateSlice';
 import gamificationReducer from '../modules/gamification/redux/gamificationSlice';
 import ratingFeedbackReducer from '../modules/rating-feedback/redux/ratingFeedbackSlice';
 import connectionReducer from '../modules/connection/redux/connectionSlice';
+import notificationReducer from '../modules/notification/redux/notificationSlice';
 
 export const store = configureStore({
   reducer: {
@@ -24,6 +25,7 @@ export const store = configureStore({
     gamification: gamificationReducer,
     ratingFeedback: ratingFeedbackReducer,
     connection: connectionReducer,
+    notification: notificationReducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
