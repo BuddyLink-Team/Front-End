@@ -52,7 +52,8 @@ src/
 ### `layouts/`
 
 - Page frame layouts incorporating common navigation bars, footers, and sidebars (`AuthLayout`, `MainLayout`, `AdminLayout`).
-- **`AdminLayout`**: wraps every `/admin/*` route (`AdminRoutes.jsx`, admin portal build only) — fixed `Sidebar` with `ADMIN_NAV_LINKS` (drawer below `lg`), fixed `AdminHeader` (`modules/admin/components/`), content capped at `1160px`.
+- **`AdminLayout`**: wraps every `/admin/*` route (`AdminRoutes.jsx`, admin portal build only) — fixed `Sidebar` with `ADMIN_NAV_LINKS` (drawer below `lg`, collapsible on `lg+` via `useSidebar`, signed-in admin + logout in its footer through `AdminSidebarUser`), fixed `AdminHeader` (sidebar toggle + current section label), content capped at `1160px`. Admin components live in `modules/admin/components/`.
+  - `ADMIN_NAV_LINKS[].name` doubles as the `AdminHeader` section label, so keep it in line with the page title of its route.
 
 ### `routes/`
 

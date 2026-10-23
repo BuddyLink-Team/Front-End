@@ -1,64 +1,56 @@
 import React from 'react';
-import { useSelector } from 'react-redux';
-import { Menu, LogOut } from 'lucide-react';
-import { Avatar } from '../../../components/ui/Avatar';
-import { Dropdown, DropdownItem } from '../../../components/ui/Dropdown';
-import logoImg from '../../../assets/images/logo.png';
-import { ICON_STROKE } from '../../../constants/icon.constants';
+import { useLocation } from 'react-router-dom';
+import { Menu, PanelLeftClose, PanelLeftOpen } from 'lucide-react';
+import { ADMIN_NAV_LINKS } from '../../../constants/navigation.constants';
+import { cn } from '../../../utils/cn';
+
+const TOGGLE_BUTTON_CLASS =
+  'p-2 -ml-2 rounded-md text-on-surface-variant hover:bg-surface-muted hover:text-on-surface transition-colors';
 
 /**
- * Top bar of the admin console (Stitch "Tổng quan Quản trị").
- * Left: console title + live status pill. Right: admin identity with logout menu.
+ * Top bar of the admin console.
+ * Sidebar toggle (collapse on lg+, drawer below lg) + current section title.
+ * The signed-in admin and logout live in the sidebar footer (AdminSidebarUser).
  *
  * @param {Object} props
+ * @param {boolean} props.isSidebarCollapsed - Desktop sidebar state, shifts the header and picks the icon
+ * @param {Function} props.onToggleSidebar - Collapses / expands the sidebar on lg+
  * @param {Function} props.onOpenMenu - Opens the sidebar drawer on small screens
- * @param {Function} props.onLogout - Logout handler provided by the layout
  */
-export const AdminHeader = ({ onOpenMenu, onLogout }) => {
-  const { user } = useSelector((state) => state.auth);
+export const AdminHeader = ({ isSidebarCollapsed, onToggleSidebar, onOpenMenu }) => {
+  const { pathname } = useLocation();
 
-  const displayName = user?.fullName || 'Super Admin';
-  const contact = user?.email || user?.phone || '';
+  const pageTitle = ADMIN_NAV_LINKS.find(({ href }) => pathname.startsWith(href))?.name || 'Quản trị';
+  const ToggleIcon = isSidebarCollapsed ? PanelLeftOpen : PanelLeftClose;
 
   return (
-    <header className="fixed top-0 right-0 left-0 lg:left-64 h-16 z-40 bg-surface/90 backdrop-blur-xl shadow-header flex items-center justify-between px-5 lg:px-space-lg">
+    <header
+      className={cn(
+        'fixed top-0 right-0 left-0 h-16 z-30 bg-white border-b border-hairline flex items-center justify-between gap-space-sm px-5 lg:px-space-lg transition-all duration-300',
+        isSidebarCollapsed ? 'lg:left-20' : 'lg:left-64',
+      )}
+    >
       <div className="flex items-center gap-space-sm min-w-0">
         <button
           type="button"
           onClick={onOpenMenu}
           aria-label="Mở menu quản trị"
-          className="lg:hidden p-2 -ml-2 rounded-md text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors"
+          className={cn(TOGGLE_BUTTON_CLASS, 'lg:hidden')}
         >
-          <Menu className="w-5 h-5" strokeWidth={ICON_STROKE.DEFAULT} />
+          <Menu className="w-5 h-5 stroke-1.75" />
         </button>
-        <img src={logoImg} alt="BuddyLink" className="h-6 w-auto object-contain sm:hidden" />
-        <span className="hidden sm:inline text-label-lg text-on-surface truncate">
-          Quản trị viên Hệ thống
-        </span>
-        <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-primary-fixed text-primary-on-fixed text-label-sm">
-          <span className="w-1.5 h-1.5 rounded-full bg-primary-dark animate-pulse" />
-          Hoạt động
-        </span>
+        <button
+          type="button"
+          onClick={onToggleSidebar}
+          aria-label={isSidebarCollapsed ? 'Mở rộng menu' : 'Thu gọn menu'}
+          title={isSidebarCollapsed ? 'Mở rộng menu' : 'Thu gọn menu'}
+          className={cn(TOGGLE_BUTTON_CLASS, 'hidden lg:inline-flex')}
+        >
+          <ToggleIcon className="w-5 h-5 stroke-1.75" />
+        </button>
+        {/* Section label only: each page renders its own <h1> */}
+        <span className="text-title-md text-on-surface truncate">{pageTitle}</span>
       </div>
-
-      <Dropdown
-        align="right"
-        trigger={
-          <div className="flex items-center gap-space-xs cursor-pointer rounded-full">
-            <Avatar src={user?.avatarUrl} alt={displayName} size="sm" />
-            <div className="hidden sm:flex flex-col text-left">
-              <span className="text-label-md text-on-surface">{displayName}</span>
-              <span className="text-label-sm text-on-surface-variant">{contact}</span>
-            </div>
-          </div>
-        }
-      >
-        <div className="py-1">
-          <DropdownItem onClick={onLogout} icon={LogOut} danger>
-            Đăng xuất
-          </DropdownItem>
-        </div>
-      </Dropdown>
     </header>
   );
 };

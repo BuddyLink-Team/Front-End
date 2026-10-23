@@ -179,6 +179,7 @@ export default {
         'otp-card': '620px',
         'otp-text': '460px',
         'otp-actions': '440px',
+        'admin-login': '480px', // Admin portal sign-in card
         // Truncated names / labels
         'truncate-xs': '120px',
         'truncate-sm': '180px',

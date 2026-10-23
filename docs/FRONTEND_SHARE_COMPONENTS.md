@@ -101,6 +101,7 @@ src/components/
 | **Feedback** | `Spinner` | `components/feedback/Spinner.jsx` | ✅ Đã code | Vòng quay tải trang |
 | **Feedback** | `LoadingOverlay` | `components/feedback/LoadingOverlay.jsx` | ✅ Đã code | Lớp phủ chờ thao tác |
 | **Feedback** | `AppErrorBoundary` | `components/feedback/AppErrorBoundary.jsx` | ✅ Đã code | Bắt lỗi ứng dụng dự phòng |
+| **Feedback** | `PlaceholderPage` | `components/feedback/PlaceholderPage.jsx` | ✅ Đã code | Trang giữ chỗ (`title`, `description`); `titleClassName` để đổi style tiêu đề (admin dùng `text-headline-md font-semibold` qua `AdminPlaceholder` trong `AdminRoutes.jsx`) |
 | **Navigation** | `Navbar` | `components/navigation/Navbar.jsx` | ✅ Đã code | Header sticky với pill navigation |
 | **Navigation** | `Sidebar` | `components/navigation/Sidebar.jsx` | ✅ Đã code | Collapsible sidebar cho Admin/Settings |
 | **Navigation** | `Tabs` | `components/navigation/Tabs.jsx` | ✅ Đã code | Hỗ trợ kiểu Pill và Line tab |
@@ -247,7 +248,7 @@ src/components/
 - **Mục đích**: Thanh điều hướng bên sườn cho trang Quản trị viên (Admin Dashboard) hoặc Cài đặt tài khoản. Hỗ trợ thu gọn/mở rộng mượt mà và hiển thị badge đếm số lượng việc cần xử lý.
 - **Props**: `links` (`{ name, href, icon, badge }`), `collapsed`, `onToggle`, `header`, `footer`, `className`.
 - **Props tùy biến style** (không truyền thì giữ nguyên style mặc định, được gộp sau cùng qua `cn()` nên sẽ thắng class mặc định): `headerClassName`, `footerClassName`, `linkClassName`, `activeLinkClassName` (chỉ áp cho link đang active).
-- **Đang dùng tại**: `layouts/AdminLayout.jsx` (style theo Stitch "Tổng quan Quản trị", menu lấy từ `ADMIN_NAV_LINKS` trong `navigation.constants.js`).
+- **Đang dùng tại**: `layouts/AdminLayout.jsx` (nền trắng, link active nền matcha nhạt `bg-primary-soft`; menu lấy từ `ADMIN_NAV_LINKS` trong `navigation.constants.js`; `collapsed` lấy từ hook `useSidebar`, khi thu gọn không truyền `header` để hiện logo "B" mặc định; `footer` là `AdminSidebarUser` — avatar, tên, nút đăng xuất).
 
 #### 🔢 `Pagination.jsx`
 - **Mục đích**: Phân trang danh sách lịch hẹn, danh sách người dùng quản trị, lịch sử giao dịch.

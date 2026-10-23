@@ -10,7 +10,6 @@ import {
   PartyPopper,
   ShieldCheck,
   Wallet,
-  LineChart,
 } from 'lucide-react';
 
 /**
@@ -29,12 +28,14 @@ export const NAV_LINKS = [
  * Sidebar links for the admin console (AdminLayout).
  * The first 5 items follow the Stitch "Tổng quan Quản trị" screen order;
  * the rest cover the remaining admin routes in AdminRoutes.jsx.
+ * `name` is also the section label in AdminHeader, so keep it in line with each page's title.
  */
 export const ADMIN_NAV_LINKS = [
   { name: 'Tổng quan', href: '/admin/dashboard', icon: BarChart3 },
-  { name: 'Người dùng', href: '/admin/users', icon: Users },
-  { name: 'Cuộc hẹn', href: '/admin/playdates', icon: PartyPopper },
-  { name: 'An toàn & Vi phạm', href: '/admin/reports', icon: ShieldCheck },
-  { name: 'Doanh thu', href: '/admin/subscriptions', icon: Wallet },
+  { name: 'Phụ huynh', href: '/admin/users', icon: Users },
+  { name: 'Hồ sơ trẻ', href: '/admin/children', icon: Baby },
   { name: 'Kết nối', href: '/admin/connections', icon: Link2 },
+  { name: 'Cuộc hẹn chơi', href: '/admin/playdates', icon: PartyPopper },
+  { name: 'Doanh thu', href: '/admin/subscriptions', icon: Wallet },
+  { name: 'Báo cáo vi phạm', href: '/admin/reports', icon: ShieldCheck },
 ];
