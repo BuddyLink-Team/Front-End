@@ -22,6 +22,33 @@ class SocketService {
         reconnectionAttempts: 5,
         reconnectionDelay: 1000,
       });
+
+      let isRefreshingAuth = false;
+
+      this.socket.on('connect_error', async (err) => {
+        const message = err?.message || '';
+        const isAuthError =
+          message.toLowerCase().includes('authentication error') ||
+          message.toLowerCase().includes('jwt expired') ||
+          message.toLowerCase().includes('token required');
+
+        if (isAuthError && !isRefreshingAuth) {
+          isRefreshingAuth = true;
+          try {
+            const { default: apiClient } = await import('./apiClient');
+            await apiClient.get('/auth/me');
+            this.updateToken();
+          } catch (error) {
+            // Token refresh failure is handled by apiClient's endSession
+          } finally {
+            isRefreshingAuth = false;
+          }
+        }
+      });
+
+      this.socket.on('connect', () => {
+        isRefreshingAuth = false;
+      });
     }
     return this.socket;
   }

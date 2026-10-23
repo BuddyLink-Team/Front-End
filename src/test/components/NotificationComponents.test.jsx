@@ -4,8 +4,8 @@ import { renderWithProviders, screen, userEvent, waitFor } from '../utils/testUt
 import NotificationDropdown from '../../modules/notification/components/NotificationDropdown';
 import NotificationPage from '../../modules/notification/pages/NotificationPage';
 
-const { mockNotifications } = vi.hoisted(() => ({
-  mockNotifications: [
+const { mockNotifications, mockApi } = vi.hoisted(() => {
+  const notifications = [
     {
       id: 'notif-1',
       recipientId: 'user-1',
@@ -35,78 +35,44 @@ const { mockNotifications } = vi.hoisted(() => ({
       readAt: new Date().toISOString(),
       createdAt: new Date().toISOString(),
     },
-  ],
+  ];
+
+  const successData = {
+    items: notifications,
+    unreadCount: 1,
+    pagination: { page: 1, limit: 10, total: 2, totalPages: 1 },
+  };
+
+  const api = {
+    getNotifications: vi.fn().mockImplementation(() =>
+      Promise.resolve({
+        data: successData,
+      })
+    ),
+    getUnreadCount: vi.fn().mockImplementation(() =>
+      Promise.resolve({
+        data: { unreadCount: 1 },
+      })
+    ),
+    markAsRead: vi.fn().mockResolvedValue({
+      data: { notification: {}, unreadCount: 0 },
+    }),
+    markAllAsRead: vi.fn().mockResolvedValue({
+      data: { updatedCount: 1, unreadCount: 0 },
+    }),
+  };
+
+  return { mockNotifications: notifications, mockApi: api };
+});
+
+vi.mock('../../modules/notification/api/notificationApi', () => ({
+  notificationApi: mockApi,
+  default: mockApi,
 }));
 
 vi.mock('../../modules/notification/api/notification.api', () => ({
-  notificationApi: {
-    getNotifications: vi.fn().mockImplementation(() =>
-      Promise.resolve({
-        data: {
-          success: true,
-          data: {
-            items: mockNotifications,
-            unreadCount: 1,
-            pagination: { page: 1, limit: 10, total: 2, totalPages: 1 },
-          },
-        },
-      })
-    ),
-    getUnreadCount: vi.fn().mockImplementation(() =>
-      Promise.resolve({
-        data: {
-          success: true,
-          data: { unreadCount: 1 },
-        },
-      })
-    ),
-    markAsRead: vi.fn().mockResolvedValue({
-      data: {
-        success: true,
-        data: { notification: {}, unreadCount: 0 },
-      },
-    }),
-    markAllAsRead: vi.fn().mockResolvedValue({
-      data: {
-        success: true,
-        data: { updatedCount: 1, unreadCount: 0 },
-      },
-    }),
-  },
-  default: {
-    getNotifications: vi.fn().mockImplementation(() =>
-      Promise.resolve({
-        data: {
-          success: true,
-          data: {
-            items: mockNotifications,
-            unreadCount: 1,
-            pagination: { page: 1, limit: 10, total: 2, totalPages: 1 },
-          },
-        },
-      })
-    ),
-    getUnreadCount: vi.fn().mockImplementation(() =>
-      Promise.resolve({
-        data: {
-          success: true,
-          data: { unreadCount: 1 },
-        },
-      })
-    ),
-    markAsRead: vi.fn().mockResolvedValue({
-      data: {
-        success: true,
-        data: { notification: {}, unreadCount: 0 },
-      },
-    }),
-    markAllAsRead: vi.fn().mockResolvedValue({
-      data: {
-        success: true,
-        data: { updatedCount: 1, unreadCount: 0 },
-      },
-    }),
-  },
+  notificationApi: mockApi,
+  default: mockApi,
 }));
 
 describe('NotificationDropdown Component', () => {

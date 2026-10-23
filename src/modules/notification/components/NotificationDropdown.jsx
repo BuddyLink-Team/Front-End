@@ -1,70 +1,28 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useSelector, useDispatch } from 'react-redux';
+import React from 'react';
 import {
   Bell,
   CheckCheck,
   ArrowRight,
   Inbox,
 } from 'lucide-react';
-import { useClickOutside } from '../../../hooks/useClickOutside';
-import {
-  fetchNotifications,
-  markNotificationAsRead,
-  markAllNotificationsAsRead,
-} from '../redux/notificationSlice';
+import { useNotificationDropdown } from '../hooks/useNotificationDropdown';
 import { getNotificationMeta } from '../constants/notification.constants';
 import { formatRelativeTime } from '../utils/notificationFormatters';
 import { Avatar } from '../../../components/ui/Avatar';
 
 export const NotificationDropdown = () => {
-  const navigate = useNavigate();
-  const dispatch = useDispatch();
-  const dropdownRef = useRef(null);
-  const [isOpen, setIsOpen] = useState(false);
-
-  const { items, unreadCount, isLoading, isMarkingRead } = useSelector(
-    (state) => state.notification
-  );
-
-  useClickOutside(dropdownRef, isOpen, () => setIsOpen(false));
-
-  // Load preview notifications when dropdown opens
-  useEffect(() => {
-    if (isOpen) {
-      dispatch(fetchNotifications({ page: 1, limit: 6 }));
-    }
-  }, [isOpen, dispatch]);
-
-  const toggleDropdown = () => {
-    setIsOpen((prev) => !prev);
-  };
-
-  const handleItemClick = (notification) => {
-    if (!notification.isRead) {
-      dispatch(markNotificationAsRead(notification.id));
-    }
-    setIsOpen(false);
-    const meta = getNotificationMeta(notification.type);
-    const targetPath = meta.getActionPath(notification.data);
-    if (targetPath) {
-      navigate(targetPath);
-    }
-  };
-
-  const handleMarkAllRead = (e) => {
-    e.stopPropagation();
-    if (unreadCount > 0 && !isMarkingRead) {
-      dispatch(markAllNotificationsAsRead());
-    }
-  };
-
-  const handleViewAll = () => {
-    setIsOpen(false);
-    navigate('/notifications');
-  };
-
-  const previewItems = items.slice(0, 6);
+  const {
+    isOpen,
+    dropdownRef,
+    previewItems,
+    unreadCount,
+    isLoading,
+    isMarkingRead,
+    toggleDropdown,
+    handleItemClick,
+    handleMarkAllRead,
+    handleViewAll,
+  } = useNotificationDropdown();
 
   return (
     <div className="relative inline-block text-left" ref={dropdownRef}>
@@ -73,17 +31,19 @@ export const NotificationDropdown = () => {
         type="button"
         onClick={toggleDropdown}
         aria-label="Thông báo"
+        aria-expanded={isOpen}
+        aria-haspopup="menu"
         className={`relative p-2.5 rounded-full transition-all duration-200 outline-none focus:outline-none ${
           isOpen
-            ? 'bg-primary-soft text-primary-dark shadow-xs'
-            : 'text-text-muted hover:text-text-primary hover:bg-gray-100'
+            ? 'bg-primary-soft text-primary-dark'
+            : 'text-text-muted hover:text-text-primary hover:bg-surface-muted'
         }`}
       >
-        <Bell className="w-5 h-5 transition-transform duration-200 group-hover:scale-105" />
+        <Bell className="w-5 h-5 transition-transform duration-200" />
 
-        {/* Unread count badge */}
+        {/* Unread count badge - Soft design system error color */}
         {unreadCount > 0 && (
-          <span className="absolute top-1 right-1 min-w-[18px] h-[18px] px-1 rounded-full bg-red-500 text-white text-[10px] font-bold flex items-center justify-center ring-2 ring-white shadow-xs animate-in zoom-in duration-150">
+          <span className="absolute top-1 right-1 min-w-[18px] h-[18px] px-1 rounded-full bg-error text-white text-[10px] font-semibold flex items-center justify-center ring-2 ring-white">
             {unreadCount > 99 ? '99+' : unreadCount}
           </span>
         )}
@@ -93,13 +53,14 @@ export const NotificationDropdown = () => {
       {isOpen && (
         <div
           role="menu"
+          aria-orientation="vertical"
           tabIndex="-1"
-          className="absolute right-0 mt-3 w-80 sm:w-96 origin-top-right rounded-2xl bg-white/95 backdrop-blur-xl p-0 shadow-2xl shadow-surface-tint/15 border border-hairline ring-1 ring-black/5 focus:outline-none z-50 animate-in fade-in-0 zoom-in-95 duration-150 overflow-hidden"
+          className="absolute right-0 mt-3 w-80 sm:w-96 origin-top-right rounded-2xl bg-white/95 backdrop-blur-xl p-0 shadow-[0_16px_40px_-8px_rgba(45,55,72,0.08)] border border-hairline focus:outline-none z-50 overflow-hidden"
         >
           {/* Header */}
           <div className="flex items-center justify-between px-4 py-3.5 border-b border-hairline bg-surface/40">
             <div className="flex items-center gap-2">
-              <h3 className="text-sm font-bold text-text-primary">Thông báo</h3>
+              <h3 className="text-sm font-semibold text-text-primary">Thông báo</h3>
               {unreadCount > 0 && (
                 <span className="px-2 py-0.5 rounded-full text-[11px] font-semibold bg-primary-soft text-primary-dark border border-primary-border">
                   {unreadCount} mới
@@ -154,8 +115,16 @@ export const NotificationDropdown = () => {
                 return (
                   <div
                     key={notification.id}
+                    role="menuitem"
+                    tabIndex={0}
                     onClick={() => handleItemClick(notification)}
-                    className={`relative flex items-start gap-3 p-3.5 transition-colors duration-150 cursor-pointer ${
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        handleItemClick(notification);
+                      }
+                    }}
+                    className={`relative flex items-start gap-3 p-3.5 transition-colors duration-150 cursor-pointer outline-none focus:bg-surface-muted ${
                       !notification.isRead
                         ? 'bg-primary-soft/25 hover:bg-primary-soft/40'
                         : 'hover:bg-surface-container-low/60'
@@ -174,7 +143,7 @@ export const NotificationDropdown = () => {
                             src={sender.avatarUrl}
                             name={sender.fullName}
                             size="md"
-                            className="rounded-xl ring-2 ring-white shadow-xs"
+                            className="rounded-xl ring-2 ring-white"
                           />
                           <div
                             className={`absolute -bottom-1 -right-1 p-0.5 rounded-full border border-white ${meta.bgClass}`}
@@ -184,7 +153,7 @@ export const NotificationDropdown = () => {
                         </div>
                       ) : (
                         <div
-                          className={`w-10 h-10 rounded-xl flex items-center justify-center border shadow-xs ${meta.bgClass}`}
+                          className={`w-10 h-10 rounded-xl flex items-center justify-center border ${meta.bgClass}`}
                         >
                           <Icon className="w-5 h-5" />
                         </div>
@@ -195,7 +164,7 @@ export const NotificationDropdown = () => {
                     <div className="flex-1 min-w-0 pr-1">
                       <div className="flex items-center justify-between gap-2">
                         <span
-                          className={`text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-md border ${meta.badgeClass}`}
+                          className={`text-[10px] font-semibold uppercase tracking-wider px-1.5 py-0.5 rounded-md border ${meta.badgeClass}`}
                         >
                           {meta.badgeText}
                         </span>
@@ -207,7 +176,7 @@ export const NotificationDropdown = () => {
                       <p
                         className={`text-xs mt-1 leading-snug line-clamp-1 ${
                           !notification.isRead
-                            ? 'font-bold text-text-primary'
+                            ? 'font-semibold text-text-primary'
                             : 'font-medium text-text-primary'
                         }`}
                       >

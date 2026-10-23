@@ -21,7 +21,7 @@ import socketService from '../../services/socket';
 import { NAV_LINKS } from '../../constants/navigation.constants';
 import logoImg from '../../assets/images/logo.png';
 import NotificationDropdown from '../../modules/notification/components/NotificationDropdown';
-import useNotificationSocket from '../../modules/notification/hooks/useNotificationSocket';
+import { clearNotifications } from '../../modules/notification/redux/notificationSlice';
 
 /**
  * @param {Object} props
@@ -36,9 +36,6 @@ export const Navbar = ({ onLogout } = {}) => {
   const { unreadCount } = useSelector((state) => state.notification);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  // Activate realtime notifications listening
-  useNotificationSocket();
-
   const handleLogout = () => {
     if (onLogout) {
       onLogout();
@@ -47,6 +44,7 @@ export const Navbar = ({ onLogout } = {}) => {
     socketService.disconnect();
     dispatch(logout());
     dispatch(clearParentState());
+    dispatch(clearNotifications());
     navigate('/');
   };
 
