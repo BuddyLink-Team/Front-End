@@ -9,6 +9,7 @@ import {
   DISCOVERY_ERROR_MESSAGES,
   GENDER_LABELS,
   LOCATION_LABELS,
+  TIME_LABELS,
 } from '../constants/discoveryConstants';
 
 const PROFILE_ERROR_FALLBACK = 'Không thể tải thông tin hồ sơ bé';
