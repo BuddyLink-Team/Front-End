@@ -62,7 +62,7 @@ export const ChildrenManagementPage = () => {
   }
 
   return (
-    <div className="w-full py-4 space-y-6">
+    <div className="w-full pb-4 space-y-6">
       {/* Page Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-6 rounded-3xl border border-hairline bg-white shadow-sm">
         <div className="space-y-1">
