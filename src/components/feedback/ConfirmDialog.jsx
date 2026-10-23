@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { AlertTriangle, Trash2, Info } from 'lucide-react';
 import { Button } from '../ui/Button';
+import { Textarea } from '../ui/Textarea';
 import { Modal } from './Modal';
 
 /**
@@ -12,9 +13,11 @@ import { Modal } from './Modal';
  * @param {string} [confirmLabel='Xác nhận']
  * @param {string} [cancelLabel='Hủy']
  * @param {'danger'|'warning'|'info'} [variant='danger']
- * @param {Function} onConfirm
+ * @param {Function} onConfirm - Receives the trimmed reason when `reason` is set
  * @param {Function} onCancel
  * @param {boolean} [isLoading=false]
+ * @param {{ required?: boolean, label?: string, placeholder?: string, maxLength?: number }} [reason]
+ *   Shows a reason field; when required, confirming is disabled until it is filled in
  */
 export const ConfirmDialog = ({
   open = false,
@@ -26,8 +29,19 @@ export const ConfirmDialog = ({
   onConfirm,
   onCancel,
   isLoading = false,
+  reason,
 }) => {
+  const [reasonText, setReasonText] = useState('');
+
+  // Start every opening with an empty reason
+  useEffect(() => {
+    if (open) setReasonText('');
+  }, [open]);
+
   if (!open) return null;
+
+  const trimmedReason = reasonText.trim();
+  const isReasonMissing = Boolean(reason?.required) && !trimmedReason;
 
   const variantConfig = {
     danger: {
@@ -72,6 +86,21 @@ export const ConfirmDialog = ({
         {description}
       </p>
 
+      {reason && (
+        <Textarea
+          id="confirm-dialog-reason"
+          label={`${reason.label || 'Lý do'}${reason.required ? ' *' : ''}`}
+          placeholder={reason.placeholder || 'Nhập lý do...'}
+          maxLength={reason.maxLength ?? 500}
+          rows={3}
+          value={reasonText}
+          onChange={(e) => setReasonText(e.target.value)}
+          disabled={isLoading}
+          containerClassName="mb-6"
+          className="resize-none"
+        />
+      )}
+
       <div className="flex gap-3">
         <Button
           type="button"
@@ -85,7 +114,8 @@ export const ConfirmDialog = ({
         <Button
           type="button"
           variant={current.btnVariant}
-          onClick={onConfirm}
+          onClick={() => (reason ? onConfirm?.(trimmedReason) : onConfirm?.())}
+          disabled={isReasonMissing}
           isLoading={isLoading}
           className="flex-1"
         >

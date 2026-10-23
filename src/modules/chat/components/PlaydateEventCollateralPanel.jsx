@@ -18,26 +18,12 @@ import { VerifiedBadge } from '../../../components/badges/VerifiedBadge';
 import { StatusChip } from '../../../components/badges/StatusChip';
 import { InterestTag } from '../../../components/badges/InterestTag';
 import { cn } from '../../../utils/cn';
+import { formatChildAge } from '../../../utils/formatters';
 import {
   PLAYDATE_PARTICIPANT_STATUS,
   PLAYDATE_STATUS_CHIPS,
   PARTICIPANT_STATUS_CHIPS,
 } from '../constants/chatConstants.js';
-
-/**
- * Format child age nicely
- */
-const formatChildAge = (dob) => {
-  if (!dob) return '';
-  const now = dayjs();
-  const birth = dayjs(dob);
-  const years = now.diff(birth, 'year');
-  if (years >= 1) {
-    return `${years} tuổi`;
-  }
-  const months = Math.max(1, now.diff(birth, 'month'));
-  return `${months} tháng`;
-};
 
 /**
  * Format scheduled date into friendly Vietnamese text
