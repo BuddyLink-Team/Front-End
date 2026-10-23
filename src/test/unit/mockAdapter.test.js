@@ -33,10 +33,13 @@ describe('Centralized Mock Server Engine (Axios Adapter)', () => {
   });
 
   it('intercepts playdateApi.createPlaydate() and reflects in list', async () => {
+    // A week ahead: playdates must start in the future, so a fixed date would expire
+    const scheduledDate = new Date(Date.now() + 7 * 86400000);
+    scheduledDate.setHours(9, 0, 0, 0);
     const newPlaydateRes = await playdateApi.createPlaydate({
       hostChildId: 'child-host-1',
       activity: 'Buổi vẽ tranh ngoài trời',
-      scheduledDate: '2026-10-20T09:00:00.000Z',
+      scheduledDate: scheduledDate.toISOString(),
       time: '09:00',
       location: { name: 'Công viên Gia Định' },
     });
