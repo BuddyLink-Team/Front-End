@@ -13,7 +13,7 @@ export const MainLayout = () => {
   return (
     <div className="min-h-screen flex flex-col bg-canvas text-text-primary selection:bg-primary/20">
       <Navbar onLogout={handleLogout} />
-      <main className="flex-1 w-full mx-auto px-6 sm:px-10 lg:px-16 py-6 max-w-[1600px]">
+      <main className="flex-1 w-full mx-auto px-6 sm:px-10 lg:px-16 py-6 max-w-shell">
         <Outlet />
       </main>
       <Footer />

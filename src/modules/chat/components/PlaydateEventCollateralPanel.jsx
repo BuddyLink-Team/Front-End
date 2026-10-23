@@ -62,7 +62,7 @@ export const PlaydateEventCollateralPanel = ({
     return (
       <aside
         className={cn(
-          'w-full lg:w-[340px] shrink-0 bg-surface-container-lowest border-l border-hairline p-5 flex flex-col items-center justify-center text-center text-on-surface-variant',
+          'w-full lg:w-chat-panel shrink-0 bg-surface-container-lowest border-l border-hairline p-5 flex flex-col items-center justify-center text-center text-on-surface-variant',
           className
         )}
       >
@@ -103,7 +103,7 @@ export const PlaydateEventCollateralPanel = ({
   return (
     <aside
       className={cn(
-        'w-full lg:w-[350px] shrink-0 bg-surface-container-lowest border-l border-hairline flex flex-col h-full overflow-hidden select-none',
+        'w-full lg:w-chat-panel shrink-0 bg-surface-container-lowest border-l border-hairline flex flex-col h-full overflow-hidden select-none',
         className
       )}
     >
@@ -115,7 +115,7 @@ export const PlaydateEventCollateralPanel = ({
           </div>
           <div>
             <h3 className="text-sm font-bold text-on-surface tracking-tight">Tóm tắt sự kiện</h3>
-            <p className="text-[11px] text-on-surface-variant">Lịch trình & người tham gia</p>
+            <p className="text-label-sm text-on-surface-variant">Lịch trình & người tham gia</p>
           </div>
         </div>
 
@@ -153,7 +153,7 @@ export const PlaydateEventCollateralPanel = ({
               <span className="font-semibold text-on-surface block">
                 {formatScheduledDateTime(scheduledDate, time)}
               </span>
-              <span className="text-[11px] text-outline">Thời gian diễn ra</span>
+              <span className="text-label-sm text-outline">Thời gian diễn ra</span>
             </div>
           </div>
 
@@ -165,7 +165,7 @@ export const PlaydateEventCollateralPanel = ({
                 {location.name || 'Địa điểm công viên'}
               </span>
               {location.address && (
-                <span className="text-[11px] text-outline block mt-0.5">
+                <span className="text-label-sm text-outline block mt-0.5">
                   {location.address}
                 </span>
               )}
@@ -176,7 +176,7 @@ export const PlaydateEventCollateralPanel = ({
           {note && (
             <div className="pt-2 border-t border-hairline/60 flex items-start gap-2 text-xs text-on-surface-variant bg-surface-container-lowest/60 p-2.5 rounded-xl">
               <FileText className="w-3.5 h-3.5 text-primary shrink-0 mt-0.5" />
-              <p className="italic text-[11px] leading-relaxed line-clamp-3">{note}</p>
+              <p className="italic text-label-sm leading-relaxed line-clamp-3">{note}</p>
             </div>
           )}
         </div>
@@ -210,26 +210,26 @@ export const PlaydateEventCollateralPanel = ({
                           {kid.displayName || 'Bé yêu'}
                         </span>
                         {ageText && (
-                          <span className="text-[11px] px-1.5 py-0.2 rounded-full bg-surface-container text-on-surface-variant font-medium">
+                          <span className="text-label-sm px-1.5 py-0.2 rounded-full bg-surface-container text-on-surface-variant font-medium">
                             {ageText}
                           </span>
                         )}
                       </div>
 
                       {kid.isHost ? (
-                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-primary-container text-on-primary-container shadow-2xs">
+                        <span className="text-label-xs font-bold px-2 py-0.5 rounded-full bg-primary-container text-on-primary-container shadow-2xs">
                           Bé chủ trì
                         </span>
                       ) : kid.status ? (
                         <StatusChip
                           status={PARTICIPANT_STATUS_CHIPS[kid.status]?.variant ?? kid.status}
                           label={PARTICIPANT_STATUS_CHIPS[kid.status]?.label}
-                          className="text-[10px] px-2 py-0"
+                          className="text-label-xs px-2 py-0"
                         />
                       ) : null}
                     </div>
 
-                    <p className="text-[11px] text-on-surface-variant">
+                    <p className="text-label-sm text-on-surface-variant">
                       Phụ huynh: <span className="font-medium text-on-surface">{kid.parentName}</span>
                     </p>
 
@@ -237,7 +237,7 @@ export const PlaydateEventCollateralPanel = ({
                     {kid.interests && kid.interests.length > 0 && (
                       <div className="flex flex-wrap gap-1 mt-2">
                         {kid.interests.map((interest, iIdx) => (
-                          <InterestTag key={iIdx} label={interest} className="text-[10px] py-0.5 px-2" />
+                          <InterestTag key={iIdx} label={interest} className="text-label-xs py-0.5 px-2" />
                         ))}
                       </div>
                     )}
@@ -256,7 +256,7 @@ export const PlaydateEventCollateralPanel = ({
               <span>Phụ huynh ({participants.length + (host ? 1 : 0)})</span>
             </div>
             {acceptedParticipants.length > 0 && (
-              <span className="text-[11px] text-primary font-semibold">
+              <span className="text-label-sm text-primary font-semibold">
                 {acceptedParticipants.length + 1} đã xác nhận
               </span>
             )}
@@ -279,13 +279,13 @@ export const PlaydateEventCollateralPanel = ({
                       </span>
                       {host.verification?.isVerifiedParent && <VerifiedBadge size="sm" iconOnly />}
                     </div>
-                    <span className="text-[11px] text-outline truncate block">
+                    <span className="text-label-sm text-outline truncate block">
                       {host.location?.area || host.location?.city || 'Khu vực chưa cập nhật'}
                     </span>
                   </div>
                 </div>
 
-                <span className="shrink-0 text-[10px] font-bold px-2 py-0.5 rounded-full bg-primary text-white shadow-2xs">
+                <span className="shrink-0 text-label-xs font-bold px-2 py-0.5 rounded-full bg-primary text-white shadow-2xs">
                   Chủ nhà
                 </span>
               </div>
@@ -314,7 +314,7 @@ export const PlaydateEventCollateralPanel = ({
                         </span>
                         {parent.verification?.isVerifiedParent && <VerifiedBadge size="sm" iconOnly />}
                       </div>
-                      <span className="text-[11px] text-outline truncate block">
+                      <span className="text-label-sm text-outline truncate block">
                         {parent.location?.area || parent.location?.city || 'Khu vực chưa cập nhật'}
                       </span>
                     </div>
@@ -323,7 +323,7 @@ export const PlaydateEventCollateralPanel = ({
                   <StatusChip
                     status={PARTICIPANT_STATUS_CHIPS[item.status]?.variant ?? item.status}
                     label={PARTICIPANT_STATUS_CHIPS[item.status]?.label}
-                    className="shrink-0 text-[10px] px-2 py-0.5"
+                    className="shrink-0 text-label-xs px-2 py-0.5"
                   />
                 </div>
               );
@@ -334,7 +334,7 @@ export const PlaydateEventCollateralPanel = ({
         {/* Safety & Trust Note */}
         <div className="p-3 rounded-xl bg-primary-container/15 border border-primary-container/30 flex items-start gap-2.5">
           <ShieldCheck className="w-4 h-4 text-primary shrink-0 mt-0.5" />
-          <p className="text-[11px] text-on-surface-variant leading-relaxed">
+          <p className="text-label-sm text-on-surface-variant leading-relaxed">
             Nhóm trò chuyện được bảo mật. Chỉ phụ huynh có trạng thái <strong className="text-on-surface">Đã tham gia (accepted)</strong> mới có quyền gửi và xem tin nhắn.
           </p>
         </div>
@@ -345,7 +345,7 @@ export const PlaydateEventCollateralPanel = ({
         <button
           type="button"
           onClick={() => navigate(`/playdates/${id}`)}
-          className="w-full py-2.5 px-4 rounded-full bg-surface-container-low hover:bg-surface-container text-on-surface text-xs font-bold flex items-center justify-center gap-2 transition-all border border-hairline active:scale-[0.98]"
+          className="w-full py-2.5 px-4 rounded-full bg-surface-container-low hover:bg-surface-container text-on-surface text-xs font-bold flex items-center justify-center gap-2 transition-all border border-hairline active:scale-98"
         >
           <span>Xem chi tiết cuộc hẹn</span>
           <ExternalLink className="w-3.5 h-3.5 text-on-surface-variant" />

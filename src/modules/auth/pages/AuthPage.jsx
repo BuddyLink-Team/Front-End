@@ -82,7 +82,7 @@ export const AuthPage = () => {
       />
 
       {/* Header Titles - fixed min-height to avoid text wrap height jumping */}
-      <div className="space-y-1 min-h-[76px]">
+      <div className="space-y-1 min-h-auth-heading">
         <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-on-surface">
           {mode === AUTH_MODES.REGISTER
             ? 'Tạo tài khoản BuddyLink'
@@ -114,7 +114,7 @@ export const AuthPage = () => {
       {/* Visual Divider */}
       <div className="relative flex items-center justify-center pt-2">
         <div className="w-full h-px bg-hairline" />
-        <span className="absolute bg-white px-3 text-[11px] font-medium text-text-muted uppercase tracking-wider">
+        <span className="absolute bg-white px-3 text-label-sm font-medium text-text-muted uppercase tracking-wider">
           {mode === AUTH_MODES.REGISTER
             ? 'hoặc đăng ký với'
             : 'hoặc đăng nhập với'}

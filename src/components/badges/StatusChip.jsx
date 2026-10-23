@@ -40,7 +40,7 @@ export const StatusChip = ({ status, label, icon: Icon, className }) => {
         className
       )}
     >
-      {Icon && <Icon className="w-3 h-3 shrink-0 stroke-[2.5]" />}
+      {Icon && <Icon className="w-3 h-3 shrink-0 stroke-2.5" />}
       {currentLabel}
     </span>
   );

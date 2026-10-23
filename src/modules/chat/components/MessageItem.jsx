@@ -32,7 +32,7 @@ export const MessageItem = ({
     <div
       className={cn(
         // w-fit + auto margin: the message list is a block container, so self-* alone has no effect
-        'flex w-fit items-end gap-2.5 max-w-[85%] sm:max-w-[75%]',
+        'flex w-fit items-end gap-2.5 max-w-bubble sm:max-w-bubble-sm',
         isMine ? 'ml-auto self-end justify-end' : 'mr-auto self-start justify-start'
       )}
     >
@@ -77,7 +77,7 @@ export const MessageItem = ({
         </div>
 
         {/* Timestamp & Read Status */}
-        <div className="flex items-center gap-1 text-[11px] text-outline px-1">
+        <div className="flex items-center gap-1 text-label-sm text-outline px-1">
           <span>{timeFormatted}</span>
           {isMine && (
             <>

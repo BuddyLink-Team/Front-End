@@ -1,13 +1,13 @@
 import React from 'react';
 import { Route, Navigate } from 'react-router-dom';
-import { MainLayout } from '../layouts/MainLayout';
+import { AdminLayout } from '../layouts/AdminLayout';
 import PlaceholderPage from '../components/feedback/PlaceholderPage';
 
 /**
  * Full route definitions for Admin features.
  */
 export const AdminRoutes = () => (
-  <Route path="/admin" element={<MainLayout />}>
+  <Route path="/admin" element={<AdminLayout />}>
     <Route index element={<Navigate to="dashboard" replace />} />
 
     {/* Admin Dashboard */}

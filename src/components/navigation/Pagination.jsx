@@ -24,7 +24,7 @@ export const Pagination = ({
   );
 
   const baseBtnClass =
-    'min-w-[36px] h-9 flex items-center justify-center rounded-xl text-xs font-semibold transition-all duration-150 select-none';
+    'min-w-pagination-item h-9 flex items-center justify-center rounded-xl text-xs font-semibold transition-all duration-150 select-none';
 
   return (
     <div className={cn('flex items-center gap-1', className)}>

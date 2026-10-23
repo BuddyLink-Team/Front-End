@@ -16,11 +16,11 @@ export const ImageLightbox = ({ imageUrl, onClose }) => {
       onClick={onClose}
       className="fixed inset-0 z-50 chat-lightbox-overlay flex items-center justify-center p-4"
     >
-      <div className="relative max-w-3xl max-h-[90vh]">
+      <div className="relative max-w-3xl max-h-modal">
         <img
           src={imageUrl}
           alt="Full size"
-          className="max-h-[85vh] w-auto object-contain rounded-2xl shadow-2xl"
+          className="max-h-modal-mobile w-auto object-contain rounded-2xl shadow-2xl"
         />
         <Button
           type="button"

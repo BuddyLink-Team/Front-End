@@ -80,7 +80,7 @@ export const ProfileSecurityTab = ({
               <span className="text-xs sm:text-sm font-semibold text-on-surface block">
                 Ẩn hồ sơ khỏi mục Khám phá (Discovery)
               </span>
-              <span className="text-[11px] sm:text-xs text-text-muted block leading-relaxed">
+              <span className="text-label-sm sm:text-xs text-text-muted block leading-relaxed">
                 Khi bật, các phụ huynh khác sẽ không thể tìm thấy hồ sơ của bạn
                 trên danh sách đề xuất. Bạn vẫn có thể trò chuyện với bạn bè đã
                 kết nối trước đó.
@@ -130,7 +130,7 @@ export const ProfileSecurityTab = ({
                         )}
                       </span>
                     </div>
-                    <p className="text-[11px] text-text-muted leading-relaxed">
+                    <p className="text-label-sm text-text-muted leading-relaxed">
                       {opt.desc}
                     </p>
                   </button>

@@ -102,7 +102,7 @@ export const ProfileHeaderCard = ({
         <div className="grid grid-cols-2 gap-2.5 w-full pt-2">
           {/* Weekly Streak Box */}
           <div className="p-3 rounded-2xl bg-tertiary/35 border border-tertiary/40 text-tertiary-dark flex flex-col items-center justify-center gap-1">
-            <span className="text-[10px] font-semibold uppercase tracking-wider text-tertiary-dark">
+            <span className="text-label-xs font-semibold uppercase tracking-wider text-tertiary-dark">
               Streak tuần
             </span>
             <div className="flex items-center gap-1">
@@ -113,7 +113,7 @@ export const ProfileHeaderCard = ({
 
           {/* Children count pill */}
           <div className="p-3 rounded-2xl bg-primary/30 border border-primary/20 text-primary flex flex-col items-center justify-center gap-1">
-            <span className="text-[10px] font-semibold uppercase tracking-wider text-primary-dark">
+            <span className="text-label-xs font-semibold uppercase tracking-wider text-primary-dark">
               Hồ sơ bé
             </span>
             <div className="flex items-center gap-1">

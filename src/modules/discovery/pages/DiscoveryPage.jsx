@@ -9,6 +9,7 @@ import { DiscoveryCard } from '../components/DiscoveryCard';
 import DiscoveryFilterModal from '../components/DiscoveryFilterModal';
 import ChildProfileDetailModal from '../components/ChildProfileDetailModal';
 import { VISIBLE_CARD_COUNT } from '../constants/discoveryConstants';
+import { ICON_SIZE, ICON_STROKE } from '../../../constants/icon.constants';
 
 export const DiscoveryPage = () => {
   const {
@@ -54,7 +55,7 @@ export const DiscoveryPage = () => {
     if (errorMessage && profiles.length === 0) {
       return (
         <EmptyState
-          icon={<AlertTriangle size={24} strokeWidth={1.5} />}
+          icon={<AlertTriangle size={ICON_SIZE.XXL} strokeWidth={ICON_STROKE.THIN} />}
           title="Không tải được danh sách khám phá"
           description={errorMessage}
           actionLabel="Thử lại"
@@ -67,7 +68,7 @@ export const DiscoveryPage = () => {
     if (profiles.length === 0) {
       return (
         <EmptyState
-          icon={<Compass size={24} strokeWidth={1.5} />}
+          icon={<Compass size={ICON_SIZE.XXL} strokeWidth={ICON_STROKE.THIN} />}
           title="Bạn đã xem hết các hồ sơ quanh đây!"
           description="Hãy thử mở rộng bán kính tìm kiếm hoặc thay đổi bộ lọc để khám phá thêm nhiều người bạn thú vị khác cho bé nhé."
           className="w-full mx-auto mt-10"

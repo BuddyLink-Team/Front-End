@@ -9,7 +9,7 @@ export const PlaydateSummaryRow = ({ icon: Icon, label, value, placeholder = 'Ch
       <Icon className="w-4 h-4" />
     </div>
     <div className="min-w-0">
-      <p className="text-[11px] uppercase tracking-wide text-text-muted">{label}</p>
+      <p className="text-label-sm uppercase tracking-wide text-text-muted">{label}</p>
       <p className={`text-sm truncate ${value ? 'font-medium text-text-primary' : 'text-text-muted/70'}`}>
         {value || placeholder}
       </p>

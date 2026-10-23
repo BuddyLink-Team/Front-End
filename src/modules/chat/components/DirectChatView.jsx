@@ -281,12 +281,12 @@ export const DirectChatView = ({
                 {partnerLocation && (
                   <>
                     <span>•</span>
-                    <span className="truncate max-w-[180px] sm:max-w-[240px]">{partnerLocation}</span>
+                    <span className="truncate max-w-truncate-sm sm:max-w-truncate-xl">{partnerLocation}</span>
                   </>
                 )}
               </div>
             ) : partnerLocation ? (
-              <div className="mt-0.5 text-xs text-on-surface-variant truncate max-w-[220px]">
+              <div className="mt-0.5 text-xs text-on-surface-variant truncate max-w-truncate-lg">
                 {partnerLocation}
               </div>
             ) : null}
@@ -520,7 +520,7 @@ export const DirectChatView = ({
         </form>
 
         {/* Security & Helper Note */}
-        <div className="flex items-center justify-between px-2 pt-2 text-[11px] text-on-surface-variant">
+        <div className="flex items-center justify-between px-2 pt-2 text-label-sm text-on-surface-variant">
           <span className="flex items-center gap-1 text-primary">
             <Lock className="w-3.5 h-3.5" />
             <span>Tin nhắn được bảo vệ quyền riêng tư gia đình</span>

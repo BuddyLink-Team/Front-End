@@ -92,7 +92,7 @@ export const Modal = ({
   return createPortal(
     <div
       className={cn(
-        'fixed inset-0 z-[200] flex justify-center',
+        'fixed inset-0 z-overlay flex justify-center',
         isSheet ? 'items-end sm:items-center sm:p-4' : 'items-center p-4'
       )}
     >
@@ -109,8 +109,8 @@ export const Modal = ({
         aria-modal="true"
         tabIndex={-1}
         className={cn(
-          'relative w-full max-h-[90vh] flex flex-col outline-none bg-surface-container-lowest shadow-[0_16px_40px_-8px_rgba(45,55,72,0.12)] border border-hairline z-10 animate-in fade-in duration-150',
-          isSheet ? 'rounded-t-3xl sm:rounded-3xl max-h-[85vh] sm:max-h-[90vh]' : 'rounded-3xl zoom-in-95',
+          'relative w-full max-h-modal flex flex-col outline-none bg-surface-container-lowest shadow-dialog border border-hairline z-10 animate-in fade-in duration-150',
+          isSheet ? 'rounded-t-3xl sm:rounded-3xl max-h-modal-mobile sm:max-h-modal' : 'rounded-3xl zoom-in-95',
           maxWidth,
           className
         )}

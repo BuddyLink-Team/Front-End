@@ -17,7 +17,7 @@ export const AIAssistantPage = () => {
         </p>
       </div>
 
-      <Card className="min-h-[350px] flex flex-col justify-between">
+      <Card className="min-h-ai-panel flex flex-col justify-between">
         <div className="space-y-4">
           <div className="bg-surface-low p-4 rounded-2xl text-sm text-text-primary leading-relaxed">
             Xin chào ba mẹ! Hôm nay ba mẹ muốn tìm địa điểm vui chơi cuối tuần, trò chơi giáo dục hay hoạt động gắn kết cho bé?

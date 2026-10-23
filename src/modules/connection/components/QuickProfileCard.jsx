@@ -7,6 +7,7 @@ import { Button } from '../../../components/ui/Button';
 import { VerifiedBadge } from '../../../components/badges/VerifiedBadge';
 import { InterestTag } from '../../../components/badges/InterestTag';
 import { CONNECTION_ACTIONS, CONNECTION_LISTS } from '../constants/connection.constants';
+import { ICON_STROKE } from '../../../constants/icon.constants';
 
 const GENDER_LABELS = { boy: 'Bé trai', girl: 'Bé gái' };
 
@@ -15,7 +16,7 @@ const PreferenceRow = ({ icon: Icon, label, values }) =>
     <div className="space-y-1.5">
       <h4 className="text-label-sm uppercase tracking-wider text-text-muted">{label}</h4>
       <div className="flex items-start gap-2 text-body-md text-text-primary">
-        <Icon className="w-4 h-4 mt-1 shrink-0 text-primary" strokeWidth={1.5} />
+        <Icon className="w-4 h-4 mt-1 shrink-0 text-primary" strokeWidth={ICON_STROKE.THIN} />
         <span>{values.join(', ')}</span>
       </div>
     </div>
@@ -35,7 +36,7 @@ const QuickProfileCard = ({ connection, type, onAction, onMessage, onInvite }) =
     return (
       <Card>
         <EmptyState
-          icon={<MousePointerClick className="w-7 h-7" strokeWidth={1.5} />}
+          icon={<MousePointerClick className="w-7 h-7" strokeWidth={ICON_STROKE.THIN} />}
           title="Chưa chọn hồ sơ nào"
           description="Chọn một gia đình trong danh sách để xem thông tin nhanh ở đây."
         />
@@ -85,14 +86,14 @@ const QuickProfileCard = ({ connection, type, onAction, onMessage, onInvite }) =
           <>
             <Button
               variant="primary"
-              leftIcon={<CalendarPlus className="w-4 h-4" strokeWidth={1.5} />}
+              leftIcon={<CalendarPlus className="w-4 h-4" strokeWidth={ICON_STROKE.THIN} />}
               onClick={() => onInvite(connection)}
             >
               Mời bé hẹn chơi
             </Button>
             <Button
               variant="secondary"
-              leftIcon={<MessageCircle className="w-4 h-4" strokeWidth={1.5} />}
+              leftIcon={<MessageCircle className="w-4 h-4" strokeWidth={ICON_STROKE.THIN} />}
               onClick={() => onMessage(connection)}
             >
               Nhắn tin
@@ -102,7 +103,7 @@ const QuickProfileCard = ({ connection, type, onAction, onMessage, onInvite }) =
         <Button
           variant="ghost"
           className="text-error"
-          leftIcon={<ShieldOff className="w-4 h-4" strokeWidth={1.5} />}
+          leftIcon={<ShieldOff className="w-4 h-4" strokeWidth={ICON_STROKE.THIN} />}
           onClick={() => onAction(CONNECTION_ACTIONS.BLOCK, connection)}
         >
           Chặn người dùng

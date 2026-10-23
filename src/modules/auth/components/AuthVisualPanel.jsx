@@ -4,7 +4,7 @@ import authHeroImg from '../../../assets/images/auth-hero.png';
 
 export const AuthVisualPanel = () => {
   return (
-    <div className="relative w-full lg:w-1/2 min-h-[520px] lg:h-[1000px] flex flex-col justify-between p-8 lg:p-12 overflow-hidden bg-surface-container-low select-none">
+    <div className="relative w-full lg:w-1/2 min-h-auth-visual lg:h-auth-card flex flex-col justify-between p-8 lg:p-12 overflow-hidden bg-surface-container-low select-none">
       {/* Background Image Layer - using object-cover to prevent stretching/zooming */}
       <img
         src={authHeroImg}

@@ -28,7 +28,7 @@ export const ParentProfilePage = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-[70vh] flex flex-col items-center justify-center gap-3">
+      <div className="min-h-page flex flex-col items-center justify-center gap-3">
         <Spinner size="lg" />
         <p className="text-sm font-medium text-text-muted">
           Đang tải hồ sơ phụ huynh...
@@ -39,7 +39,7 @@ export const ParentProfilePage = () => {
 
   if (errorMessage && !profile) {
     return (
-      <div className="min-h-[60vh] flex flex-col items-center justify-center p-6 text-center space-y-4">
+      <div className="min-h-page-sm flex flex-col items-center justify-center p-6 text-center space-y-4">
         <div className="p-4 rounded-2xl bg-error/10 text-error max-w-md">
           <p className="text-sm font-medium">{errorMessage}</p>
         </div>

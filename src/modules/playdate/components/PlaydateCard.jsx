@@ -166,7 +166,7 @@ export const PlaydateCard = ({
             )}
 
             {isHost ? (
-              <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-primary-ink bg-primary-soft border border-primary-border px-2 py-0.5 rounded-full whitespace-nowrap">
+              <span className="inline-flex items-center gap-1 text-label-sm font-semibold text-primary-ink bg-primary-soft border border-primary-border px-2 py-0.5 rounded-full whitespace-nowrap">
                 <Sparkles className="w-2.5 h-2.5" /> Bạn là người tổ chức
               </span>
             ) : (
@@ -198,11 +198,11 @@ export const PlaydateCard = ({
 
           <div className="flex items-center gap-2 pt-0.5 text-xs sm:text-sm flex-wrap">
             <div className="flex items-center shrink-0">
-              <span className="w-6 h-6 rounded-full bg-primary text-primary-on-primary font-semibold text-[10px] flex items-center justify-center ring-2 ring-surface-container-lowest shadow-2xs select-none">
+              <span className="w-6 h-6 rounded-full bg-primary text-primary-on-primary font-semibold text-label-xs flex items-center justify-center ring-2 ring-surface-container-lowest shadow-2xs select-none">
                 {hostShort.slice(0, 3)}
               </span>
               {firstParticipant && (
-                <span className="w-6 h-6 rounded-full bg-secondary text-secondary-on-fixed font-semibold text-[10px] flex items-center justify-center ring-2 ring-surface-container-lowest shadow-2xs -ml-2 select-none">
+                <span className="w-6 h-6 rounded-full bg-secondary text-secondary-on-fixed font-semibold text-label-xs flex items-center justify-center ring-2 ring-surface-container-lowest shadow-2xs -ml-2 select-none">
                   {guestShort.slice(0, 3)}
                 </span>
               )}

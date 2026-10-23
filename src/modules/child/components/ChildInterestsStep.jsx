@@ -55,7 +55,7 @@ export const ChildInterestsStep = ({
         <div className="space-y-3">
           {ACTIVITY_GROUPS.map((group) => (
             <div key={group.category} className="space-y-1.5">
-              <p className="text-[11px] font-semibold uppercase tracking-wide text-text-muted">{group.label}</p>
+              <p className="text-label-sm font-semibold uppercase tracking-wide text-text-muted">{group.label}</p>
               <SelectableOptions
                 options={group.activities.map(({ value, icon }) => ({ value, label: value, icon }))}
                 selected={formData.favoriteActivities}
@@ -65,7 +65,7 @@ export const ChildInterestsStep = ({
           ))}
           {otherActivities.length > 0 && (
             <div className="space-y-1.5">
-              <p className="text-[11px] font-semibold uppercase tracking-wide text-text-muted">Khác</p>
+              <p className="text-label-sm font-semibold uppercase tracking-wide text-text-muted">Khác</p>
               <SelectableOptions
                 options={toOptions(otherActivities)}
                 selected={otherActivities}

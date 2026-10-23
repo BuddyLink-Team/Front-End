@@ -102,6 +102,8 @@ modules/playdate/
 4. **Follow Navigation Order**: Respect standard tabs in `navigation.constants.js` (`Khám phá`, `Kết nối`, `Tin nhắn`, `Hẹn chơi`, `Thành tích`).
 5. **Centralized API Client**: Use `services/apiClient.js` for all HTTP requests to guarantee token injection, refresh handling, and error formatting.
 6. **Encapsulate Realtime**: Manage all Socket.io subscriptions within custom hooks (e.g. `useChatSocket`, `useNotificationSocket`) and always clean up listeners in `useEffect` returns.
+7. **Merge Classes via `cn()` with Design Tokens**: Combine/override classes with `cn()` from `utils/cn.js`. It reads the custom tokens from `tailwind.config.js`, so `px-space-md`, `text-label-md`, `max-w-shell`, `shadow-header`… merge correctly and new tokens need no extra setup (see `FRONTEND_CONVENTION.md` → Styling).
+8. **No Hardcoded Values**: No arbitrary Tailwind values (`text-[10px]`, `max-w-[620px]`, `shadow-[...]`, `z-[200]`), no hex/rgba/px in CSS, no magic numbers in icon props. Use the stock scale or a named token from `tailwind.config.js` — add a token if none fits. CSS reads tokens via `theme()`; Lucide props use `ICON_SIZE` / `ICON_STROKE` (`constants/icon.constants.js`).
 
 ### ❌ NEVER:
 1. **NEVER** import or call `axios` directly inside a React component or page.
@@ -109,3 +111,4 @@ modules/playdate/
 3. **NEVER** hardcode API URLs or secrets in components; always reference `import.meta.env.VITE_*`.
 4. **NEVER** combine multiple unrelated page views or giant state trees into a single monolithic file.
 5. **NEVER** use aggressive harsh colors (plain red, neon blue) or arbitrary border radii that violate the BuddyLink Design System.
+6. **NEVER** write arbitrary values in square brackets (`w-[350px]`, `text-[11px]`, `shadow-[...]`) — add a named token to `tailwind.config.js` instead.

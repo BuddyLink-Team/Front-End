@@ -102,3 +102,6 @@ export const SUBSCRIPTION_ERROR_MESSAGES = Object.freeze({
   PAYMENT_LINK_NOT_FOUND: 'Không tìm thấy liên kết thanh toán trên PayOS.',
   PAYMENT_SERVICE_UNAVAILABLE: 'Cổng thanh toán chưa sẵn sàng. Vui lòng thử lại sau.',
 });
+
+// Rendered size (px) of the PayOS VietQR code
+export const QR_CODE_SIZE = 200;

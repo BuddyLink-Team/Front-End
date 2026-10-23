@@ -114,9 +114,9 @@ export const LandingPage = () => {
         {/* ===================== HERO SECTION ===================== */}
         <section className="relative overflow-hidden pt-8 pb-16 lg:pt-16 lg:pb-24">
           {/* Subtle Ambient Background Gradient */}
-          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-[1600px] h-[650px] bg-gradient-to-b from-primary/15/40 via-surface-container-low/20 to-transparent pointer-events-none -z-10" />
+          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-shell h-hero bg-gradient-to-b from-primary/15/40 via-surface-container-low/20 to-transparent pointer-events-none -z-10" />
 
-          <div className="max-w-[1600px] mx-auto px-6 sm:px-10 lg:px-16">
+          <div className="max-w-shell mx-auto px-6 sm:px-10 lg:px-16">
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-14 items-center">
               {/* Left Column: Heading & Value Proposition */}
               <div className="lg:col-span-8 space-y-6 text-center lg:text-left">
@@ -131,7 +131,7 @@ export const LandingPage = () => {
                 {/* Primary Headline */}
                 <h1 className="text-4xl/[1.2] sm:text-5xl/[1.2] lg:text-6xl/[1.1] font-bold tracking-tight text-text-primary">
                   Tìm bạn chơi lành mạnh, <br className="hidden sm:inline" />
-                  <span className="text-primary underline decoration-primary/30 decoration-wavy underline-offset-[0.1em]">
+                  <span className="text-primary underline decoration-primary/30 decoration-wavy underline-offset-tight">
                     tổ chức Playdate an toàn
                   </span>{' '}
                   cho con.
@@ -193,7 +193,7 @@ export const LandingPage = () => {
                   <div className="absolute -bottom-12 -left-12 w-72 h-72 bg-secondary/20 rounded-full blur-3xl pointer-events-none" />
 
                   {/* Main Preview Card */}
-                  <Card className="relative bg-white border border-hairline shadow-[0_20px_50px_rgba(45,55,72,0.08)] rounded-3xl p-6 space-y-5">
+                  <Card className="relative bg-white border border-hairline shadow-hero rounded-3xl p-6 space-y-5">
                     {/* Header with Child Avatar and Verified Badge */}
                     <div className="flex items-start justify-between">
                       <div className="flex items-center gap-3.5">
@@ -270,7 +270,7 @@ export const LandingPage = () => {
 
         {/* ===================== HERO PHOTO BANNER ===================== */}
         <section className="py-6">
-          <div className="max-w-[1600px] mx-auto px-6 sm:px-10 lg:px-16">
+          <div className="max-w-shell mx-auto px-6 sm:px-10 lg:px-16">
             <div className="relative rounded-3xl overflow-hidden shadow-sm border border-hairline bg-white">
               <div className="grid grid-cols-1 lg:grid-cols-12 items-center">
                 <div className="lg:col-span-7 p-8 sm:p-12 lg:p-14 space-y-4">
@@ -318,7 +318,7 @@ export const LandingPage = () => {
           id="features"
           className="py-20 bg-white border-y border-hairline"
         >
-          <div className="max-w-[1600px] mx-auto px-6 sm:px-10 lg:px-16 space-y-14">
+          <div className="max-w-shell mx-auto px-6 sm:px-10 lg:px-16 space-y-14">
             <div className="text-center max-w-4xl mx-auto space-y-3">
               <span className="text-xs font-bold uppercase tracking-wider text-primary-dark">
                 Tính năng ưu việt
@@ -395,7 +395,7 @@ export const LandingPage = () => {
 
         {/* ===================== SAMPLE PLAYMATES PREVIEW ===================== */}
         <section className="py-20 bg-canvas">
-          <div className="max-w-[1600px] mx-auto px-6 sm:px-10 lg:px-16 space-y-12">
+          <div className="max-w-shell mx-auto px-6 sm:px-10 lg:px-16 space-y-12">
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
               <div className="space-y-3">
                 <span className="text-xs font-bold uppercase tracking-wider text-primary-dark">
@@ -483,7 +483,7 @@ export const LandingPage = () => {
           id="how-it-works"
           className="py-20 bg-white border-y border-hairline"
         >
-          <div className="max-w-[1600px] mx-auto px-6 sm:px-10 lg:px-16 space-y-14">
+          <div className="max-w-shell mx-auto px-6 sm:px-10 lg:px-16 space-y-14">
             <div className="text-center max-w-3xl mx-auto space-y-3">
               <span className="text-xs font-bold uppercase tracking-wider text-primary-dark">
                 Quy trình tinh gọn
@@ -544,7 +544,7 @@ export const LandingPage = () => {
 
         {/* ===================== SAFETY & SECURITY ===================== */}
         <section id="safety" className="py-20 bg-canvas">
-          <div className="max-w-[1600px] mx-auto px-6 sm:px-10 lg:px-16">
+          <div className="max-w-shell mx-auto px-6 sm:px-10 lg:px-16">
             <div className="bg-white rounded-3xl p-8 sm:p-14 border border-hairline shadow-soft grid grid-cols-1 lg:grid-cols-12 gap-10 items-center">
               <div className="lg:col-span-7 space-y-6">
                 <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-error-container/50 text-error text-xs font-semibold border border-error-container">
@@ -630,7 +630,7 @@ export const LandingPage = () => {
           id="testimonials"
           className="py-20 bg-white border-y border-hairline"
         >
-          <div className="max-w-[1600px] mx-auto px-6 sm:px-10 lg:px-16 space-y-14">
+          <div className="max-w-shell mx-auto px-6 sm:px-10 lg:px-16 space-y-14">
             <div className="text-center max-w-2xl mx-auto space-y-3">
               <span className="text-xs font-bold uppercase tracking-wider text-primary-dark">
                 Cộng đồng phụ huynh
@@ -668,7 +668,7 @@ export const LandingPage = () => {
                       <h4 className="text-xs sm:text-sm font-semibold text-text-primary">
                         {item.name}
                       </h4>
-                      <p className="text-[11px] text-text-muted">{item.role}</p>
+                      <p className="text-label-sm text-text-muted">{item.role}</p>
                     </div>
                   </div>
                 </Card>

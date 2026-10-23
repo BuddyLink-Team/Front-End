@@ -8,7 +8,7 @@ export const authApi = {
   register: (payload) => apiClient.post(API_ENDPOINTS.AUTH.REGISTER, payload),
 
   /**
-   * Parent login (email + password)
+   * Email + password login (the admin portal build sends it to the admin API)
    */
   login: (payload) => apiClient.post(API_ENDPOINTS.AUTH.LOGIN, payload),
 
@@ -16,11 +16,6 @@ export const authApi = {
    * Google OAuth login / signup
    */
   googleLogin: (payload) => apiClient.post(API_ENDPOINTS.AUTH.GOOGLE, payload),
-
-  /**
-   * Admin portal login
-   */
-  adminLogin: (payload) => apiClient.post(API_ENDPOINTS.AUTH.ADMIN_LOGIN, payload),
 
   /**
    * Logout: revoke the stored refresh token

@@ -76,7 +76,6 @@ const processQueue = (error, token = null) => {
 // Endpoints whose 401 means "wrong credentials / no session", not "access token expired"
 const NO_REFRESH_ENDPOINTS = [
   API_ENDPOINTS.AUTH.LOGIN,
-  API_ENDPOINTS.AUTH.ADMIN_LOGIN,
   API_ENDPOINTS.AUTH.REGISTER,
   API_ENDPOINTS.AUTH.REFRESH_TOKEN,
   API_ENDPOINTS.AUTH.LOGOUT,

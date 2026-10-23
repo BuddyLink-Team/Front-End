@@ -8,7 +8,7 @@ Guide for setting up and running the **BuddyLink Frontend** web application.
 
 - **Node.js**: `>= 20.0.0` (Recommended `v22.x LTS`)
 - **Package Manager**: npm (`>= 10.0.0`)
-- **BuddyLink Backend**: Running at `http://localhost:5000`
+- **BuddyLink Backend**: Parent API at `http://localhost:5000`, admin API at `http://localhost:5001` (`ADMIN_PORT`)
 
 ---
 
@@ -60,6 +60,19 @@ VITE_FIREBASE_MESSAGING_SENDER_ID=your_messaging_sender_id
 VITE_FIREBASE_APP_ID=your_app_id
 ```
 
+### Admin portal (`.env.admin`)
+
+The admin portal is a separate build of the same code. `--mode admin` loads `.env` first, then `.env.admin` overrides it:
+
+```bash
+cp .env.admin.example .env.admin
+```
+
+```env
+VITE_APP_TARGET=admin
+VITE_API_URL=http://localhost:5001/api/v1/admin
+```
+
 ---
 
 ## 🏃 Run Application
@@ -72,17 +85,40 @@ npm run dev
 
 > Application runs at: **http://localhost:5173**
 
+### Admin Portal (Development)
+
+```bash
+npm run dev:admin
+```
+
+> Admin portal runs at: **http://localhost:5174** (talks to the admin API on port 5001)
+
 ### Build for Production
 
 ```bash
-npm run build
+npm run build          # Parent app  -> dist/
+npm run build:admin    # Admin portal -> dist-admin/
 ```
 
 ### Preview Production Build
 
 ```bash
 npm run preview
+npm run preview:admin
 ```
+
+### Deploy on Vercel
+
+Create **two Vercel projects** from this repository (`vercel.json` rewrites every path to `index.html` for client-side routing):
+
+| Project | Build command | Output directory | Environment variables |
+|---|---|---|---|
+| Parent app | `npm run build` | `dist` | Same as `.env`, `VITE_API_URL=https://<parent-api>.onrender.com/api/v1` |
+| Admin portal | `npm run build:admin` | `dist-admin` | `VITE_APP_TARGET=admin`, `VITE_API_URL=https://<admin-api>.onrender.com/api/v1/admin` |
+
+Full guide (Render + Vercel, all env variables, checklist): `Back-End/docs/DEPLOYMENT.md` in the Back-End repository.
+
+`.env.admin` is not committed, so the admin variables must be set in the Vercel dashboard. Set the backend `CLIENT_URL` / `ADMIN_CLIENT_URL` to the two Vercel URLs.
 
 ### Testing (Vitest & React Testing Library)
 

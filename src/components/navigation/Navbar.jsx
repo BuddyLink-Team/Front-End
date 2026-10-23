@@ -56,7 +56,7 @@ export const Navbar = ({ onLogout } = {}) => {
   return (
     <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-hairline transition-all">
       {/* md+: 3-column grid with equal side columns so the center nav sits at the true center */}
-      <div className="max-w-[1600px] mx-auto px-6 sm:px-10 lg:px-16 h-20 flex items-center justify-between md:grid md:grid-cols-[1fr_auto_1fr]">
+      <div className="max-w-shell mx-auto px-6 sm:px-10 lg:px-16 h-20 flex items-center justify-between md:grid md:grid-cols-navbar">
         {/* Brand Logo */}
         <Link
           to="/"
@@ -159,7 +159,7 @@ export const Navbar = ({ onLogout } = {}) => {
                   <p className="text-xs font-bold text-on-surface truncate">
                     {displayName}
                   </p>
-                  <p className="text-[11px] text-text-muted truncate mt-0.5">
+                  <p className="text-label-sm text-text-muted truncate mt-0.5">
                     {user?.email || user?.phone || ''}
                   </p>
                 </div>

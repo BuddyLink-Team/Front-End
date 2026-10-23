@@ -13,7 +13,7 @@ export function StreakBanner({ streak, unlockedCount, totalBadgesCount }) {
         {/* Left: Streak Status & Description */}
         <div className="max-w-xl space-y-3">
           <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary-soft text-primary-dark text-label-md">
-            <Flame className="w-4 h-4 stroke-[1.75]" />
+            <Flame className="w-4 h-4 stroke-1.75" />
             <span>Chuỗi {currentWeeklyStreak} tuần liên tiếp</span>
           </div>
           <h2 className="text-headline-md text-on-surface tracking-tight">
@@ -25,11 +25,11 @@ export function StreakBanner({ streak, unlockedCount, totalBadgesCount }) {
           </p>
           <div className="pt-2 flex flex-wrap items-center gap-3 text-on-surface-variant text-label-md">
             <span className="flex items-center gap-1.5 bg-surface-muted px-3 py-1 rounded-full">
-              <Flame className="w-4 h-4 stroke-[1.75] text-tertiary-dark" />
+              <Flame className="w-4 h-4 stroke-1.75 text-tertiary-dark" />
               Kỷ lục chuỗi: <strong className="text-on-surface font-semibold">{longestStreak} tuần</strong>
             </span>
             <span className="flex items-center gap-1.5 bg-surface-muted px-3 py-1 rounded-full">
-              <Trophy className="w-4 h-4 stroke-[1.75] text-primary-dark" />
+              <Trophy className="w-4 h-4 stroke-1.75 text-primary-dark" />
               Huy hiệu đã đạt:{' '}
               <strong className="text-on-surface font-semibold">
                 {unlockedCount} / {totalBadgesCount}
@@ -46,7 +46,7 @@ export function StreakBanner({ streak, unlockedCount, totalBadgesCount }) {
               status={isCurrentWeekCompleted ? 'confirmed' : 'pending'}
               label={isCurrentWeekCompleted ? 'Tuần này đã xong' : 'Tuần này chưa có'}
               icon={isCurrentWeekCompleted ? Check : CalendarClock}
-              className="shrink-0 text-[11px] px-2 py-0.5"
+              className="shrink-0 text-label-sm px-2 py-0.5"
             />
           </div>
 
@@ -59,7 +59,7 @@ export function StreakBanner({ streak, unlockedCount, totalBadgesCount }) {
                     isDone ? 'bg-primary text-white' : 'bg-white text-outline border border-hairline-strong',
                   )}
                 >
-                  {isDone ? <Check className="w-4 h-4 stroke-[1.75]" /> : <Flame className="w-4 h-4 stroke-[1.5]" />}
+                  {isDone ? <Check className="w-4 h-4 stroke-1.75" /> : <Flame className="w-4 h-4 stroke-1.5" />}
                 </div>
                 <span className="text-label-sm text-on-surface-variant">Tuần {idx + 1}</span>
               </div>

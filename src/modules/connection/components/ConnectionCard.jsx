@@ -7,6 +7,7 @@ import { VerifiedBadge } from '../../../components/badges/VerifiedBadge';
 import { InterestTag } from '../../../components/badges/InterestTag';
 import { cn } from '../../../utils/cn';
 import { CONNECTION_ACTIONS, CONNECTION_LISTS } from '../constants/connection.constants';
+import { ICON_STROKE } from '../../../constants/icon.constants';
 
 const MAX_INTERESTS = 3;
 
@@ -57,7 +58,7 @@ const ConnectionCard = ({ connection, type, isSelected, isBusy, onSelect, onActi
 
             {area && (
               <p className="flex items-center gap-1 text-sm text-text-muted truncate">
-                <MapPin className="w-3.5 h-3.5 shrink-0" strokeWidth={1.5} />
+                <MapPin className="w-3.5 h-3.5 shrink-0" strokeWidth={ICON_STROKE.THIN} />
                 {area}
               </p>
             )}
@@ -93,7 +94,7 @@ const ConnectionCard = ({ connection, type, isSelected, isBusy, onSelect, onActi
               <Button
                 variant="secondary"
                 size="sm"
-                leftIcon={<MessageCircle className="w-4 h-4" strokeWidth={1.5} />}
+                leftIcon={<MessageCircle className="w-4 h-4" strokeWidth={ICON_STROKE.THIN} />}
                 onClick={() => onMessage(connection)}
               >
                 Nhắn tin
@@ -106,7 +107,7 @@ const ConnectionCard = ({ connection, type, isSelected, isBusy, onSelect, onActi
                 title="Hủy kết nối"
                 onClick={() => onAction(CONNECTION_ACTIONS.REMOVE, connection)}
               >
-                <UserMinus className="w-4 h-4" strokeWidth={1.5} />
+                <UserMinus className="w-4 h-4" strokeWidth={ICON_STROKE.THIN} />
               </Button>
             </>
           )}

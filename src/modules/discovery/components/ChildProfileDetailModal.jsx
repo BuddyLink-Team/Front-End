@@ -18,6 +18,7 @@ import { Avatar } from '../../../components/ui/Avatar';
 import { Skeleton } from '../../../components/feedback/Skeleton';
 import { Modal } from '../../../components/feedback/Modal';
 import { EmptyState } from '../../../components/cards/EmptyState';
+import { ICON_SIZE, ICON_STROKE } from '../../../constants/icon.constants';
 
 /**
  * ChildProfileDetailModal
@@ -59,7 +60,7 @@ const ChildProfileDetailModal = ({ childId, onClose, onSwipe, isSwiping }) => {
             <Button
               variant="ghost"
               onClick={handlePass}
-              leftIcon={<ThumbsDown size={16} strokeWidth={1.75} />}
+              leftIcon={<ThumbsDown size={ICON_SIZE.MD} strokeWidth={ICON_STROKE.DEFAULT} />}
               className="flex-1"
             >
               Bỏ qua
@@ -68,7 +69,7 @@ const ChildProfileDetailModal = ({ childId, onClose, onSwipe, isSwiping }) => {
               variant="primary"
               onClick={handleSendConnection}
               isLoading={isSwiping}
-              leftIcon={<Send size={16} strokeWidth={1.75} />}
+              leftIcon={<Send size={ICON_SIZE.MD} strokeWidth={ICON_STROKE.DEFAULT} />}
               className="flex-1"
             >
               Gửi lời mời kết nối
@@ -107,7 +108,7 @@ const ChildProfileDetailModal = ({ childId, onClose, onSwipe, isSwiping }) => {
                   className="w-full h-full object-cover"
                   draggable={false}
                 />
-                <span className="absolute bottom-0 left-0 right-0 text-center bg-primary text-primary-on-primary text-[10px] font-bold py-0.5">
+                <span className="absolute bottom-0 left-0 right-0 text-center bg-primary text-primary-on-primary text-label-xs font-bold py-0.5">
                   {view.genderLabel}
                 </span>
               </div>
@@ -139,7 +140,7 @@ const ChildProfileDetailModal = ({ childId, onClose, onSwipe, isSwiping }) => {
             {/* ── Interests ── */}
             {view.interests.length > 0 && (
               <div className="flex flex-col gap-2">
-                <h3 className="text-[11px] font-bold uppercase tracking-widest text-on-surface-variant">
+                <h3 className="text-label-sm font-bold uppercase tracking-widest text-on-surface-variant">
                   Sở thích & Hoạt động
                 </h3>
                 <div className="flex flex-wrap gap-2">
@@ -155,7 +156,7 @@ const ChildProfileDetailModal = ({ childId, onClose, onSwipe, isSwiping }) => {
 
             {/* ── Parent / Family Info ── */}
             <div className="flex flex-col gap-3">
-              <h3 className="text-[11px] font-bold uppercase tracking-widest text-on-surface-variant">
+              <h3 className="text-label-sm font-bold uppercase tracking-widest text-on-surface-variant">
                 Thông tin gia đình
               </h3>
 
@@ -179,20 +180,20 @@ const ChildProfileDetailModal = ({ childId, onClose, onSwipe, isSwiping }) => {
                     {/* Verification icons */}
                     <div className="flex gap-2 mt-1">
                       {profile.parent?.isEmailVerified && (
-                        <span className="flex items-center gap-1 text-[11px] text-on-surface-variant">
+                        <span className="flex items-center gap-1 text-label-sm text-on-surface-variant">
                           <Mail
-                            size={11}
-                            strokeWidth={1.5}
+                            size={ICON_SIZE.XS}
+                            strokeWidth={ICON_STROKE.THIN}
                             className="text-primary"
                           />
                           Email
                         </span>
                       )}
                       {profile.parent?.isPhoneVerified && (
-                        <span className="flex items-center gap-1 text-[11px] text-on-surface-variant">
+                        <span className="flex items-center gap-1 text-label-sm text-on-surface-variant">
                           <Phone
-                            size={11}
-                            strokeWidth={1.5}
+                            size={ICON_SIZE.XS}
+                            strokeWidth={ICON_STROKE.THIN}
                             className="text-primary"
                           />
                           SĐT
@@ -214,8 +215,8 @@ const ChildProfileDetailModal = ({ childId, onClose, onSwipe, isSwiping }) => {
                   {view.preferredLocations.length > 0 && (
                     <div className="flex items-start gap-2 text-sm text-on-surface-variant">
                       <MapPin
-                        size={14}
-                        strokeWidth={1.5}
+                        size={ICON_SIZE.SM}
+                        strokeWidth={ICON_STROKE.THIN}
                         className="text-primary mt-0.5 shrink-0"
                       />
                       <span>
@@ -229,8 +230,8 @@ const ChildProfileDetailModal = ({ childId, onClose, onSwipe, isSwiping }) => {
                   {view.preferredPlaydateDays.length > 0 && (
                     <div className="flex items-start gap-2 text-sm text-on-surface-variant">
                       <CalendarDays
-                        size={14}
-                        strokeWidth={1.5}
+                        size={ICON_SIZE.SM}
+                        strokeWidth={ICON_STROKE.THIN}
                         className="text-primary mt-0.5 shrink-0"
                       />
                       <span>
@@ -244,8 +245,8 @@ const ChildProfileDetailModal = ({ childId, onClose, onSwipe, isSwiping }) => {
                   {view.preferredTimeSlots.length > 0 && (
                     <div className="flex items-start gap-2 text-sm text-on-surface-variant">
                       <Clock
-                        size={14}
-                        strokeWidth={1.5}
+                        size={ICON_SIZE.SM}
+                        strokeWidth={ICON_STROKE.THIN}
                         className="text-primary mt-0.5 shrink-0"
                       />
                       <span>
@@ -262,7 +263,7 @@ const ChildProfileDetailModal = ({ childId, onClose, onSwipe, isSwiping }) => {
           </div>
         ) : (
           <EmptyState
-            icon={<ShieldCheck size={24} strokeWidth={1.5} />}
+            icon={<ShieldCheck size={ICON_SIZE.XXL} strokeWidth={ICON_STROKE.THIN} />}
             title="Không tìm thấy thông tin hồ sơ"
             className="border-0"
           />

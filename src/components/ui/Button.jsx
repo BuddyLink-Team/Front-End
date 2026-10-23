@@ -18,11 +18,11 @@ export const Button = React.forwardRef(
     ref
   ) => {
     const baseStyles =
-      'inline-flex items-center justify-center font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed select-none active:scale-[0.98]';
+      'inline-flex items-center justify-center font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed select-none active:scale-98';
 
     const variants = {
       primary:
-        'bg-primary text-white hover:bg-primary-hover hover:scale-[1.01] focus:ring-primary/50 shadow-sm',
+        'bg-primary text-white hover:bg-primary-hover hover:scale-101 focus:ring-primary/50 shadow-sm',
       secondary:
         'bg-primary-tint text-primary-dark hover:bg-primary-tint-hover focus:ring-primary/30',
       outline:

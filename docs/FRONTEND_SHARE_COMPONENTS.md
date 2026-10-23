@@ -245,6 +245,9 @@ src/components/
 
 #### 🗂️ `Sidebar.jsx`
 - **Mục đích**: Thanh điều hướng bên sườn cho trang Quản trị viên (Admin Dashboard) hoặc Cài đặt tài khoản. Hỗ trợ thu gọn/mở rộng mượt mà và hiển thị badge đếm số lượng việc cần xử lý.
+- **Props**: `links` (`{ name, href, icon, badge }`), `collapsed`, `onToggle`, `header`, `footer`, `className`.
+- **Props tùy biến style** (không truyền thì giữ nguyên style mặc định, được gộp sau cùng qua `cn()` nên sẽ thắng class mặc định): `headerClassName`, `footerClassName`, `linkClassName`, `activeLinkClassName` (chỉ áp cho link đang active).
+- **Đang dùng tại**: `layouts/AdminLayout.jsx` (style theo Stitch "Tổng quan Quản trị", menu lấy từ `ADMIN_NAV_LINKS` trong `navigation.constants.js`).
 
 #### 🔢 `Pagination.jsx`
 - **Mục đích**: Phân trang danh sách lịch hẹn, danh sách người dùng quản trị, lịch sử giao dịch.

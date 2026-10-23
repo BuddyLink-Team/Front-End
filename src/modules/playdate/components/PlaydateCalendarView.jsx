@@ -210,7 +210,7 @@ export const PlaydateCalendarView = ({
                 type="button"
                 key={cell.key}
                 onClick={() => setSelectedDate(cell.date)}
-                className={`min-h-[90px] md:min-h-[110px] p-2 text-left flex flex-col justify-between cursor-pointer transition-colors relative ${
+                className={`min-h-calendar-cell md:min-h-calendar-cell-md p-2 text-left flex flex-col justify-between cursor-pointer transition-colors relative ${
                   !cell.isCurrentMonth
                     ? 'bg-surface-container-low text-text-muted/40'
                     : 'bg-surface-container-lowest hover:bg-primary-soft'
@@ -233,7 +233,7 @@ export const PlaydateCalendarView = ({
                   </span>
 
                   {hasEvents && (
-                    <span className="text-[10px] font-semibold text-text-muted bg-surface-container-low border border-hairline px-1.5 py-0.2 rounded-full">
+                    <span className="text-label-xs font-semibold text-text-muted bg-surface-container-low border border-hairline px-1.5 py-0.2 rounded-full">
                       {cell.events.length}
                     </span>
                   )}
@@ -248,7 +248,7 @@ export const PlaydateCalendarView = ({
                     return (
                       <div
                         key={evt.id}
-                        className="text-[10px] md:text-xs px-1.5 py-0.5 rounded truncate font-medium border border-hairline bg-surface-container-low text-text-primary flex items-center gap-1"
+                        className="text-label-xs md:text-xs px-1.5 py-0.5 rounded truncate font-medium border border-hairline bg-surface-container-low text-text-primary flex items-center gap-1"
                         title={`${evt.activity} (${evt.time}) - ${meta.label}`}
                       >
                         <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${meta.dotClass}`} />
@@ -260,7 +260,7 @@ export const PlaydateCalendarView = ({
                   })}
 
                   {cell.events.length > 2 && (
-                    <div className="text-[10px] text-text-muted font-medium text-center">
+                    <div className="text-label-xs text-text-muted font-medium text-center">
                       +{cell.events.length - 2} sự kiện nữa
                     </div>
                   )}

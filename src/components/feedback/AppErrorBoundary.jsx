@@ -24,7 +24,7 @@ export class AppErrorBoundary extends Component {
 
     return (
       <div className="min-h-screen bg-canvas p-6 flex items-center justify-center text-text-primary">
-        <div className="w-full max-w-xl rounded-3xl border border-hairline bg-white p-8 shadow-[0_16px_40px_-8px_rgba(45,55,72,0.08)] text-center">
+        <div className="w-full max-w-xl rounded-3xl border border-hairline bg-white p-8 shadow-modal text-center">
           <div className="w-14 h-14 rounded-2xl bg-red-50 text-red-600 flex items-center justify-center mx-auto mb-4">
             <AlertTriangle className="w-7 h-7" />
           </div>

@@ -92,8 +92,8 @@ export const SubscriptionPage = () => {
 
       {!plansLoaded && (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8" aria-busy="true">
-          <Skeleton className="h-[520px] rounded-2xl" />
-          <Skeleton className="h-[520px] rounded-2xl" />
+          <Skeleton className="h-pricing-card rounded-2xl" />
+          <Skeleton className="h-pricing-card rounded-2xl" />
         </div>
       )}
 

@@ -224,7 +224,7 @@ export const PlaydateChatView = ({
                   <>
                     <span className="flex items-center gap-1 truncate text-outline">
                       <MapPin className="w-3 h-3 shrink-0" />
-                      <span className="truncate max-w-[120px] sm:max-w-[180px]">
+                      <span className="truncate max-w-truncate-xs sm:max-w-truncate-sm">
                         {playdate.location.name}
                       </span>
                     </span>
@@ -322,7 +322,7 @@ export const PlaydateChatView = ({
                 <p className="font-bold text-on-surface leading-tight">
                   {groupTitle}
                 </p>
-                <p className="text-[11px] text-outline mt-0.5">
+                <p className="text-label-sm text-outline mt-0.5">
                   Lịch hẹn: {scheduleSnippet} • {playdate?.location?.name || 'Chưa định địa điểm'}
                 </p>
               </div>
@@ -519,7 +519,7 @@ export const PlaydateChatView = ({
           </form>
 
           {/* Security & Helper Note */}
-          <div className="flex items-center justify-between px-2 pt-2 text-[11px] text-on-surface-variant">
+          <div className="flex items-center justify-between px-2 pt-2 text-label-sm text-on-surface-variant">
             <span className="flex items-center gap-1 text-primary">
               <Lock className="w-3.5 h-3.5" />
               <span>Chỉ phụ huynh đã tham gia (accepted) mới được xem và gửi tin</span>

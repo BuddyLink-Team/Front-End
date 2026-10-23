@@ -38,7 +38,7 @@ export const ChildCard = ({ child, onEdit, onDelete }) => {
                   {child.displayName}
                 </h2>
                 <span
-                  className={`px-2.5 py-0.5 rounded-full text-[11px] font-semibold shrink-0 ${
+                  className={`px-2.5 py-0.5 rounded-full text-label-sm font-semibold shrink-0 ${
                     isBoy
                       ? 'bg-secondary/10 text-secondary'
                       : 'bg-primary/10 text-primary'
@@ -93,7 +93,7 @@ export const ChildCard = ({ child, onEdit, onDelete }) => {
 
             return (
               <div className="space-y-1.5 pt-1">
-                <span className="text-[11px] font-semibold text-text-muted block uppercase tracking-wider">
+                <span className="text-label-sm font-semibold text-text-muted block uppercase tracking-wider">
                   Sở thích
                 </span>
                 <div className="flex flex-wrap items-center gap-1.5">
@@ -103,7 +103,7 @@ export const ChildCard = ({ child, onEdit, onDelete }) => {
                   {remainingCount > 0 && (
                     <span
                       title={`Còn lại: ${remainingTooltip}`}
-                      className="inline-flex items-center text-[11px] font-bold px-2 py-0.5 rounded-full bg-surface-container text-text-muted border border-hairline/80 cursor-help hover:bg-surface-container-high transition-colors"
+                      className="inline-flex items-center text-label-sm font-bold px-2 py-0.5 rounded-full bg-surface-container text-text-muted border border-hairline/80 cursor-help hover:bg-surface-container-high transition-colors"
                     >
                       +{remainingCount}
                     </span>
@@ -124,7 +124,7 @@ export const ChildCard = ({ child, onEdit, onDelete }) => {
 
             return (
               <div className="space-y-1.5 pt-1">
-                <span className="text-[11px] font-semibold text-text-muted block uppercase tracking-wider">
+                <span className="text-label-sm font-semibold text-text-muted block uppercase tracking-wider">
                   Tính cách
                 </span>
                 <div className="flex flex-wrap items-center gap-1.5">
@@ -138,7 +138,7 @@ export const ChildCard = ({ child, onEdit, onDelete }) => {
                   {remainingCount > 0 && (
                     <span
                       title={`Còn lại: ${remainingTooltip}`}
-                      className="inline-flex items-center text-[11px] font-bold px-2 py-0.5 rounded-full bg-tertiary/15 text-tertiary-dark border border-tertiary/40 cursor-help hover:bg-tertiary/25 transition-colors"
+                      className="inline-flex items-center text-label-sm font-bold px-2 py-0.5 rounded-full bg-tertiary/15 text-tertiary-dark border border-tertiary/40 cursor-help hover:bg-tertiary/25 transition-colors"
                     >
                       +{remainingCount}
                     </span>

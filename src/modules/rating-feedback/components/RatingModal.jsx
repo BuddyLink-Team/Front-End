@@ -4,6 +4,7 @@ import { Modal } from '../../../components/feedback/Modal';
 import { Button } from '../../../components/ui/Button';
 import { Textarea } from '../../../components/ui/Textarea';
 import { useRatingFeedback } from '../hooks/useRatingFeedback';
+import { ICON_SIZE } from '../../../constants/icon.constants';
 
 const RATING_FORM_ID = 'playdate-rating-form';
 
@@ -33,7 +34,7 @@ export function RatingModal({ playdate, onClose, onSubmitted }) {
       title={
         <span className="flex items-center gap-3">
           <span className="w-10 h-10 rounded-full bg-tertiary-fixed text-on-tertiary-fixed flex items-center justify-center shadow-sm shrink-0">
-            <Star size={20} className="fill-tertiary text-tertiary-dark" />
+            <Star size={ICON_SIZE.XL} className="fill-tertiary text-tertiary-dark" />
           </span>
           Buổi chơi của bạn thế nào?
         </span>
@@ -73,11 +74,11 @@ export function RatingModal({ playdate, onClose, onSubmitted }) {
                   className="p-2 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary transition-transform hover:scale-110"
                 >
                   <Star
-                    size={32}
+                    size={ICON_SIZE.XXXL}
                     className={
                       isSelected
-                        ? 'fill-tertiary-fixed text-tertiary-dark stroke-[1.5]'
-                        : 'text-outline-variant stroke-[1.5]'
+                        ? 'fill-tertiary-fixed text-tertiary-dark stroke-1.5'
+                        : 'text-outline-variant stroke-1.5'
                     }
                   />
                 </button>
