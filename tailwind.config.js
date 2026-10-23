@@ -154,6 +154,9 @@ export default {
       },
 
       boxShadow: {
+        // Faintest lift for small controls (chips, inputs, table frame, chat bubbles), below the Level 1 shadow
+        '2xs': '0 1px 1px rgba(45, 55, 72, 0.03)',
+        xs: '0 1px 2px rgba(45, 55, 72, 0.05)',
         soft: '0 2px 8px rgba(0,0,0,0.02)',
         elevated: '0 8px 24px -4px rgba(45, 55, 72, 0.04), 0 2px 6px -2px rgba(45, 55, 72, 0.02)',
         modal: '0 16px 40px -8px rgba(45, 55, 72, 0.08)',
@@ -200,6 +203,7 @@ export default {
         hero: '650px',
         'pricing-card': '520px',
         'chat-frame': 'calc(100vh - 4.5rem)', // Chat page below the top bar
+        chart: '280px', // Dashboard charts (BarChart)
       },
       minHeight: {
         page: '70vh', // Centered page-level loading / empty states
@@ -270,9 +274,15 @@ export default {
           '0%': { opacity: '0', transform: 'scale(0.92) translateY(6px)' },
           '100%': { opacity: '1', transform: 'scale(1) translateY(0)' },
         },
+        // Side drawer (Modal placement="right")
+        'slide-in-right': {
+          '0%': { transform: 'translateX(100%)' },
+          '100%': { transform: 'translateX(0)' },
+        },
       },
       animation: {
         'pop-in': 'pop-in 320ms cubic-bezier(0.34, 1.56, 0.64, 1) both',
+        'slide-in-right': 'slide-in-right 250ms cubic-bezier(0.16, 1, 0.3, 1) both',
       },
     },
   },
