@@ -1,5 +1,5 @@
 import React from 'react';
-import { MessageSquare, Heart, Shield, Sparkles } from 'lucide-react';
+import { MessageSquare, Heart, Shield, Smile } from 'lucide-react';
 
 export const EmptyChatState = () => {
   return (
@@ -9,7 +9,7 @@ export const EmptyChatState = () => {
           <MessageSquare className="w-10 h-10" />
         </div>
         <div className="absolute -top-1 -right-1 w-7 h-7 rounded-full bg-secondary-container text-secondary flex items-center justify-center shadow-xs">
-          <Sparkles className="w-4 h-4" />
+          <Smile className="w-4 h-4" />
         </div>
         <div className="absolute -bottom-1 -left-1 w-7 h-7 rounded-full bg-tertiary-container/30 text-tertiary flex items-center justify-center shadow-xs">
           <Heart className="w-4 h-4 text-tertiary" />

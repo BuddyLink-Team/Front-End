@@ -1,5 +1,5 @@
 import React from 'react';
-import { Sparkles, CheckCircle2, ArrowRight } from 'lucide-react';
+import { CheckCircle2, ArrowRight, HeartHandshake } from 'lucide-react';
 import { Button } from '../../../components';
 
 export const OnboardingSuccessStep = ({ formData, onComplete }) => {
@@ -15,7 +15,7 @@ export const OnboardingSuccessStep = ({ formData, onComplete }) => {
 
       <div className="space-y-2">
         <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-semibold">
-          <Sparkles className="w-3.5 h-3.5" />
+          <HeartHandshake className="w-3.5 h-3.5" />
           <span>Sẵn sàng kết nối bạn chơi</span>
         </div>
         <h2 className="text-2xl sm:text-3xl font-extrabold text-on-surface tracking-tight font-display">

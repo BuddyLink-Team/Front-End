@@ -6,6 +6,7 @@ import { Avatar } from '../../../components/ui/Avatar';
 import { Button } from '../../../components/ui/Button';
 import { VerifiedBadge } from '../../../components/badges/VerifiedBadge';
 import { InterestTag } from '../../../components/badges/InterestTag';
+import ChildPairList from './ChildPairList';
 import { CONNECTION_ACTIONS, CONNECTION_LISTS } from '../constants/connection.constants';
 import { ICON_STROKE } from '../../../constants/icon.constants';
 
@@ -32,15 +33,15 @@ PreferenceRow.propTypes = {
  * Quick profile of the selected connection (right column of the connections page)
  */
 const QuickProfileCard = ({ connection, type, onAction, onMessage, onInvite }) => {
+  // Same empty box as the list next to it, so both columns match (it fills the column height)
   if (!connection) {
     return (
-      <Card>
-        <EmptyState
-          icon={<MousePointerClick className="w-7 h-7" strokeWidth={ICON_STROKE.THIN} />}
-          title="Chưa chọn hồ sơ nào"
-          description="Chọn một gia đình trong danh sách để xem thông tin nhanh ở đây."
-        />
-      </Card>
+      <EmptyState
+        icon={<MousePointerClick className="w-7 h-7" strokeWidth={ICON_STROKE.THIN} />}
+        title="Chưa chọn hồ sơ nào"
+        description="Chọn một gia đình trong danh sách để xem thông tin nhanh ở đây."
+        className="h-full flex-1 lg:min-h-placeholder"
+      />
     );
   }
 
@@ -66,6 +67,12 @@ const QuickProfileCard = ({ connection, type, onAction, onMessage, onInvite }) =
       </div>
 
       <div className="space-y-4 border-t border-hairline pt-4">
+        {connection.childPairs?.length > 0 && (
+          <div className="space-y-1.5">
+            <h4 className="text-label-sm uppercase tracking-wider text-text-muted">Các bé được ghép đôi</h4>
+            <ChildPairList pairs={connection.childPairs} isIncoming={type === CONNECTION_LISTS.INCOMING} showSource />
+          </div>
+        )}
         {interests.length > 0 && (
           <div className="space-y-1.5">
             <h4 className="text-label-sm uppercase tracking-wider text-text-muted">Sở thích & trò chơi yêu thích</h4>
@@ -126,6 +133,7 @@ QuickProfileCard.propTypes = {
     preferredDays: PropTypes.arrayOf(PropTypes.string),
     preferredTimeSlots: PropTypes.arrayOf(PropTypes.string),
     preferredLocations: PropTypes.arrayOf(PropTypes.string),
+    childPairs: PropTypes.arrayOf(PropTypes.object),
   }),
   type: PropTypes.oneOf(Object.values(CONNECTION_LISTS)),
   onAction: PropTypes.func.isRequired,

@@ -19,6 +19,7 @@ export const createPlaydateSchema = z
       .trim()
       .min(1, 'Vui lòng chọn giờ hẹn')
       .regex(PLAYDATE_TIME_REGEX, 'Giờ hẹn có dạng HH:mm, ví dụ 09:00'),
+    durationMinutes: z.coerce.number().int().min(30).max(480),
     locationName: z.string().optional().default(''),
     locationAddress: z.string().optional().default(''),
     note: z.string().optional().default(''),

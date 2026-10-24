@@ -87,6 +87,7 @@ export const SUBSCRIPTION_PAGE_PATH = '/subscription';
 export const DISCOVERY_ERROR_CODES = Object.freeze({
   QUOTA_EXCEEDED: 'QUOTA_EXCEEDED',
   DUPLICATE_SWIPE: 'DUPLICATE_SWIPE',
+  CHILD_REQUIRED_FOR_SWIPE: 'CHILD_REQUIRED_FOR_SWIPE',
 });
 
 // Backend quota action types, sent in error.details[0].message of QUOTA_EXCEEDED
@@ -115,6 +116,8 @@ export const DISCOVERY_ERROR_MESSAGES = Object.freeze({
   CHILD_NOT_FOUND: 'Hồ sơ của bé này không còn tồn tại.',
   SELF_SWIPE_NOT_ALLOWED: 'Bạn không thể tương tác với hồ sơ của bé nhà mình.',
   [DISCOVERY_ERROR_CODES.DUPLICATE_SWIPE]: 'Bạn đã phản hồi hồ sơ này rồi.',
+  [DISCOVERY_ERROR_CODES.CHILD_REQUIRED_FOR_SWIPE]:
+    'Hãy chọn bé bạn đang tìm bạn cho ở mục "Đang tìm bạn cho" phía trên (hoặc thêm hồ sơ bé trước).',
   INVALID_QUOTA_ACTION: 'Không thể kiểm tra hạn mức sử dụng. Vui lòng thử lại sau.',
   BLOCKED_INTERACTION: 'Bạn không thể tương tác với hồ sơ này.',
   // Like = connection request (connection.service)

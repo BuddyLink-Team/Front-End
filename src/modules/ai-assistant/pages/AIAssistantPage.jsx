@@ -1,6 +1,6 @@
 import React from 'react';
 import { Card } from '../../../components/cards/Card';
-import { Sparkles, Send } from 'lucide-react';
+import { Send, Bot } from 'lucide-react';
 import { Button } from '../../../components/ui/Button';
 import { Input } from '../../../components/ui/Input';
 
@@ -9,7 +9,7 @@ export const AIAssistantPage = () => {
     <div className="max-w-4xl mx-auto space-y-6">
       <div className="text-center space-y-2">
         <div className="w-12 h-12 rounded-2xl bg-primary/10 text-primary flex items-center justify-center mx-auto">
-          <Sparkles className="w-6 h-6" />
+          <Bot className="w-6 h-6" />
         </div>
         <h1 className="text-2xl font-bold tracking-tight text-text-primary">BuddyLink AI Assistant</h1>
         <p className="text-sm text-text-muted">

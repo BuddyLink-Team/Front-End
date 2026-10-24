@@ -10,8 +10,8 @@ const ParentProfilePage = lazy(() => import('../modules/parent/pages/ParentProfi
 const ChildrenManagementPage = lazy(() => import('../modules/child/pages/ChildrenManagementPage'));
 const ChildFormPage = lazy(() => import('../modules/child/pages/ChildFormPage'));
 const PlaydateListPage = lazy(() => import('../modules/playdate/pages/PlaydateListPage'));
-const CreatePlaydatePage = lazy(() => import('../modules/playdate/pages/CreatePlaydatePage'));
-const PlaydateDetailPage = lazy(() => import('../modules/playdate/pages/PlaydateDetailPage'));
+// Create form and details share one page (/playdates/create and /playdates/:id)
+const PlaydateFormPage = lazy(() => import('../modules/playdate/pages/PlaydateFormPage'));
 const ConnectionsPage = lazy(() => import('../modules/connection/pages/ConnectionsPage'));
 const NotificationPage = lazy(() => import('../modules/notification/pages/NotificationPage'));
 
@@ -40,11 +40,11 @@ export const ParentRoutes = () => (
     />
     <Route
       path="/playdates/create"
-      element={<CreatePlaydatePage />}
+      element={<PlaydateFormPage />}
     />
     <Route
       path="/playdates/:id"
-      element={<PlaydateDetailPage />}
+      element={<PlaydateFormPage />}
     />
 
     {/* Communication */}

@@ -232,7 +232,7 @@ export const DiscoveryCard = ({
                     </span>
                     {profile.parent?.isVerifiedParent && (
                       <VerifiedBadge
-                        text="Đã xác thực Phone, Email"
+                        text="Đã xác thực"
                         size="sm"
                       />
                     )}

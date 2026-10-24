@@ -115,6 +115,19 @@ export const MOCK_FRIENDS = [
   },
 ];
 
+// Child pairs of the mock host's children (GET /playdates/friends?childId=): own child -> { friend child -> source }
+export const MOCK_CHILD_PAIRS = {
+  'child-host-1': { 'child-friend-2': 'discovery' },
+  'child-host-2': { 'child-friend-1': 'playdate' },
+};
+
+// Mock match score of each friend child (the real one is computed by the Back-End)
+export const MOCK_PLAYMATE_SCORES = {
+  'child-friend-1': 64,
+  'child-friend-2': 86,
+  'child-friend-3': 52,
+};
+
 // Rich Mock Playdates matching Stitch horizontal card layout
 export const INITIAL_MOCK_PLAYDATES = [
   {

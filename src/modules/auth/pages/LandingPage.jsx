@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
   ShieldCheck,
-  Sparkles,
   Compass,
   CheckCircle2,
   ArrowRight,
@@ -10,6 +9,9 @@ import {
   Star,
   ChevronDown,
   Award,
+  HeartHandshake,
+  Lightbulb,
+  Bot,
 } from 'lucide-react';
 import { Button } from '../../../components/ui/Button';
 import { Card } from '../../../components/cards/Card';
@@ -122,7 +124,7 @@ export const LandingPage = () => {
               <div className="lg:col-span-8 space-y-6 text-center lg:text-left">
                 {/* AI Badge pill */}
                 <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/15 text-primary-dark text-xs font-semibold border border-primary/25 shadow-xs">
-                  <Sparkles className="w-4 h-4 text-primary fill-primary/20" />
+                  <HeartHandshake className="w-4 h-4 text-primary fill-primary/20" />
                   <span>
                     Nền tảng kết nối bạn chơi cho trẻ ứng dụng AI đầu tiên
                   </span>
@@ -175,7 +177,7 @@ export const LandingPage = () => {
                     Phụ huynh xác thực 100%
                   </span>
                   <span className="flex items-center gap-2 font-medium text-text-primary">
-                    <Sparkles className="w-4 h-4 text-tertiary-dark shrink-0" />
+                    <Lightbulb className="w-4 h-4 text-tertiary-dark shrink-0" />
                     Gợi ý thông minh với AI
                   </span>
                   <span className="flex items-center gap-2 font-medium text-text-primary">
@@ -355,7 +357,7 @@ export const LandingPage = () => {
               {/* Feature 2 */}
               <Card className="rounded-3xl p-8 space-y-5 hover:shadow-elevated transition-all border border-hairline">
                 <div className="w-14 h-14 rounded-2xl bg-secondary/20 text-secondary-dark flex items-center justify-center">
-                  <Sparkles className="w-7 h-7" />
+                  <Bot className="w-7 h-7" />
                 </div>
                 <h3 className="text-xl font-bold text-text-primary">
                   Trợ lý AI Playdate Assistant
@@ -728,7 +730,7 @@ export const LandingPage = () => {
         <section className="py-20 bg-gradient-to-b from-white to-primary/15/40 border-t border-hairline">
           <div className="max-w-5xl mx-auto px-6 sm:px-10 text-center space-y-8">
             <div className="w-16 h-16 rounded-3xl bg-primary text-white flex items-center justify-center mx-auto shadow-md shadow-primary/30">
-              <Sparkles className="w-8 h-8" />
+              <HeartHandshake className="w-8 h-8" />
             </div>
 
             <h2 className="text-3xl/[1.2] sm:text-5xl/[1.2] font-bold tracking-tight text-text-primary">

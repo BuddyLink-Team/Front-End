@@ -18,13 +18,38 @@ export const playdateApi = {
   createPlaydate: (payload) => apiClient.post(API_ENDPOINTS.PLAYDATE.BASE, payload),
 
   /**
-   * Get connected friends that can be invited to a playdate
-   */
-  /**
-   * Connected friends that can be invited
-   * @param {{ search?: string, limit?: number }} [params]
+   * Connected friends that can be invited.
+   * With childId: their children ranked for that own child ({ matched, others }) instead of the friend list.
+   * @param {{ search?: string, limit?: number, childId?: string }} [params]
    */
   getFriends: (params) => apiClient.get(`${API_ENDPOINTS.PLAYDATE.BASE}/friends`, { params }),
+
+  /**
+   * Start times fitting the families' preferences, without schedule conflicts
+   * @param {{ childId: string, participantChildIds?: string, from?: string, to?: string, durationMinutes?: number }} params
+   */
+  getTimeSlotSuggestions: (params) =>
+    apiClient.get(`${API_ENDPOINTS.PLAYDATE.BASE}/suggestions/time-slots`, { params }),
+
+  /**
+   * Places around the families (preferred place types first)
+   * @param {{ childId: string, participantChildIds?: string, type?: string, limit?: number }} params
+   */
+  getPlaceSuggestions: (params) =>
+    apiClient.get(`${API_ENDPOINTS.PLAYDATE.BASE}/suggestions/places`, { params }),
+
+  /**
+   * When the children are already busy on a day (their other playdates)
+   * @param {{ childId: string, participantChildIds?: string, date: string, excludePlaydateId?: string }} params
+   */
+  getBusyTimes: (params) => apiClient.get(`${API_ENDPOINTS.PLAYDATE.BASE}/busy-times`, { params }),
+
+  /**
+   * Activities the children share an interest in
+   * @param {{ childId: string, participantChildIds?: string }} params
+   */
+  getActivitySuggestions: (params) =>
+    apiClient.get(`${API_ENDPOINTS.PLAYDATE.BASE}/suggestions/activities`, { params }),
 
   /**
    * Host marks playdate as completed

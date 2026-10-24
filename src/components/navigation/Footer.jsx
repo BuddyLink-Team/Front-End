@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { ShieldCheck, Heart, Sparkles, Mail, Phone, MapPin } from 'lucide-react';
+import { ShieldCheck, Heart, Mail, Phone, MapPin, Bot } from 'lucide-react';
 import logoImg from '../../assets/images/logo.png';
 
 export const Footer = () => {
@@ -27,7 +27,7 @@ export const Footer = () => {
                 100% Phụ huynh xác thực
               </span>
               <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-surface-container-low text-secondary-dark border border-surface-container-high">
-                <Sparkles className="w-3.5 h-3.5 text-secondary-dark" />
+                <Bot className="w-3.5 h-3.5 text-secondary-dark" />
                 AI Assistant
               </span>
             </div>

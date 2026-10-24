@@ -6,6 +6,7 @@ export { Textarea } from './ui/Textarea';
 export { Checkbox } from './ui/Checkbox';
 export { Switch } from './ui/Switch';
 export { Select } from './ui/Select';
+export { Combobox } from './ui/Combobox';
 export { RangeSlider } from './ui/RangeSlider';
 export { Avatar } from './ui/Avatar';
 export { UpgradeButton } from './ui/UpgradeButton';

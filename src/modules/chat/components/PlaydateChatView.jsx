@@ -16,7 +16,7 @@ import {
   PanelRightClose,
   MapPin,
   Clock,
-  Sparkles,
+  CalendarHeart,
 } from 'lucide-react';
 import { ConfirmDialog } from '../../../components/feedback/ConfirmDialog';
 import { TypingIndicator } from '../../../components/feedback/TypingIndicator';
@@ -317,7 +317,7 @@ export const PlaydateChatView = ({
           <div className="p-3.5 rounded-2xl bg-surface-container-lowest border border-hairline shadow-xs flex items-center justify-between gap-3 mx-auto max-w-xl">
             <div className="flex items-center gap-3">
               <div className="w-9 h-9 rounded-xl bg-primary-container/25 text-primary flex items-center justify-center shrink-0">
-                <Sparkles className="w-4 h-4" />
+                <CalendarHeart className="w-4 h-4" />
               </div>
               <div className="text-xs">
                 <p className="font-bold text-on-surface leading-tight">

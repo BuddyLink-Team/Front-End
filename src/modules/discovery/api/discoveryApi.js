@@ -24,8 +24,8 @@ export const discoveryApi = {
     apiClient.get(API_ENDPOINTS.DISCOVERY.BASE, { params: toQueryParams(filters) }),
 
   /**
-   * Record a Like / Pass on a child profile
-   * @param {Object} data - { targetChildId, isLike }
+   * Record a Like / Pass on a child profile, for one of the parent's own children
+   * @param {Object} data - { targetChildId, isLike, forChildId } (forChildId optional with one child)
    */
   swipe: (data) => apiClient.post(API_ENDPOINTS.DISCOVERY.SWIPE, data),
 

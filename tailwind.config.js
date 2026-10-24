@@ -204,6 +204,7 @@ export default {
         'pricing-card': '520px',
         'chat-frame': 'calc(100vh - 4.5rem)', // Chat page below the top bar
         chart: '280px', // Dashboard charts (BarChart)
+        'place-modal': 'min(640px, 85vh)', // Place search modal: fixed, does not resize while loading
       },
       minHeight: {
         page: '70vh', // Centered page-level loading / empty states
