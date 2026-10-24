@@ -36,13 +36,3 @@ export const formatRelativeTime = (dateString) => {
 
   return date.format('DD/MM/YYYY [lúc] HH:mm');
 };
-
-/**
- * Format full date and time
- * @param {string|Date} dateString
- * @returns {string}
- */
-export const formatFullDateTime = (dateString) => {
-  if (!dateString) return '';
-  return dayjs(dateString).format('HH:mm • DD/MM/YYYY');
-};

@@ -22,7 +22,6 @@ import { clearAllCheckoutKeys } from '../../subscription/utils/checkoutKeys';
 import { resetChatState } from '../../chat/redux/chatSlice';
 import { resetGamificationState } from '../../gamification/redux/gamificationSlice';
 import { resetConnections } from '../../connection/redux/connectionSlice';
-import { clearNotifications } from '../../notification/redux/notificationSlice';
 import { getRoleHomePath, USER_ROLES } from '../../../constants/role.constants';
 import socketService from '../../../services/socket';
 import { getApiErrorMsg } from '../../../utils/errorUtils';
@@ -175,7 +174,6 @@ export const useAuth = () => {
     dispatch(resetChatState());
     dispatch(resetGamificationState());
     dispatch(resetConnections());
-    dispatch(clearNotifications());
     navigate('/', { replace: true });
   };
 

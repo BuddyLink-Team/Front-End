@@ -7,10 +7,12 @@ import {
   ArrowRight,
   Calendar,
 } from 'lucide-react';
+import { cn } from '../../../utils/cn';
 import { useNotifications } from '../hooks/useNotifications';
 import {
   TAB_DEFINITIONS,
   getNotificationMeta,
+  hasNotificationAction,
 } from '../constants/notification.constants';
 import { formatRelativeTime } from '../utils/notificationFormatters';
 import { Avatar } from '../../../components/ui/Avatar';
@@ -18,6 +20,8 @@ import { Button } from '../../../components/ui/Button';
 import { Card } from '../../../components/cards/Card';
 import { EmptyState } from '../../../components/cards/EmptyState';
 import { Skeleton } from '../../../components/feedback/Skeleton';
+import { StatusChip } from '../../../components/badges/StatusChip';
+import { Switch } from '../../../components/ui/Switch';
 import { Tabs } from '../../../components/navigation/Tabs';
 import { Pagination } from '../../../components/navigation/Pagination';
 
@@ -39,14 +43,14 @@ export const NotificationPage = () => {
   } = useNotifications();
 
   return (
-    <div className="max-w-5xl mx-auto space-y-6 pb-12">
+    <div className="w-full space-y-6 pb-12">
       {/* Page Header Card */}
       <Card padding="lg" className="relative overflow-hidden">
         <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
             <div className="flex items-center gap-2.5">
               <div className="p-2.5 rounded-xl bg-primary-soft text-primary-dark">
-                <Bell className="w-6 h-6" />
+                <Bell className="w-6 h-6 stroke-1.75" />
               </div>
               <h1 className="text-2xl sm:text-3xl font-semibold text-text-primary tracking-tight">
                 Lịch sử thông báo
@@ -63,7 +67,7 @@ export const NotificationPage = () => {
               size="md"
               onClick={handleMarkAllRead}
               disabled={isMarkingRead}
-              leftIcon={<CheckCheck className="w-4 h-4 text-primary" />}
+              leftIcon={<CheckCheck className="w-4 h-4 text-primary stroke-1.75" />}
               className="self-start md:self-auto shrink-0"
             >
               Đánh dấu tất cả đã đọc
@@ -88,24 +92,13 @@ export const NotificationPage = () => {
         </div>
 
         {/* Unread Only Toggle */}
-        <div className="flex items-center gap-2 shrink-0 self-end sm:self-auto">
-          <button
-            type="button"
-            onClick={handleUnreadToggle}
-            className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold transition-all duration-150 border ${
-              unreadOnly
-                ? 'bg-primary-soft text-primary-dark border-primary-border'
-                : 'bg-white text-text-muted hover:text-text-primary border-hairline'
-            }`}
-          >
-            <span
-              className={`w-2 h-2 rounded-full ${
-                unreadOnly ? 'bg-primary' : 'bg-gray-300'
-              }`}
-            />
-            <span>Chỉ xem chưa đọc</span>
-          </button>
-        </div>
+        <Switch
+          size="sm"
+          label="Chỉ hiện thông báo chưa đọc"
+          checked={unreadOnly}
+          onChange={handleUnreadToggle}
+          className="shrink-0 self-end sm:self-auto"
+        />
       </div>
 
       {/* Notifications List */}
@@ -125,7 +118,7 @@ export const NotificationPage = () => {
           </div>
         ) : items.length === 0 ? (
           <EmptyState
-            icon={<Inbox className="w-7 h-7 text-primary" />}
+            icon={<Inbox className="w-7 h-7 text-primary stroke-1.75" />}
             title="Không có thông báo nào"
             description={
               unreadOnly
@@ -138,6 +131,7 @@ export const NotificationPage = () => {
         ) : (
           items.map((notification) => {
             const meta = getNotificationMeta(notification.type);
+            const hasAction = hasNotificationAction(notification);
             const Icon = meta.icon;
             const sender = notification.data?.sender;
             const playdate = notification.data?.playdate;
@@ -154,11 +148,12 @@ export const NotificationPage = () => {
                     handleActionClick(notification);
                   }
                 }}
-                className={`group relative bg-white rounded-2xl p-4 sm:p-5 border transition-colors duration-150 cursor-pointer outline-none focus:ring-2 focus:ring-primary/20 ${
-                  !notification.isRead
-                    ? 'border-l-4 border-l-primary border-hairline bg-primary-soft/10'
-                    : 'border-hairline hover:border-gray-300'
-                }`}
+                className={cn(
+                  'group relative rounded-2xl p-4 sm:p-5 border transition-colors duration-150 cursor-pointer outline-none focus:ring-2 focus:ring-primary/20',
+                  notification.isRead
+                    ? 'bg-white border-hairline hover:border-hairline-strong'
+                    : 'bg-primary-soft border-primary-border border-l-4 border-l-primary hover:bg-primary-tint-hover'
+                )}
               >
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                   {/* Left: Icon / Avatar and Details */}
@@ -171,19 +166,25 @@ export const NotificationPage = () => {
                             src={sender.avatarUrl}
                             name={sender.fullName}
                             size="lg"
-                            className="rounded-2xl ring-2 ring-white"
+                            className="ring-2 ring-white"
                           />
                           <div
-                            className={`absolute -bottom-1 -right-1 p-1 rounded-full border border-white ${meta.bgClass}`}
+                            className={cn(
+                              'absolute -bottom-1 -right-1 p-1 rounded-full border border-white',
+                              meta.bgClass
+                            )}
                           >
-                            <Icon className="w-3.5 h-3.5" />
+                            <Icon className="w-3.5 h-3.5 stroke-1.75" />
                           </div>
                         </div>
                       ) : (
                         <div
-                          className={`w-12 h-12 rounded-2xl flex items-center justify-center border ${meta.bgClass}`}
+                          className={cn(
+                            'w-12 h-12 rounded-2xl flex items-center justify-center border',
+                            meta.bgClass
+                          )}
                         >
-                          <Icon className="w-6 h-6" />
+                          <Icon className="w-6 h-6 stroke-1.75" />
                         </div>
                       )}
                     </div>
@@ -191,14 +192,10 @@ export const NotificationPage = () => {
                     {/* Notification Copy */}
                     <div className="flex-1 min-w-0">
                       <div className="flex flex-wrap items-center gap-2">
-                        <span
-                          className={`text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-md border ${meta.badgeClass}`}
-                        >
-                          {meta.badgeText}
-                        </span>
+                        <StatusChip tone={meta.badgeTone} label={meta.badgeText} />
 
                         {!notification.isRead && (
-                          <span className="flex items-center gap-1 text-[11px] font-semibold text-primary">
+                          <span className="flex items-center gap-1 text-label-sm font-semibold text-primary">
                             <span className="w-1.5 h-1.5 rounded-full bg-primary" />
                             <span>Mới</span>
                           </span>
@@ -210,11 +207,10 @@ export const NotificationPage = () => {
                       </div>
 
                       <h4
-                        className={`text-sm sm:text-base mt-1.5 ${
-                          !notification.isRead
-                            ? 'font-semibold text-text-primary'
-                            : 'font-medium text-text-primary'
-                        }`}
+                        className={cn(
+                          'text-sm sm:text-base mt-1.5 text-text-primary',
+                          notification.isRead ? 'font-medium' : 'font-semibold'
+                        )}
                       >
                         {notification.title}
                       </h4>
@@ -225,8 +221,8 @@ export const NotificationPage = () => {
 
                       {/* Extra context snippet for Playdate */}
                       {playdate?.activity && (
-                        <div className="mt-2 inline-flex items-center gap-2 px-2.5 py-1 rounded-xl bg-surface-muted border border-hairline text-[11px] text-text-muted">
-                          <Calendar className="w-3.5 h-3.5 text-primary" />
+                        <div className="mt-2 inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-surface-muted border border-hairline text-label-sm text-text-muted">
+                          <Calendar className="w-3.5 h-3.5 text-primary stroke-1.75" />
                           <span className="font-semibold text-text-primary">
                             {playdate.activity}
                           </span>
@@ -238,27 +234,31 @@ export const NotificationPage = () => {
 
                   {/* Right Actions */}
                   <div className="flex items-center gap-2 sm:self-center shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-hairline">
-                    <Button
-                      variant="secondary"
-                      size="sm"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleActionClick(notification);
-                      }}
-                      rightIcon={<ArrowRight className="w-3.5 h-3.5" />}
-                    >
-                      {meta.actionLabel}
-                    </Button>
+                    {hasAction && (
+                      <Button
+                        variant="secondary"
+                        size="sm"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleActionClick(notification);
+                        }}
+                        rightIcon={<ArrowRight className="w-3.5 h-3.5 stroke-1.75" />}
+                      >
+                        {meta.actionLabel}
+                      </Button>
+                    )}
 
                     {!notification.isRead && (
-                      <button
-                        type="button"
+                      <Button
+                        variant="ghost"
+                        size="sm"
                         onClick={(e) => handleMarkAsRead(e, notification.id)}
-                        className="p-2 rounded-xl text-text-muted hover:text-primary hover:bg-surface-muted transition-colors"
                         title="Đánh dấu đã đọc"
+                        aria-label="Đánh dấu đã đọc"
+                        className="p-2 text-text-muted hover:text-primary"
                       >
-                        <Check className="w-4 h-4" />
-                      </button>
+                        <Check className="w-4 h-4 stroke-1.75" />
+                      </Button>
                     )}
                   </div>
                 </div>

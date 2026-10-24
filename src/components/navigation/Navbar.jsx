@@ -21,7 +21,7 @@ import socketService from '../../services/socket';
 import { NAV_LINKS } from '../../constants/navigation.constants';
 import logoImg from '../../assets/images/logo.png';
 import NotificationDropdown from '../../modules/notification/components/NotificationDropdown';
-import { clearNotifications } from '../../modules/notification/redux/notificationSlice';
+import NotificationCountBadge from '../../modules/notification/components/NotificationCountBadge';
 
 /**
  * @param {Object} props
@@ -33,7 +33,6 @@ export const Navbar = ({ onLogout } = {}) => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const { isAuthenticated, user, parent } = useSelector((state) => state.auth);
-  const { unreadCount } = useSelector((state) => state.notification);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const handleLogout = () => {
@@ -44,7 +43,6 @@ export const Navbar = ({ onLogout } = {}) => {
     socketService.disconnect();
     dispatch(logout());
     dispatch(clearParentState());
-    dispatch(clearNotifications());
     navigate('/');
   };
 
@@ -256,14 +254,10 @@ export const Navbar = ({ onLogout } = {}) => {
                   className="flex items-center justify-between px-4 py-2.5 rounded-xl text-sm font-semibold text-text-primary hover:bg-canvas"
                 >
                   <div className="flex items-center gap-3">
-                    <Bell className="w-4 h-4 text-text-muted" />
+                    <Bell className="w-4 h-4 text-text-muted stroke-1.75" />
                     <span>Thông báo</span>
                   </div>
-                  {unreadCount > 0 && (
-                    <span className="px-2 py-0.5 rounded-full text-[11px] font-bold bg-red-500 text-white">
-                      {unreadCount}
-                    </span>
-                  )}
+                  <NotificationCountBadge />
                 </Link>
                 <Link
                   to="/profile"

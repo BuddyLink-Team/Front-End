@@ -29,7 +29,11 @@ class NotificationMockService {
     let list = this._getAll();
 
     if (type) {
-      list = list.filter((n) => n.type === type);
+      // Same contract as the BE: "a,b" or an array means any of these types
+      const types = Array.isArray(type)
+        ? type
+        : String(type).split(',').map((t) => t.trim()).filter(Boolean);
+      list = list.filter((n) => types.includes(n.type));
     }
     if (isRead === 'true' || isRead === true) {
       list = list.filter((n) => n.isRead === true);

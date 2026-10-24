@@ -1,5 +1,4 @@
 import { useState, useEffect, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 import {
   fetchNotifications,
@@ -7,14 +6,15 @@ import {
   markAllNotificationsAsRead,
   setActiveTab,
 } from '../redux/notificationSlice';
+import { useOpenNotification } from './useOpenNotification';
 import {
   TAB_DEFINITIONS,
-  getNotificationMeta,
+  NOTIFICATION_PAGE_LIMIT,
 } from '../constants/notification.constants';
 
 export const useNotifications = () => {
-  const navigate = useNavigate();
   const dispatch = useDispatch();
+  const openNotification = useOpenNotification();
 
   const {
     items,
@@ -33,7 +33,7 @@ export const useNotifications = () => {
     const currentTabDef = TAB_DEFINITIONS.find((t) => t.id === activeTab);
     const queryParams = {
       page: currentPage,
-      limit: 10,
+      limit: NOTIFICATION_PAGE_LIMIT,
     };
 
     if (unreadOnly) {
@@ -62,9 +62,7 @@ export const useNotifications = () => {
   }, []);
 
   const handleMarkAsRead = useCallback((e, notificationId) => {
-    if (e?.stopPropagation) {
-      e.stopPropagation();
-    }
+    e?.stopPropagation?.();
     dispatch(markNotificationAsRead(notificationId));
   }, [dispatch]);
 
@@ -74,17 +72,7 @@ export const useNotifications = () => {
     }
   }, [dispatch, unreadCount, isMarkingRead]);
 
-  const handleActionClick = useCallback((notification) => {
-    if (!notification) return;
-    if (!notification.isRead) {
-      dispatch(markNotificationAsRead(notification.id));
-    }
-    const meta = getNotificationMeta(notification.type);
-    const targetPath = meta.getActionPath(notification.data);
-    if (targetPath) {
-      navigate(targetPath);
-    }
-  }, [dispatch, navigate]);
+  const handleActionClick = openNotification;
 
   return {
     items,

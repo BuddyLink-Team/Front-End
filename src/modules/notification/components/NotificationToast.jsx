@@ -1,7 +1,8 @@
 import React from 'react';
+import { cn } from '../../../utils/cn';
 import { getNotificationMeta } from '../constants/notification.constants';
 
-export const NotificationToast = ({ notification, onDismiss }) => {
+export const NotificationToast = ({ notification, onClick }) => {
   if (!notification) return null;
 
   const meta = getNotificationMeta(notification.type);
@@ -9,12 +10,19 @@ export const NotificationToast = ({ notification, onDismiss }) => {
 
   return (
     <div
-      onClick={onDismiss}
-      className="flex items-start gap-3 cursor-pointer py-1"
-      role="alert"
+      role="button"
+      tabIndex={0}
+      onClick={onClick}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          onClick?.();
+        }
+      }}
+      className="flex items-start gap-3 cursor-pointer py-1 outline-none"
     >
-      <div className={`p-2 rounded-xl shrink-0 ${meta.bgClass}`}>
-        <Icon className="w-5 h-5" />
+      <div className={cn('p-2 rounded-xl shrink-0', meta.bgClass)}>
+        <Icon className="w-5 h-5 stroke-1.75" />
       </div>
       <div className="flex-1 min-w-0">
         <p className="text-xs font-semibold text-text-primary line-clamp-1">

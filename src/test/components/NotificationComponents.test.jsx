@@ -70,17 +70,12 @@ vi.mock('../../modules/notification/api/notificationApi', () => ({
   default: mockApi,
 }));
 
-vi.mock('../../modules/notification/api/notification.api', () => ({
-  notificationApi: mockApi,
-  default: mockApi,
-}));
-
 describe('NotificationDropdown Component', () => {
   it('renders bell button with unread count badge', () => {
     renderWithProviders(<NotificationDropdown />, {
       preloadedState: {
         notification: {
-          items: mockNotifications,
+          previewItems: mockNotifications,
           unreadCount: 1,
           isLoading: false,
           pagination: { page: 1, limit: 10, total: 2, totalPages: 1 },
@@ -99,7 +94,8 @@ describe('NotificationDropdown Component', () => {
     renderWithProviders(<NotificationDropdown />, {
       preloadedState: {
         notification: {
-          items: mockNotifications,
+          previewItems: [],
+          items: [],
           unreadCount: 1,
           isLoading: false,
           pagination: { page: 1, limit: 10, total: 2, totalPages: 1 },
@@ -150,7 +146,7 @@ describe('NotificationPage Component', () => {
     expect(screen.getByRole('button', { name: 'Huy hiệu & Thành tích' })).toBeInTheDocument();
 
     // Unread toggle
-    expect(screen.getByRole('button', { name: /chỉ xem chưa đọc/i })).toBeInTheDocument();
+    expect(screen.getByRole('switch', { name: /chỉ hiện thông báo chưa đọc/i })).toBeInTheDocument();
 
     // Cards
     await waitFor(() => {

@@ -4,32 +4,29 @@ import { useSelector, useDispatch } from 'react-redux';
 import { useClickOutside } from '../../../hooks/useClickOutside';
 import {
   fetchDropdownNotifications,
-  markNotificationAsRead,
   markAllNotificationsAsRead,
 } from '../redux/notificationSlice';
-import { getNotificationMeta } from '../constants/notification.constants';
+import { NOTIFICATION_PREVIEW_LIMIT } from '../constants/notification.constants';
+import { useOpenNotification } from './useOpenNotification';
 
 export const useNotificationDropdown = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
+  const openNotification = useOpenNotification();
   const dropdownRef = useRef(null);
   const [isOpen, setIsOpen] = useState(false);
 
-  const {
-    previewItems,
-    items,
-    unreadCount,
-    isPreviewLoading,
-    isLoading,
-    isMarkingRead,
-  } = useSelector((state) => state.notification);
+  // Only the preview state: the history page keeps its own filtered list
+  const { previewItems, unreadCount, isPreviewLoading, isMarkingRead } = useSelector(
+    (state) => state.notification
+  );
 
   useClickOutside(dropdownRef, isOpen, () => setIsOpen(false));
 
   // Load preview notifications when dropdown opens
   useEffect(() => {
     if (isOpen) {
-      dispatch(fetchDropdownNotifications({ page: 1, limit: 6 }));
+      dispatch(fetchDropdownNotifications({ page: 1, limit: NOTIFICATION_PREVIEW_LIMIT }));
     }
   }, [isOpen, dispatch]);
 
@@ -42,22 +39,12 @@ export const useNotificationDropdown = () => {
   }, []);
 
   const handleItemClick = useCallback((notification) => {
-    if (!notification) return;
-    if (!notification.isRead) {
-      dispatch(markNotificationAsRead(notification.id));
-    }
     setIsOpen(false);
-    const meta = getNotificationMeta(notification.type);
-    const targetPath = meta.getActionPath(notification.data);
-    if (targetPath) {
-      navigate(targetPath);
-    }
-  }, [dispatch, navigate]);
+    openNotification(notification);
+  }, [openNotification]);
 
   const handleMarkAllRead = useCallback((e) => {
-    if (e?.stopPropagation) {
-      e.stopPropagation();
-    }
+    e?.stopPropagation?.();
     if (unreadCount > 0 && !isMarkingRead) {
       dispatch(markAllNotificationsAsRead());
     }
@@ -68,19 +55,12 @@ export const useNotificationDropdown = () => {
     navigate('/notifications');
   }, [navigate]);
 
-  // Backward-compatible fallback for tests or components with preloaded items
-  const displayItems = previewItems && previewItems.length > 0
-    ? previewItems.slice(0, 6)
-    : (items || []).slice(0, 6);
-
-  const loading = isPreviewLoading || (isLoading && displayItems.length === 0);
-
   return {
     isOpen,
     dropdownRef,
-    previewItems: displayItems,
+    previewItems,
     unreadCount,
-    isLoading: loading,
+    isLoading: isPreviewLoading,
     isMarkingRead,
     toggleDropdown,
     closeDropdown,

@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import toast from 'react-hot-toast';
 import socketService from '../../../services/socket';
@@ -10,24 +10,38 @@ import {
   fetchUnreadCount,
 } from '../redux/notificationSlice';
 import { NOTIFICATION_SOCKET_EVENTS } from '../constants/notification.constants';
+import { useOpenNotification } from './useOpenNotification';
 import NotificationToast from '../components/NotificationToast';
 
+const TOAST_DURATION_MS = 4000;
+
+// Not built on useSocketEvent: that hook opens the socket on mount, while these listeners
+// must only attach once the user is signed in
 export const useNotificationSocket = () => {
   const dispatch = useDispatch();
-  const { isAuthenticated, user } = useSelector((state) => state.auth);
+  const openNotification = useOpenNotification();
+  // openNotification can change on every route change; a ref keeps the socket listeners attached
+  const openNotificationRef = useRef(openNotification);
+  openNotificationRef.current = openNotification;
+  const isAuthenticated = useSelector((state) => state.auth.isAuthenticated);
+  const userId = useSelector((state) => state.auth.user?.id || state.auth.user?._id);
 
   useEffect(() => {
-    if (!isAuthenticated || !user) return;
+    if (!isAuthenticated || !userId) return;
 
-    // Initial fetch of unread count when authenticated
     dispatch(fetchUnreadCount());
 
     const socket = socketService.getSocket();
     if (!socket) return;
 
+    // The first connect is covered by the fetch above; later ones are reconnects that may
+    // have missed notifications while the socket was down
+    let hasConnected = socket.connected;
     const handleConnect = () => {
-      // Re-fetch unread count upon successful socket (re)connection
-      dispatch(fetchUnreadCount());
+      if (hasConnected) {
+        dispatch(fetchUnreadCount());
+      }
+      hasConnected = true;
     };
 
     const handleNewNotification = (notification) => {
@@ -38,18 +52,15 @@ export const useNotificationSocket = () => {
         (t) =>
           React.createElement(NotificationToast, {
             notification,
-            onDismiss: () => toast.dismiss(t.id),
+            onClick: () => {
+              toast.dismiss(t.id);
+              openNotificationRef.current(notification);
+            },
           }),
         {
-          duration: 4000,
+          duration: TOAST_DURATION_MS,
           position: 'top-right',
-          style: {
-            borderRadius: '1rem',
-            background: '#ffffff',
-            boxShadow: '0 8px 24px -4px rgba(45, 55, 72, 0.04), 0 2px 6px -2px rgba(45, 55, 72, 0.02)',
-            border: '1px solid #edf2f0',
-            padding: '10px 14px',
-          },
+          className: 'rounded-2xl border border-hairline shadow-elevated',
         }
       );
     };
@@ -79,7 +90,7 @@ export const useNotificationSocket = () => {
       socket.off(NOTIFICATION_SOCKET_EVENTS.READ, handleNotificationRead);
       socket.off(NOTIFICATION_SOCKET_EVENTS.READ_ALL, handleNotificationReadAll);
     };
-  }, [dispatch, isAuthenticated, user]);
+  }, [dispatch, isAuthenticated, userId]);
 };
 
 export default useNotificationSocket;
