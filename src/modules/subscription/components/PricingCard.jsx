@@ -2,11 +2,11 @@ import PropTypes from 'prop-types';
 import {
   Check,
   Crown,
-  Sparkles,
   ShieldCheck,
   ArrowRight,
   Minus,
   CheckCircle2,
+  Heart,
 } from 'lucide-react';
 import { Button } from '../../../components/ui/Button';
 import { PLAN_CODES } from '../constants/subscriptionConstants';
@@ -79,7 +79,7 @@ export const PricingCard = ({
       {/* Badge Nổi bật màu bơ ấm áp */}
       {isPremiumCard && (
         <div className="absolute -top-3.5 right-6 inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-tertiary-fixed text-on-tertiary-fixed text-xs font-bold shadow-sm select-none">
-          <Sparkles className="w-3.5 h-3.5 text-tertiary" />
+          <Heart className="w-3.5 h-3.5 text-tertiary" />
           <span>Được phụ huynh yêu thích</span>
         </div>
       )}

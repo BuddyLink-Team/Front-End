@@ -9,7 +9,7 @@ import {
   CheckCircle2,
   KeyRound,
   RotateCcw,
-  Sparkles,
+  ShieldCheck,
 } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 import { forgotPasswordSchema } from '../validation/authValidation';
@@ -116,7 +116,7 @@ export const ForgotPasswordPage = () => {
           {/* Guidance Note */}
           <div className="p-4 rounded-2xl bg-surface-container-low text-on-surface-variant text-xs space-y-2 border border-hairline/70">
             <div className="flex items-center gap-2 font-medium text-text-primary">
-              <Sparkles className="w-4 h-4 text-primary" />
+              <ShieldCheck className="w-4 h-4 text-primary" />
               <span>Hướng dẫn bảo mật</span>
             </div>
             <ul className="list-disc list-inside space-y-1 text-text-muted">

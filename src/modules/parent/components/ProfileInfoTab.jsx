@@ -1,5 +1,5 @@
 import React from 'react';
-import { User, MapPin, Save, Sparkles } from 'lucide-react';
+import { User, MapPin, Save, Info } from 'lucide-react';
 import { Input, Textarea, Button, Card } from '../../../components';
 import { useProfileInfo } from '../hooks/useParentTabHooks';
 
@@ -72,7 +72,7 @@ export const ProfileInfoTab = ({ profile, onUpdate, isUpdating }) => {
           </div>
 
           <div className="flex items-center gap-2.5 p-3.5 rounded-xl bg-primary-fixed/20 border border-primary/20 text-xs text-on-surface-variant">
-            <Sparkles className="w-4 h-4 text-primary shrink-0" />
+            <Info className="w-4 h-4 text-primary shrink-0" />
             <span className="leading-relaxed">
               Hệ thống tự động đồng bộ địa chỉ đầy đủ (Phường/Xã, Tỉnh/Thành
               phố) để tính toán bán kính ghép bạn chính xác nhất.

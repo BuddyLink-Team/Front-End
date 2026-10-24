@@ -8,8 +8,12 @@ import discoveryReducer, { setFilters } from '../../modules/discovery/redux/disc
 import parentReducer from '../../modules/parent/redux/parentSlice';
 import childReducer from '../../modules/child/redux/childSlice';
 
-const { mockGet, mockToastError } = vi.hoisted(() => ({ mockGet: vi.fn(), mockToastError: vi.fn() }));
-vi.mock('../../services/apiClient', () => ({ default: { get: mockGet, post: vi.fn() } }));
+const { mockGet, mockPost, mockToastError } = vi.hoisted(() => ({
+  mockGet: vi.fn(),
+  mockPost: vi.fn(),
+  mockToastError: vi.fn(),
+}));
+vi.mock('../../services/apiClient', () => ({ default: { get: mockGet, post: mockPost } }));
 vi.mock('react-hot-toast', () => ({
   default: { success: vi.fn(), error: mockToastError, loading: vi.fn(), dismiss: vi.fn() },
 }));
@@ -43,6 +47,7 @@ describe('useDiscovery', () => {
     CHILDREN = [{ id: 'k1', displayName: 'Na' }];
     mockGet.mockReset();
     mockGet.mockImplementation(respond);
+    mockPost.mockReset();
     mockToastError.mockReset();
   });
 
@@ -124,5 +129,40 @@ describe('useDiscovery', () => {
     await waitFor(() => expect(discoveryCalls()).toHaveLength(2));
     expect(discoveryCalls()[1][1].params.childId).toBe('k2');
     expect(result.current.searchingForLabel).toBe('Bin');
+  });
+
+  it('records a swipe for the selected own child (forChildId)', async () => {
+    CHILDREN = [
+      { id: 'k1', displayName: 'Na' },
+      { id: 'k2', displayName: 'Bin' },
+    ];
+    mockPost.mockResolvedValue({ success: true, data: { swipeId: 's1', isLike: false, connection: null } });
+    const { result } = renderDiscovery();
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+
+    act(() => result.current.selectChild('k2'));
+    await waitFor(() => expect(result.current.selectedChildId).toBe('k2'));
+
+    await act(async () => {
+      await result.current.handleSwipe('target-1', 'PASS');
+    });
+    expect(mockPost).toHaveBeenCalledWith(expect.any(String), {
+      targetChildId: 'target-1',
+      isLike: false,
+      forChildId: 'k2',
+    });
+  });
+
+  it('points to the child selector when the server needs to know which child the swipe is for', async () => {
+    mockPost.mockRejectedValue({ success: false, error: { code: 'CHILD_REQUIRED_FOR_SWIPE' } });
+    const { result } = renderDiscovery();
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+
+    let recorded;
+    await act(async () => {
+      recorded = await result.current.handleSwipe('target-1', 'LIKE');
+    });
+    expect(recorded).toBe(false);
+    expect(mockToastError).toHaveBeenCalledWith(expect.stringContaining('Đang tìm bạn cho'));
   });
 });

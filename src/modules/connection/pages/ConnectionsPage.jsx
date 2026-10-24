@@ -10,6 +10,7 @@ import ConnectionCard from '../components/ConnectionCard';
 import ConnectionEmptyState from '../components/ConnectionEmptyState';
 import QuickProfileCard from '../components/QuickProfileCard';
 import { CONNECTION_CONFIRM, CONNECTION_LISTS, CONNECTION_TABS } from '../constants/connection.constants';
+import { cn } from '../../../utils/cn';
 
 /**
  * /connections: accepted connections, incoming and sent requests (paginated and searched by the
@@ -55,6 +56,8 @@ const ConnectionsPage = () => {
   }, [lists, selectedId]);
 
   const tabs = CONNECTION_TABS.map((tab) => ({ ...tab, count: totals[tab.id] }));
+  // Nothing in the list and no profile open
+  const isEmptyView = list.length === 0 && !(isLoading && list.length === 0) && !selected?.connection;
   const confirmContent = pendingConfirm ? CONNECTION_CONFIRM[pendingConfirm.action] : null;
 
   return (
@@ -75,7 +78,8 @@ const ConnectionsPage = () => {
         </div>
       )}
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-space-lg items-start">
+      {/* Both columns empty: they stretch to the same height (the empty boxes fill them) */}
+      <div className={cn('grid grid-cols-1 lg:grid-cols-12 gap-space-lg', isEmptyView ? 'lg:items-stretch' : 'items-start')}>
         <div className="lg:col-span-8 flex flex-col gap-space-sm">
           {isLoading && list.length === 0 ? (
             Array.from({ length: 3 }, (_, index) => <Skeleton key={index} className="h-28 rounded-2xl" />)
@@ -84,6 +88,7 @@ const ConnectionsPage = () => {
               type={activeTab}
               isSearching={isSearching}
               onDiscover={() => navigate('/discovery')}
+              className="flex-1 lg:min-h-placeholder"
             />
           ) : (
             list.map((connection) => (
@@ -104,7 +109,7 @@ const ConnectionsPage = () => {
           )}
         </div>
 
-        <div className="lg:col-span-4 lg:sticky lg:top-24">
+        <div className={cn('lg:col-span-4', isEmptyView ? 'flex flex-col' : 'lg:sticky lg:top-24')}>
           <QuickProfileCard
             connection={selected?.connection || null}
             type={selected?.type}

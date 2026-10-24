@@ -27,7 +27,7 @@ const CONTENT = {
 /**
  * Shared EmptyState with the connection-specific content
  */
-const ConnectionEmptyState = ({ type, isSearching = false, onDiscover }) => {
+const ConnectionEmptyState = ({ type, isSearching = false, onDiscover, className }) => {
   const { title, description } = CONTENT[isSearching ? 'search' : type] ?? CONTENT[CONNECTION_LISTS.ACCEPTED];
   const canDiscover = !isSearching && type !== CONNECTION_LISTS.INCOMING;
 
@@ -38,6 +38,7 @@ const ConnectionEmptyState = ({ type, isSearching = false, onDiscover }) => {
       description={description}
       actionLabel={canDiscover ? 'Khám phá ngay' : undefined}
       onAction={canDiscover ? onDiscover : undefined}
+      className={className}
     />
   );
 };
@@ -46,6 +47,7 @@ ConnectionEmptyState.propTypes = {
   type: PropTypes.oneOf(Object.values(CONNECTION_LISTS)).isRequired,
   isSearching: PropTypes.bool,
   onDiscover: PropTypes.func,
+  className: PropTypes.string,
 };
 
 export default ConnectionEmptyState;

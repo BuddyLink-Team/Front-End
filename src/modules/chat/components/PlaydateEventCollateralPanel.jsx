@@ -10,8 +10,8 @@ import {
   FileText,
   ExternalLink,
   X,
-  Sparkles,
   ShieldCheck,
+  CalendarX,
 } from 'lucide-react';
 import { Avatar } from '../../../components/ui/Avatar';
 import { VerifiedBadge } from '../../../components/badges/VerifiedBadge';
@@ -52,7 +52,7 @@ export const PlaydateEventCollateralPanel = ({
           className
         )}
       >
-        <Sparkles className="w-8 h-8 text-primary mb-2 opacity-50" />
+        <CalendarX className="w-8 h-8 text-primary mb-2 opacity-50" />
         <p className="text-sm font-medium">Không tìm thấy thông tin sự kiện</p>
       </aside>
     );

@@ -1,5 +1,5 @@
 import PropTypes from 'prop-types';
-import { ExternalLink, Sparkles } from 'lucide-react';
+import { ExternalLink, Gift } from 'lucide-react';
 import { Button } from '../../../components/ui/Button';
 import { getPlanBenefits } from '../utils/planBenefits';
 
@@ -34,7 +34,7 @@ export const CheckoutOrderSummary = ({ orderData, planFeatures, durationText, fo
 
     <div className="rounded-2xl border border-primary/20 bg-primary/5 p-6 space-y-3">
       <div className="flex items-center gap-2 text-xs font-bold text-primary uppercase tracking-wider">
-        <Sparkles className="w-4 h-4" />
+        <Gift className="w-4 h-4" />
         <span>Quyền lợi kích hoạt ngay:</span>
       </div>
       <ul className="text-xs text-on-surface-variant space-y-2">

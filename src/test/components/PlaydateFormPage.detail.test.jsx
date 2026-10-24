@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { renderWithProviders, screen, fireEvent, waitFor } from '../utils/testUtils';
-import { PlaydateDetailPage } from '../../modules/playdate/pages/PlaydateDetailPage';
+import { PlaydateFormPage as PlaydateDetailPage } from '../../modules/playdate/pages/PlaydateFormPage';
 import { playdateApi } from '../../modules/playdate/api/playdateApi';
 
 vi.mock('../../modules/playdate/api/playdateApi', () => ({
@@ -13,6 +13,7 @@ vi.mock('../../modules/playdate/api/playdateApi', () => ({
     createReschedule: vi.fn(),
     voteReschedule: vi.fn(),
     getNearbyPlaces: vi.fn(),
+    getBusyTimes: vi.fn(),
   },
 }));
 
@@ -72,12 +73,47 @@ const mockParticipantPlaydate = {
   ...mockHostPlaydate,
   isHost: false,
   myParticipantStatus: 'pending',
+  myChildId: 'child-guest-1',
 };
 
 describe('PlaydateDetailPage Component', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     playdateApi.getReschedule.mockResolvedValue({ data: null });
+    playdateApi.getBusyTimes.mockResolvedValue({ data: { busy: [] } });
+  });
+
+  it('tells an invited parent their child is busy at that time and does not let them accept', async () => {
+    const date = '2030-11-02';
+    playdateApi.getPlaydateById.mockResolvedValue({
+      data: { ...mockParticipantPlaydate, scheduledDate: `${date}T00:00:00`, time: '15:00', durationMinutes: 120 },
+    });
+    playdateApi.getBusyTimes.mockResolvedValue({
+      data: {
+        busy: [
+          {
+            childId: 'child-guest-1',
+            childName: 'Bé Sóc',
+            isOwnChild: true,
+            start: '16:00',
+            end: '18:00',
+            startsAt: new Date(`${date}T16:00:00`).toISOString(),
+            endsAt: new Date(`${date}T18:00:00`).toISOString(),
+          },
+        ],
+      },
+    });
+
+    renderWithProviders(<PlaydateDetailPage />);
+
+    expect(await screen.findByText(/Bé Sóc đã có hẹn khác 16:00–18:00, trùng giờ này/)).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /chấp nhận tham gia/i })).toBeDisabled();
+    expect(screen.getByRole('button', { name: /từ chối/i })).not.toBeDisabled();
+    expect(playdateApi.getBusyTimes).toHaveBeenCalledWith({
+      childId: 'child-guest-1',
+      date,
+      excludePlaydateId: 'playdate-test-123',
+    });
   });
 
   it('renders playdate title, time, location, and host badge when user is host', async () => {
@@ -89,13 +125,19 @@ describe('PlaydateDetailPage Component', () => {
     renderWithProviders(<PlaydateDetailPage />);
 
     await waitFor(() => {
-      expect(screen.getByText('Buổi chơi Lego & Công viên')).toBeInTheDocument();
+      expect(screen.getByRole('heading', { level: 1, name: 'Buổi chơi Lego & Công viên' })).toBeInTheDocument();
       expect(screen.getByText('Mẹ Lan')).toBeInTheDocument();
       // Shown in the content and in the summary panel
       expect(screen.getAllByText(/công viên cầu ánh sao/i).length).toBeGreaterThan(0);
       expect(screen.getAllByText(/15:00/).length).toBeGreaterThan(0);
       expect(screen.getByText(/^người tổ chức$/i)).toBeInTheDocument();
     });
+
+    // The details read like the create form: the same three steps, read-only
+    const steps = screen.getAllByRole('heading', { level: 2 }).map((h) => h.textContent);
+    expect(steps).toEqual(['Bước 1: Bé & bạn chơi', 'Bước 2: Thời gian & địa điểm', 'Bước 3: Hoạt động & ghi chú']);
+    expect(screen.getByText('2 giờ')).toBeInTheDocument();
+    expect(screen.getByText('Nhớ mang nón và bình nước')).toBeInTheDocument();
 
     // Verify host buttons: Hoàn thành & Hủy hẹn
     expect(screen.getByRole('button', { name: /hoàn thành/i })).toBeInTheDocument();
@@ -161,7 +203,7 @@ describe('PlaydateDetailPage Component', () => {
     renderWithProviders(<PlaydateDetailPage />);
 
     await waitFor(() => {
-      expect(screen.getByText('Buổi chơi Lego & Công viên')).toBeInTheDocument();
+      expect(screen.getByRole('heading', { level: 1, name: 'Buổi chơi Lego & Công viên' })).toBeInTheDocument();
     });
 
     expect(screen.queryByRole('button', { name: /đổi lịch hẹn/i })).not.toBeInTheDocument();

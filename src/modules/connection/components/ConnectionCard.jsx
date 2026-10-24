@@ -5,6 +5,7 @@ import { Avatar } from '../../../components/ui/Avatar';
 import { Button } from '../../../components/ui/Button';
 import { VerifiedBadge } from '../../../components/badges/VerifiedBadge';
 import { InterestTag } from '../../../components/badges/InterestTag';
+import ChildPairList from './ChildPairList';
 import { cn } from '../../../utils/cn';
 import { CONNECTION_ACTIONS, CONNECTION_LISTS } from '../constants/connection.constants';
 import { ICON_STROKE } from '../../../constants/icon.constants';
@@ -16,7 +17,7 @@ const MAX_INTERESTS = 3;
  * or a connected family (Message / Remove). Selecting the card shows its quick profile.
  */
 const ConnectionCard = ({ connection, type, isSelected, isBusy, onSelect, onAction, onMessage }) => {
-  const { parentName, childName, childAge, isVerified, interests, area, avatarUrl } = connection;
+  const { parentName, childName, childAge, isVerified, interests, area, avatarUrl, childPairs = [] } = connection;
   const title = childName ? `${childName}${childAge !== null ? ` (${childAge} tuổi)` : ''}` : parentName;
 
   const handleKeyDown = (event) => {
@@ -47,6 +48,8 @@ const ConnectionCard = ({ connection, type, isSelected, isBusy, onSelect, onActi
               {isVerified && <VerifiedBadge size="sm" iconOnly />}
             </div>
             {childName && <p className="text-sm text-text-muted truncate">Phụ huynh: {parentName}</p>}
+
+            <ChildPairList pairs={childPairs} isIncoming={type === CONNECTION_LISTS.INCOMING} />
 
             {interests.length > 0 && (
               <div className="flex flex-wrap gap-1.5">
@@ -127,6 +130,7 @@ ConnectionCard.propTypes = {
     interests: PropTypes.arrayOf(PropTypes.string),
     area: PropTypes.string,
     avatarUrl: PropTypes.string,
+    childPairs: PropTypes.arrayOf(PropTypes.object),
   }).isRequired,
   type: PropTypes.oneOf(Object.values(CONNECTION_LISTS)).isRequired,
   isSelected: PropTypes.bool,

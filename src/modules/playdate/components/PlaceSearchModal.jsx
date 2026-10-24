@@ -1,11 +1,10 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import {
   Search,
   MapPin,
   Compass,
   Trees,
   Coffee,
-  Sparkles,
   Building2,
   BookOpen,
   Palette,
@@ -15,6 +14,7 @@ import {
   Globe,
   ExternalLink,
   ChevronRight,
+  FerrisWheel,
 } from 'lucide-react';
 import { Button } from '../../../components/ui/Button';
 import { Input } from '../../../components/ui/Input';
@@ -23,13 +23,14 @@ import { FilterChips } from '../../../components/search/FilterChips';
 import { EmptyState } from '../../../components/cards/EmptyState';
 import { Spinner } from '../../../components/feedback/Spinner';
 import { usePlaceSearch } from '../hooks/usePlaceSearch';
+import { googleMapsDirectionsUrl } from '../utils/placeLinks';
 
 // Values follow PLACE_TYPES of the places module (Back-End)
 const CATEGORIES = [
   { id: 'all', label: 'Tất cả', icon: Compass },
   { id: 'park', label: 'Công viên', icon: Trees },
   { id: 'kids_cafe', label: 'Kids Cafe', icon: Coffee },
-  { id: 'playground', label: 'Khu vui chơi', icon: Sparkles },
+  { id: 'playground', label: 'Khu vui chơi', icon: FerrisWheel },
   { id: 'library', label: 'Thư viện', icon: BookOpen },
   { id: 'sports_center', label: 'Thể thao', icon: Building2 },
   { id: 'workshop', label: 'Workshop', icon: Palette },
@@ -42,8 +43,6 @@ const formatDistance = (meters) => {
   if (meters < 1000) return `${Math.round(meters / 10) * 10} m`;
   return `${(meters / 1000).toFixed(1).replace('.', ',')} km`;
 };
-
-const directionsUrl = ([lng, lat]) => `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`;
 
 const toLocation = (place) => ({
   name: place.name,
@@ -74,7 +73,11 @@ const InfoRow = ({ icon: Icon, children }) => (
   </div>
 );
 
-export const PlaceSearchModal = ({ isOpen, onClose, onSelectPlace, title = 'Địa điểm gợi ý lân cận' }) => {
+/**
+ * @param {Object} [props.initialPlace] - Open straight on this place's details (e.g. a suggested place);
+ *   the details come from the places API like any place of the list
+ */
+export const PlaceSearchModal = ({ isOpen, onClose, onSelectPlace, initialPlace = null, title = 'Địa điểm gợi ý lân cận' }) => {
   const {
     activeCategory,
     setActiveCategory,
@@ -90,6 +93,10 @@ export const PlaceSearchModal = ({ isOpen, onClose, onSelectPlace, title = 'Đ�
     closePlace,
     loadPlaceDetail,
   } = usePlaceSearch(isOpen);
+
+  useEffect(() => {
+    if (isOpen && initialPlace) openPlace(initialPlace);
+  }, [isOpen, initialPlace, openPlace]);
 
   // A place chosen from the list may have no address yet: the details call resolves it
   const handleSelect = async (place) => {
@@ -187,12 +194,12 @@ export const PlaceSearchModal = ({ isOpen, onClose, onSelectPlace, title = 'Đ�
       <div className="flex flex-wrap gap-3 text-xs font-semibold">
         {selectedPlace.coordinates && (
           <a
-            href={directionsUrl(selectedPlace.coordinates)}
+            href={googleMapsDirectionsUrl(selectedPlace.coordinates)}
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex items-center gap-1 text-primary-dark hover:underline"
           >
-            <Navigation className="w-3.5 h-3.5" /> Chỉ đường
+            <Navigation className="w-3.5 h-3.5" /> Chỉ đường trên Google Maps
           </a>
         )}
         {selectedPlace.osmUrl && (
@@ -230,6 +237,8 @@ export const PlaceSearchModal = ({ isOpen, onClose, onSelectPlace, title = 'Đ�
       onClose={onClose}
       title={selectedPlace ? 'Thông tin địa điểm' : title}
       maxWidth="max-w-xl"
+      // Fixed height: the modal keeps its size while places load or the list changes
+      className="h-place-modal"
       placement="sheet"
       footer={footer}
     >

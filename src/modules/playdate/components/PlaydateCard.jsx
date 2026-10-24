@@ -1,9 +1,9 @@
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Clock, MapPin, CheckCircle2, Hourglass, Sparkles, Star, X } from 'lucide-react';
+import { Clock, MapPin, CheckCircle2, Hourglass, Star, X, Crown } from 'lucide-react';
 import { Button } from '../../../components/ui/Button';
 import { StatusChip } from '../../../components/badges/StatusChip';
-import { hasPlaydateStarted } from '../utils/playdateTime';
+import { hasPlaydateStarted, formatPlaydateTimeRange } from '../utils/playdateTime';
 import { ACTIVITY_CATEGORY_META, getActivityCategory } from '../../../constants/activity.constants';
 
 const WEEKDAY_SHORT = ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7'];
@@ -110,7 +110,7 @@ export const PlaydateCard = ({
   const hostShort = getShortName(hostChildName) || 'Bơ';
   const guestShort = getShortName(guestChildName) || 'Min';
 
-  const formattedDateTime = formatPlaydateDateTime(scheduledDate, time);
+  const formattedDateTime = formatPlaydateDateTime(scheduledDate, formatPlaydateTimeRange(playdate));
 
   const scheduled = scheduledDate ? new Date(scheduledDate) : null;
   const dateTile =
@@ -147,6 +147,9 @@ export const PlaydateCard = ({
                 <Clock className="w-3 h-3" /> {time}
               </span>
             )}
+            {time && playdate.endTime && (
+              <span className="text-label-xs text-text-muted">đến {playdate.endTime}</span>
+            )}
           </div>
         )}
 
@@ -167,7 +170,7 @@ export const PlaydateCard = ({
 
             {isHost ? (
               <span className="inline-flex items-center gap-1 text-label-sm font-semibold text-primary-ink bg-primary-soft border border-primary-border px-2 py-0.5 rounded-full whitespace-nowrap">
-                <Sparkles className="w-2.5 h-2.5" /> Bạn là người tổ chức
+                <Crown className="w-2.5 h-2.5" /> Bạn là người tổ chức
               </span>
             ) : (
               <span className="text-xs text-text-muted whitespace-nowrap">

@@ -24,6 +24,31 @@ export const fetchInvitableFriends = createApiThunk(
   (params) => playdateApi.getFriends(params),
 );
 
+// Friends' children ranked for one own child: { matched, others }
+export const fetchPlaymates = createApiThunk(
+  'playdate/fetchPlaymates',
+  ({ childId, search }) => playdateApi.getFriends({ childId, ...(search ? { search } : {}) }),
+);
+
+// Planning suggestions (kept by the create page, not in the store)
+export const fetchTimeSlotSuggestions = createApiThunk(
+  'playdate/fetchTimeSlotSuggestions',
+  (params) => playdateApi.getTimeSlotSuggestions(params),
+);
+
+export const fetchPlaceSuggestions = createApiThunk(
+  'playdate/fetchPlaceSuggestions',
+  (params) => playdateApi.getPlaceSuggestions(params),
+);
+
+// Children's other playdates on a day (checked while a schedule is picked)
+export const fetchBusyTimes = createApiThunk('playdate/fetchBusyTimes', (params) => playdateApi.getBusyTimes(params));
+
+export const fetchActivitySuggestions = createApiThunk(
+  'playdate/fetchActivitySuggestions',
+  (params) => playdateApi.getActivitySuggestions(params),
+);
+
 // meta.areaSyncing: the Back-End is fetching the places of this area, search again shortly
 export const fetchNearbyPlaces = createApiThunk(
   'playdate/fetchNearbyPlaces',
@@ -80,6 +105,7 @@ const initialState = {
   selectedPlaydate: null,
   rescheduleRequest: null,
   friends: [],
+  playmates: { matched: [], others: [] },
   activeTab: 'all',
   viewMode: PLAYDATE_VIEW_MODES.LIST, // 'list' | 'calendar'
   searchQuery: '',
@@ -226,6 +252,12 @@ export const playdateSlice = createSlice({
       .addCase(fetchInvitableFriends.fulfilled, (state, action) => {
         const data = action.payload;
         state.friends = Array.isArray(data) ? data : data?.friends || [];
+      })
+      .addCase(fetchPlaymates.fulfilled, (state, action) => {
+        state.playmates = {
+          matched: action.payload?.matched || [],
+          others: action.payload?.others || [],
+        };
       })
       // Actions returning the updated playdate
       .addCase(completePlaydate.fulfilled, (state, action) => {

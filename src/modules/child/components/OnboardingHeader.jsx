@@ -1,5 +1,5 @@
 import React from 'react';
-import { Sparkles } from 'lucide-react';
+import { Baby } from 'lucide-react';
 
 export const OnboardingHeader = ({ currentStep, totalSteps, stepInfo }) => {
   return (
@@ -7,7 +7,7 @@ export const OnboardingHeader = ({ currentStep, totalSteps, stepInfo }) => {
       {/* Top Header Badge */}
       <div className="flex items-center justify-between gap-4 mb-5">
         <div className="inline-flex items-center gap-2 bg-primary/10 text-primary px-3.5 py-1.5 rounded-full border border-primary/20 text-xs font-semibold uppercase tracking-wider">
-          <Sparkles className="w-3.5 h-3.5" />
+          <Baby className="w-3.5 h-3.5" />
           <span>Thiết lập hồ sơ bé & Tiêu chí bạn chơi</span>
         </div>
 

@@ -81,6 +81,8 @@ Một Parent có thể quản lý **một hoặc nhiều Child Profile**.
 
 **UI:** Swipe Card
 
+**Swipe theo từng bé:** mỗi lượt vuốt dành cho một bé của phụ huynh ("Đang tìm bạn cho…"). Phụ huynh có từ 2 bé phải chọn bé; có 1 bé thì tự động chọn. Một bé khác có thể được Like một lần cho mỗi bé của mình.
+
 ---
 
 ## 4.2 Smart Matching
@@ -113,6 +115,8 @@ Match Score dựa trên:
 | Block User        | Chặn người dùng        |
 
 **Chat chỉ khả dụng sau khi Connection được chấp nhận.**
+
+**Ghép đôi các bé (child pairs):** kết nối vẫn ở cấp phụ huynh (chat, chặn, báo cáo, quota thuộc phụ huynh). Trên mỗi kết nối lưu thêm các cặp bé đã được ghép: khi Like ở Discovery ("Bông (5 tuổi) ↔ Bin") hoặc khi hai bé đã chơi chung một Playdate hoàn thành. Thẻ kết nối và lời mời hiển thị các cặp này (chỉ tuổi, không ngày sinh).
 
 ---
 
@@ -164,15 +168,24 @@ Match Score dựa trên:
 
 ## 6.1 Create Playdate
 
-| Field            | Description                                                    |
-| ---------------- | -------------------------------------------------------------- |
-| **Child**        | Chọn trẻ sẽ tham gia Playdate.                                 |
-| **Participants** | Chọn các Parent/Family muốn mời tham gia.                      |
-| **Date**         | Chọn ngày tổ chức Playdate.                                    |
-| **Time**         | Chọn thời gian bắt đầu Playdate.                               |
-| **Activity**     | Nhập hoạt động dự kiến, ví dụ: Picnic, đi công viên, vẽ tranh. |
-| **Location**     | Chọn địa điểm tổ chức Playdate.                                |
-| **Note**         | Thêm ghi chú hoặc thông tin cần lưu ý cho các Participants.    |
+Tạo Playdate bắt đầu từ **bé**:
+
+| Field            | Description                                                                                                         |
+| ---------------- | ------------------------------------------------------------------------------------------------------------------- |
+| **Child**        | Bước 1: chọn trẻ sẽ tham gia Playdate (bắt buộc trước các bước sau).                                                 |
+| **Participants** | Bước 2: các bé của gia đình bạn bè, bé đã ghép đôi với bé của mình xếp trước, kèm điểm phù hợp và cảnh báo chênh lệch tuổi (không chặn). |
+| **Date**         | Chọn ngày tổ chức Playdate (hoặc chọn một khung giờ gợi ý).                                                          |
+| **Time**         | Chọn thời gian bắt đầu Playdate.                                                                                     |
+| **Duration**     | Thời lượng 30 phút - 8 giờ (mặc định 2 giờ); giờ kết thúc được tính tự động.                                         |
+| **Activity**     | Nhập hoạt động dự kiến, hoặc chọn gợi ý theo sở thích chung của các bé.                                               |
+| **Location**     | Chọn địa điểm gợi ý gần các gia đình, tìm địa điểm hoặc nhập tay.                                                    |
+| **Note**         | Thêm ghi chú hoặc thông tin cần lưu ý cho các Participants.                                                          |
+
+**Trợ giúp lên kế hoạch:**
+
+- **Gợi ý thời gian:** tối đa 3 khung giờ trong 7 ngày tới, hợp với ngày / buổi ưu tiên của các phụ huynh, bỏ qua giờ đã qua và giờ các bé đã có hẹn.
+- **Trùng lịch:** một bé không thể ở hai Playdate cùng lúc. Bé của chủ trì trùng lịch → không tạo / đổi lịch được; bé được mời trùng lịch → chỉ cảnh báo khi tạo, và không thể nhận lời (hoặc đồng ý đổi lịch) cho tới khi hết trùng.
+- **Nhắc lịch:** thông báo cho chủ trì và các bé đã nhận lời 24 giờ và 1 giờ trước giờ bắt đầu (mỗi lời nhắc gửi đúng 1 lần).
 
 ---
 
@@ -370,6 +383,8 @@ Pending ──→ Accepted ──→ Update Playdate
 | ------------------ | --------------------------------------- |
 | Suggest Activities | AI gợi ý hoạt động phù hợp cho Playdate |
 
+**MVP (rule-based):** gợi ý từ danh mục hoạt động theo sở thích / hoạt động yêu thích chung của các bé và độ tuổi, kèm lý do ("Cả hai bé đều thích xếp hình lego"). Các API gợi ý thời gian, địa điểm, hoạt động sẽ là tool của AI Agent.
+
 Recommendation criteria:
 
 - Age
@@ -390,6 +405,8 @@ Recommendation criteria:
 | Place Details | Xem thông tin địa điểm   |
 
 **Place Types:** Park, Kids Café, Playground, Library, Sports Center, Workshop.
+
+**Gợi ý địa điểm cho Playdate:** địa điểm quanh điểm giữa các gia đình, loại địa điểm mọi phụ huynh cùng thích xếp trước, bỏ loại chưa hợp tuổi bé nhỏ nhất. Không bao giờ trả về tọa độ của gia đình hay điểm giữa. Khoảng cách tới từng nhà được tính như Discovery: từ tâm phường của gia đình (tọa độ geocode từ phường + thành phố) tới địa điểm, chính xác 0,1 km, ghi rõ "Nhà bạn" / tên phụ huynh. Mỗi loại gợi ý hiện 4 mục, còn lại trong "Xem thêm".
 
 **Tech:** Google Maps / Places API
 

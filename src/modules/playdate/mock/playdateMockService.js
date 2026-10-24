@@ -1,8 +1,10 @@
-import { getPlaydateStart, hasPlaydateStarted } from '../utils/playdateTime';
+import { getPlaydateStart, hasPlaydateStarted, addMinutesToTime } from '../utils/playdateTime';
 import {
   MOCK_CURRENT_PARENT,
   MOCK_HOST_CHILDREN,
   MOCK_FRIENDS,
+  MOCK_CHILD_PAIRS,
+  MOCK_PLAYMATE_SCORES,
   INITIAL_MOCK_PLAYDATES,
   INITIAL_MOCK_RESCHEDULES,
   MOCK_NEARBY_PLACES,
@@ -253,12 +255,15 @@ class PlaydateMockService {
       };
     });
 
+    const durationMinutes = payload.durationMinutes || 120;
     const newPlaydate = {
       id: newId,
       _id: newId,
       activity: payload.activity,
       scheduledDate: payload.scheduledDate,
       time: payload.time,
+      durationMinutes,
+      endTime: addMinutesToTime(payload.time, durationMinutes),
       location: payload.location,
       note: payload.note || '',
       status: 'upcoming',
@@ -288,19 +293,176 @@ class PlaydateMockService {
     return {
       success: true,
       message: 'Playdate created successfully',
-      data: newPlaydate,
+      data: { ...newPlaydate, warnings: [] },
     };
   }
 
   /**
-   * GET /api/v1/playdates/friends (Invitable connected friends, array like the API)
+   * GET /api/v1/playdates/friends (Invitable connected friends, array like the API).
+   * With ?childId=: the friends' children ranked for that child ({ matched, others }).
    */
-  async getFriends() {
+  async getFriends(params = {}) {
     await delay();
+    if (!params.childId) {
+      return { success: true, message: 'Invitable friends retrieved successfully', data: MOCK_FRIENDS };
+    }
+
+    const pairs = MOCK_CHILD_PAIRS[params.childId] || {};
+    const search = (params.search || '').trim().toLowerCase();
+    const entries = MOCK_FRIENDS.filter((friend) => !search || friend.fullName.toLowerCase().includes(search)).flatMap(
+      (friend) =>
+        (friend.children || []).map((child) => ({
+          parent: {
+            id: friend.id,
+            fullName: friend.fullName,
+            avatarUrl: friend.avatarUrl || '',
+            isVerified: Boolean(friend.isVerified),
+            location: friend.location,
+          },
+          child: {
+            id: child.id,
+            displayName: child.displayName,
+            age: Math.floor(child.age),
+            gender: child.gender,
+            interests: child.interests || [],
+          },
+          matchScore: MOCK_PLAYMATE_SCORES[child.id] ?? 50,
+          source: pairs[child.id] || null,
+          warnings: [],
+        }))
+    );
+    const byScore = (a, b) => b.matchScore - a.matchScore;
     return {
       success: true,
-      message: 'Invitable friends retrieved successfully',
-      data: MOCK_FRIENDS,
+      message: 'Connected friends retrieved successfully',
+      data: {
+        matched: entries.filter((e) => e.source).sort(byScore),
+        others: entries.filter((e) => !e.source).sort(byScore),
+      },
+    };
+  }
+
+  /**
+   * GET /api/v1/playdates/busy-times: the host child's other upcoming mock playdates that day
+   */
+  async getBusyTimes(params = {}) {
+    await delay();
+    const busy = this._getStoredPlaydates()
+      .filter(
+        (p) =>
+          p.status === 'upcoming' &&
+          p.id !== params.excludePlaydateId &&
+          (p.hostChild?.id || p.hostChildId) === params.childId &&
+          String(p.scheduledDate).slice(0, 10) === params.date
+      )
+      .map((p) => {
+        const startsAt = getPlaydateStart(p.scheduledDate, p.time);
+        const endsAt = new Date(startsAt.getTime() + (p.durationMinutes || 120) * 60000);
+        return {
+          childId: params.childId,
+          childName: p.hostChild?.displayName || 'Bé',
+          isOwnChild: true,
+          start: p.time,
+          end: addMinutesToTime(p.time, p.durationMinutes || 120),
+          startsAt: startsAt.toISOString(),
+          endsAt: endsAt.toISOString(),
+          playdateId: p.id,
+        };
+      });
+    return { success: true, message: 'Busy times retrieved successfully', data: { date: params.date, busy } };
+  }
+
+  /**
+   * GET /api/v1/playdates/suggestions/time-slots: the next weekend mornings / afternoon
+   */
+  async getTimeSlotSuggestions(params = {}) {
+    await delay();
+    const toDay = (date) =>
+      `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+    const saturday = new Date();
+    saturday.setDate(saturday.getDate() + (((6 - saturday.getDay() + 7) % 7) || 7));
+    const sunday = new Date(saturday);
+    sunday.setDate(saturday.getDate() + 1);
+    const totalParents = 1 + (params.participantChildIds ? params.participantChildIds.split(',').length : 0);
+    const slot = (date, time, timeSlot, matchedParents) => ({
+      date: toDay(date),
+      time,
+      durationMinutes: Number(params.durationMinutes) || 120,
+      dayType: 'weekend',
+      timeSlot,
+      matchedParents,
+      totalParents,
+    });
+    return {
+      success: true,
+      message: 'Time slot suggestions retrieved successfully',
+      data: {
+        slots: [
+          slot(saturday, '09:00', 'morning', totalParents),
+          slot(sunday, '09:00', 'morning', totalParents),
+          slot(saturday, '15:00', 'afternoon', 1),
+        ],
+      },
+    };
+  }
+
+  /**
+   * GET /api/v1/playdates/suggestions/places: nearest mock places, parks first
+   */
+  async getPlaceSuggestions() {
+    await delay();
+    const places = [...MOCK_NEARBY_PLACES]
+      .sort((a, b) => Number(b.placeType === 'park') - Number(a.placeType === 'park') || a.distanceMeters - b.distanceMeters)
+      .slice(0, 4)
+      .map((place) => ({
+        id: place.id,
+        placeId: place.placeId,
+        name: place.name,
+        type: place.placeType,
+        address: place.address,
+        openingHours: place.openingHours || '',
+        coordinates: place.coordinates,
+        osmUrl: place.osmUrl,
+        isPreferredType: place.placeType === 'park',
+        // From each family's ward center (the caller first)
+        familyDistances: [
+          { parentId: MOCK_CURRENT_PARENT.id, label: 'Nhà bạn', area: MOCK_CURRENT_PARENT.location.area, distanceKm: Math.round(place.distanceMeters / 100) / 10 },
+          { parentId: 'parent-friend-2', label: 'Mẹ Hà', area: 'Phường Đa Kao', distanceKm: Math.round(place.distanceMeters / 80) / 10 },
+        ],
+      }));
+    return { success: true, message: 'Place suggestions retrieved successfully', data: { places } };
+  }
+
+  /**
+   * GET /api/v1/playdates/suggestions/activities: activities with a reason
+   */
+  async getActivitySuggestions(params = {}) {
+    await delay();
+    const host = MOCK_HOST_CHILDREN.find((c) => c.id === params.childId) || MOCK_HOST_CHILDREN[0];
+    const hasGuests = Boolean(params.participantChildIds);
+    return {
+      success: true,
+      message: 'Activity suggestions retrieved successfully',
+      data: {
+        activities: [
+          {
+            key: 'Xếp hình Lego',
+            title: 'Buổi chơi xếp hình Lego & giao lưu',
+            placeTypes: ['kids_cafe', 'library'],
+            durationMinutes: 120,
+            sharedCount: hasGuests ? 2 : 1,
+            reason: hasGuests ? 'Cả hai bé đều thích xếp hình lego' : `${host.displayName} thích xếp hình lego`,
+          },
+          {
+            key: 'Đạp xe công viên',
+            title: 'Đạp xe cùng nhau ở công viên',
+            placeTypes: ['park'],
+            durationMinutes: 90,
+            sharedCount: 1,
+            reason: `${host.displayName} thích đạp xe công viên`,
+          },
+        ],
+      },
     };
   }
 
@@ -460,6 +622,8 @@ class PlaydateMockService {
       reason: payload.reason,
       newDate: payload.newDate,
       newStartTime: payload.newStartTime,
+      newDurationMinutes: payload.newDurationMinutes || null,
+      newEndTime: payload.newDurationMinutes ? addMinutesToTime(payload.newStartTime, payload.newDurationMinutes) : null,
       newLocation: newLocation || null,
       responses: voters.map((v) => ({ parentId: v.parentId, status: 'pending' })),
       createdAt: new Date().toISOString(),
@@ -486,10 +650,13 @@ class PlaydateMockService {
   }
 
   _applySchedule(playdate, proposal) {
+    const durationMinutes = proposal.newDurationMinutes || playdate.durationMinutes || 120;
     return {
       ...playdate,
       scheduledDate: proposal.newDate,
       time: proposal.newStartTime,
+      durationMinutes,
+      endTime: addMinutesToTime(proposal.newStartTime, durationMinutes),
       ...(proposal.newLocation?.name ? { location: proposal.newLocation } : {}),
     };
   }

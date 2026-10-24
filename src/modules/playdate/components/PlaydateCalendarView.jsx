@@ -8,6 +8,7 @@ import { Button } from '../../../components/ui/Button';
 import { EmptyState } from '../../../components/cards/EmptyState';
 import { PlaydateCard } from './PlaydateCard';
 import { PLAYDATE_STATUS_META } from '../constants/playdateConstants';
+import { formatPlaydateTimeRange } from '../utils/playdateTime';
 
 const DAYS_OF_WEEK = ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN'];
 
@@ -249,7 +250,7 @@ export const PlaydateCalendarView = ({
                       <div
                         key={evt.id}
                         className="text-label-xs md:text-xs px-1.5 py-0.5 rounded truncate font-medium border border-hairline bg-surface-container-low text-text-primary flex items-center gap-1"
-                        title={`${evt.activity} (${evt.time}) - ${meta.label}`}
+                        title={`${evt.activity} (${formatPlaydateTimeRange(evt)}) - ${meta.label}`}
                       >
                         <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${meta.dotClass}`} />
                         <span className="truncate">

@@ -24,11 +24,27 @@ const labelsOf = (values = [], options) =>
   values.map((value) => options.find((option) => option.value === value)?.label || value);
 
 /**
- * ConnectionDTO -> card view model (partner = the other parent, with their first child)
+ * ConnectionDTO -> card view model (partner = the other parent).
+ * The card shows the paired children; connections without pairs (older data) show the partner's first child.
  */
 const toViewModel = (connection) => {
   const partner = connection.partner || {};
-  const child = partner.child || null;
+  const childPairs = (connection.childPairs || []).map((pair) => ({
+    key: `${pair.myChild.id}_${pair.partnerChild.id}`,
+    myChildId: pair.myChild.id,
+    myChildName: pair.myChild.displayName,
+    partnerChildId: pair.partnerChild.id,
+    partnerChildName: pair.partnerChild.displayName,
+    partnerChildAge: pair.partnerChild.age ?? null,
+    source: pair.source,
+    matchScore: pair.matchScore ?? null,
+  }));
+  const firstPair = childPairs[0];
+  // Title child: the first paired child of the partner, else their first child
+  let child = partner.child || null;
+  if (firstPair && child?.id !== firstPair.partnerChildId) {
+    child = { displayName: firstPair.partnerChildName, age: firstPair.partnerChildAge };
+  }
   return {
     id: connection.id,
     status: connection.status,
@@ -45,6 +61,7 @@ const toViewModel = (connection) => {
     preferredDays: labelsOf(partner.preferences?.preferredPlaydateDays, PLAYDATE_DAY_OPTIONS),
     preferredTimeSlots: labelsOf(partner.preferences?.preferredTimeSlots, TIME_SLOT_OPTIONS),
     preferredLocations: labelsOf(partner.preferences?.preferredLocations, LOCATION_PREFERENCE_OPTIONS),
+    childPairs,
   };
 };
 
@@ -176,7 +193,11 @@ const useConnections = () => {
 
   // Create playdate form with this friend already invited
   const invitePlaydate = useCallback(
-    (connection) => navigate(`/playdates/create?invite=${connection.partnerId}`),
+    (connection) => {
+      // Start the playdate from the own child already paired with this family
+      const childId = connection.childPairs[0]?.myChildId;
+      navigate(`/playdates/create?invite=${connection.partnerId}${childId ? `&childId=${childId}` : ''}`);
+    },
     [navigate]
   );
 

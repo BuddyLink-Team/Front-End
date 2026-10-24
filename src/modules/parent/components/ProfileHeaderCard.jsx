@@ -5,7 +5,7 @@ import {
   Phone,
   MapPin,
   Flame,
-  Sparkles,
+  Baby,
 } from 'lucide-react';
 import { Card, Avatar, VerifiedBadge, Button } from '../../../components';
 import { useProfileAvatar } from '../hooks/useParentTabHooks';
@@ -117,7 +117,7 @@ export const ProfileHeaderCard = ({
               Hồ sơ bé
             </span>
             <div className="flex items-center gap-1">
-              <Sparkles className="w-3.5 h-3.5 text-primary" />
+              <Baby className="w-3.5 h-3.5 text-primary" />
               <span className="text-xs font-bold">{childrenCount} bé</span>
             </div>
           </div>

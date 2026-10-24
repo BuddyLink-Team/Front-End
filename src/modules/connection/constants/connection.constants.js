@@ -30,6 +30,13 @@ export const CONNECTION_LIST_QUERIES = Object.freeze({
   [CONNECTION_LISTS.OUTGOING]: { status: CONNECTION_STATUS.PENDING, direction: CONNECTION_DIRECTION.OUTGOING },
 });
 
+/** How two children got paired on a connection (BE CHILD_PAIR_SOURCES) */
+export const CHILD_PAIR_SOURCE_LABELS = Object.freeze({
+  discovery: 'Ghép từ Khám phá',
+  playdate: 'Đã chơi cùng',
+  manual: 'Ghép thủ công',
+});
+
 /** Connections per page (GET /connections?page=&limit=) */
 export const CONNECTION_PAGE_SIZE = 10;
 

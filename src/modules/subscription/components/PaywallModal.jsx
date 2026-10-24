@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
-import { Crown, Check, Sparkles } from 'lucide-react';
+import { Crown, Check } from 'lucide-react';
 import { openPaywall, closePaywall } from '../redux/subscriptionSlice';
 import { APP_EVENTS } from '../../../constants/event.constants';
 import { getPlanBenefits } from '../utils/planBenefits';
@@ -69,7 +69,7 @@ export const PaywallModal = () => {
         {/* Premium benefits (PROJECT_OVERVIEW 14.1) */}
         <div className="space-y-3">
           <div className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-primary">
-            <Sparkles className="w-3.5 h-3.5" />
+            <Crown className="w-3.5 h-3.5" />
             <span>Đặc quyền khi nâng cấp Premium:</span>
           </div>
 

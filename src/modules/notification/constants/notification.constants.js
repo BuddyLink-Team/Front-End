@@ -6,7 +6,6 @@ import {
   Award,
   Flame,
   Bell,
-  Sparkles,
 } from 'lucide-react';
 
 export const NOTIFICATION_TYPES = Object.freeze({
@@ -143,7 +142,7 @@ export const NOTIFICATION_META = {
 export const getNotificationMeta = (type) => {
   return (
     NOTIFICATION_META[type] || {
-      icon: Sparkles,
+      icon: Bell,
       bgClass: 'bg-surface-muted text-text-muted border-hairline',
       badgeTone: 'neutral',
       badgeText: 'Tin mới',

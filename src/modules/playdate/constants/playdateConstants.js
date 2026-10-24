@@ -40,6 +40,57 @@ export const RESCHEDULE_STATUS = Object.freeze({
 
 export const PLAYDATE_ERROR_CODES = Object.freeze({
   QUOTA_EXCEEDED: 'QUOTA_EXCEEDED',
+  SCHEDULE_CONFLICT: 'SCHEDULE_CONFLICT',
+});
+
+/** Warnings returned with a playdate or a playmate (never block the action) */
+export const PLAYDATE_WARNING_CODES = Object.freeze({
+  AGE_GAP: 'AGE_GAP',
+  SCHEDULE_CONFLICT: 'SCHEDULE_CONFLICT',
+});
+
+/** Playdate length (BE PLAYDATE_RULES: 30 - 480 minutes, default 120) */
+export const DEFAULT_PLAYDATE_DURATION = 120;
+const DURATION_PRESETS = [30, 60, 90, 120, 150, 180, 240];
+
+/**
+ * "30 phút", "1 giờ", "1,5 giờ", "45 phút"
+ * @param {number} minutes
+ */
+export const formatDurationLabel = (minutes) => {
+  if (minutes % 60 === 0) return `${minutes / 60} giờ`;
+  if (minutes > 60 && minutes % 30 === 0) return `${Math.floor(minutes / 60)},5 giờ`;
+  return `${minutes} phút`;
+};
+
+/**
+ * Duration select options; a value outside the presets (e.g. an older playdate) stays selectable
+ * @param {number} [current]
+ * @returns {Array<{ value: string, label: string }>}
+ */
+export const getDurationOptions = (current) =>
+  [...new Set([...DURATION_PRESETS, ...(current ? [Number(current)] : [])])]
+    .sort((a, b) => a - b)
+    .map((minutes) => ({ value: String(minutes), label: formatDurationLabel(minutes) }));
+
+/** Planning suggestions reload this long after the selected children change */
+export const SUGGESTION_DEBOUNCE_MS = 400;
+
+/** PLACE_TYPES of the places module (Back-End) -> label */
+export const PLACE_TYPE_LABELS = Object.freeze({
+  park: 'Công viên',
+  kids_cafe: 'Kids Cafe',
+  playground: 'Khu vui chơi',
+  library: 'Thư viện',
+  sports_center: 'Thể thao',
+  workshop: 'Workshop',
+});
+
+/** Suggested time slot -> label of its part of the day */
+export const TIME_SLOT_LABELS = Object.freeze({
+  morning: 'Buổi sáng',
+  afternoon: 'Buổi chiều',
+  evening: 'Buổi tối',
 });
 
 /**
@@ -83,6 +134,11 @@ export const PLAYDATE_ERROR_MAP = Object.freeze({
   ALREADY_VOTED: 'Bạn đã bỏ phiếu hoặc đề xuất đổi lịch này đã kết thúc.',
   PARENT_LOCATION_REQUIRED: 'Hãy cập nhật vị trí trong hồ sơ để xem địa điểm gần bạn, hoặc tìm theo tên.',
   PLACE_NOT_FOUND: 'Không tìm thấy thông tin địa điểm.',
+  CHILD_NOT_FOUND: 'Không tìm thấy hồ sơ bé.',
+  LOCATION_REQUIRED: 'Hãy cập nhật vị trí trong hồ sơ để nhận gợi ý địa điểm.',
+  INVALID_DATE_RANGE: 'Khoảng ngày gợi ý tối đa 14 ngày.',
+  [PLAYDATE_ERROR_CODES.SCHEDULE_CONFLICT]:
+    'Bé đã có một buổi hẹn khác trùng giờ này. Hãy chọn thời gian khác.',
   [PLAYDATE_ERROR_CODES.QUOTA_EXCEEDED]:
     'Bạn đã đạt giới hạn của gói hiện tại. Nâng cấp Premium để không giới hạn!',
 });

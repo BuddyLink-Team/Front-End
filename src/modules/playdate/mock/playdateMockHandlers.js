@@ -10,7 +10,31 @@ export const playdateMockHandlers = [
   {
     method: 'GET',
     pattern: `${API_ENDPOINTS.PLAYDATE.BASE}/friends`,
-    handler: () => playdateMockService.getFriends(),
+    handler: ({ query }) => playdateMockService.getFriends(query),
+  },
+
+  // 1a. Children's busy times on a day (before :id as well)
+  {
+    method: 'GET',
+    pattern: `${API_ENDPOINTS.PLAYDATE.BASE}/busy-times`,
+    handler: ({ query }) => playdateMockService.getBusyTimes(query),
+  },
+
+  // 1b. Planning suggestions (before :id as well)
+  {
+    method: 'GET',
+    pattern: `${API_ENDPOINTS.PLAYDATE.BASE}/suggestions/time-slots`,
+    handler: ({ query }) => playdateMockService.getTimeSlotSuggestions(query),
+  },
+  {
+    method: 'GET',
+    pattern: `${API_ENDPOINTS.PLAYDATE.BASE}/suggestions/places`,
+    handler: ({ query }) => playdateMockService.getPlaceSuggestions(query),
+  },
+  {
+    method: 'GET',
+    pattern: `${API_ENDPOINTS.PLAYDATE.BASE}/suggestions/activities`,
+    handler: ({ query }) => playdateMockService.getActivitySuggestions(query),
   },
 
   // 2. Playdates list with tab filter and search

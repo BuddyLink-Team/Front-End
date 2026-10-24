@@ -14,8 +14,8 @@ export const fetchDiscoveryProfiles = createApiThunk('discovery/fetchProfiles', 
   discoveryApi.getProfiles(filters),
 );
 
-export const swipeDiscoveryProfile = createApiThunk('discovery/swipe', ({ targetChildId, isLike }) =>
-  discoveryApi.swipe({ targetChildId, isLike }),
+export const swipeDiscoveryProfile = createApiThunk('discovery/swipe', ({ targetChildId, isLike, forChildId }) =>
+  discoveryApi.swipe({ targetChildId, isLike, ...(forChildId ? { forChildId } : {}) }),
 );
 
 export const fetchChildPublicProfile = createApiThunk('discovery/fetchChildPublicProfile', (childId) =>

@@ -134,9 +134,11 @@ export const useDiscovery = ({ isKeyboardEnabled = true, onViewDetail } = {}) =>
   const pendingSwipeIds = useRef(new Set());
   const [pendingCount, setPendingCount] = useState(0);
 
-  // Latest stack, read inside handleSwipe without re-creating it on every change
+  // Latest stack and selected child, read inside handleSwipe without re-creating it on every change
   const profilesRef = useRef(profiles);
   profilesRef.current = profiles;
+  const selectedChildIdRef = useRef(selectedChildId);
+  selectedChildIdRef.current = selectedChildId;
 
   const fetchProfiles = useCallback(
     () => dispatch(fetchDiscoveryProfiles({ ...filters, childId: selectedChildId || undefined })),
@@ -173,8 +175,13 @@ export const useDiscovery = ({ isKeyboardEnabled = true, onViewDetail } = {}) =>
       if (stackProfile) dispatch(removeProfile(childId));
 
       try {
+        // A swipe is made for the selected own child (the server pairs it with the liked child)
         const result = await dispatch(
-          swipeDiscoveryProfile({ targetChildId: childId, isLike: direction === SWIPE_DIRECTIONS.LIKE }),
+          swipeDiscoveryProfile({
+            targetChildId: childId,
+            isLike: direction === SWIPE_DIRECTIONS.LIKE,
+            forChildId: selectedChildIdRef.current || undefined,
+          }),
         ).unwrap();
 
         // Like = connection request; liking back someone who already sent one connects both parents

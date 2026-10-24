@@ -1,13 +1,17 @@
 import React, { useState } from 'react';
-import { Calendar as CalendarIcon, Clock, MapPin, Compass, AlertCircle } from 'lucide-react';
+import { Calendar as CalendarIcon, Clock, MapPin, Compass, AlertCircle, Timer } from 'lucide-react';
 import { Button } from '../../../components/ui/Button';
 import { Input } from '../../../components/ui/Input';
+import { Select } from '../../../components/ui/Select';
 import { Textarea } from '../../../components/ui/Textarea';
 import { Modal } from '../../../components/feedback/Modal';
 import { FilterChips } from '../../../components/search/FilterChips';
 import { PlaceSearchModal } from './PlaceSearchModal';
+import { ScheduleAvailability } from './ScheduleAvailability';
 import { useRescheduleForm } from '../hooks/useRescheduleForm';
 import { getLocalDateString } from '../../../utils/formatters';
+import { getDurationOptions } from '../constants/playdateConstants';
+import { addMinutesToTime } from '../utils/playdateTime';
 
 const TIME_PRESETS = ['08:00', '09:00', '15:00', '16:30'].map((preset) => ({
   id: preset,
@@ -16,12 +20,14 @@ const TIME_PRESETS = ['08:00', '09:00', '15:00', '16:30'].map((preset) => ({
 
 export const RescheduleModal = ({ isOpen, onClose, playdate, onSuccess }) => {
   const [showPlaceSearch, setShowPlaceSearch] = useState(false);
-  const { form, errors, isSubmitting, setField, selectPlace, handleSubmit } = useRescheduleForm({
+  const { form, errors, isSubmitting, scheduleCheck, setField, selectPlace, handleSubmit } = useRescheduleForm({
     isOpen,
     playdate,
     onSuccess,
     onClose,
   });
+  const newEndTime = addMinutesToTime(form.newStartTime, Number(form.durationMinutes));
+  const durationOptions = getDurationOptions(form.durationMinutes);
 
   return (
     <>
@@ -80,6 +86,27 @@ export const RescheduleModal = ({ isOpen, onClose, playdate, onSuccess }) => {
                 onChange={(value) => value && setField('newStartTime', value)}
               />
             </div>
+
+            <div className="space-y-1.5">
+              <Select
+                label="Thời lượng"
+                id="newDurationMinutes"
+                options={durationOptions}
+                placeholder=""
+                value={form.durationMinutes}
+                onChange={(e) => setField('durationMinutes', e.target.value)}
+              />
+              {newEndTime && (
+                <p className="flex items-center gap-1.5 text-xs text-text-muted">
+                  <Timer className="w-3.5 h-3.5" />
+                  Kết thúc lúc {newEndTime}
+                </p>
+              )}
+            </div>
+
+            {form.newDate && playdate?.isHost && (
+              <ScheduleAvailability {...scheduleCheck} onPickFreeTime={(value) => setField('newStartTime', value)} />
+            )}
 
             <div className="space-y-2 pt-1 border-t border-hairline">
               <div className="flex items-center justify-between pt-2">

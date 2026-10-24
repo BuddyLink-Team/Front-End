@@ -1,5 +1,5 @@
 import React from 'react';
-import { ArrowLeft, ArrowRight, Sparkles } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Compass } from 'lucide-react';
 import { Button } from '../../../components';
 
 export const OnboardingFooter = ({
@@ -38,7 +38,7 @@ export const OnboardingFooter = ({
           type="button"
           onClick={onSubmit}
           isLoading={isLoading}
-          rightIcon={<Sparkles className="w-4 h-4" />}
+          rightIcon={<Compass className="w-4 h-4" />}
         >
           Hoàn tất &amp; Khám phá bạn chơi
         </Button>
