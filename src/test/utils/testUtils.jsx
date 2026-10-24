@@ -7,6 +7,7 @@ import authReducer from '../../modules/auth/redux/authSlice';
 import childReducer from '../../modules/child/redux/childSlice';
 import subscriptionReducer from '../../modules/subscription/redux/subscriptionSlice';
 import playdateReducer from '../../modules/playdate/redux/playdateSlice';
+import notificationReducer from '../../modules/notification/redux/notificationSlice';
 
 /**
  * Custom render helper that wraps components with Redux Provider and Router.
@@ -27,6 +28,7 @@ export function renderWithProviders(
         child: childReducer,
         subscription: subscriptionReducer,
         playdate: playdateReducer,
+        notification: notificationReducer,
       },
       preloadedState,
     }),

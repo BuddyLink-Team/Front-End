@@ -6,9 +6,13 @@ import PaywallModal from '../modules/subscription/components/PaywallModal';
 import RatingPrompt from '../modules/rating-feedback/components/RatingPrompt';
 import AchievementCelebration from '../modules/gamification/components/AchievementCelebration';
 import { useAuth } from '../modules/auth/hooks/useAuth';
+import { useNotificationSocket } from '../modules/notification/hooks/useNotificationSocket';
 
 export const MainLayout = () => {
   const { handleLogout } = useAuth();
+
+  // Attach realtime notification socket listener for parent users
+  useNotificationSocket();
 
   return (
     <div className="min-h-screen flex flex-col bg-canvas text-text-primary selection:bg-primary/20">

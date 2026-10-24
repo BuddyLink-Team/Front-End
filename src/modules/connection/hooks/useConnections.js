@@ -1,7 +1,7 @@
 import { useEffect, useCallback, useMemo, useRef, useState } from 'react';
 import { useDebounce } from '../../../hooks/useDebounce';
 import { useDispatch, useSelector } from 'react-redux';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useToast } from '../../../hooks/useToast';
 import { getApiErrorMsg } from '../../../utils/errorUtils';
 import { useSafetyActions } from '../../safety/hooks/useSafetyActions';
@@ -80,7 +80,16 @@ const useConnections = () => {
     (state) => state.connection
   );
 
-  const [activeList, setActiveList] = useState(CONNECTION_LISTS.ACCEPTED);
+  // ?tab=incoming|outgoing opens that list directly (e.g. from a connection request notification)
+  const [searchParams] = useSearchParams();
+  const tabParam = searchParams.get('tab');
+  const [activeList, setActiveList] = useState(
+    Object.values(CONNECTION_LISTS).includes(tabParam) ? tabParam : CONNECTION_LISTS.ACCEPTED
+  );
+  // Same page, new ?tab= (notification clicked while already on /connections)
+  useEffect(() => {
+    if (Object.values(CONNECTION_LISTS).includes(tabParam)) setActiveList(tabParam);
+  }, [tabParam]);
   const [searchQuery, setSearchQuery] = useState('');
   const search = useDebounce(searchQuery.trim(), SEARCH_DEBOUNCE_MS);
   // Current page of each list (a ref: reloading after an action keeps the pages without re-rendering)

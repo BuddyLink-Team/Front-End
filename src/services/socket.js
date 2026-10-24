@@ -1,5 +1,6 @@
 import { io } from 'socket.io-client';
 import tokenStore from './tokenStore';
+import { API_ENDPOINTS } from '../constants/api.constants';
 
 const socketURL = import.meta.env.VITE_SOCKET_URL || 'http://localhost:5000';
 
@@ -21,6 +22,34 @@ class SocketService {
         reconnection: true,
         reconnectionAttempts: 5,
         reconnectionDelay: 1000,
+      });
+
+      // One refresh attempt per connection: reset only once the socket connects again,
+      // so a server that keeps rejecting the token cannot cause a refresh loop
+      let hasRetriedAuth = false;
+
+      this.socket.on('connect_error', async (err) => {
+        const message = (err?.message || '').toLowerCase();
+        const isAuthError =
+          message.includes('authentication error') ||
+          message.includes('jwt expired') ||
+          message.includes('token required');
+
+        if (!isAuthError || hasRetriedAuth) return;
+        hasRetriedAuth = true;
+        try {
+          // Lazy import: apiClient imports this file
+          const { default: apiClient } = await import('./apiClient');
+          // Any authenticated call lets the interceptor refresh the token on 401
+          await apiClient.get(API_ENDPOINTS.AUTH.ME);
+          this.updateToken();
+        } catch {
+          // Refresh failure is handled by apiClient's endSession
+        }
+      });
+
+      this.socket.on('connect', () => {
+        hasRetriedAuth = false;
       });
     }
     return this.socket;

@@ -50,6 +50,9 @@ export const API_ENDPOINTS = {
   },
   NOTIFICATION: {
     BASE: '/notifications',
+    UNREAD_COUNT: '/notifications/unread-count',
+    READ: (id) => `/notifications/${id}/read`,
+    READ_ALL: '/notifications/read-all',
   },
   CONNECTION: {
     // GET (?status=&direction=incoming|outgoing) / POST { recipientId }
