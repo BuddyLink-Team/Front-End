@@ -1,3 +1,5 @@
+import dayjs from 'dayjs';
+
 const vndFormatter = new Intl.NumberFormat('vi-VN', {
   style: 'currency',
   currency: 'VND',
@@ -53,6 +55,47 @@ export const formatDate = (date) => {
   if (!date) return '';
   const d = new Date(date);
   return d.toLocaleDateString('vi-VN');
+};
+
+/**
+ * Format a date with its time (e.g. "23/10/2026 14:05").
+ *
+ * @param {Date|string|number} date - Date value to format.
+ * @returns {string} "DD/MM/YYYY HH:mm", or an empty string when falsy or invalid.
+ */
+export const formatDateTime = (date) => {
+  if (!date) return '';
+  const d = dayjs(date);
+  return d.isValid() ? d.format('DD/MM/YYYY HH:mm') : '';
+};
+
+/**
+ * Format a child's age from their date of birth: years from 1 year old, months below.
+ *
+ * @param {Date|string|number} dateOfBirth
+ * @param {Date|string|number} [now=new Date()] - Reference date (for tests)
+ * @returns {string} e.g. "5 tuổi", "8 tháng", or an empty string when falsy or invalid.
+ */
+export const formatChildAge = (dateOfBirth, now = new Date()) => {
+  if (!dateOfBirth) return '';
+  const birth = dayjs(dateOfBirth);
+  if (!birth.isValid()) return '';
+  const years = dayjs(now).diff(birth, 'year');
+  if (years >= 1) return `${years} tuổi`;
+  return `${Math.max(1, dayjs(now).diff(birth, 'month'))} tháng`;
+};
+
+/**
+ * Format a ratio as a Vietnamese percentage (0.125 -> "12,5%").
+ *
+ * @param {number|string} value - Ratio between 0 and 1.
+ * @param {number} [digits=1] - Maximum fraction digits.
+ * @returns {string} Formatted percentage or '-' if invalid.
+ */
+export const formatPercent = (value, digits = 1) => {
+  const number = Number(value);
+  if (value === null || value === undefined || value === '' || !Number.isFinite(number)) return '-';
+  return new Intl.NumberFormat('vi-VN', { style: 'percent', maximumFractionDigits: digits }).format(number);
 };
 
 /**

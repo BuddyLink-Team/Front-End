@@ -56,7 +56,7 @@ export const ParentProfilePage = () => {
   }
 
   return (
-    <div className="w-full py-4 space-y-6">
+    <div className="w-full pb-4 space-y-6">
       {/* 2-Column Dashboard Layout */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
         {/* Left Column (4 cols on lg): Sticky Profile Sidebar Card */}

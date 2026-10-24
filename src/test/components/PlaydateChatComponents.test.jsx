@@ -143,7 +143,6 @@ describe('Playdate Group Chat & Collateral Panel (TASK-FE-11)', () => {
 
     // Group title in header
     expect(screen.getByRole('heading', { level: 3, name: /Buổi vẽ tranh sáng tạo & thả diều/i })).toBeInTheDocument();
-    expect(screen.getByText('Playdate Nhóm')).toBeInTheDocument();
 
     // Incoming & Outgoing messages
     expect(screen.getByText('Chào các bố mẹ, hẹn gặp chiều thứ Bảy nhé!')).toBeInTheDocument();

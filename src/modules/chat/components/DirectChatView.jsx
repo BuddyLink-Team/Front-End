@@ -17,6 +17,7 @@ import {
 import { Avatar } from '../../../components/ui/Avatar';
 import { VerifiedBadge } from '../../../components/badges/VerifiedBadge';
 import { ConfirmDialog } from '../../../components/feedback/ConfirmDialog';
+import { TypingIndicator } from '../../../components/feedback/TypingIndicator';
 import { Dropdown, DropdownItem } from '../../../components/ui/Dropdown';
 import { MessageItem } from './MessageItem.jsx';
 import { EmojiPopover } from './EmojiPopover.jsx';
@@ -408,17 +409,10 @@ export const DirectChatView = ({
 
         {/* Realtime Typing Indicator */}
         {isPartnerTyping && (
-          <div className="flex items-center gap-2 self-start animate-fade-in pl-1">
-            <Avatar src={partnerAvatar} alt={partnerName} size="sm" />
-            <div className="px-3.5 py-2 rounded-2xl rounded-bl-sm chat-typing-bubble flex items-center gap-1.5">
-              <span className="text-xs text-on-surface-variant">{partnerName} đang soạn</span>
-              <span className="flex items-center gap-1 pt-1">
-                <span className="w-1.5 h-1.5 rounded-full bg-primary chat-dot-bounce chat-dot-bounce-1" />
-                <span className="w-1.5 h-1.5 rounded-full bg-primary chat-dot-bounce chat-dot-bounce-2" />
-                <span className="w-1.5 h-1.5 rounded-full bg-primary chat-dot-bounce chat-dot-bounce-3" />
-              </span>
-            </div>
-          </div>
+          <TypingIndicator
+            avatar={<Avatar src={partnerAvatar} alt={partnerName} size="sm" />}
+            label={`${partnerName} đang soạn`}
+          />
         )}
 
       </div>

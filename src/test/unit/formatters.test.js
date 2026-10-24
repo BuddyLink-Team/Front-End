@@ -1,5 +1,13 @@
 import { describe, it, expect } from 'vitest';
-import { formatCurrency, getInitials, removeAccents, formatDate } from '../../utils/formatters';
+import {
+  formatCurrency,
+  getInitials,
+  removeAccents,
+  formatDate,
+  formatDateTime,
+  formatChildAge,
+  formatPercent,
+} from '../../utils/formatters';
 
 describe('formatters utility', () => {
   it('formats currency correctly into VND', () => {
@@ -21,5 +29,26 @@ describe('formatters utility', () => {
   it('formats valid date correctly', () => {
     const date = new Date('2026-09-27');
     expect(formatDate(date)).toBeTruthy();
+  });
+
+  it('formats a date with its time', () => {
+    expect(formatDateTime(new Date(2026, 9, 23, 14, 5))).toBe('23/10/2026 14:05');
+    expect(formatDateTime(null)).toBe('');
+    expect(formatDateTime('not a date')).toBe('');
+  });
+
+  it('formats a child age in years, or in months below 1 year old', () => {
+    const now = new Date(2026, 9, 23);
+    expect(formatChildAge(new Date(2021, 3, 1), now)).toBe('5 tuổi');
+    expect(formatChildAge(new Date(2026, 1, 10), now)).toBe('8 tháng');
+    expect(formatChildAge(new Date(2026, 9, 20), now)).toBe('1 tháng');
+    expect(formatChildAge('')).toBe('');
+  });
+
+  it('formats a ratio as a percentage', () => {
+    expect(formatPercent(0.125)).toBe('12,5%');
+    expect(formatPercent(0.5, 0)).toBe('50%');
+    expect(formatPercent(null)).toBe('-');
+    expect(formatPercent('abc')).toBe('-');
   });
 });

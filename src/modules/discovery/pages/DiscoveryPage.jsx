@@ -92,7 +92,7 @@ export const DiscoveryPage = () => {
   };
 
   return (
-    <div className="w-full flex flex-col items-center py-6 px-4 sm:px-6 max-w-2xl mx-auto select-none">
+    <div className="w-full flex flex-col items-center pb-6 px-4 sm:px-6 max-w-2xl mx-auto select-none">
       {/* Filter bar with modal trigger */}
       <DiscoveryFilterBar
         meta={meta}

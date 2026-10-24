@@ -85,7 +85,7 @@ export const CheckoutPage = () => {
   const backToPlans = () => navigate('/subscription');
 
   return (
-    <div className="mx-auto py-6 space-y-8">
+    <div className="mx-auto pb-6 space-y-8">
       {/* Top navigation */}
       <div className="flex items-center justify-between">
         <Button variant="ghost" size="sm" onClick={backToPlans} leftIcon={<ArrowLeft className="w-4 h-4" />}>
