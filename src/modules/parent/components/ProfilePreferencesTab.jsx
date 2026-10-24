@@ -55,7 +55,7 @@ export const ProfilePreferencesTab = ({ profile, onUpdate, isUpdating }) => {
         <div className="space-y-2.5">
           <label className="text-xs sm:text-sm font-semibold text-on-surface flex items-center justify-between">
             <span>Ngày trong tuần phù hợp</span>
-            <span className="text-[11px] text-text-muted font-normal">Có thể chọn nhiều</span>
+            <span className="text-label-sm text-text-muted font-normal">Có thể chọn nhiều</span>
           </label>
           <SelectableOptions
             variant="check"
@@ -72,7 +72,7 @@ export const ProfilePreferencesTab = ({ profile, onUpdate, isUpdating }) => {
               <Clock className="w-3.5 h-3.5 text-primary" />
               Khung giờ ưa thích
             </span>
-            <span className="text-[11px] text-text-muted font-normal">Có thể chọn nhiều</span>
+            <span className="text-label-sm text-text-muted font-normal">Có thể chọn nhiều</span>
           </label>
           <SelectableOptions
             variant="tile"

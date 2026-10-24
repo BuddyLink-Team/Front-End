@@ -14,6 +14,11 @@ export const Sidebar = ({
   header,
   footer,
   className,
+  // Optional style overrides (merged last, so they win over the defaults)
+  headerClassName,
+  footerClassName,
+  linkClassName,
+  activeLinkClassName,
 }) => {
   return (
     <aside
@@ -24,7 +29,7 @@ export const Sidebar = ({
       )}
     >
       {/* Header / Brand */}
-      <div className="h-16 px-4 flex items-center justify-between border-b border-hairline">
+      <div className={cn('h-16 px-4 flex items-center justify-between border-b border-hairline', headerClassName)}>
         {header ? (
           header
         ) : (
@@ -70,7 +75,9 @@ export const Sidebar = ({
                   isActive
                     ? 'bg-primary text-white shadow-xs'
                     : 'text-text-muted hover:text-text-primary hover:bg-surface-muted',
-                  collapsed && 'justify-center px-0'
+                  collapsed && 'justify-center px-0',
+                  linkClassName,
+                  isActive && activeLinkClassName
                 )
               }
               title={collapsed ? item.name : undefined}
@@ -91,7 +98,7 @@ export const Sidebar = ({
 
       {/* Footer Area */}
       {footer && (
-        <div className="p-3 border-t border-hairline overflow-hidden">
+        <div className={cn('p-3 border-t border-hairline overflow-hidden', footerClassName)}>
           {footer}
         </div>
       )}

@@ -43,7 +43,7 @@ export const ConversationList = ({
   return (
     <aside
       className={cn(
-        'w-full lg:w-[350px] shrink-0 bg-surface-container-lowest rounded-2xl p-4 shadow-sm border border-hairline flex flex-col h-full',
+        'w-full lg:w-chat-panel shrink-0 bg-surface-container-lowest rounded-2xl p-4 shadow-sm border border-hairline flex flex-col h-full',
         className
       )}
     >
@@ -96,7 +96,7 @@ export const ConversationList = ({
               <MessageSquare className="w-6 h-6" />
             </div>
             <p className="text-sm font-medium text-on-surface">Không tìm thấy cuộc trò chuyện</p>
-            <p className="text-xs text-outline mt-1 max-w-[200px]">
+            <p className="text-xs text-outline mt-1 max-w-truncate-md">
               {searchQuery ? 'Thử tìm kiếm với từ khóa khác' : 'Bắt đầu kết nối với phụ huynh để trò chuyện'}
             </p>
           </div>
@@ -150,7 +150,7 @@ export const ConversationList = ({
                       >
                         {title}
                       </span>
-                      <span className="text-[11px] text-on-surface-variant font-medium shrink-0">
+                      <span className="text-label-sm text-on-surface-variant font-medium shrink-0">
                         {formatTime(conv.lastMessage?.sentAt || conv.updatedAt)}
                       </span>
                     </div>
@@ -168,7 +168,7 @@ export const ConversationList = ({
                       </p>
 
                       {hasUnread && (
-                        <span className="shrink-0 w-5 h-5 rounded-full bg-primary text-white text-[11px] font-bold flex items-center justify-center shadow-xs">
+                        <span className="shrink-0 w-5 h-5 rounded-full bg-primary text-white text-label-sm font-bold flex items-center justify-center shadow-xs">
                           {conv.unreadCount > 9 ? '9+' : conv.unreadCount}
                         </span>
                       )}
@@ -177,7 +177,7 @@ export const ConversationList = ({
                     {/* Sub-tag badge (e.g. Playdate indicator) */}
                     {conv.playdate && (
                       <div className="flex items-center gap-1.5 mt-1.5">
-                        <span className="inline-flex items-center gap-1 text-[11px] text-secondary bg-secondary-container/40 px-2 py-0.5 rounded-full">
+                        <span className="inline-flex items-center gap-1 text-label-sm text-secondary bg-secondary-container/40 px-2 py-0.5 rounded-full">
                           <Users className="w-3 h-3" />
                           <span>Playdate Nhóm</span>
                         </span>
@@ -198,7 +198,7 @@ export const ConversationList = ({
         </div>
         <div className="min-w-0">
           <p className="text-xs font-semibold text-on-surface truncate">Cộng đồng xác thực</p>
-          <p className="text-[11px] text-on-surface-variant truncate">
+          <p className="text-label-sm text-on-surface-variant truncate">
             Phụ huynh được xác thực căn cước an toàn
           </p>
         </div>

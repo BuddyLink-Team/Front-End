@@ -3,6 +3,7 @@ import { Copy, Clock, QrCode } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
 import { Button } from '../../../components/ui/Button';
 import { cn } from '../../../utils/cn';
+import { QR_CODE_SIZE } from '../constants/subscriptionConstants';
 
 const CopyButton = ({ onClick }) => (
   <Button
@@ -74,10 +75,10 @@ export const CheckoutQrPanel = ({
         )}
         {qrCode && !qrCode.startsWith('http') && (
           <div className={qrClass}>
-            <QRCodeSVG value={qrCode} size={200} level="M" includeMargin />
+            <QRCodeSVG value={qrCode} size={QR_CODE_SIZE} level="M" includeMargin />
           </div>
         )}
-        <p className="mt-2 text-[11px] text-on-surface-variant text-center">
+        <p className="mt-2 text-label-sm text-on-surface-variant text-center">
           {isTimeUp
             ? 'Thời gian giữ mã đã hết. Bạn vẫn có thể kiểm tra giao dịch hoặc tạo mã mới.'
             : 'Mở ứng dụng Ngân hàng hoặc Ví điện tử để quét mã'}
@@ -126,7 +127,7 @@ export const CheckoutQrPanel = ({
             Tạo đơn thanh toán mới
           </Button>
         )}
-        <p className="text-[11px] text-center text-on-surface-variant">
+        <p className="text-label-sm text-center text-on-surface-variant">
           Hệ thống tự động kiểm tra vài giây một lần và kích hoạt ngay khi nhận tiền
         </p>
       </div>

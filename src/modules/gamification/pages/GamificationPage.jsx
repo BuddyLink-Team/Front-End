@@ -22,7 +22,7 @@ export default function GamificationPage() {
   } = useGamification();
 
   return (
-    <div className="w-full max-w-[1160px] mx-auto space-y-8 pb-12">
+    <div className="w-full max-w-content mx-auto space-y-8 pb-12">
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div>
@@ -35,7 +35,7 @@ export default function GamificationPage() {
           variant="secondary"
           onClick={reload}
           isLoading={loading && isLoaded}
-          leftIcon={<RefreshCw className="w-4 h-4 stroke-[1.75]" />}
+          leftIcon={<RefreshCw className="w-4 h-4 stroke-1.75" />}
         >
           Làm mới
         </Button>

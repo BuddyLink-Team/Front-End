@@ -111,6 +111,12 @@ typography:
     fontWeight: '500'
     lineHeight: 14px
     letterSpacing: 0.02em
+  label-xs:
+    fontFamily: Plus Jakarta Sans
+    fontSize: 10px
+    fontWeight: '500'
+    lineHeight: 14px
+    letterSpacing: 0.02em
 rounded:
   sm: 0.25rem
   DEFAULT: 0.5rem

@@ -115,7 +115,7 @@ export const PricingCard = ({
         <h3 className="text-xl font-bold text-on-surface mt-4 tracking-tight">
           {plan.name}
         </h3>
-        <p className="text-sm text-on-surface-variant mt-1 min-h-[40px] leading-relaxed">
+        <p className="text-sm text-on-surface-variant mt-1 min-h-pricing-desc leading-relaxed">
           {isPremiumCard
             ? 'Trải nghiệm tương tác không ranh giới, kết nối bạn chơi cho bé không giới hạn.'
             : 'Dành cho cha mẹ muốn bắt đầu kết nối nhẹ nhàng và tìm hiểu cộng đồng.'}
@@ -136,7 +136,7 @@ export const PricingCard = ({
         </div>
 
         {/* Sub-billing note for Yearly or Active date */}
-        <div className="min-h-[22px] mt-1">
+        <div className="min-h-pricing-note mt-1">
           {isPremiumCard && isYearly && equivalentMonthlyPrice && (
             <p className="text-xs font-semibold text-tertiary">
               * Tiết kiệm {yearlySavingsPercentage}% (chỉ ~{new Intl.NumberFormat('vi-VN').format(equivalentMonthlyPrice)}đ/tháng)

@@ -16,6 +16,10 @@ import { cn } from '../../utils/cn';
  * @param {Function} [onRowClick]
  * @param {Function} [renderCell]
  * @param {string} [className]
+ * @param {string} [sortKey] - Server-side sort: current sort column (with `onSortChange`)
+ * @param {'asc'|'desc'} [sortDir] - Server-side sort: current direction
+ * @param {Function} [onSortChange] - ({ sortKey, sortDir }) => void. When given, rows are shown in the
+ *   order received (the server sorts) instead of being sorted client-side, which would only sort the current page
  */
 export const DataTable = ({
   columns = [],
@@ -26,8 +30,26 @@ export const DataTable = ({
   onRowClick,
   renderCell,
   className,
+  sortKey: serverSortKey,
+  sortDir: serverSortDir,
+  onSortChange,
 }) => {
-  const { sortKey, sortDir, sortedRows, handleSort } = useTableSort(rows);
+  const clientSort = useTableSort(rows);
+  const isServerSort = typeof onSortChange === 'function';
+
+  const sortKey = isServerSort ? serverSortKey : clientSort.sortKey;
+  const sortDir = isServerSort ? serverSortDir : clientSort.sortDir;
+  const sortedRows = isServerSort ? rows : clientSort.sortedRows;
+
+  // Same toggle as useTableSort: a new column starts ascending, the same column flips direction
+  const handleSort = (key) => {
+    if (!isServerSort) {
+      clientSort.handleSort(key);
+      return;
+    }
+    const nextDir = sortKey === key && sortDir === 'asc' ? 'desc' : 'asc';
+    onSortChange({ sortKey: key, sortDir: nextDir });
+  };
 
   return (
     <div

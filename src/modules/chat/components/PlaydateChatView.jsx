@@ -19,6 +19,7 @@ import {
   Sparkles,
 } from 'lucide-react';
 import { ConfirmDialog } from '../../../components/feedback/ConfirmDialog';
+import { TypingIndicator } from '../../../components/feedback/TypingIndicator';
 import { Dropdown, DropdownItem } from '../../../components/ui/Dropdown';
 import { MessageItem } from './MessageItem.jsx';
 import { EmojiPopover } from './EmojiPopover.jsx';
@@ -224,7 +225,7 @@ export const PlaydateChatView = ({
                   <>
                     <span className="flex items-center gap-1 truncate text-outline">
                       <MapPin className="w-3 h-3 shrink-0" />
-                      <span className="truncate max-w-[120px] sm:max-w-[180px]">
+                      <span className="truncate max-w-truncate-xs sm:max-w-truncate-sm">
                         {playdate.location.name}
                       </span>
                     </span>
@@ -322,7 +323,7 @@ export const PlaydateChatView = ({
                 <p className="font-bold text-on-surface leading-tight">
                   {groupTitle}
                 </p>
-                <p className="text-[11px] text-outline mt-0.5">
+                <p className="text-label-sm text-outline mt-0.5">
                   Lịch hẹn: {scheduleSnippet} • {playdate?.location?.name || 'Chưa định địa điểm'}
                 </p>
               </div>
@@ -407,19 +408,14 @@ export const PlaydateChatView = ({
 
           {/* Realtime Typing Indicator */}
           {isPartnerTyping && (
-            <div className="flex items-center gap-2 self-start animate-fade-in pl-1">
-              <div className="w-7 h-7 rounded-full bg-surface-container text-on-surface-variant flex items-center justify-center text-xs font-bold">
-                💬
-              </div>
-              <div className="px-3.5 py-2 rounded-2xl rounded-bl-sm chat-typing-bubble flex items-center gap-1.5">
-                <span className="text-xs text-on-surface-variant">Có thành viên đang soạn tin</span>
-                <span className="flex items-center gap-1 pt-1">
-                  <span className="w-1.5 h-1.5 rounded-full bg-primary chat-dot-bounce chat-dot-bounce-1" />
-                  <span className="w-1.5 h-1.5 rounded-full bg-primary chat-dot-bounce chat-dot-bounce-2" />
-                  <span className="w-1.5 h-1.5 rounded-full bg-primary chat-dot-bounce chat-dot-bounce-3" />
-                </span>
-              </div>
-            </div>
+            <TypingIndicator
+              avatar={
+                <div className="w-7 h-7 rounded-full bg-surface-container text-on-surface-variant flex items-center justify-center text-xs font-bold">
+                  💬
+                </div>
+              }
+              label="Có thành viên đang soạn tin"
+            />
           )}
 
         </div>
@@ -519,7 +515,7 @@ export const PlaydateChatView = ({
           </form>
 
           {/* Security & Helper Note */}
-          <div className="flex items-center justify-between px-2 pt-2 text-[11px] text-on-surface-variant">
+          <div className="flex items-center justify-between px-2 pt-2 text-label-sm text-on-surface-variant">
             <span className="flex items-center gap-1 text-primary">
               <Lock className="w-3.5 h-3.5" />
               <span>Chỉ phụ huynh đã tham gia (accepted) mới được xem và gửi tin</span>

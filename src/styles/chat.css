@@ -5,7 +5,7 @@
 
 /* 1. Main Chat Frame Layout */
 .chat-layout-height {
-  height: calc(100vh - 4.5rem);
+  height: theme('height.chat-frame');
 }
 
 /* 2. Conversations Sidebar */
@@ -16,45 +16,45 @@
 
 /* 3. Messages Stream Canvas */
 .chat-stream-canvas {
-  background-color: rgba(250, 251, 249, 0.75);
+  background-color: theme('colors.canvas / 75%');
 }
 
 /* 4. Chat Message Bubbles */
 .chat-bubble-user {
   background-color: theme('colors.primary.bubble');
   color: theme('colors.text-primary');
-  border-bottom-right-radius: 0.25rem;
+  border-bottom-right-radius: theme('borderRadius.sm');
 }
 
 .chat-bubble-partner {
   background-color: theme('colors.surface.container-lowest');
   color: theme('colors.on-surface');
-  border: 1px solid rgba(237, 242, 240, 0.85);
-  border-bottom-left-radius: 0.25rem;
+  border: theme('borderWidth.DEFAULT') solid theme('colors.hairline / 85%');
+  border-bottom-left-radius: theme('borderRadius.sm');
 }
 
 /* 5. Realtime Typing Indicator */
 .chat-typing-bubble {
   background-color: theme('colors.surface.container-lowest');
-  border: 1px solid rgba(237, 242, 240, 0.85);
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+  border: theme('borderWidth.DEFAULT') solid theme('colors.hairline / 85%');
+  box-shadow: theme('boxShadow.hairline');
 }
 
 /* 6. Media Attachment Thumbnail */
 .chat-image-preview-card {
-  border: 2px solid theme('colors.primary.DEFAULT');
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  border: theme('borderWidth.2') solid theme('colors.primary.DEFAULT');
+  box-shadow: theme('boxShadow.thumb');
 }
 
 /* 7. Quick Emoji Popover Container */
 .chat-emoji-popover {
   background-color: theme('colors.surface.container-lowest');
-  border: 1px solid theme('colors.hairline');
-  box-shadow: 0 10px 25px -5px rgba(45, 55, 72, 0.1), 0 8px 10px -6px rgba(45, 55, 72, 0.1);
+  border: theme('borderWidth.DEFAULT') solid theme('colors.hairline');
+  box-shadow: theme('boxShadow.popover');
 }
 
 /* 8. Lightbox Overlay for Image Preview */
 .chat-lightbox-overlay {
-  background-color: rgba(0, 0, 0, 0.82);
-  backdrop-filter: blur(4px);
+  background-color: theme('colors.black / 82%');
+  backdrop-filter: blur(theme('blur.sm'));
 }

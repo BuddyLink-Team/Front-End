@@ -6,8 +6,11 @@
   "scripts": {
     "dev": "vite",
     "dev:mock": "vite --mode mock",
+    "dev:admin": "vite --mode admin --port 5174",
     "build": "vite build",
+    "build:admin": "vite build --mode admin --outDir dist-admin",
     "preview": "vite preview",
+    "preview:admin": "vite preview --outDir dist-admin --port 5174",
     "lint": "eslint src --ext js,jsx --report-unused-disable-directives --max-warnings 0",
     "test": "vitest",
     "test:ui": "vitest --ui",
@@ -31,6 +34,7 @@
     "react-hot-toast": "^2.4.1",
     "react-redux": "^9.1.1",
     "react-router-dom": "^6.22.3",
+    "recharts": "^2.15.4",
     "socket.io-client": "^4.7.5",
     "tailwind-merge": "^2.2.2",
     "zod": "^3.22.4"

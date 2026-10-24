@@ -53,8 +53,8 @@ export const VerifyOtpPage = () => {
         <div className="absolute inset-0 backdrop-blur-md" />
       </div>
 
-      {/* Main Single Centered Card matching Stitch screen: max-w-[620px] */}
-      <div className="w-full max-w-[620px] bg-white rounded-2xl sm:rounded-3xl shadow-xl shadow-surface-tint/5 p-6 sm:p-10 flex flex-col relative transition-all duration-300 border border-hairline">
+      {/* Main Single Centered Card matching Stitch screen: max-w-otp-card */}
+      <div className="w-full max-w-otp-card bg-white rounded-2xl sm:rounded-3xl shadow-xl shadow-surface-tint/5 p-6 sm:p-10 flex flex-col relative transition-all duration-300 border border-hairline">
         {/* Invisible container for Firebase phone recaptcha */}
         <div id="recaptcha-container" />
         {/* Step Indicator Header */}
@@ -133,7 +133,7 @@ export const VerifyOtpPage = () => {
             )}
           </div>
 
-          <p className="text-sm text-on-surface-variant max-w-[460px] leading-relaxed">
+          <p className="text-sm text-on-surface-variant max-w-otp-text leading-relaxed">
             {isAwaitingPhoneSend
               ? 'Bấm "Gửi mã OTP" để BuddyLink gửi mã bảo mật 6 chữ số đến số điện thoại của bạn nhằm xác thực thành viên và bảo vệ an toàn mạng lưới kết nối phụ huynh.'
               : activeStep === 'PHONE'
@@ -191,7 +191,7 @@ export const VerifyOtpPage = () => {
             </Button>
           ) : (
             /* Countdown & Resend Option */
-            <div className="flex flex-wrap items-center justify-between w-full max-w-[440px] px-1 text-on-surface-variant gap-2 text-xs sm:text-sm">
+            <div className="flex flex-wrap items-center justify-between w-full max-w-otp-actions px-1 text-on-surface-variant gap-2 text-xs sm:text-sm">
               <div className="flex items-center gap-1.5 bg-surface-container-low/70 py-1 px-3 rounded-full border border-hairline/60">
                 <Clock className="w-3.5 h-3.5 text-primary" />
                 <span>
@@ -271,13 +271,13 @@ export const VerifyOtpPage = () => {
             {/* Step 1: General Info */}
             <div className="flex items-center gap-2.5 bg-white p-2.5 rounded-xl shadow-sm border border-hairline/60">
               <div className="w-6 h-6 rounded-full bg-primary/20 text-primary flex items-center justify-center shrink-0">
-                <Check className="w-3.5 h-3.5 stroke-[2.5]" />
+                <Check className="w-3.5 h-3.5 stroke-2.5" />
               </div>
               <div className="flex flex-col min-w-0">
                 <span className="text-xs text-on-surface font-semibold truncate">
                   1. Thông tin chung
                 </span>
-                <span className="text-[10px] text-primary leading-tight font-medium">
+                <span className="text-label-xs text-primary leading-tight font-medium">
                   Đã ghi nhận
                 </span>
               </div>
@@ -297,7 +297,7 @@ export const VerifyOtpPage = () => {
                 }`}
               >
                 {isPhoneVerified || activeStep === 'EMAIL' ? (
-                  <Check className="w-3.5 h-3.5 stroke-[2.5]" />
+                  <Check className="w-3.5 h-3.5 stroke-2.5" />
                 ) : (
                   <Smartphone className="w-3.5 h-3.5" />
                 )}
@@ -306,7 +306,7 @@ export const VerifyOtpPage = () => {
                 <span className="text-xs text-on-surface font-semibold truncate">
                   2. Xác thực SĐT
                 </span>
-                <span className="text-[10px] text-primary leading-tight font-medium">
+                <span className="text-label-xs text-primary leading-tight font-medium">
                   {isPhoneVerified || activeStep === 'EMAIL'
                     ? 'Đã xác thực'
                     : 'Đang nhập mã OTP'}
@@ -335,7 +335,7 @@ export const VerifyOtpPage = () => {
                 <span className="text-xs text-on-surface-variant font-medium truncate">
                   3. Xác thực Email
                 </span>
-                <span className="text-[10px] text-text-muted leading-tight">
+                <span className="text-label-xs text-text-muted leading-tight">
                   {activeStep === 'EMAIL' ? 'Đang thực hiện' : 'Bước kế tiếp'}
                 </span>
               </div>

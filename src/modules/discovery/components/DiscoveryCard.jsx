@@ -11,6 +11,7 @@ import {
 } from '../constants/discoveryConstants';
 import { MatchScoreBar } from './MatchScoreBar';
 import { DiscoveryActionButtons } from './DiscoveryActionButtons';
+import { ICON_SIZE, ICON_STROKE } from '../../../constants/icon.constants';
 
 export const DiscoveryCard = ({
   profile,
@@ -117,14 +118,14 @@ export const DiscoveryCard = ({
           {/* ── Header: Avatar + Info ── */}
           <div className="flex gap-4">
             {/* Avatar box */}
-            <div className="relative w-[100px] h-[100px] shrink-0 rounded-2xl bg-primary-container overflow-hidden flex items-center justify-center border border-primary">
+            <div className="relative w-avatar-3xl h-avatar-3xl shrink-0 rounded-2xl bg-primary-container overflow-hidden flex items-center justify-center border border-primary">
               <img
                 alt={profile.displayName}
                 src={avatarSrc}
                 className="w-full h-full object-cover select-none pointer-events-none"
                 draggable={false}
               />
-              <span className="absolute bottom-0 left-0 right-0 text-center bg-secondary text-secondary-on-secondary text-[10px] font-bold py-0.5">
+              <span className="absolute bottom-0 left-0 right-0 text-center bg-secondary text-secondary-on-secondary text-label-xs font-bold py-0.5">
                 {genderLabel}
               </span>
             </div>
@@ -134,7 +135,7 @@ export const DiscoveryCard = ({
               {/* Name row */}
               <div className="flex items-center gap-2 flex-wrap">
                 <h2
-                  className="text-[22px] font-extrabold text-on-surface leading-tight cursor-pointer hover:text-primary transition-colors"
+                  className="text-headline-lg-mobile font-extrabold text-on-surface leading-tight cursor-pointer hover:text-primary transition-colors"
                   onClick={onViewDetail}
                   title="Xem chi tiết hồ sơ"
                 >
@@ -144,7 +145,7 @@ export const DiscoveryCard = ({
                   {profile.age} tuổi
                 </span>
                 <span className="flex items-center gap-1 px-2.5 py-0.5 bg-surface-container-low text-text-muted text-xs rounded-full border border-hairline">
-                  <MapPin size={12} strokeWidth={1.5} />
+                  <MapPin size={ICON_SIZE.XS} strokeWidth={ICON_STROKE.THIN} />
                   {distanceLabel}
                 </span>
               </div>
@@ -153,8 +154,8 @@ export const DiscoveryCard = ({
               {profile.personality?.length > 0 && (
                 <div className="flex items-start gap-1.5 text-sm text-on-surface-variant">
                   <Brain
-                    size={16}
-                    strokeWidth={1.5}
+                    size={ICON_SIZE.MD}
+                    strokeWidth={ICON_STROKE.THIN}
                     className="text-primary mt-0.5 shrink-0"
                   />
                   <span>
@@ -170,8 +171,8 @@ export const DiscoveryCard = ({
               {preferredLocations.length > 0 && (
                 <div className="flex items-start gap-1.5 text-sm text-on-surface-variant">
                   <MapPin
-                    size={15}
-                    strokeWidth={1.5}
+                    size={ICON_SIZE.MD}
+                    strokeWidth={ICON_STROKE.THIN}
                     className="text-primary mt-0.5 shrink-0"
                   />
                   <span>
@@ -194,8 +195,8 @@ export const DiscoveryCard = ({
           {/* ── Interests ── */}
           <div className="flex flex-col gap-2.5">
             <div className="flex items-center justify-between flex-wrap gap-2">
-              <h3 className="text-[11px] font-bold uppercase tracking-widest text-on-surface-variant flex items-center gap-1.5">
-                <Heart size={14} strokeWidth={1.5} className="text-primary" />
+              <h3 className="text-label-sm font-bold uppercase tracking-widest text-on-surface-variant flex items-center gap-1.5">
+                <Heart size={ICON_SIZE.SM} strokeWidth={ICON_STROKE.THIN} className="text-primary" />
                 Sở thích chung tương thích
               </h3>
               {profile.matchedInterestsCount !== undefined && (
@@ -246,13 +247,13 @@ export const DiscoveryCard = ({
                 <div className="flex flex-col gap-1 items-end shrink-0">
                   {preferredPlaydateDays.length > 0 && (
                     <div className="flex items-center gap-1.5 text-xs text-on-surface-variant bg-white border border-hairline px-2.5 py-1 rounded-xl">
-                      <CalendarDays size={13} strokeWidth={1.5} />
+                      <CalendarDays size={ICON_SIZE.SM} strokeWidth={ICON_STROKE.THIN} />
                       {preferredPlaydateDays.join(', ')}
                     </div>
                   )}
                   {preferredTimeSlots.length > 0 && (
                     <div className="flex items-center gap-1.5 text-xs text-on-surface-variant bg-white border border-surface-container px-2.5 py-1 rounded-xl">
-                      <Clock size={13} strokeWidth={1.5} />
+                      <Clock size={ICON_SIZE.SM} strokeWidth={ICON_STROKE.THIN} />
                       {preferredTimeSlots.join(', ')}
                     </div>
                   )}

@@ -1,7 +1,6 @@
 export const API_ENDPOINTS = {
   AUTH: {
     LOGIN: '/auth/login',
-    ADMIN_LOGIN: '/auth/admin/login',
     REGISTER: '/auth/register',
     GOOGLE: '/auth/google',
     REFRESH_TOKEN: '/auth/refresh-token',
@@ -80,8 +79,10 @@ export const API_ENDPOINTS = {
   RATING_FEEDBACK: {
     BASE: '/ratings',
   },
+  // Admin portal build: VITE_API_URL already ends with /api/v1/admin, and AUTH/USER paths above
+  // (login, refresh-token, logout, me, user/me) are served there too
   ADMIN: {
-    DASHBOARD_STATS: '/admin/stats',
-    USERS: '/admin/users',
+    DASHBOARD_STATS: '/stats',
+    USERS: '/users',
   },
 };

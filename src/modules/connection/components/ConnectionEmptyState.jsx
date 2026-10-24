@@ -2,6 +2,7 @@ import PropTypes from 'prop-types';
 import { Users } from 'lucide-react';
 import { EmptyState } from '../../../components/cards/EmptyState';
 import { CONNECTION_LISTS } from '../constants/connection.constants';
+import { ICON_STROKE } from '../../../constants/icon.constants';
 
 /** Messages keyed by list */
 const CONTENT = {
@@ -32,7 +33,7 @@ const ConnectionEmptyState = ({ type, isSearching = false, onDiscover }) => {
 
   return (
     <EmptyState
-      icon={<Users className="w-7 h-7" strokeWidth={1.5} />}
+      icon={<Users className="w-7 h-7" strokeWidth={ICON_STROKE.THIN} />}
       title={title}
       description={description}
       actionLabel={canDiscover ? 'Khám phá ngay' : undefined}

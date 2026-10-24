@@ -1,6 +1,7 @@
 import React from 'react';
 import { X, Send } from 'lucide-react';
 import { Button } from '../../../components/ui/Button';
+import { ICON_SIZE, ICON_STROKE } from '../../../constants/icon.constants';
 
 export const DiscoveryActionButtons = ({ onPass, onLike }) => {
   return (
@@ -9,7 +10,7 @@ export const DiscoveryActionButtons = ({ onPass, onLike }) => {
         variant="ghost"
         size="lg"
         onClick={onPass}
-        leftIcon={<X size={18} strokeWidth={1.75} />}
+        leftIcon={<X size={ICON_SIZE.LG} strokeWidth={ICON_STROKE.DEFAULT} />}
         className="flex-1 border border-hairline"
       >
         Bỏ qua
@@ -18,7 +19,7 @@ export const DiscoveryActionButtons = ({ onPass, onLike }) => {
         variant="primary"
         size="lg"
         onClick={onLike}
-        leftIcon={<Send size={18} strokeWidth={1.75} />}
+        leftIcon={<Send size={ICON_SIZE.LG} strokeWidth={ICON_STROKE.DEFAULT} />}
         className="flex-1"
       >
         Gửi kết nối

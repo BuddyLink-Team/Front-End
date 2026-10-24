@@ -99,7 +99,7 @@ export const useAuth = () => {
         goToHomeOrVerification(payload);
         return payload?.user?.role === USER_ROLES.PARENT
           ? 'Đăng nhập thành công! Rất vui được gặp lại ba mẹ.'
-          : 'Đăng nhập quản trị viên thành công!';
+          : 'Đăng nhập admin thành công!';
       },
     );
 

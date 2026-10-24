@@ -68,12 +68,12 @@ export const FilterChips = ({
             )}
           >
             {Icon && <Icon className="w-3.5 h-3.5 shrink-0" />}
-            {active && !Icon && <Check className="w-3.5 h-3.5 shrink-0 stroke-[2.5]" />}
+            {active && !Icon && <Check className="w-3.5 h-3.5 shrink-0 stroke-2.5" />}
             <span>{opt.label}</span>
             {typeof opt.count !== 'undefined' && (
               <span
                 className={cn(
-                  'ml-0.5 px-1.5 py-0.2 rounded-full text-[10px] font-semibold',
+                  'ml-0.5 px-1.5 py-0.2 rounded-full text-label-xs font-semibold',
                   active
                     ? 'bg-white/20 text-white'
                     : 'bg-gray-100 text-text-muted'

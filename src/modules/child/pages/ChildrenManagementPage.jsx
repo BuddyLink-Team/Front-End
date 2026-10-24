@@ -34,7 +34,7 @@ export const ChildrenManagementPage = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-[70vh] flex flex-col items-center justify-center gap-3">
+      <div className="min-h-page flex flex-col items-center justify-center gap-3">
         <Spinner size="lg" />
         <p className="text-sm font-medium text-text-muted">
           Đang tải danh sách hồ sơ các bé...
@@ -45,7 +45,7 @@ export const ChildrenManagementPage = () => {
 
   if (errorMessage && children.length === 0) {
     return (
-      <div className="min-h-[60vh] flex flex-col items-center justify-center p-6 text-center space-y-4">
+      <div className="min-h-page-sm flex flex-col items-center justify-center p-6 text-center space-y-4">
         <div className="p-4 rounded-2xl bg-error/10 text-error max-w-md">
           <p className="text-sm font-medium">{errorMessage}</p>
         </div>
@@ -62,7 +62,7 @@ export const ChildrenManagementPage = () => {
   }
 
   return (
-    <div className="w-full py-4 space-y-6">
+    <div className="w-full pb-4 space-y-6">
       {/* Page Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-6 rounded-3xl border border-hairline bg-white shadow-sm">
         <div className="space-y-1">

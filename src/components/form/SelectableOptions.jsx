@@ -9,13 +9,13 @@ const VARIANTS = {
   // Card with a round check on the right (e.g. days of the week)
   check: {
     container: 'grid grid-cols-1 sm:grid-cols-2 gap-2.5',
-    item: 'p-3.5 rounded-xl text-left justify-between active:scale-[0.99]',
+    item: 'p-3.5 rounded-xl text-left justify-between active:scale-99',
     selected: 'bg-primary/10 border-primary text-primary-dark font-semibold shadow-xs',
   },
   // Centered tile filled when selected (e.g. time slots)
   tile: {
     container: 'grid grid-cols-1 sm:grid-cols-3 gap-2.5',
-    item: 'py-3 px-3.5 rounded-xl text-center justify-center gap-2 active:scale-[0.99]',
+    item: 'py-3 px-3.5 rounded-xl text-center justify-center gap-2 active:scale-99',
     selected: 'bg-primary text-white border-primary shadow-xs font-semibold',
   },
   // Pill chip (e.g. venue types, interests)
@@ -64,7 +64,7 @@ export const SelectableOptions = ({ options = [], selected = [], onToggle, varia
                     isSelected ? 'bg-primary text-white' : 'border border-hairline bg-surface-container-low'
                   )}
                 >
-                  {isSelected && <Check className="w-3 h-3 stroke-[3]" />}
+                  {isSelected && <Check className="w-3 h-3 stroke-3" />}
                 </span>
               </>
             ) : (

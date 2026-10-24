@@ -18,11 +18,12 @@ const openModalStack = [];
  * @param {React.ReactNode} children - Body (scrollable)
  * @param {React.ReactNode} [footer] - Actions pinned at the bottom (e.g. Cancel / Submit).
  *   A submit button outside the <form> uses the `form` attribute: <Button type="submit" form="form-id">
- * @param {string} [maxWidth='max-w-lg']
+ * @param {string} [maxWidth='max-w-lg'] - For placement="right", the drawer width (full width on screens narrower than it)
  * @param {string} [className] - Extra classes for the modal box
  * @param {string} [bodyClassName] - Extra classes for the scrollable body
  * @param {string} [footerClassName] - Extra classes for the footer (default: actions aligned right)
- * @param {'center'|'sheet'} [placement='center'] - 'sheet' slides from the bottom on mobile (bottom sheet)
+ * @param {'center'|'sheet'|'right'} [placement='center'] - 'sheet' slides from the bottom on mobile (bottom sheet),
+ *   'right' is a full-height side drawer sliding in from the right
  */
 export const Modal = ({
   isOpen,
@@ -37,6 +38,7 @@ export const Modal = ({
   placement = 'center',
 }) => {
   const isSheet = placement === 'sheet';
+  const isDrawer = placement === 'right';
   const dialogRef = useRef(null);
   const closeRef = useRef(onClose);
   closeRef.current = onClose;
@@ -92,8 +94,10 @@ export const Modal = ({
   return createPortal(
     <div
       className={cn(
-        'fixed inset-0 z-[200] flex justify-center',
-        isSheet ? 'items-end sm:items-center sm:p-4' : 'items-center p-4'
+        'fixed inset-0 z-overlay flex',
+        isDrawer && 'justify-end items-stretch',
+        isSheet && 'justify-center items-end sm:items-center sm:p-4',
+        !isDrawer && !isSheet && 'justify-center items-center p-4'
       )}
     >
       {/* Backdrop with blur */}
@@ -109,8 +113,12 @@ export const Modal = ({
         aria-modal="true"
         tabIndex={-1}
         className={cn(
-          'relative w-full max-h-[90vh] flex flex-col outline-none bg-surface-container-lowest shadow-[0_16px_40px_-8px_rgba(45,55,72,0.12)] border border-hairline z-10 animate-in fade-in duration-150',
-          isSheet ? 'rounded-t-3xl sm:rounded-3xl max-h-[85vh] sm:max-h-[90vh]' : 'rounded-3xl zoom-in-95',
+          'relative w-full flex flex-col outline-none bg-surface-container-lowest shadow-dialog border border-hairline z-10',
+          isDrawer
+            ? 'h-full rounded-none sm:rounded-l-3xl border-y-0 border-r-0 animate-slide-in-right'
+            : 'max-h-modal animate-in fade-in duration-150',
+          isSheet && 'rounded-t-3xl sm:rounded-3xl max-h-modal-mobile sm:max-h-modal',
+          !isDrawer && !isSheet && 'rounded-3xl zoom-in-95',
           maxWidth,
           className
         )}

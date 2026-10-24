@@ -5,6 +5,7 @@ import { Button } from '../../../components/ui/Button';
 import { FilterChips } from '../../../components/search/FilterChips';
 import { useDiscoveryFilterForm } from '../hooks/useDiscoveryFilterForm';
 import { AGE_RANGE_YEARS, DISTANCE_RANGE_KM, PERSONALITY_FILTER_OPTIONS } from '../constants/discoveryConstants';
+import { ICON_SIZE, ICON_STROKE } from '../../../constants/icon.constants';
 
 /**
  * DiscoveryFilterModal
@@ -25,7 +26,7 @@ const DiscoveryFilterModal = ({ isOpen, onClose }) => {
       title="Bộ lọc tìm kiếm"
       footer={
         <>
-          <Button variant="ghost" onClick={reset} leftIcon={<RotateCcw size={15} strokeWidth={1.75} />} className="flex-1">
+          <Button variant="ghost" onClick={reset} leftIcon={<RotateCcw size={ICON_SIZE.MD} strokeWidth={ICON_STROKE.DEFAULT} />} className="flex-1">
             Đặt lại
           </Button>
           <Button variant="primary" onClick={apply} className="flex-1">
@@ -82,7 +83,7 @@ const DiscoveryFilterModal = ({ isOpen, onClose }) => {
                 value={form.minAge}
                 onChange={(e) => setMinAge(e.target.value)}
                 aria-label="Tuổi tối thiểu"
-                className={isMinAgeOnTop ? 'z-[5]' : 'z-[3]'}
+                className={isMinAgeOnTop ? 'z-5' : 'z-3'}
               />
               <input
                 type="range"
@@ -92,7 +93,7 @@ const DiscoveryFilterModal = ({ isOpen, onClose }) => {
                 value={form.maxAge}
                 onChange={(e) => setMaxAge(e.target.value)}
                 aria-label="Tuổi tối đa"
-                className="z-[4]"
+                className="z-4"
               />
             </div>
             <div className="flex justify-between text-xs text-on-surface-variant">

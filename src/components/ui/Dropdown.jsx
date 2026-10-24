@@ -124,7 +124,7 @@ DropdownDivider.propTypes = {
  * Dropdown Header / Section Label
  */
 export const DropdownHeader = ({ children, className = '' }) => (
-  <div className={`px-3.5 py-2 text-[11px] font-bold uppercase tracking-wider text-text-muted ${className}`}>
+  <div className={`px-3.5 py-2 text-label-sm font-bold uppercase tracking-wider text-text-muted ${className}`}>
     {children}
   </div>
 );

@@ -17,6 +17,7 @@ import {
 import { Avatar } from '../../../components/ui/Avatar';
 import { VerifiedBadge } from '../../../components/badges/VerifiedBadge';
 import { ConfirmDialog } from '../../../components/feedback/ConfirmDialog';
+import { TypingIndicator } from '../../../components/feedback/TypingIndicator';
 import { Dropdown, DropdownItem } from '../../../components/ui/Dropdown';
 import { MessageItem } from './MessageItem.jsx';
 import { EmojiPopover } from './EmojiPopover.jsx';
@@ -281,12 +282,12 @@ export const DirectChatView = ({
                 {partnerLocation && (
                   <>
                     <span>•</span>
-                    <span className="truncate max-w-[180px] sm:max-w-[240px]">{partnerLocation}</span>
+                    <span className="truncate max-w-truncate-sm sm:max-w-truncate-xl">{partnerLocation}</span>
                   </>
                 )}
               </div>
             ) : partnerLocation ? (
-              <div className="mt-0.5 text-xs text-on-surface-variant truncate max-w-[220px]">
+              <div className="mt-0.5 text-xs text-on-surface-variant truncate max-w-truncate-lg">
                 {partnerLocation}
               </div>
             ) : null}
@@ -408,17 +409,10 @@ export const DirectChatView = ({
 
         {/* Realtime Typing Indicator */}
         {isPartnerTyping && (
-          <div className="flex items-center gap-2 self-start animate-fade-in pl-1">
-            <Avatar src={partnerAvatar} alt={partnerName} size="sm" />
-            <div className="px-3.5 py-2 rounded-2xl rounded-bl-sm chat-typing-bubble flex items-center gap-1.5">
-              <span className="text-xs text-on-surface-variant">{partnerName} đang soạn</span>
-              <span className="flex items-center gap-1 pt-1">
-                <span className="w-1.5 h-1.5 rounded-full bg-primary chat-dot-bounce chat-dot-bounce-1" />
-                <span className="w-1.5 h-1.5 rounded-full bg-primary chat-dot-bounce chat-dot-bounce-2" />
-                <span className="w-1.5 h-1.5 rounded-full bg-primary chat-dot-bounce chat-dot-bounce-3" />
-              </span>
-            </div>
-          </div>
+          <TypingIndicator
+            avatar={<Avatar src={partnerAvatar} alt={partnerName} size="sm" />}
+            label={`${partnerName} đang soạn`}
+          />
         )}
 
       </div>
@@ -520,7 +514,7 @@ export const DirectChatView = ({
         </form>
 
         {/* Security & Helper Note */}
-        <div className="flex items-center justify-between px-2 pt-2 text-[11px] text-on-surface-variant">
+        <div className="flex items-center justify-between px-2 pt-2 text-label-sm text-on-surface-variant">
           <span className="flex items-center gap-1 text-primary">
             <Lock className="w-3.5 h-3.5" />
             <span>Tin nhắn được bảo vệ quyền riêng tư gia đình</span>

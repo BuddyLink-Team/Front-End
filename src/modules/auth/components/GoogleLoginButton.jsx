@@ -24,7 +24,7 @@ export const GoogleLoginButton = ({
           type="button"
           onClick={!hasClientId ? onClick : undefined}
           disabled={disabled || isLoading}
-          className="w-full py-3 px-4 rounded-xl bg-surface-container-low text-on-surface text-sm font-semibold transition-all duration-200 flex items-center justify-center gap-3 border border-hairline shadow-soft cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary/20 group-hover:bg-surface-container group-hover:border-primary-border group-hover:shadow-md group-hover:text-primary-dark group-active:scale-[0.99] group-focus-within:ring-2 group-focus-within:ring-primary/20 disabled:opacity-60 disabled:cursor-not-allowed disabled:group-hover:bg-surface-container-low disabled:group-hover:border-hairline disabled:group-hover:shadow-soft disabled:group-hover:text-on-surface"
+          className="w-full py-3 px-4 rounded-xl bg-surface-container-low text-on-surface text-sm font-semibold transition-all duration-200 flex items-center justify-center gap-3 border border-hairline shadow-soft cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary/20 group-hover:bg-surface-container group-hover:border-primary-border group-hover:shadow-md group-hover:text-primary-dark group-active:scale-99 group-focus-within:ring-2 group-focus-within:ring-primary/20 disabled:opacity-60 disabled:cursor-not-allowed disabled:group-hover:bg-surface-container-low disabled:group-hover:border-hairline disabled:group-hover:shadow-soft disabled:group-hover:text-on-surface"
         >
           {isLoading ? (
             <Loader2 className="w-5 h-5 text-primary animate-spin shrink-0" />

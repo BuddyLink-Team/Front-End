@@ -53,7 +53,7 @@ const toLocation = (place) => ({
 });
 
 const PlaceMeta = ({ place }) => (
-  <div className="flex flex-wrap items-center gap-1.5 text-[11px] text-text-muted">
+  <div className="flex flex-wrap items-center gap-1.5 text-label-sm text-text-muted">
     {place.placeType && (
       <span className="font-medium px-2 py-0.5 rounded-full bg-surface-container-low">
         {CATEGORY_LABELS[place.placeType] || place.placeType}
@@ -253,10 +253,10 @@ export const PlaceSearchModal = ({ isOpen, onClose, onSelectPlace, title = 'Đ�
             onChange={(value) => setActiveCategory(value || 'all')}
           />
 
-          <div className="space-y-2.5 min-h-[220px]">{renderList()}</div>
+          <div className="space-y-2.5 min-h-list">{renderList()}</div>
 
           {/* ODbL attribution required for OpenStreetMap data */}
-          <p className="text-[10px] text-text-muted text-right">Dữ liệu địa điểm © OpenStreetMap contributors</p>
+          <p className="text-label-xs text-text-muted text-right">Dữ liệu địa điểm © OpenStreetMap contributors</p>
         </div>
       )}
     </Modal>

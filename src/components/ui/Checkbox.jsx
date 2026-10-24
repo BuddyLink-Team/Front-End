@@ -52,7 +52,7 @@ export const Checkbox = React.forwardRef(
               error && 'border-red-400 peer-checked:bg-red-500'
             )}
           >
-            <Check className="w-3.5 h-3.5 stroke-[2.5] opacity-0 peer-checked:opacity-100 transition-opacity" />
+            <Check className="w-3.5 h-3.5 stroke-2.5 opacity-0 peer-checked:opacity-100 transition-opacity" />
           </label>
         </div>
 

@@ -18,7 +18,7 @@ export const FormSection = ({
   return (
     <section
       className={cn(
-        'grid grid-cols-1 lg:grid-cols-[200px_1fr] gap-3 lg:gap-8 py-6 first:pt-0 last:pb-0 border-t border-hairline first:border-t-0',
+        'grid grid-cols-1 lg:grid-cols-form-section gap-3 lg:gap-8 py-6 first:pt-0 last:pb-0 border-t border-hairline first:border-t-0',
         className
       )}
     >

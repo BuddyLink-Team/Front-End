@@ -36,7 +36,7 @@ export const ChildFormPage = () => {
 
   if (isFetchingChild) {
     return (
-      <div className="min-h-[70vh] flex flex-col items-center justify-center gap-3">
+      <div className="min-h-page flex flex-col items-center justify-center gap-3">
         <Spinner size="lg" />
         <p className="text-sm font-medium text-text-muted">
           Đang tải thông tin hồ sơ của bé...

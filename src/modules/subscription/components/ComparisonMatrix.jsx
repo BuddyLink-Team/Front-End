@@ -24,13 +24,13 @@ export const ComparisonMatrix = ({ freePlan, premiumPlan }) => {
         <table className="w-full text-left text-sm">
           <thead>
             <tr className="border-b border-outline-variant/40 bg-surface-container-low/40">
-              <th className="py-4 px-6 font-semibold text-on-surface w-1/2 min-w-[200px]">
+              <th className="py-4 px-6 font-semibold text-on-surface w-1/2 min-w-field-md">
                 Tính năng & Hạn mức
               </th>
-              <th className="py-4 px-6 font-semibold text-on-surface text-center w-1/4 min-w-[140px]">
+              <th className="py-4 px-6 font-semibold text-on-surface text-center w-1/4 min-w-field-sm">
                 Gói Miễn Phí
               </th>
-              <th className="py-4 px-6 font-bold text-primary text-center w-1/4 min-w-[140px] bg-primary/5">
+              <th className="py-4 px-6 font-bold text-primary text-center w-1/4 min-w-field-sm bg-primary/5">
                 Gói Premium ⭐
               </th>
             </tr>

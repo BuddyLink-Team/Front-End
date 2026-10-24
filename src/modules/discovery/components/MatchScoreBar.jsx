@@ -1,5 +1,6 @@
 import React from 'react';
 import { Sparkles } from 'lucide-react';
+import { ICON_SIZE, ICON_STROKE } from '../../../constants/icon.constants';
 
 export const MatchScoreBar = ({ score }) => {
   const getBarColor = () => {
@@ -10,7 +11,7 @@ export const MatchScoreBar = ({ score }) => {
 
   return (
     <div className="w-52 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/90 backdrop-blur-md border border-surface-container shadow-sm">
-      <Sparkles size={14} strokeWidth={1.5} className="text-primary" />
+      <Sparkles size={ICON_SIZE.SM} strokeWidth={ICON_STROKE.THIN} className="text-primary" />
       <span className="font-bold text-xs text-on-surface">{score}% Tương thích</span>
       <div className="w-10 h-1.5 rounded-full bg-surface-container overflow-hidden">
         <div

@@ -93,8 +93,19 @@ Use **SCREAMING_SNAKE_CASE** for constant variables and files:
    - Secondary: Soft Cloud Blue (`#92C5DE`)
    - Tertiary: Warm Butter Yellow (`#F6D186`)
    - Font: **Plus Jakarta Sans**
-2. **Avoid Hardcoded Magic Values**: Use Tailwind theme classes mapped to design tokens rather than arbitrary hex colors inline.
+2. **No Hardcoded Values** — every color, size, shadow, z-index, stroke, scale, duration… comes from `tailwind.config.js`:
+   - ❌ Arbitrary values: `text-[10px]`, `max-w-[620px]`, `shadow-[0_1px_8px_rgba(0,0,0,0.03)]`, `z-[200]`, `stroke-[1.75]`, `scale-[0.98]`, hex colors.
+   - ✅ Stock Tailwind scale (`w-4`, `max-w-md`, `z-50`, `scale-95`) or a named token (`text-label-xs`, `max-w-otp-card`, `shadow-header`, `z-overlay`, `stroke-1.75`, `scale-98`).
+   - No matching value? **Add a named token** to `theme.extend` in `tailwind.config.js` (name it by role: `max-w-shell`, `min-h-page`, `w-chat-panel`), then use the class. Never fall back to `[...]`.
+   - **Custom CSS** (`src/styles/*.css`): read values with `theme()` — `theme('colors.surface.dim')`, `theme('spacing.6')`, `theme('colors.hairline / 85%')`, `theme('boxShadow.popover')`. No raw hex / rgba / px.
+   - **Numeric JS props** (Lucide `size` / `strokeWidth`, chart or QR sizes): use constants, e.g. `ICON_SIZE.MD`, `ICON_STROKE.DEFAULT` from `constants/icon.constants.js`; module-specific sizes live in the module's constants (`QR_CODE_SIZE`).
+   - Allowed exceptions: values computed at runtime (`style={{ width: \`${percent}%\` }}`, drag offsets) and third-party brand assets (Google logo colors in `GoogleLoginButton`).
 3. **Consistent Radii**:
    - Buttons & Inputs: `rounded-xl` (12px–14px)
    - Cards: `rounded-2xl` (16px–20px)
    - Badges & Pills: `rounded-full` (9999px)
+4. **Merging Classes with `cn()`** (`utils/cn.js`):
+   - Use `cn()` whenever classes are combined conditionally or a component accepts a `className` override. Later classes win over earlier conflicting ones (`cn('px-3 text-sm', 'px-space-md text-label-md')` → `px-space-md text-label-md`).
+   - `cn()` reads the custom tokens straight from `tailwind.config.js` (`theme.extend`), so tailwind-merge understands them and **new tokens work automatically** — no need to touch `cn.js`.
+   - Covered theme keys: `spacing`, `fontSize`, `boxShadow`, `borderRadius`, `borderWidth`, `width`, `height`, `minWidth`, `minHeight`, `maxWidth`, `maxHeight`, `gridTemplateColumns`, `zIndex`, `strokeWidth`, `scale`, `textUnderlineOffset`, `transitionTimingFunction`, `transitionDuration` (mapping in `TOKEN_GROUPS`). ⚠️ If you add tokens under a **new** theme key, add that key to `TOKEN_GROUPS` in `utils/cn.js`; otherwise tailwind-merge may misread it (a font size like `text-foo` is taken for a text color and dropped next to `text-white`; `max-w-foo` is kept alongside `max-w-md` instead of replacing it).
+   - Do not import `twMerge` from `tailwind-merge` directly; always go through `cn()`.

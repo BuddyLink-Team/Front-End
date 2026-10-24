@@ -27,6 +27,12 @@ export { Card } from './cards/Card';
 export { StatCard } from './cards/StatCard';
 export { EmptyState } from './cards/EmptyState';
 
+// Charts
+export { BarChart } from './charts/BarChart';
+
+// Chat
+export { ChatBubble } from './chat/ChatBubble';
+
 // Form Layout
 export { FormPageHeader } from './form/FormPageHeader';
 export { FormSection } from './form/FormSection';
@@ -40,6 +46,7 @@ export { Spinner } from './feedback/Spinner';
 export { LoadingOverlay } from './feedback/LoadingOverlay';
 export { AppErrorBoundary } from './feedback/AppErrorBoundary';
 export { PlaceholderPage } from './feedback/PlaceholderPage';
+export { TypingIndicator } from './feedback/TypingIndicator';
 
 // Navigation
 export { Navbar } from './navigation/Navbar';
@@ -52,3 +59,4 @@ export { ScrollToTop } from './navigation/ScrollToTop';
 // Search & Filtering
 export { SearchBar } from './search/SearchBar';
 export { FilterChips } from './search/FilterChips';
+export { DateRangeFilter } from './search/DateRangeFilter';

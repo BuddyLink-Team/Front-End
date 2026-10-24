@@ -80,7 +80,7 @@ export function PlaydateRatingsSection({ playdate }) {
                   {item.parent.fullName || 'Phụ huynh'}
                 </p>
                 {item.isMine && (
-                  <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-primary-soft text-primary-ink border border-primary-border">
+                  <span className="text-label-xs font-semibold px-2 py-0.5 rounded-full bg-primary-soft text-primary-ink border border-primary-border">
                     Của bạn
                   </span>
                 )}

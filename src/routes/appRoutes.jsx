@@ -6,7 +6,6 @@ import { PublicRoute } from './PublicRoute';
 import { ProtectedRoute } from './ProtectedRoute';
 import { RoleRoute } from './RoleRoute';
 import { ParentRoutes } from './ParentRoutes';
-import { AdminRoutes } from './AdminRoutes';
 import { USER_ROLES, getRoleHomePath } from '../constants/role.constants';
 import { needsVerification } from '../modules/auth/utils/verification';
 import { MainLayout } from '../layouts/MainLayout';
@@ -23,7 +22,8 @@ const OnboardingChildPage = lazy(() => import('../modules/child/pages/Onboarding
 /**
  * Root route handler:
  * - Unauthenticated guest: Show LandingPage
- * - Authenticated user: Redirect to their role home page (/discovery or /admin/dashboard)
+ * - Authenticated user: Redirect to their role home page (/discovery)
+ * Admin pages are a separate build (AdminAppRoutes) served by the admin portal.
  */
 const RootHandler = () => {
   const { isAuthenticated, user, parent } = useSelector((state) => state.auth);
@@ -84,11 +84,6 @@ export const AppRoutes = () => {
           {/* Parent Role Routes */}
           <Route element={<RoleRoute allowedRoles={[USER_ROLES.PARENT]} />}>
             {ParentRoutes()}
-          </Route>
-
-          {/* Admin Role Routes */}
-          <Route element={<RoleRoute allowedRoles={[USER_ROLES.ADMIN]} />}>
-            {AdminRoutes()}
           </Route>
         </Route>
 

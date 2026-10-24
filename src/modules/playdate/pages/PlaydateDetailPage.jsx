@@ -142,7 +142,7 @@ export const PlaydateDetailPage = () => {
                   <h4 className="text-sm font-semibold text-text-primary">
                     Đang có đề xuất đổi lịch hẹn mới
                   </h4>
-                  <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-tertiary-fixed text-tertiary-dark border border-tertiary-fixed">
+                  <span className="text-label-xs font-semibold px-2 py-0.5 rounded-full bg-tertiary-fixed text-tertiary-dark border border-tertiary-fixed">
                     Chờ đồng thuận
                   </span>
                 </div>
@@ -272,7 +272,7 @@ export const PlaydateDetailPage = () => {
                   )}`}
                   target="_blank"
                   rel="noreferrer"
-                  className="text-[11px] font-semibold text-primary-dark inline-flex items-center gap-1 hover:underline pt-1"
+                  className="text-label-sm font-semibold text-primary-dark inline-flex items-center gap-1 hover:underline pt-1"
                 >
                   Mở Google Maps <ExternalLink className="w-3 h-3" />
                 </a>

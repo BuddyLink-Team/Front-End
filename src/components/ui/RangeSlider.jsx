@@ -47,7 +47,7 @@ export const RangeSlider = ({
       className="w-full h-2.5 bg-white border border-hairline rounded-lg appearance-none cursor-pointer accent-primary mt-2 transition-all"
     />
     {marks.length > 0 && (
-      <div className="flex justify-between text-[11px] text-text-muted font-medium pt-1">
+      <div className="flex justify-between text-label-sm text-text-muted font-medium pt-1">
         {marks.map((mark, index) => (
           <span key={index}>{mark}</span>
         ))}

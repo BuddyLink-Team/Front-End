@@ -42,6 +42,7 @@ export const AUTH_ERROR_MESSAGES = Object.freeze({
   INVALID_CREDENTIALS: 'Email hoặc mật khẩu không chính xác. Vui lòng kiểm tra lại!',
   ACCOUNT_DISABLED: 'Tài khoản của bạn tạm thời bị khóa. Vui lòng liên hệ quản trị viên!',
   FORBIDDEN: 'Bạn không có quyền truy cập vào chức năng này.',
+  ADMIN_PORTAL_REQUIRED: 'Tài khoản quản trị viên vui lòng đăng nhập tại trang quản trị.',
   USER_INACTIVE: 'Tài khoản hiện đang không hoạt động.',
   PARENT_NOT_FOUND: 'Không tìm thấy hồ sơ phụ huynh tương ứng.',
   EMAIL_SEND_FAILED: 'Không gửi được email xác thực. Vui lòng thử lại sau ít phút!',

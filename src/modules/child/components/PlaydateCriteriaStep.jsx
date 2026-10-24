@@ -46,7 +46,7 @@ export const PlaydateCriteriaStep = ({
             <span>
               Ngày trong tuần phù hợp <span className="text-error">*</span>
             </span>
-            <span className="text-[11px] text-text-muted font-normal">
+            <span className="text-label-sm text-text-muted font-normal">
               Có thể chọn nhiều
             </span>
           </label>
@@ -70,7 +70,7 @@ export const PlaydateCriteriaStep = ({
               <Clock className="w-3.5 h-3.5 text-primary" />
               Khung giờ ưa thích <span className="text-error">*</span>
             </span>
-            <span className="text-[11px] text-text-muted font-normal">
+            <span className="text-label-sm text-text-muted font-normal">
               Có thể chọn nhiều
             </span>
           </label>
@@ -111,7 +111,7 @@ export const PlaydateCriteriaStep = ({
               Loại hình không gian mong muốn{' '}
               <span className="text-error">*</span>
             </span>
-            <span className="text-[11px] text-text-muted font-normal">
+            <span className="text-label-sm text-text-muted font-normal">
               Chọn không gian an toàn
             </span>
           </label>

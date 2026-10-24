@@ -42,7 +42,7 @@ export const SubscriptionPage = () => {
   const yearlyPriceText = yearlyPlan ? `Theo năm` : 'Theo năm';
 
   return (
-    <div className="mx-auto space-y-10 pb-16 pt-4">
+    <div className="mx-auto space-y-10 pb-16">
       {/* 1. Header & Current Status */}
       <div className="text-center space-y-3">
         <div className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-primary-fixed/60 text-on-primary-fixed text-xs font-bold tracking-wide">
@@ -92,8 +92,8 @@ export const SubscriptionPage = () => {
 
       {!plansLoaded && (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8" aria-busy="true">
-          <Skeleton className="h-[520px] rounded-2xl" />
-          <Skeleton className="h-[520px] rounded-2xl" />
+          <Skeleton className="h-pricing-card rounded-2xl" />
+          <Skeleton className="h-pricing-card rounded-2xl" />
         </div>
       )}
 

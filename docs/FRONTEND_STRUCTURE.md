@@ -12,7 +12,7 @@ src/
 ├── assets/            # Static assets (images, logos, svg icons)
 ├── components/        # Shared reusable UI primitives
 ├── hooks/             # Shared application hooks
-├── layouts/           # Layout wrappers (AuthLayout, MainLayout)
+├── layouts/           # Layout wrappers (AuthLayout, MainLayout, AdminLayout)
 ├── routes/            # Route configurations & Guards
 ├── services/          # API & realtime client configs
 ├── constants/         # App-wide constants
@@ -21,7 +21,7 @@ src/
 ├── test/              # Test suite (setup, testUtils, mocks, unit, components, hooks)
 ├── modules/           # Business feature modules
 │
-├── App.jsx            # Top-level application component & route provider
+├── App.jsx            # Top-level component; loads the routes of the portal being built (parent / admin)
 └── main.jsx           # Vite application entry point
 ```
 
@@ -51,19 +51,23 @@ src/
 
 ### `layouts/`
 
-- Page frame layouts incorporating common navigation bars, footers, and sidebars (`AuthLayout`, `MainLayout`).
+- Page frame layouts incorporating common navigation bars, footers, and sidebars (`AuthLayout`, `MainLayout`, `AdminLayout`).
+- **`AdminLayout`**: wraps every `/admin/*` route (`AdminRoutes.jsx`, admin portal build only) — fixed `Sidebar` with `ADMIN_NAV_LINKS` (drawer below `lg`, collapsible on `lg+` via `useSidebar`, signed-in admin + logout in its footer through `AdminSidebarUser`), fixed `AdminHeader` (sidebar toggle + current section label), content capped at `1160px`. Admin components live in `modules/admin/components/`.
+  - `ADMIN_NAV_LINKS[].name` doubles as the `AdminHeader` section label, so keep it in line with the page title of its route.
 
 ### `routes/`
 
 - Centralized router definition using `react-router-dom` (v6+) with code-splitting (`lazy`, `Suspense`).
-- **`appRoutes.jsx`**:
-  - Root path `/`: Renders **`LandingPage`** for unauthenticated guests; automatically redirects authenticated users to their corresponding role homepage (`/discovery` for Parents, `/admin/dashboard` for Admins).
+- **Two portals, two builds**: `App.jsx` reads `IS_ADMIN_PORTAL` (`constants/app.constants.js`, from `VITE_APP_TARGET`) and lazy-loads only one route tree, so the parent build never ships admin pages and the admin build never ships parent pages.
+- **`appRoutes.jsx`** (parent app, `npm run dev` / `build`):
+  - Root path `/`: Renders **`LandingPage`** for unauthenticated guests; automatically redirects authenticated parents to `/discovery`.
+- **`AdminAppRoutes.jsx`** (admin portal, `npm run dev:admin` / `build:admin`): `/login` → `AdminLoginPage`, `/admin/*` → `AdminRoutes.jsx` behind `ProtectedRoute` + `RoleRoute(admin)`.
 - Role-based route guards: `PublicRoute.jsx`, `ProtectedRoute.jsx`, `RoleRoute.jsx`.
 - Sub-route definitions: `ParentRoutes.jsx`, `AdminRoutes.jsx`.
 
 ### `services/`
 
-- **`apiClient.js`**: Axios instance with automatic JWT header attachment, token refresh interceptors, and unified error handling.
+- **`apiClient.js`**: Axios instance with automatic JWT header attachment, token refresh interceptors, and unified error handling. Its base URL is `VITE_API_URL`, so in the admin build `/auth/*` and `/user/*` calls go to the admin API (`/api/v1/admin`).
 - **`socket.js`**: Socket.io client connection management for realtime chat & instant notifications.
 
 ### `constants/` & `utils/`

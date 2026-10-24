@@ -28,6 +28,7 @@ import { ACTIVITIES } from '../../../constants/activity.constants';
 import { PlaceSearchModal } from '../components/PlaceSearchModal';
 import { PlaydateSummaryRow } from '../components/PlaydateSummaryRow';
 import { useCreatePlaydate } from '../hooks/useCreatePlaydate';
+import { ICON_STROKE } from '../../../constants/icon.constants';
 
 // Quick activity suggestions shown before "Xem tất cả" (the host child's favorites come first)
 const ACTIVITY_PREVIEW_COUNT = 8;
@@ -184,7 +185,7 @@ export const CreatePlaydatePage = () => {
                             : 'border-hairline bg-surface-container-lowest'
                         }`}
                       >
-                        {isSelected && <Check className="w-3 h-3" strokeWidth={3} />}
+                        {isSelected && <Check className="w-3 h-3" strokeWidth={ICON_STROKE.BOLD} />}
                       </div>
                     </button>
                   );
@@ -400,7 +401,7 @@ export const CreatePlaydatePage = () => {
                           <p className="text-xs font-semibold text-text-primary truncate">
                             {friend.fullName}
                           </p>
-                          <p className="text-[11px] text-text-muted">
+                          <p className="text-label-sm text-text-muted">
                             {friend.children?.length || 0} bé
                           </p>
                         </div>
