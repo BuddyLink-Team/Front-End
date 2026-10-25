@@ -52,14 +52,15 @@ export const FilterChips = ({
   return (
     <div className={cn('flex items-center gap-2 overflow-x-auto py-1 scrollbar-none', className)}>
       {options.map((opt) => {
-        const active = isSelected(opt.id);
+        const optionId = opt.id ?? opt.value ?? opt.label;
+        const active = isSelected(optionId);
         const Icon = opt.icon;
 
         return (
           <button
-            key={opt.id}
+            key={optionId}
             type="button"
-            onClick={() => handleToggle(opt.id)}
+            onClick={() => handleToggle(optionId)}
             className={cn(
               'inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-medium border transition-all duration-150 select-none whitespace-nowrap shadow-2xs',
               active

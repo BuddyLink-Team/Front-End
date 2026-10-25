@@ -3,6 +3,9 @@ import { Route, Navigate } from 'react-router-dom';
 import { AdminLayout } from '../layouts/AdminLayout';
 import PlaceholderPage from '../components/feedback/PlaceholderPage';
 
+import AdminUserManagementPage from '../modules/admin/pages/AdminUserManagementPage';
+import AdminChildManagementPage from '../modules/admin/pages/AdminChildManagementPage';
+
 // Title on the admin type scale (semi-bold), matching the AdminHeader section label
 const AdminPlaceholder = (props) => (
   <PlaceholderPage titleClassName="text-headline-md font-semibold text-on-surface" {...props} />
@@ -24,11 +27,11 @@ export const AdminRoutes = () => (
     {/* User & Children Management */}
     <Route
       path="users"
-      element={<AdminPlaceholder title="Quản lý phụ huynh" description="Danh sách tài khoản phụ huynh, trạng thái xác thực và lịch sử hoạt động." />}
+      element={<AdminUserManagementPage />}
     />
     <Route
       path="children"
-      element={<AdminPlaceholder title="Quản lý hồ sơ trẻ" description="Danh sách hồ sơ trẻ em trên toàn hệ thống." />}
+      element={<AdminChildManagementPage />}
     />
 
     {/* Connection & Playdate Management */}
