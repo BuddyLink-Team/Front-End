@@ -2,23 +2,25 @@ import { useCallback } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useToast } from '../../../hooks/useToast';
 import { getApiErrorMsg } from '../../../utils/errorUtils';
-import { blockParent, reportParent } from '../redux/safetySlice';
+import { blockParent, unblockParent, reportParent, fetchBlockedUsers } from '../redux/safetySlice';
 import { SAFETY_ERROR_MESSAGES } from '../constants/safetyConstants';
 
 /**
- * Block / report another parent. API calls live in the safety slice thunks.
+ * Block / unblock / report another parent and manage blocked users list.
  */
 export const useSafetyActions = () => {
   const toast = useToast();
   const dispatch = useDispatch();
-  const isSubmitting = useSelector((state) => state.safety.isSubmitting);
+  const { isSubmitting, isLoadingBlockedUsers, blockedUsers, blockedUsersError } = useSelector(
+    (state) => state.safety,
+  );
 
   const run = useCallback(
     async (thunkAction, successMessage, fallbackError) => {
       try {
-        await dispatch(thunkAction).unwrap();
-        toast.success(successMessage);
-        return { success: true };
+        const result = await dispatch(thunkAction).unwrap();
+        if (successMessage) toast.success(successMessage);
+        return { success: true, data: result };
       } catch (error) {
         const msg = getApiErrorMsg(SAFETY_ERROR_MESSAGES, error, fallbackError);
         toast.error(msg);
@@ -37,7 +39,7 @@ export const useSafetyActions = () => {
   );
 
   const blockUser = useCallback(
-    (targetParentId, displayName, reason = 'Blocked from a conversation') => {
+    (targetParentId, displayName = 'phụ huynh', reason = 'Blocked by user') => {
       if (!targetParentId) {
         return Promise.resolve(rejectMissingTarget('Không tìm thấy thông tin đối phương để chặn'));
       }
@@ -45,6 +47,20 @@ export const useSafetyActions = () => {
         blockParent({ blockedId: targetParentId, reason }),
         `Đã chặn người dùng ${displayName}`,
         'Chặn người dùng thất bại. Vui lòng thử lại.',
+      );
+    },
+    [run, rejectMissingTarget],
+  );
+
+  const unblockUser = useCallback(
+    (targetParentId, displayName = 'phụ huynh') => {
+      if (!targetParentId) {
+        return Promise.resolve(rejectMissingTarget('Không tìm thấy thông tin đối phương để bỏ chặn'));
+      }
+      return run(
+        unblockParent(targetParentId),
+        `Đã bỏ chặn người dùng ${displayName}`,
+        'Bỏ chặn người dùng thất bại. Vui lòng thử lại.',
       );
     },
     [run, rejectMissingTarget],
@@ -64,7 +80,24 @@ export const useSafetyActions = () => {
     [run, rejectMissingTarget],
   );
 
-  return { isSubmitting, blockUser, reportUser };
+  const loadBlockedUsers = useCallback(
+    (params = { page: 1, limit: 10 }) => {
+      return dispatch(fetchBlockedUsers(params)).unwrap();
+    },
+    [dispatch],
+  );
+
+  return {
+    isSubmitting,
+    isLoadingBlockedUsers,
+    blockedUsers,
+    blockedUsersError,
+    blockUser,
+    unblockUser,
+    reportUser,
+    fetchBlockedUsers: loadBlockedUsers,
+  };
 };
 
 export default useSafetyActions;
+

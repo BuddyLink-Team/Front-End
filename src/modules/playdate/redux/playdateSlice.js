@@ -81,6 +81,10 @@ export const respondToPlaydate = createApiThunk(
   ({ id, status }) => playdateApi.respondToPlaydate(id, status),
 );
 
+export const leavePlaydate = createApiThunk('playdate/leave', (id) =>
+  playdateApi.leavePlaydate(id),
+);
+
 export const createRescheduleRequest = createApiThunk(
   'playdate/createReschedule',
   ({ id, payload }) => playdateApi.createReschedule(id, payload),

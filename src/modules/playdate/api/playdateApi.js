@@ -69,6 +69,12 @@ export const playdateApi = {
     apiClient.put(`${API_ENDPOINTS.PLAYDATE.BASE}/${id}/respond`, { status }),
 
   /**
+   * Participant leaves the playdate
+   */
+  leavePlaydate: (id) =>
+    apiClient.post(`${API_ENDPOINTS.PLAYDATE.BASE}/${id}/leave`),
+
+  /**
    * Propose a reschedule request for playdate
    */
   createReschedule: (id, payload) =>

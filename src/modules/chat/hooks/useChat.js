@@ -171,8 +171,21 @@ export const useChat = ({ initialConversationId = null, initialPlaydateId = null
   const detailOfActive = activeConversationDetail?.id === activeConversationId ? activeConversationDetail : null;
   const activeConversation = useMemo(() => {
     if (!conversationFromList) return detailOfActive;
-    if (!detailOfActive?.playdate) return conversationFromList;
-    return { ...conversationFromList, playdate: detailOfActive.playdate };
+    return {
+      ...conversationFromList,
+      ...(detailOfActive || {}),
+      playdate: detailOfActive?.playdate || conversationFromList.playdate,
+      blockedByMeParticipants:
+        detailOfActive?.blockedByMeParticipants ?? conversationFromList.blockedByMeParticipants ?? [],
+      blockedMeParticipants:
+        detailOfActive?.blockedMeParticipants ?? conversationFromList.blockedMeParticipants ?? [],
+      isBlockedByMe:
+        detailOfActive?.isBlockedByMe ?? conversationFromList.isBlockedByMe ?? false,
+      isBlockedByPartner:
+        detailOfActive?.isBlockedByPartner ?? conversationFromList.isBlockedByPartner ?? false,
+      isBlocked:
+        detailOfActive?.isBlocked ?? conversationFromList.isBlocked ?? false,
+    };
   }, [conversationFromList, detailOfActive]);
 
   const needsDetail =

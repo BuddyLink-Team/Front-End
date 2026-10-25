@@ -30,6 +30,11 @@ import { Textarea } from '../../../components/ui/Textarea';
 import { Spinner } from '../../../components/feedback/Spinner';
 import { CHAT_FILE_INPUT_ACCEPT, COMPOSER_TEXTAREA_CLASS } from '../constants/chatConstants.js';
 import { cn } from '../../../utils/cn';
+import { useToast } from '../../../hooks/useToast';
+import { playdateApi } from '../../playdate/api/playdateApi';
+import { getApiErrorMsg } from '../../../utils/errorUtils';
+import { ReportModal } from '../../safety/components/ReportModal';
+import { REPORT_TARGET_TYPES } from '../../safety/constants/safetyConstants';
 
 /**
  * Format date group label for messages separator
@@ -72,6 +77,12 @@ export const PlaydateChatView = ({
   const [isCollateralOpen, setIsCollateralOpen] = useState(true);
   const [showMobileCollateral, setShowMobileCollateral] = useState(false);
   const [showReportDialog, setShowReportDialog] = useState(false);
+  const [reportTarget, setReportTarget] = useState(null);
+
+  const toast = useToast();
+  const [blockedPromptStep, setBlockedPromptStep] = useState(null); // 'ASK_CONTINUE' | 'ASK_LEAVE' | null
+  const [hasConfirmedStay, setHasConfirmedStay] = useState(false);
+  const [isLeavingPlaydate, setIsLeavingPlaydate] = useState(false);
 
   const messagesContainerRef = useRef(null);
   const textareaRef = useRef(null);
@@ -82,6 +93,21 @@ export const PlaydateChatView = ({
   const playdate = conversation?.playdate;
   const groupTitle = playdate?.title || playdate?.activity || 'Nhóm Hẹn Chơi';
   const participantsCount = (conversation?.participants?.length || 0);
+
+  const blockedParticipants = conversation?.blockedByMeParticipants || [];
+  const blockedNames = blockedParticipants
+    .map((p) => p.fullName || p.displayName || 'thành viên')
+    .filter(Boolean)
+    .join(', ');
+
+  useEffect(() => {
+    setHasConfirmedStay(false);
+    if (conversation?.blockedByMeParticipants?.length > 0) {
+      setBlockedPromptStep('ASK_CONTINUE');
+    } else {
+      setBlockedPromptStep(null);
+    }
+  }, [conversation?.id]);
 
   // Auto scroll to bottom
   // Scroll only the message list: scrollIntoView would also scroll the page down to the input
@@ -160,6 +186,78 @@ export const PlaydateChatView = ({
     if (textareaRef.current) {
       textareaRef.current.focus();
     }
+  };
+
+  const handleConfirmContinue = () => {
+    setBlockedPromptStep(null);
+    setHasConfirmedStay(true);
+  };
+
+  const handleDeclineContinue = () => {
+    setBlockedPromptStep('ASK_LEAVE');
+  };
+
+  const handleDeclineLeave = () => {
+    setBlockedPromptStep('ASK_CONTINUE');
+  };
+
+  const handleConfirmLeave = async () => {
+    setIsLeavingPlaydate(true);
+    try {
+      const playdateId = playdate?.id || conversation?.playdateId?._id || conversation?.playdateId;
+      const hostId = playdate?.host?.id || playdate?.hostParentId?._id || playdate?.hostParentId;
+      const isHost = String(hostId) === String(currentParentId);
+
+      if (playdateId) {
+        if (isHost) {
+          await playdateApi.cancelPlaydate(playdateId, { reason: 'Rời buổi hẹn do có người dùng bị chặn' });
+          toast.success('Đã hủy buổi hẹn playdate.');
+        } else {
+          await playdateApi.leavePlaydate(playdateId);
+          toast.success('Bạn đã rời khỏi buổi hẹn playdate.');
+        }
+      }
+      setBlockedPromptStep(null);
+      if (onBack) {
+        onBack();
+      } else {
+        navigate('/chat');
+      }
+    } catch (err) {
+      toast.error(getApiErrorMsg({}, err, 'Không thể rời buổi hẹn playdate. Vui lòng thử lại.'));
+      setBlockedPromptStep('ASK_CONTINUE');
+    } finally {
+      setIsLeavingPlaydate(false);
+    }
+  };
+
+  const handleOpenReportGroup = () => {
+    const hostId = playdate?.host?.id || playdate?.hostParentId?._id || playdate?.hostParentId;
+    setReportTarget({
+      reportedUserId: hostId,
+      targetType: REPORT_TARGET_TYPES.PLAYDATE,
+      targetPlaydateId: playdate?.id || conversation?.playdateId?._id || conversation?.playdateId,
+      targetName: groupTitle,
+      targetSummary: playdate?.activity || groupTitle,
+    });
+    setShowReportDialog(true);
+  };
+
+  const handleReportMessage = (msg) => {
+    const senderId =
+      msg.senderId?._id ||
+      msg.senderId?.id ||
+      msg.senderId ||
+      msg.sender?.id ||
+      msg.sender?._id;
+    setReportTarget({
+      reportedUserId: senderId,
+      targetType: REPORT_TARGET_TYPES.MESSAGE,
+      targetMessageId: msg.id || msg._id,
+      targetName: msg.sender?.fullName || 'Thành viên',
+      targetSummary: msg.content,
+    });
+    setShowReportDialog(true);
   };
 
   const handleConfirmReport = async () => {
@@ -302,7 +400,7 @@ export const PlaydateChatView = ({
                 <DropdownItem
                   icon={Flag}
                   danger
-                  onClick={() => setShowReportDialog(true)}
+                  onClick={handleOpenReportGroup}
                 >
                   Báo cáo nhóm chat
                 </DropdownItem>
@@ -314,12 +412,12 @@ export const PlaydateChatView = ({
         {/* 2. Messages Stream */}
         <div ref={messagesContainerRef} className="flex-1 overflow-y-auto px-5 py-4 space-y-4 chat-stream-canvas scroll-smooth">
           {/* Playdate Scheduled Event Banner inside chat stream */}
-          <div className="p-3.5 rounded-2xl bg-surface-container-lowest border border-hairline shadow-xs flex items-center justify-between gap-3 mx-auto max-w-xl">
-            <div className="flex items-center gap-3">
+          <div className="p-3.5 rounded-2xl bg-surface-container-lowest border border-hairline shadow-xs flex items-center justify-between gap-3 mx-auto w-full max-w-xl">
+            <div className="flex items-center gap-3 min-w-0 flex-1">
               <div className="w-9 h-9 rounded-xl bg-primary-container/25 text-primary flex items-center justify-center shrink-0">
                 <CalendarHeart className="w-4 h-4" />
               </div>
-              <div className="text-xs">
+              <div className="text-xs min-w-0 flex-1">
                 <p className="font-bold text-on-surface leading-tight">
                   {groupTitle}
                 </p>
@@ -400,6 +498,7 @@ export const PlaydateChatView = ({
                     currentParentId={currentParentId}
                     onImageClick={(url) => setLightboxImageUrl(url)}
                     onRetry={onRetryMessage}
+                    onReportMessage={handleReportMessage}
                   />
                 </React.Fragment>
               );
@@ -561,18 +660,54 @@ export const PlaydateChatView = ({
       <ImageLightbox imageUrl={lightboxImageUrl} onClose={() => setLightboxImageUrl(null)} />
 
       {/* ============================================================== */}
-      {/* Report Group Modal                                             */}
+      {/* Blocked Participant Warning Dialog 1                           */}
       {/* ============================================================== */}
       <ConfirmDialog
-        open={showReportDialog}
-        title="Báo cáo nhóm chat này?"
-        description="Bạn có nhận thấy tin nhắn phản cảm, vi phạm an toàn trẻ nhỏ hoặc nội dung không lành mạnh trong nhóm này? Quản trị viên BuddyLink sẽ kiểm tra ngay lập tức."
-        confirmLabel="Gửi báo cáo"
-        cancelLabel="Hủy"
+        open={blockedPromptStep === 'ASK_CONTINUE'}
+        title="Thành viên bị chặn trong nhóm"
+        description={`Bạn đã chặn ${blockedNames || 'một thành viên trong nhóm này'}. Bạn có muốn tiếp tục trao đổi trong nhóm playdate?`}
+        confirmLabel="Có, tiếp tục"
+        cancelLabel="Không"
         variant="warning"
-        onConfirm={handleConfirmReport}
-        onCancel={() => setShowReportDialog(false)}
+        onConfirm={handleConfirmContinue}
+        onCancel={handleDeclineContinue}
       />
+
+      {/* ============================================================== */}
+      {/* Blocked Participant Leave Dialog 2                             */}
+      {/* ============================================================== */}
+      <ConfirmDialog
+        open={blockedPromptStep === 'ASK_LEAVE'}
+        title="Rời buổi hẹn Playdate?"
+        description="Bạn có muốn rời playdate?"
+        confirmLabel="Có, rời playdate"
+        cancelLabel="Không"
+        variant="danger"
+        isLoading={isLeavingPlaydate}
+        onConfirm={handleConfirmLeave}
+        onCancel={handleDeclineLeave}
+      />
+
+      {/* ============================================================== */}
+      {/* Report Playdate / Message Modal                                */}
+      {/* ============================================================== */}
+      {showReportDialog && (
+        <ReportModal
+          isOpen={showReportDialog}
+          onClose={() => {
+            setShowReportDialog(false);
+            setReportTarget(null);
+          }}
+          target={
+            reportTarget || {
+              reportedUserId: playdate?.host?.id || playdate?.hostParentId,
+              targetType: REPORT_TARGET_TYPES.PLAYDATE,
+              targetPlaydateId: playdate?.id,
+              targetName: groupTitle,
+            }
+          }
+        />
+      )}
     </section>
   );
 };
