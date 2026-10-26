@@ -84,5 +84,10 @@ export const API_ENDPOINTS = {
   ADMIN: {
     DASHBOARD_STATS: '/stats',
     USERS: '/users',
+    PLAYDATES: '/playdates',
+    PLAYDATE_BY_ID: (id) => `/playdates/${id}`,
+    CANCEL_PLAYDATE: (id) => `/playdates/${id}/cancel`,
+    CONNECTIONS: '/connections',
+    CONNECTION_BY_ID: (id) => `/connections/${id}`,
   },
 };
