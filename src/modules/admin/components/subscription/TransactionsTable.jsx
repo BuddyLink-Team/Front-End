@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import dayjs from 'dayjs';
 import { DataTable } from '../../../../components/ui/DataTable';
-import { Avatar } from '../../../../components/ui/Avatar';
 import { Pagination } from '../../../../components/navigation/Pagination';
 import { useServerTable } from '../../../../hooks/useServerTable';
 import { adminSubscriptionApi } from '../../api/adminSubscriptionApi';
@@ -10,6 +9,12 @@ import { Search, Eye, QrCode, Calendar } from 'lucide-react';
 
 const formatCurrency = (amount) => {
   return new Intl.NumberFormat('vi-VN').format(amount || 0);
+};
+
+const PLAN_BADGE_MAP = {
+  free: { label: 'Free', className: 'bg-slate-200 text-black font-medium' },
+  premium_monthly: { label: 'Premium Tháng', className: 'bg-green-200 text-black font-semibold' },
+  premium_yearly: { label: 'Premium Năm', className: 'bg-blue-200 text-black font-semibold' },
 };
 
 const PAYMENT_STATUS_OPTIONS = [
@@ -79,20 +84,12 @@ export const TransactionsTable = () => {
       key: 'parent',
       label: 'Phụ huynh',
       cell: (row) => (
-        <div className="flex items-center gap-2.5">
-          <Avatar
-            src={row.parent?.avatarUrl}
-            alt={row.parent?.fullName || 'Parent'}
-            size="sm"
-            fallbackText={row.parent?.fullName || 'PH'}
-          />
-          <div>
-            <div className="font-semibold text-on-surface text-xs">
-              {row.parent?.fullName || 'Chưa cập nhật'}
-            </div>
-            <div className="text-xs text-on-surface-variant">
-              {row.parent?.email || '—'}
-            </div>
+        <div>
+          <div className="font-semibold text-on-surface text-xs">
+            {row.parent?.fullName || 'Chưa cập nhật'}
+          </div>
+          <div className="text-xs text-on-surface-variant">
+            {row.parent?.email || '—'}
           </div>
         </div>
       ),
@@ -100,11 +97,18 @@ export const TransactionsTable = () => {
     {
       key: 'planSnapshot',
       label: 'Gói dịch vụ',
-      cell: (row) => (
-        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-secondary-container/50 text-secondary text-xs font-semibold">
-          {row.planSnapshot?.name || row.planSnapshot?.planCode || 'Gói Premium'}
-        </span>
-      ),
+      cell: (row) => {
+        const planCode = row.planSnapshot?.planCode || row.planCode;
+        const badge = PLAN_BADGE_MAP[planCode] || {
+          label: row.planSnapshot?.name || 'Gói dịch vụ',
+          className: 'bg-slate-200 text-black font-medium',
+        };
+        return (
+          <span className={`inline-block px-2.5 py-0.5 rounded-full text-xs ${badge.className}`}>
+            {badge.label}
+          </span>
+        );
+      },
     },
     {
       key: 'amount',

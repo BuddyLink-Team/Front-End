@@ -8,9 +8,9 @@ import { adminSubscriptionApi } from '../../api/adminSubscriptionApi';
 import { Search, Eye } from 'lucide-react';
 
 const PLAN_BADGE_MAP = {
-  free: { label: 'Free', className: 'bg-surface-container text-on-surface-variant' },
-  premium_monthly: { label: 'Premium Tháng', className: 'bg-primary-soft text-primary-dark font-semibold' },
-  premium_yearly: { label: 'Premium Năm', className: 'bg-secondary-container/60 text-on-secondary-container font-semibold' },
+  free: { label: 'Free', className: 'bg-slate-200 text-black font-medium' },
+  premium_monthly: { label: 'Premium Tháng', className: 'bg-green-200 text-black font-semibold' },
+  premium_yearly: { label: 'Premium Năm', className: 'bg-blue-200 text-black font-semibold' },
 };
 
 const PLAN_OPTIONS = [
@@ -49,31 +49,23 @@ export const SubscribersTable = () => {
       key: 'parent',
       label: 'Phụ huynh & Tài khoản',
       cell: (row) => (
-        <div className="flex items-center gap-3">
-          <Avatar
-            src={row.parent?.avatarUrl}
-            alt={row.parent?.fullName || 'Parent'}
-            size="sm"
-            fallbackText={row.parent?.fullName || 'PH'}
-          />
-          <div>
-            <div className="font-semibold text-on-surface text-xs">
-              {row.parent?.fullName || 'Chưa cập nhật tên'}
-            </div>
-            <div className="text-xs text-on-surface-variant">
-              {row.parent?.email || '—'}
-            </div>
+        <div>
+          <div className="font-semibold text-on-surface text-xs">
+            {row.parent?.fullName || 'Chưa cập nhật tên'}
+          </div>
+          <div className="text-xs text-on-surface-variant">
+            {row.parent?.email || '—'}
           </div>
         </div>
       ),
     },
     {
       key: 'planCode',
-      label: 'Gói hội viên',
+      label: 'Gói dịch vụ',
       cell: (row) => {
         const badge = PLAN_BADGE_MAP[row.planCode] || {
-          label: row.planCode,
-          className: 'bg-surface-container text-on-surface',
+          label: row.planCode || 'Free',
+          className: 'bg-slate-200 text-black font-medium',
         };
         return (
           <span className={`inline-block px-2.5 py-0.5 rounded-full text-xs ${badge.className}`}>
