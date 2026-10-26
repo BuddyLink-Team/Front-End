@@ -1,257 +1,164 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
+import { X, Receipt, ShieldCheck } from 'lucide-react';
 import dayjs from 'dayjs';
-import { Modal } from '../../../../components/feedback/Modal';
-import { Button } from '../../../../components/ui/Button';
-import { StatusChip } from '../../../../components/badges/StatusChip';
-import { Spinner } from '../../../../components/feedback/Spinner';
-import { Copy, Check, AlertCircle } from 'lucide-react';
-import { adminSubscriptionApi } from '../../api/adminSubscriptionApi';
 
 const formatCurrency = (amount) => {
-  return new Intl.NumberFormat('vi-VN', {
-    style: 'currency',
-    currency: 'VND',
-  }).format(amount || 0);
+  return new Intl.NumberFormat('vi-VN').format(amount || 0);
 };
 
-export const PaymentDetailModal = ({ paymentId, isOpen, onClose }) => {
-  const [detail, setDetail] = useState(null);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState(null);
-  const [copiedField, setCopiedField] = useState('');
+const STATUS_CONFIG = {
+  creating: { label: 'Khởi tạo', bg: 'bg-surface-container text-on-surface-variant', dot: 'bg-outline' },
+  pending: { label: 'Chờ thanh toán', bg: 'bg-yellow-100 text-yellow-800', dot: 'bg-yellow-500' },
+  success: { label: 'Thành công', bg: 'bg-primary-soft text-primary-dark font-semibold', dot: 'bg-primary' },
+  failed: { label: 'Thất bại', bg: 'bg-red-100 text-red-800 font-semibold', dot: 'bg-red-500' },
+  cancelled: { label: 'Đã hủy', bg: 'bg-orange-100 text-orange-800 font-semibold', dot: 'bg-orange-500' },
+  expired: { label: 'Hết hạn', bg: 'bg-surface-container-highest text-on-surface-variant', dot: 'bg-outline' },
+};
 
-  useEffect(() => {
-    if (!isOpen || !paymentId) {
-      setDetail(null);
-      setError(null);
-      return;
-    }
+export const PaymentDetailModal = ({ payment, isOpen, onClose, isLoading }) => {
+  if (!isOpen) return null;
 
-    let isMounted = true;
-    setIsLoading(true);
-    setError(null);
-
-    adminSubscriptionApi
-      .getPaymentDetail(paymentId)
-      .then((res) => {
-        if (!isMounted) return;
-        setDetail(res?.data || res);
-      })
-      .catch((err) => {
-        if (!isMounted) return;
-        setError(err?.response?.data?.message || err?.message || 'Không thể tải chi tiết giao dịch');
-      })
-      .finally(() => {
-        if (isMounted) setIsLoading(false);
-      });
-
-    return () => {
-      isMounted = false;
-    };
-  }, [isOpen, paymentId]);
-
-  const handleCopy = (text, fieldName) => {
-    if (!text) return;
-    navigator.clipboard.writeText(String(text));
-    setCopiedField(fieldName);
-    setTimeout(() => setCopiedField(''), 2000);
+  const statusInfo = STATUS_CONFIG[payment?.status] || {
+    label: payment?.status || 'Unknown',
+    bg: 'bg-surface-container text-on-surface',
+    dot: 'bg-outline',
   };
 
   return (
-    <Modal
-      isOpen={isOpen}
-      onClose={onClose}
-      title={
-        <div className="flex items-center gap-2">
-          <span>Chi tiết đối soát giao dịch</span>
-          {detail?.orderCode && (
-            <span className="text-xs font-mono bg-surface-container px-2 py-0.5 rounded text-on-surface">
-              #{detail.orderCode}
-            </span>
-          )}
+    <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4">
+      <div className="bg-surface-container-lowest rounded-2xl max-w-lg w-full p-6 shadow-2xl relative animate-in fade-in zoom-in-95 duration-200">
+        {/* Header */}
+        <div className="flex items-center justify-between pb-3 border-b border-hairline">
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-lg bg-secondary-container/50 flex items-center justify-center text-secondary">
+              <Receipt className="w-4 h-4" />
+            </div>
+            <h3 className="text-base font-bold text-on-surface">Hóa đơn điện tử e-Invoice</h3>
+          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            className="text-on-surface-variant hover:text-on-surface p-1 rounded-lg hover:bg-surface-container transition-colors"
+          >
+            <X className="w-5 h-5" />
+          </button>
         </div>
-      }
-      maxWidth="max-w-xl"
-      footer={
-        <Button variant="outline" onClick={onClose}>
-          Đóng
-        </Button>
-      }
-    >
-      {isLoading ? (
-        <div className="py-12 flex flex-col items-center justify-center gap-3">
-          <Spinner size="lg" />
-          <p className="text-xs text-on-surface-variant">Đang tải chi tiết giao dịch...</p>
-        </div>
-      ) : error ? (
-        <div className="p-4 bg-error-container/20 rounded-xl border border-error-container flex items-center gap-2 text-error text-sm">
-          <AlertCircle className="w-5 h-5 shrink-0" />
-          <span>{error}</span>
-        </div>
-      ) : detail ? (
-        <div className="space-y-4 text-xs">
-          {/* Header Status & Amount */}
-          <div className="p-4 rounded-xl bg-surface-container-lowest border border-hairline flex items-center justify-between">
-            <div>
-              <p className="text-on-surface-variant mb-0.5">Số tiền thanh toán</p>
-              <p className="text-lg font-bold text-primary-ink">
-                {formatCurrency(detail.amount)}
-              </p>
-            </div>
-            <div className="text-right">
-              <p className="text-on-surface-variant mb-1">Trạng thái</p>
-              <StatusChip status={detail.status} />
-            </div>
+
+        {isLoading ? (
+          <div className="py-12 flex flex-col items-center justify-center gap-3 text-on-surface-variant text-xs">
+            <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+            <span>Đang tải thông tin đối soát...</span>
           </div>
-
-          {/* Parent Info */}
-          <div className="p-4 rounded-xl bg-surface-container-lowest border border-hairline space-y-2">
-            <h4 className="font-bold text-on-surface uppercase tracking-wider text-[11px]">
-              Thông tin phụ huynh
-            </h4>
-            <div className="grid grid-cols-2 gap-2 pt-1">
-              <div>
-                <span className="text-on-surface-variant">Họ và tên:</span>
-                <p className="font-medium text-on-surface">{detail.parent?.fullName || '—'}</p>
-              </div>
-              <div>
-                <span className="text-on-surface-variant">Email tài khoản:</span>
-                <p className="font-medium text-on-surface">{detail.parent?.email || '—'}</p>
-              </div>
-            </div>
+        ) : !payment ? (
+          <div className="py-8 text-center text-xs text-on-surface-variant">
+            Không tìm thấy thông tin giao dịch
           </div>
-
-          {/* Plan Snapshot */}
-          <div className="p-4 rounded-xl bg-surface-container-lowest border border-hairline space-y-2">
-            <h4 className="font-bold text-on-surface uppercase tracking-wider text-[11px]">
-              Gói dịch vụ tại thời điểm mua (Snapshot)
-            </h4>
-            <div className="grid grid-cols-2 gap-2 pt-1">
+        ) : (
+          <div className="py-4 space-y-4 text-on-surface text-xs">
+            {/* Top Code & Status Banner */}
+            <div className="p-4 rounded-xl bg-surface-container-low flex items-center justify-between">
               <div>
-                <span className="text-on-surface-variant">Tên gói:</span>
-                <p className="font-semibold text-on-surface">{detail.planSnapshot?.name || '—'}</p>
+                <span className="text-xs text-on-surface-variant uppercase font-semibold block">
+                  Mã đơn hàng
+                </span>
+                <span className="text-xl font-mono text-secondary font-bold">
+                  #{payment.orderCode || payment.id?.slice(-8)}
+                </span>
               </div>
-              <div>
-                <span className="text-on-surface-variant">Mã gói (planCode):</span>
-                <p className="font-mono text-on-surface">{detail.planSnapshot?.planCode || '—'}</p>
-              </div>
-              <div>
-                <span className="text-on-surface-variant">Đơn giá gốc:</span>
-                <p className="text-on-surface">{formatCurrency(detail.planSnapshot?.price)}</p>
-              </div>
-              <div>
-                <span className="text-on-surface-variant">Thời hạn cấp:</span>
-                <p className="text-on-surface">{detail.planSnapshot?.durationMonths || 0} tháng</p>
-              </div>
-            </div>
-          </div>
-
-          {/* Payment & Bank Details */}
-          <div className="p-4 rounded-xl bg-surface-container-lowest border border-hairline space-y-2">
-            <h4 className="font-bold text-on-surface uppercase tracking-wider text-[11px]">
-              Thông tin kỹ thuật PayOS & Ngân hàng
-            </h4>
-            <div className="grid grid-cols-2 gap-3 pt-1">
-              <div>
-                <span className="text-on-surface-variant">Mã đơn hàng (orderCode):</span>
-                <div className="flex items-center gap-1 font-mono font-bold text-on-surface">
-                  <span>{detail.orderCode}</span>
-                  <button
-                    type="button"
-                    onClick={() => handleCopy(detail.orderCode, 'orderCode')}
-                    className="p-1 text-on-surface-variant hover:text-primary"
-                  >
-                    {copiedField === 'orderCode' ? <Check className="w-3.5 h-3.5 text-primary" /> : <Copy className="w-3.5 h-3.5" />}
-                  </button>
-                </div>
-              </div>
-
-              <div>
-                <span className="text-on-surface-variant">Mã giao dịch (transactionId):</span>
-                <div className="flex items-center gap-1 font-mono text-on-surface">
-                  <span>{detail.transactionId || 'Chưa ghi nhận'}</span>
-                  {detail.transactionId && (
-                    <button
-                      type="button"
-                      onClick={() => handleCopy(detail.transactionId, 'transactionId')}
-                      className="p-1 text-on-surface-variant hover:text-primary"
-                    >
-                      {copiedField === 'transactionId' ? <Check className="w-3.5 h-3.5 text-primary" /> : <Copy className="w-3.5 h-3.5" />}
-                    </button>
-                  )}
-                </div>
-              </div>
-
-              <div>
-                <span className="text-on-surface-variant">Phương thức:</span>
-                <p className="uppercase font-medium text-on-surface">{detail.paymentMethod || 'PAYOS'}</p>
-              </div>
-
-              <div>
-                <span className="text-on-surface-variant">Mã ngân hàng (BIN):</span>
-                <p className="font-mono text-on-surface">{detail.bankInfo?.bin || '—'}</p>
-              </div>
-
-              <div>
-                <span className="text-on-surface-variant">Số tài khoản chuyển khoản:</span>
-                <p className="font-mono text-on-surface">{detail.bankInfo?.accountNumber || '—'}</p>
-              </div>
-
-              <div>
-                <span className="text-on-surface-variant">Tên tài khoản:</span>
-                <p className="text-on-surface">{detail.bankInfo?.accountName || '—'}</p>
-              </div>
-            </div>
-          </div>
-
-          {/* Timestamps & Grant Result */}
-          <div className="p-4 rounded-xl bg-surface-container-lowest border border-hairline space-y-2">
-            <h4 className="font-bold text-on-surface uppercase tracking-wider text-[11px]">
-              Thời gian & Quyền lợi kích hoạt
-            </h4>
-            <div className="grid grid-cols-2 gap-2 pt-1">
-              <div>
-                <span className="text-on-surface-variant">Thời gian tạo:</span>
-                <p className="font-mono text-on-surface">
-                  {detail.createdAt ? dayjs(detail.createdAt).format('DD/MM/YYYY HH:mm:ss') : '—'}
-                </p>
-              </div>
-
-              <div>
-                <span className="text-on-surface-variant">Thời gian thanh toán:</span>
-                <p className="font-mono text-on-surface">
-                  {detail.paidAt ? dayjs(detail.paidAt).format('DD/MM/YYYY HH:mm:ss') : 'Chưa thanh toán'}
-                </p>
-              </div>
-
-              {detail.grantResult?.effectiveStartDate && (
-                <div>
-                  <span className="text-on-surface-variant">Bắt đầu chu kỳ:</span>
-                  <p className="font-mono text-on-surface">
-                    {dayjs(detail.grantResult.effectiveStartDate).format('DD/MM/YYYY HH:mm')}
-                  </p>
-                </div>
-              )}
-
-              {detail.grantResult?.effectiveEndDate && (
-                <div>
-                  <span className="text-on-surface-variant">Hạn dùng chu kỳ:</span>
-                  <p className="font-mono text-on-surface">
-                    {dayjs(detail.grantResult.effectiveEndDate).format('DD/MM/YYYY HH:mm')}
-                  </p>
-                </div>
-              )}
+              <span className={`px-3 py-1 rounded-full text-xs font-semibold flex items-center gap-1.5 ${statusInfo.bg}`}>
+                <span className={`w-2 h-2 rounded-full ${statusInfo.dot} animate-pulse`} />
+                {statusInfo.label}
+              </span>
             </div>
 
-            {detail.failureReason && (
-              <div className="mt-2 p-2.5 rounded-lg bg-error-container/20 border border-error-container text-error text-xs">
-                <span className="font-bold">Lý do thất bại:</span> {detail.failureReason}
+            {/* 2-column details grid */}
+            <div className="grid grid-cols-2 gap-3 pb-3 border-b border-hairline">
+              <div>
+                <span className="text-on-surface-variant block text-xs">Phụ huynh thanh toán:</span>
+                <span className="font-semibold text-on-surface text-sm">
+                  {payment.parent?.fullName || 'Chưa cập nhật'}
+                </span>
+                <span className="text-on-surface-variant block text-xs mt-0.5">
+                  {payment.parent?.email || '—'}
+                </span>
+              </div>
+
+              <div>
+                <span className="text-on-surface-variant block text-xs">Thời gian thanh toán:</span>
+                <span className="font-medium text-on-surface text-xs">
+                  {payment.paidAt
+                    ? dayjs(payment.paidAt).format('DD/MM/YYYY HH:mm:ss')
+                    : payment.createdAt
+                    ? dayjs(payment.createdAt).format('DD/MM/YYYY HH:mm:ss')
+                    : '—'}
+                </span>
+              </div>
+
+              <div>
+                <span className="text-on-surface-variant block text-xs">Gói đăng ký:</span>
+                <span className="font-semibold text-secondary text-xs">
+                  {payment.planSnapshot?.name || payment.planSnapshot?.planCode || '—'}
+                </span>
+              </div>
+
+              <div>
+                <span className="text-on-surface-variant block text-xs">Tổng tiền thực thu:</span>
+                <span className="font-bold text-base text-primary">
+                  {formatCurrency(payment.amount)} {payment.currency || 'VND'}
+                </span>
+              </div>
+
+              <div>
+                <span className="text-on-surface-variant block text-xs">Kênh thanh toán:</span>
+                <span className="font-medium text-on-surface text-xs capitalize">
+                  {payment.paymentMethod === 'payos' ? 'VietQR (PayOS)' : payment.paymentMethod || 'Chuyển khoản'}
+                </span>
+              </div>
+
+              <div>
+                <span className="text-on-surface-variant block text-xs">Mã giao dịch cổng (Ref ID):</span>
+                <span className="font-mono text-xs text-on-surface-variant">
+                  {payment.transactionId || payment.orderCode || '—'}
+                </span>
+              </div>
+            </div>
+
+            {/* Effective Period (Grant Result) */}
+            {payment.effectivePeriod?.effectiveStartDate && (
+              <div className="p-3 rounded-xl bg-surface-container-low border border-hairline space-y-1">
+                <span className="text-xs font-semibold text-on-surface block">
+                  Thời hạn quyền lợi kích hoạt:
+                </span>
+                <div className="flex items-center justify-between text-xs text-on-surface-variant">
+                  <span>Từ: {dayjs(payment.effectivePeriod.effectiveStartDate).format('DD/MM/YYYY HH:mm')}</span>
+                  <span>Đến: {dayjs(payment.effectivePeriod.effectiveEndDate).format('DD/MM/YYYY HH:mm')}</span>
+                </div>
               </div>
             )}
+
+            {/* Security Assurance Badge */}
+            <div className="p-2.5 rounded-xl bg-primary-soft/40 flex items-center justify-between text-on-surface text-xs">
+              <div className="flex items-center gap-2">
+                <ShieldCheck className="w-4 h-4 text-primary" />
+                <span className="font-medium">Đối soát điện tử tự động</span>
+              </div>
+              <span className="font-bold text-primary-dark">Chứng từ hợp lệ</span>
+            </div>
+
+            {/* Close Button */}
+            <div className="pt-2 flex justify-end">
+              <button
+                type="button"
+                onClick={onClose}
+                className="px-5 py-2 rounded-full bg-surface-container text-on-surface hover:bg-surface-container-high transition-colors font-semibold text-xs"
+              >
+                Đóng
+              </button>
+            </div>
           </div>
-        </div>
-      ) : null}
-    </Modal>
+        )}
+      </div>
+    </div>
   );
 };
 

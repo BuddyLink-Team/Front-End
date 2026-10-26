@@ -1,276 +1,223 @@
-import React, { useState, useEffect } from 'react';
-import { Card } from '../../../../components/cards/Card';
-import { Button } from '../../../../components/ui/Button';
-import { Input } from '../../../../components/ui/Input';
-import { Switch } from '../../../../components/ui/Switch';
-import { ConfirmDialog } from '../../../../components/feedback/ConfirmDialog';
-import { ShieldCheck, Sparkles, CheckCircle2 } from 'lucide-react';
+import React, { useState } from 'react';
+import { ShieldCheck, Sparkles, Crown, CheckCircle2, Lock, Sliders, Edit3 } from 'lucide-react';
+import { EditPlanModal } from './EditPlanModal';
 
 const formatCurrency = (amount) => {
   return new Intl.NumberFormat('vi-VN').format(amount || 0);
 };
 
-const QUOTA_FIELDS = [
-  { key: 'childProfilesLimit', label: 'Hồ sơ trẻ tối đa', fallback: 1 },
-  { key: 'discoveryViewLimitPerDay', label: 'Lượt quẹt / ngày', fallback: 5 },
-  { key: 'connectionRequestsLimitPerMonth', label: 'Yêu cầu kết bạn / tháng', fallback: 5 },
-  { key: 'playdatesLimitPerMonth', label: 'Cuộc hẹn tạo / tháng', fallback: 3 },
-  { key: 'playdateParticipationLimitPerMonth', label: 'Cuộc hẹn tham gia / tháng', fallback: 3 },
-  { key: 'aiAssistantLimitPerMonth', label: 'Yêu cầu AI / tháng', fallback: 5 },
-];
-
 export const PlanEditCard = ({ plan, onUpdate, isUpdating }) => {
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const isFree = plan.planCode === 'free';
+  const isYearly = plan.planCode === 'premium_yearly';
+  const isMonthly = plan.planCode === 'premium_monthly';
 
-  const [formData, setFormData] = useState({
-    name: plan.name || '',
-    price: plan.price || 0,
-    isActive: plan.isActive ?? true,
-    features: { ...(plan.features || {}) },
-  });
-
-  const [showConfirmPrice, setShowConfirmPrice] = useState(false);
-
-  useEffect(() => {
-    setFormData({
-      name: plan.name || '',
-      price: plan.price || 0,
-      isActive: plan.isActive ?? true,
-      features: { ...(plan.features || {}) },
-    });
-  }, [plan]);
-
-  const handleFeatureToggleUnlimited = (key, fallbackValue) => {
-    setFormData((prev) => {
-      const currentVal = prev.features[key];
-      const isUnlimited = currentVal === -1;
-      return {
-        ...prev,
-        features: {
-          ...prev.features,
-          [key]: isUnlimited ? fallbackValue : -1,
-        },
-      };
-    });
-  };
-
-  const handleFeatureValueChange = (key, value) => {
-    const num = parseInt(value, 10);
-    setFormData((prev) => ({
-      ...prev,
-      features: {
-        ...prev.features,
-        [key]: isNaN(num) ? 0 : Math.max(0, num),
-      },
-    }));
-  };
-
-  const handleSaveClick = (e) => {
-    e.preventDefault();
-    // If price changed and not free plan, ask confirmation
-    if (!isFree && formData.price !== plan.price) {
-      setShowConfirmPrice(true);
-      return;
-    }
-    submitUpdate();
-  };
-
-  const submitUpdate = () => {
-    setShowConfirmPrice(false);
-    onUpdate(plan.id, formData);
-  };
+  const monthlyPriceBreakdown = isYearly && plan.price > 0 ? Math.round(plan.price / 12) : null;
 
   return (
     <>
-      <Card className="flex flex-col h-full border border-hairline hover:shadow-card transition-shadow">
-        <div className="p-5 border-b border-hairline flex items-start justify-between gap-3">
-          <div className="space-y-1">
-            <div className="flex items-center gap-2">
+      <div
+        className={`bg-surface-container-lowest rounded-2xl p-6 shadow-xs border flex flex-col justify-between relative transition-all duration-300 hover:shadow-md ${
+          isMonthly
+            ? 'border-2 border-primary/40'
+            : isYearly
+            ? 'border-tertiary/40 bg-gradient-to-b from-white to-surface-container-low/30'
+            : 'border-hairline'
+        }`}
+      >
+        {/* Absolute top badge if popular or discount */}
+        {isMonthly && (
+          <div className="absolute -top-3 right-6 bg-primary text-on-primary px-3 py-0.5 rounded-full text-xs font-semibold shadow-xs">
+            Phổ biến nhất
+          </div>
+        )}
+        {isYearly && (
+          <div className="absolute -top-3 right-6 bg-tertiary text-on-tertiary px-3 py-0.5 rounded-full text-xs font-semibold shadow-xs">
+            Tiết kiệm 25%
+          </div>
+        )}
+
+        <div>
+          {/* Top badges */}
+          <div className="flex items-center justify-between mb-3">
+            <span
+              className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                isFree
+                  ? 'bg-surface-container-low text-on-surface-variant'
+                  : isMonthly
+                  ? 'bg-secondary-container/50 text-secondary'
+                  : 'bg-tertiary-fixed/60 text-tertiary'
+              }`}
+            >
+              {isFree ? 'Mặc định hệ thống' : isMonthly ? 'Gói Linh hoạt' : 'Cam kết trọn năm'}
+            </span>
+
+            <span
+              className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold ${
+                plan.isActive
+                  ? 'bg-primary-soft text-primary-dark'
+                  : 'bg-surface-container-highest text-on-surface-variant'
+              }`}
+            >
               <span
-                className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold ${
-                  isFree
-                    ? 'bg-hairline text-on-surface-variant'
-                    : plan.planCode === 'premium_monthly'
-                    ? 'bg-primary-soft text-primary-ink'
-                    : 'bg-tertiary-soft text-tertiary-dark'
-                }`}
-              >
-                {isFree ? (
-                  <ShieldCheck className="w-3.5 h-3.5" />
-                ) : (
-                  <Sparkles className="w-3.5 h-3.5" />
-                )}
-                {plan.name}
-              </span>
-            </div>
-            <p className="text-xs text-on-surface-variant font-mono">
-              planCode: {plan.planCode}
-            </p>
+                className={`w-1.5 h-1.5 rounded-full ${plan.isActive ? 'bg-primary animate-pulse' : 'bg-outline'}`}
+              />
+              {plan.isActive ? (isFree ? 'Hoạt động' : 'Đang kích hoạt') : 'Tạm ngưng'}
+            </span>
           </div>
 
+          {/* Title & Description */}
           <div className="flex items-center gap-2">
-            <Switch
-              size="sm"
-              checked={formData.isActive}
-              disabled={isFree || isUpdating}
-              onChange={(val) => {
-                const nextChecked = typeof val === 'boolean' ? val : Boolean(val?.target?.checked);
-                setFormData((prev) => ({ ...prev, isActive: nextChecked }));
-              }}
-              label={formData.isActive ? 'Active' : 'Tạm ngưng'}
-            />
+            {isFree ? (
+              <ShieldCheck className="w-5 h-5 text-on-surface-variant" />
+            ) : isMonthly ? (
+              <Sparkles className="w-5 h-5 text-primary" />
+            ) : (
+              <Crown className="w-5 h-5 text-tertiary" />
+            )}
+            <h3 className="text-lg font-bold text-on-surface">{plan.name}</h3>
+          </div>
+          <p className="text-xs text-on-surface-variant mt-1">
+            {isFree
+              ? 'Dành cho phụ huynh mới trải nghiệm kết nối cộng đồng.'
+              : isMonthly
+              ? 'Gia đình VIP Tháng - Kết nối linh hoạt không ràng buộc.'
+              : 'Gia đình VIP Năm - Trải nghiệm hoàn hảo không âu lo.'}
+          </p>
+
+          {/* Pricing Section */}
+          <div className="my-4 pb-3 border-b border-hairline">
+            <div className="text-2xl font-bold tracking-tight text-on-surface">
+              <span className={isFree ? 'text-on-surface' : isMonthly ? 'text-primary' : 'text-tertiary'}>
+                {formatCurrency(plan.price)}
+              </span>{' '}
+              <span className="text-xs font-medium text-on-surface-variant">
+                VNĐ / {plan.billingCycle === 'yearly' ? 'năm' : 'tháng'}
+              </span>
+            </div>
+            <span className="text-xs text-on-surface-variant">
+              {isFree
+                ? 'Không giới hạn thời gian sử dụng'
+                : isMonthly
+                ? 'Tự động gia hạn mỗi 30 ngày'
+                : `Chỉ ~${formatCurrency(monthlyPriceBreakdown)} đ/tháng (Tiết kiệm tối đa)`}
+            </span>
+          </div>
+
+          {/* Quotas & Features checklist */}
+          <div className="space-y-2.5 mb-6">
+            <div className="text-xs uppercase tracking-wider text-on-surface font-semibold">
+              Quota &amp; Đặc quyền:
+            </div>
+
+            {isFree && (
+              <>
+                <div className="flex items-start gap-2 text-xs text-on-surface">
+                  <CheckCircle2 className="w-4 h-4 text-primary shrink-0 mt-0.5" />
+                  <span>
+                    Tối đa <strong>{plan.features?.childProfilesLimit || 1}</strong> hồ sơ trẻ
+                  </span>
+                </div>
+                <div className="flex items-start gap-2 text-xs text-on-surface">
+                  <CheckCircle2 className="w-4 h-4 text-primary shrink-0 mt-0.5" />
+                  <span>
+                    <strong>{plan.features?.discoveryViewLimitPerDay || 5}</strong> lượt quẹt lịch chơi / ngày
+                  </span>
+                </div>
+                <div className="flex items-start gap-2 text-xs text-on-surface">
+                  <CheckCircle2 className="w-4 h-4 text-primary shrink-0 mt-0.5" />
+                  <span>
+                    <strong>{plan.features?.playdatesLimitPerMonth || 3}</strong> cuộc hẹn tạo / tháng
+                  </span>
+                </div>
+                <div className="flex items-start gap-2 text-xs text-on-surface-variant/70">
+                  <Lock className="w-4 h-4 shrink-0 mt-0.5" />
+                  <span>Không có lọc bán kính sâu (&lt;1km)</span>
+                </div>
+              </>
+            )}
+
+            {isMonthly && (
+              <>
+                <div className="flex items-start gap-2 text-xs text-on-surface">
+                  <CheckCircle2 className="w-4 h-4 text-primary shrink-0 mt-0.5" />
+                  <span>
+                    {plan.features?.childProfilesLimit === -1 ? (
+                      <strong>Không giới hạn</strong>
+                    ) : (
+                      <strong>Tối đa {plan.features?.childProfilesLimit || 3}</strong>
+                    )}{' '}
+                    hồ sơ trẻ em
+                  </span>
+                </div>
+                <div className="flex items-start gap-2 text-xs text-on-surface">
+                  <CheckCircle2 className="w-4 h-4 text-primary shrink-0 mt-0.5" />
+                  <span>Không giới hạn lượt kết nối &amp; mở chat</span>
+                </div>
+                <div className="flex items-start gap-2 text-xs text-on-surface">
+                  <CheckCircle2 className="w-4 h-4 text-primary shrink-0 mt-0.5" />
+                  <span>Bộ lọc bán kính sâu (&lt;1km, cùng khu đô thị)</span>
+                </div>
+                <div className="flex items-start gap-2 text-xs text-on-surface">
+                  <CheckCircle2 className="w-4 h-4 text-primary shrink-0 mt-0.5" />
+                  <span>Trợ lý AI gợi ý hoạt động theo độ tuổi bé</span>
+                </div>
+                <div className="flex items-start gap-2 text-xs text-on-surface">
+                  <CheckCircle2 className="w-4 h-4 text-primary shrink-0 mt-0.5" />
+                  <span>Huy hiệu Phụ huynh Đã xác thực (Trust Badge)</span>
+                </div>
+              </>
+            )}
+
+            {isYearly && (
+              <>
+                <div className="flex items-start gap-2 text-xs text-on-surface">
+                  <CheckCircle2 className="w-4 h-4 text-tertiary shrink-0 mt-0.5" />
+                  <span>Toàn bộ quyền lợi không giới hạn của gói VIP Tháng</span>
+                </div>
+                <div className="flex items-start gap-2 text-xs text-on-surface">
+                  <CheckCircle2 className="w-4 h-4 text-tertiary shrink-0 mt-0.5" />
+                  <span>Voucher giảm 20% chuỗi cafe &amp; khu vui chơi trẻ em</span>
+                </div>
+                <div className="flex items-start gap-2 text-xs text-on-surface">
+                  <CheckCircle2 className="w-4 h-4 text-tertiary shrink-0 mt-0.5" />
+                  <span>Hỗ trợ ưu tiên CSKH 24/7 từ chuyên viên tâm lý</span>
+                </div>
+                <div className="flex items-start gap-2 text-xs text-on-surface">
+                  <CheckCircle2 className="w-4 h-4 text-tertiary shrink-0 mt-0.5" />
+                  <span>Đặc quyền tham gia Offline BuddyLink Family Day</span>
+                </div>
+              </>
+            )}
           </div>
         </div>
 
-        <form onSubmit={handleSaveClick} className="p-5 flex-1 flex flex-col justify-between space-y-5">
-          <div className="space-y-4">
-            <div>
-              <label className="block text-xs font-semibold text-on-surface-variant mb-1">
-                Tên hiển thị gói
-              </label>
-              <Input
-                value={formData.name}
-                onChange={(e) =>
-                  setFormData((prev) => ({ ...prev, name: e.target.value }))
-                }
-                disabled={isUpdating}
-                required
-              />
-            </div>
+        {/* Action button */}
+        <button
+          type="button"
+          onClick={() => setIsEditModalOpen(true)}
+          className={`w-full py-2.5 rounded-xl font-semibold text-xs flex items-center justify-center gap-1.5 transition-all shadow-xs ${
+            isFree
+              ? 'border border-outline-variant hover:bg-surface-container-low text-on-surface'
+              : isMonthly
+              ? 'bg-primary text-on-primary hover:bg-primary-dark'
+              : 'bg-tertiary text-on-tertiary hover:opacity-90'
+          }`}
+        >
+          {isFree ? <Sliders className="w-4 h-4" /> : <Edit3 className="w-4 h-4" />}
+          <span>{isFree ? 'Chỉnh sửa cấu hình' : 'Chỉnh sửa gói'}</span>
+        </button>
+      </div>
 
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="block text-xs font-semibold text-on-surface-variant mb-1">
-                  Đơn giá bán (VND)
-                </label>
-                <Input
-                  type="number"
-                  value={formData.price}
-                  onChange={(e) =>
-                    setFormData((prev) => ({
-                      ...prev,
-                      price: Math.max(0, parseInt(e.target.value, 10) || 0),
-                    }))
-                  }
-                  disabled={isFree || isUpdating}
-                  min={isFree ? 0 : 1}
-                  required
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-on-surface-variant mb-1">
-                  Thời hạn (Tháng)
-                </label>
-                <Input
-                  value={`${plan.durationMonths} tháng`}
-                  disabled
-                  className="bg-surface-container/50 cursor-not-allowed"
-                />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="block text-xs font-semibold text-on-surface-variant mb-1">
-                  Chu kỳ tính phí
-                </label>
-                <Input
-                  value={plan.billingCycle}
-                  disabled
-                  className="bg-surface-container/50 cursor-not-allowed"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-on-surface-variant mb-1">
-                  Đơn vị tiền tệ
-                </label>
-                <Input
-                  value={plan.currency || 'VND'}
-                  disabled
-                  className="bg-surface-container/50 cursor-not-allowed"
-                />
-              </div>
-            </div>
-
-            <div className="pt-2 border-t border-hairline">
-              <h4 className="text-xs font-bold uppercase tracking-wider text-on-surface-variant mb-3">
-                Cấu hình hạn mức (Quota Limits)
-              </h4>
-
-              <div className="space-y-3">
-                {QUOTA_FIELDS.map(({ key, label, fallback }) => {
-                  const currentValue = formData.features[key] ?? fallback;
-                  const isUnlimited = currentValue === -1;
-
-                  return (
-                    <div
-                      key={key}
-                      className="p-3 rounded-xl bg-surface-container-lowest border border-hairline flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2"
-                    >
-                      <div className="text-xs font-medium text-on-surface">
-                        {label}
-                      </div>
-
-                      <div className="flex items-center gap-3">
-                        <label className="flex items-center gap-1.5 cursor-pointer text-xs text-on-surface-variant">
-                          <Switch
-                            size="sm"
-                            checked={isUnlimited}
-                            disabled={isUpdating}
-                            onChange={() => handleFeatureToggleUnlimited(key, fallback)}
-                          />
-                          <span>Không giới hạn</span>
-                        </label>
-
-                        {!isUnlimited && (
-                          <input
-                            type="number"
-                            min="0"
-                            value={currentValue}
-                            disabled={isUpdating}
-                            onChange={(e) => handleFeatureValueChange(key, e.target.value)}
-                            className="w-16 px-2 py-1 text-xs text-right border border-hairline rounded-lg bg-surface focus:outline-none focus:ring-1 focus:ring-primary"
-                          />
-                        )}
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          </div>
-
-          <div className="pt-4 border-t border-hairline">
-            <Button
-              type="submit"
-              variant="primary"
-              className="w-full flex items-center justify-center gap-2"
-              disabled={isUpdating}
-              loading={isUpdating}
-            >
-              <CheckCircle2 className="w-4 h-4" />
-              Lưu thay đổi gói
-            </Button>
-          </div>
-        </form>
-      </Card>
-
-      <ConfirmDialog
-        open={showConfirmPrice}
-        title="Xác nhận thay đổi giá gói cước"
-        description={`Bạn có chắc chắn muốn thay đổi giá gói ${plan.name} từ ${formatCurrency(
-          plan.price
-        )} ₫ thành ${formatCurrency(
-          formData.price
-        )} ₫? Thay đổi này sẽ ảnh hưởng đến tất cả các giao dịch mua mới trong tương lai. Các giao dịch trong quá khứ không bị ảnh hưởng.`}
-        confirmLabel="Đồng ý đổi giá"
-        cancelLabel="Quay lại"
-        variant="warning"
-        isLoading={isUpdating}
-        onConfirm={submitUpdate}
-        onCancel={() => setShowConfirmPrice(false)}
+      <EditPlanModal
+        plan={plan}
+        isOpen={isEditModalOpen}
+        onClose={() => setIsEditModalOpen(false)}
+        onSave={async (id, data) => {
+          await onUpdate(id, data);
+          setIsEditModalOpen(false);
+        }}
+        isUpdating={isUpdating}
       />
     </>
   );
