@@ -35,4 +35,15 @@ export const COMMON_ERROR_MESSAGES = Object.freeze({
   ROUTE_NOT_FOUND: 'Chức năng không tồn tại hoặc đã thay đổi.',
   INTERNAL_SERVER_ERROR: 'Hệ thống đang gặp sự cố. Vui lòng thử lại sau.',
   SERVER_CONFIGURATION_ERROR: 'Hệ thống đang gặp sự cố. Vui lòng thử lại sau.',
+
+  // upload.middleware / storage.adapter (chat image, avatar)
+  INVALID_FILE_TYPE: 'Chỉ hỗ trợ ảnh JPG, PNG, WEBP hoặc GIF.',
+  FILE_TOO_LARGE: 'Kích thước ảnh không được vượt quá 5MB.',
+  FILE_UPLOAD_ERROR: 'Tệp tải lên không hợp lệ. Vui lòng chọn ảnh khác.',
+  UPLOAD_BUFFER_EMPTY: 'Tệp tải lên không hợp lệ hoặc bị lỗi.',
+  STORAGE_UPLOAD_ERROR: 'Tải ảnh lên thất bại. Vui lòng thử lại.',
+  STORAGE_NOT_CONFIGURED: 'Hệ thống lưu trữ ảnh đang gặp sự cố. Vui lòng thử lại sau.',
+
+  // subscription.service quota check (any module that consumes a quota)
+  INVALID_QUOTA_ACTION: 'Không thể kiểm tra hạn mức sử dụng. Vui lòng thử lại sau.',
 });

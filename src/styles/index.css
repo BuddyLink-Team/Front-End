@@ -18,6 +18,13 @@
   --color-text-muted: theme('colors.text-muted');
 }
 
+/* DESIGN.md: thin Lucide icons. Only icons left at Lucide's default stroke (2); zero specificity,
+   so explicit strokeWidth props and stroke-* utilities still win. Outside @layer: the `lucide` class is
+   added by the library at runtime, so a layered rule would be purged */
+:where(.lucide[stroke-width='2']) {
+  stroke-width: theme('strokeWidth[1.75]');
+}
+
 body {
   font-family: var(--font-sans);
   background-color: var(--color-canvas);
@@ -48,7 +55,7 @@ body {
 
 /* Dual-thumb range slider (Discovery age filter) */
 .dual-range { position: relative; height: theme('spacing.6'); }
-.dual-range-track { position: absolute; top: 50%; left: 0; right: 0; height: theme('spacing.2'); transform: translateY(-50%); border-radius: theme('borderRadius.full'); background: theme('colors.surface.container'); }
+.dual-range-track { position: absolute; top: 50%; left: 0; right: 0; height: theme('spacing.2'); transform: translateY(-50%); border-radius: theme('borderRadius.full'); background: theme('colors.hairline-strong'); }
 .dual-range-fill { position: absolute; top: 0; bottom: 0; border-radius: theme('borderRadius.full'); background: theme('colors.primary.DEFAULT'); }
 .dual-range input[type='range'] { position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; background: transparent; pointer-events: none; -webkit-appearance: none; appearance: none; }
 .dual-range input[type='range']::-webkit-slider-thumb { -webkit-appearance: none; pointer-events: auto; width: theme('spacing.5'); height: theme('spacing.5'); border-radius: theme('borderRadius.full'); background: theme('colors.primary.DEFAULT'); border: theme('borderWidth.3') solid theme('colors.surface.container-lowest'); box-shadow: theme('boxShadow.slider-thumb'); cursor: pointer; }

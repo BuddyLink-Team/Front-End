@@ -8,9 +8,12 @@ import {
   Phone,
   Send,
   ThumbsDown,
+  Check,
+  UserCheck,
 } from 'lucide-react';
 import { useChildProfile } from '../hooks/useChildProfile';
-import { SWIPE_DIRECTIONS } from '../constants/discoveryConstants';
+import { SWIPE_DIRECTIONS, VIEWER_CONNECTION_STATUS } from '../constants/discoveryConstants';
+import { ChildAvatar } from './ChildAvatar';
 import { VerifiedBadge } from '../../../components/badges/VerifiedBadge';
 import { InterestTag } from '../../../components/badges/InterestTag';
 import { Button } from '../../../components/ui/Button';
@@ -46,37 +49,57 @@ const ChildProfileDetailModal = ({ childId, onClose, onSwipe, isSwiping }) => {
     onClose();
   };
 
+  const iconProps = { size: ICON_SIZE.MD, strokeWidth: ICON_STROKE.DEFAULT };
+  const status = profile?.connectionStatus || VIEWER_CONNECTION_STATUS.NONE;
+
+  // Request already sent / parents already connected: nothing to send, the button only shows the state
+  const renderFooter = () => {
+    if (status === VIEWER_CONNECTION_STATUS.SENT || status === VIEWER_CONNECTION_STATUS.CONNECTED) {
+      const isConnected = status === VIEWER_CONNECTION_STATUS.CONNECTED;
+      return (
+        <>
+          <Button variant="ghost" onClick={onClose} className="flex-1">
+            Đóng
+          </Button>
+          {/* Status, not an action: solid pastel instead of a faded disabled button */}
+          <span
+            role="status"
+            className="flex-1 inline-flex items-center justify-center gap-2 rounded-xl border border-primary-border bg-primary-soft px-4 py-2.5 text-sm font-semibold text-primary-dark"
+          >
+            {isConnected ? <UserCheck {...iconProps} /> : <Check {...iconProps} />}
+            {isConnected ? 'Đã kết nối' : 'Đã gửi lời mời'}
+          </span>
+        </>
+      );
+    }
+
+    return (
+      <>
+        <Button variant="ghost" onClick={handlePass} leftIcon={<ThumbsDown {...iconProps} />} className="flex-1">
+          Bỏ qua
+        </Button>
+        <Button
+          variant="primary"
+          onClick={handleSendConnection}
+          isLoading={isSwiping}
+          leftIcon={<Send {...iconProps} />}
+          className="flex-1"
+        >
+          {/* Liking back a parent who sent a request connects both */}
+          {status === VIEWER_CONNECTION_STATUS.RECEIVED ? 'Chấp nhận lời mời' : 'Gửi lời mời kết nối'}
+        </Button>
+      </>
+    );
+  };
+
   return (
     <Modal
       isOpen={isOpen}
       onClose={onClose}
       title="Hồ sơ của bé"
-      maxWidth="max-w-md"
+      maxWidth="max-w-lg"
       footerClassName="justify-stretch"
-      footer={
-        !isLoading &&
-        profile && (
-          <>
-            <Button
-              variant="ghost"
-              onClick={handlePass}
-              leftIcon={<ThumbsDown size={ICON_SIZE.MD} strokeWidth={ICON_STROKE.DEFAULT} />}
-              className="flex-1"
-            >
-              Bỏ qua
-            </Button>
-            <Button
-              variant="primary"
-              onClick={handleSendConnection}
-              isLoading={isSwiping}
-              leftIcon={<Send size={ICON_SIZE.MD} strokeWidth={ICON_STROKE.DEFAULT} />}
-              className="flex-1"
-            >
-              Gửi lời mời kết nối
-            </Button>
-          </>
-        )
-      }
+      footer={!isLoading && profile && renderFooter()}
     >
       <div>
         {isLoading ? (
@@ -101,17 +124,7 @@ const ChildProfileDetailModal = ({ childId, onClose, onSwipe, isSwiping }) => {
           <div className="flex flex-col gap-5 py-1">
             {/* ── Hero: Avatar + Name ── */}
             <div className="flex gap-4">
-              <div className="relative w-24 h-24 shrink-0 rounded-2xl bg-primary-container overflow-hidden border border-hairline">
-                <img
-                  src={view.avatarSrc}
-                  alt={profile.displayName}
-                  className="w-full h-full object-cover"
-                  draggable={false}
-                />
-                <span className="absolute bottom-0 left-0 right-0 text-center bg-primary text-primary-on-primary text-label-xs font-bold py-0.5">
-                  {view.genderLabel}
-                </span>
-              </div>
+              <ChildAvatar gender={profile.gender} alt={profile.displayName} size="md" />
 
               <div className="flex flex-col gap-1.5 min-w-0 flex-1 pt-1">
                 <h2 className="text-xl font-bold text-on-surface leading-tight">

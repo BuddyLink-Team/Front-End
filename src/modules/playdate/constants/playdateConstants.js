@@ -16,9 +16,12 @@ export const PLAYDATE_VIEW_MODES = {
   CALENDAR: 'calendar',
 };
 
+// displayStatus of a playdate for the viewer (BE PLAYDATE_DISPLAY_STATUS)
 export const PLAYDATE_STATUS_KEYS = {
   PENDING: 'pending',
-  CONFIRMED: 'confirmed',
+  CONFIRMED: 'confirmed', // at least one invitee accepted
+  DECLINED: 'declined', // the viewer declined the invitation
+  AWAITING_PLAYMATES: 'awaiting_playmates', // host: nobody joined yet (all declined or none invited)
   COMPLETED: 'completed',
   CANCELLED: 'cancelled',
 };
@@ -27,9 +30,14 @@ export const PLAYDATE_STATUS_KEYS = {
 export const PLAYDATE_STATUS_META = {
   pending: { label: 'Chờ phản hồi', dotClass: 'bg-tertiary' },
   confirmed: { label: 'Đã xác nhận', dotClass: 'bg-primary' },
+  declined: { label: 'Đã từ chối', dotClass: 'bg-outline-variant' },
+  awaiting_playmates: { label: 'Chưa có bạn tham gia', dotClass: 'bg-tertiary' },
   completed: { label: 'Đã hoàn thành', dotClass: 'bg-secondary' },
   cancelled: { label: 'Đã hủy', dotClass: 'bg-outline-variant' },
 };
+
+// Friend families loaded by the "Mời thêm bạn" dialog (BE max limit)
+export const INVITE_FRIENDS_FETCH_LIMIT = 100;
 
 export const RESCHEDULE_STATUS = Object.freeze({
   PENDING: 'pending',
@@ -97,7 +105,7 @@ export const TIME_SLOT_LABELS = Object.freeze({
  * Codes returned by the /playdates and /places endpoints (playdate.service, subscription quota);
  * shared middleware codes are in constants/error.constants.js.
  */
-export const PLAYDATE_ERROR_MAP = Object.freeze({
+export const PLAYDATE_ERROR_MESSAGES = Object.freeze({
   PARENT_NOT_FOUND: 'Không tìm thấy thông tin phụ huynh.',
   PLAYDATE_NOT_FOUND: 'Không tìm thấy thông tin buổi hẹn chơi.',
   PLAYDATE_ID_REQUIRED: 'Thiếu mã buổi hẹn chơi.',
@@ -125,6 +133,10 @@ export const PLAYDATE_ERROR_MAP = Object.freeze({
   CANNOT_RESPOND_CANCELLED: 'Không thể phản hồi buổi hẹn đã bị hủy.',
   CANNOT_RESPOND_COMPLETED: 'Không thể phản hồi buổi hẹn đã hoàn thành.',
   HOST_CANNOT_RSVP: 'Người tổ chức không cần phản hồi lời mời của chính mình.',
+  FORBIDDEN_INVITE: 'Chỉ người tổ chức mới có thể mời thêm bạn.',
+  ALREADY_INVITED: 'Gia đình này đã được mời vào buổi hẹn rồi.',
+  NO_INVITEES: 'Hãy chọn ít nhất một bạn để mời.',
+  PLAYDATE_CHANGED: 'Buổi hẹn vừa thay đổi, bạn tải lại trang rồi thử lại nhé.',
   INVALID_RESCHEDULE_LOCATION: 'Địa điểm mới cần có cả tên và địa chỉ.',
   RESCHEDULE_IN_PAST: 'Lịch hẹn mới phải ở tương lai.',
   RESCHEDULE_NO_CHANGE: 'Lịch đề xuất đang trùng với lịch hiện tại.',

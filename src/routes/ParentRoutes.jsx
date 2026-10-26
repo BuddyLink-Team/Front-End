@@ -14,6 +14,7 @@ const PlaydateListPage = lazy(() => import('../modules/playdate/pages/PlaydateLi
 const PlaydateFormPage = lazy(() => import('../modules/playdate/pages/PlaydateFormPage'));
 const ConnectionsPage = lazy(() => import('../modules/connection/pages/ConnectionsPage'));
 const NotificationPage = lazy(() => import('../modules/notification/pages/NotificationPage'));
+const AIAssistantPage = lazy(() => import('../modules/ai-assistant/pages/AIAssistantPage'));
 
 import GamificationPage from '../modules/gamification/pages/GamificationPage';
 
@@ -53,10 +54,7 @@ export const ParentRoutes = () => (
     <Route path="/chat/:conversationId" element={<ChatPage />} />
 
     {/* AI Assistant */}
-    <Route
-      path="/ai-assistant"
-      element={<PlaceholderPage title="Trợ lý AI BuddyLink" description="Gợi ý địa điểm vui chơi an toàn, trò chơi gắn kết và lập kế hoạch Playdate thông minh." />}
-    />
+    <Route path="/ai-assistant" element={<AIAssistantPage />} />
 
     {/* Child Profiles */}
     <Route

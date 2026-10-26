@@ -25,7 +25,7 @@ const PlaymateCard = ({ entry, isMatched, isSelected, onToggle }) => {
         'w-full p-3.5 rounded-2xl border text-left transition-colors space-y-2.5',
         isSelected
           ? 'border-primary bg-primary-soft shadow-2xs'
-          : 'border-hairline bg-surface-container-low/30 hover:border-hairline-strong hover:bg-surface-container-low',
+          : 'border-hairline bg-surface-container-low hover:border-hairline-strong hover:bg-surface-container',
       )}
     >
       <div className="flex items-center gap-2.5">

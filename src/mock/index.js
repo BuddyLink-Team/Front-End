@@ -3,6 +3,7 @@ import playdateMockHandlers from '../modules/playdate/mock/playdateMockHandlers'
 import subscriptionMockHandlers from '../modules/subscription/mock/subscriptionMockHandlers';
 import connectionMockHandlers from '../modules/connection/mock/connectionMockHandlers';
 import notificationMockHandlers from '../modules/notification/mock/notificationMockHandlers';
+import aiAssistantMockHandlers from '../modules/ai-assistant/mock/aiAssistantMockHandlers';
 import { STORAGE_KEYS } from '../constants/storage.constants';
 import {
   MOCK_CURRENT_USER,
@@ -18,6 +19,7 @@ const mockHandlers = [
   ...subscriptionMockHandlers,
   ...connectionMockHandlers,
   ...notificationMockHandlers,
+  ...aiAssistantMockHandlers,
   // Other developers can easily add their module mock handlers here:
   // ...chatMockHandlers,
   // ...authMockHandlers,
