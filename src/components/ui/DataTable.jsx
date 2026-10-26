@@ -23,8 +23,10 @@ import { cn } from '../../utils/cn';
  */
 export const DataTable = ({
   columns = [],
-  rows = [],
-  isLoading = false,
+  rows: rowsProp,
+  data: dataProp,
+  isLoading: isLoadingProp,
+  loading: loadingProp,
   emptyTitle = 'Chưa có dữ liệu',
   emptyMessage = 'Không có kết quả phù hợp.',
   onRowClick,
@@ -34,6 +36,9 @@ export const DataTable = ({
   sortDir: serverSortDir,
   onSortChange,
 }) => {
+  const rows = rowsProp ?? dataProp ?? [];
+  const isLoading = isLoadingProp ?? loadingProp ?? false;
+
   const clientSort = useTableSort(rows);
   const isServerSort = typeof onSortChange === 'function';
 
@@ -64,34 +69,38 @@ export const DataTable = ({
         {/* Table Head */}
         <thead className="bg-surface-muted/70 border-b border-hairline">
           <tr>
-            {columns.map((col) => (
-              <th
-                key={col.key}
-                onClick={() => col.sortable && handleSort(col.key)}
-                className={`px-4 py-3.5 text-xs font-semibold text-text-muted uppercase tracking-wider select-none ${
-                  col.sortable
-                    ? 'cursor-pointer hover:text-text-primary transition-colors'
-                    : ''
-                }`}
-              >
-                <span className="inline-flex items-center gap-1.5">
-                  {col.label}
-                  {col.sortable && (
-                    <span className="inline-flex text-text-muted">
-                      {sortKey === col.key ? (
-                        sortDir === 'asc' ? (
-                          <ArrowUp className="w-3.5 h-3.5 text-primary" />
+            {columns.map((col, cIdx) => {
+              const colKey = col.key ?? col.accessorKey ?? col.id ?? `col_${cIdx}`;
+              const colLabel = col.label ?? col.header ?? '';
+              return (
+                <th
+                  key={colKey}
+                  onClick={() => col.sortable && handleSort(colKey)}
+                  className={`px-4 py-3.5 text-xs font-semibold text-text-muted uppercase tracking-wider select-none ${
+                    col.sortable
+                      ? 'cursor-pointer hover:text-text-primary transition-colors'
+                      : ''
+                  }`}
+                >
+                  <span className="inline-flex items-center gap-1.5">
+                    {colLabel}
+                    {col.sortable && (
+                      <span className="inline-flex text-text-muted">
+                        {sortKey === colKey ? (
+                          sortDir === 'asc' ? (
+                            <ArrowUp className="w-3.5 h-3.5 text-primary" />
+                          ) : (
+                            <ArrowDown className="w-3.5 h-3.5 text-primary" />
+                          )
                         ) : (
-                          <ArrowDown className="w-3.5 h-3.5 text-primary" />
-                        )
-                      ) : (
-                        <ChevronsUpDown className="w-3.5 h-3.5 opacity-50" />
-                      )}
-                    </span>
-                  )}
-                </span>
-              </th>
-            ))}
+                          <ChevronsUpDown className="w-3.5 h-3.5 opacity-50" />
+                        )}
+                      </span>
+                    )}
+                  </span>
+                </th>
+              );
+            })}
           </tr>
         </thead>
 
@@ -106,7 +115,7 @@ export const DataTable = ({
           ) : (
             sortedRows.map((row, idx) => (
               <tr
-                key={row.id ?? idx}
+                key={row.id ?? row._id ?? idx}
                 onClick={() => onRowClick?.(row)}
                 className={`transition-colors duration-100 ${
                   onRowClick
@@ -114,13 +123,25 @@ export const DataTable = ({
                     : 'hover:bg-gray-50/50'
                 }`}
               >
-                {columns.map((col) => (
-                  <td key={col.key} className="px-4 py-3 text-text-primary">
-                    {renderCell
-                      ? renderCell(col.key, row[col.key], row)
-                      : String(row[col.key] ?? '—')}
-                  </td>
-                ))}
+                {columns.map((col, cIdx) => {
+                  const colKey = col.key ?? col.accessorKey ?? col.id ?? `col_${cIdx}`;
+                  let cellContent;
+                  if (typeof col.cell === 'function') {
+                    cellContent = col.cell(row);
+                  } else if (typeof col.render === 'function') {
+                    cellContent = col.render(row[colKey], row);
+                  } else if (typeof renderCell === 'function') {
+                    cellContent = renderCell(colKey, row[colKey], row);
+                  } else {
+                    cellContent = String(row[colKey] ?? '—');
+                  }
+
+                  return (
+                    <td key={colKey} className="px-4 py-3 text-text-primary">
+                      {cellContent}
+                    </td>
+                  );
+                })}
               </tr>
             ))
           )}

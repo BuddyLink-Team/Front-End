@@ -113,9 +113,10 @@ export const PlanEditCard = ({ plan, onUpdate, isUpdating }) => {
               size="sm"
               checked={formData.isActive}
               disabled={isFree || isUpdating}
-              onChange={(e) =>
-                setFormData((prev) => ({ ...prev, isActive: e.target.checked }))
-              }
+              onChange={(val) => {
+                const nextChecked = typeof val === 'boolean' ? val : Boolean(val?.target?.checked);
+                setFormData((prev) => ({ ...prev, isActive: nextChecked }));
+              }}
               label={formData.isActive ? 'Active' : 'Tạm ngưng'}
             />
           </div>

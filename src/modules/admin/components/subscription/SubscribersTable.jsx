@@ -159,8 +159,8 @@ export const SubscribersTable = () => {
 
       <DataTable
         columns={columns}
-        data={rows}
-        loading={isLoading}
+        rows={rows}
+        isLoading={isLoading}
         emptyMessage={error ? 'Đã có lỗi xảy ra khi tải danh sách' : 'Không tìm thấy thuê bao nào'}
       />
 

@@ -167,8 +167,8 @@ export const TransactionsTable = () => {
 
       <DataTable
         columns={columns}
-        data={rows}
-        loading={isLoading}
+        rows={rows}
+        isLoading={isLoading}
         onRowClick={(row) => setSelectedPaymentId(row.id || row._id)}
         emptyMessage={
           error ? 'Đã có lỗi xảy ra khi tải danh sách giao dịch' : 'Không tìm thấy giao dịch nào'
