@@ -120,7 +120,7 @@ export const SubscriptionPage = () => {
               <span className="inline-flex items-center px-4 py-1.5 rounded-full bg-surface-container-high border border-outline-variant/40 text-xs font-semibold text-on-surface">
                 {billingTabs[0].label === 'Theo năm' ? 'Gói Hội Viên Theo Năm' : 'Gói Hội Viên Theo Tháng'}
                 {billingTabs[0].count && (
-                  <span className="ml-1.5 px-1.5 py-0.5 rounded-full bg-tertiary/20 text-tertiary font-bold text-[10px]">
+                  <span className="ml-1.5 px-1.5 py-0.5 rounded-full bg-tertiary/20 text-tertiary font-bold text-xs">
                     {billingTabs[0].count}
                   </span>
                 )}
