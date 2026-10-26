@@ -56,9 +56,23 @@ export const useSubscription = () => {
   const freePlan = findPlan(PLAN_CODES.FREE);
   const monthlyPlan = findPlan(PLAN_CODES.PREMIUM_MONTHLY);
   const yearlyPlan = findPlan(PLAN_CODES.PREMIUM_YEARLY);
-  const plansLoaded = Boolean(freePlan && monthlyPlan && yearlyPlan);
+  const plansLoaded = !plansLoading && Boolean(freePlan);
 
-  const currentActivePlan = billingCycle === BILLING_CYCLES.YEARLY ? yearlyPlan : monthlyPlan;
+  // Automatically adjust billingCycle to match available premium plans
+  useEffect(() => {
+    if (plansLoaded) {
+      if (!monthlyPlan && yearlyPlan && billingCycle !== BILLING_CYCLES.YEARLY) {
+        dispatch(setBillingCycle(BILLING_CYCLES.YEARLY));
+      } else if (!yearlyPlan && monthlyPlan && billingCycle !== BILLING_CYCLES.MONTHLY) {
+        dispatch(setBillingCycle(BILLING_CYCLES.MONTHLY));
+      }
+    }
+  }, [plansLoaded, monthlyPlan, yearlyPlan, billingCycle, dispatch]);
+
+  const currentActivePlan =
+    billingCycle === BILLING_CYCLES.YEARLY
+      ? (yearlyPlan || monthlyPlan)
+      : (monthlyPlan || yearlyPlan);
 
   // Saving of the yearly plan against 12 monthly payments
   const yearlySavingsPercentage =
@@ -71,6 +85,7 @@ export const useSubscription = () => {
 
   // Upgrade or Renew CTA action
   const handleUpgrade = (planCodeToBuy = currentActivePlan?.planCode) => {
+    if (!planCodeToBuy) return;
     dispatch(setSelectedPlan(planCodeToBuy));
     navigate(`/checkout?plan=${planCodeToBuy}`);
   };

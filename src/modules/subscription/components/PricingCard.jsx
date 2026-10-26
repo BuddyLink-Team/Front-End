@@ -23,8 +23,10 @@ export const PricingCard = ({
   yearlySavingsPercentage,
   showAction = true,
 }) => {
+  if (!plan) return null;
+
   const isPremiumCard = plan.planCode !== PLAN_CODES.FREE;
-  const isYearly = billingCycle === 'yearly';
+  const isYearly = plan.durationMonths === 12 || billingCycle === 'yearly';
 
   // Premium: renew the plan in use, buy the other cycle on top (months add up), or upgrade from Free
   let premiumActionLabel = 'Nâng cấp ngay';
@@ -213,7 +215,7 @@ PricingCard.propTypes = {
     currency: PropTypes.string,
     durationMonths: PropTypes.number,
     features: PropTypes.object,
-  }).isRequired,
+  }),
   isCurrentPlan: PropTypes.bool,
   isPremiumActive: PropTypes.bool,
   endDate: PropTypes.string,
