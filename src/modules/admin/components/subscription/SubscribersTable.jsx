@@ -99,15 +99,6 @@ export const SubscribersTable = () => {
       },
     },
     {
-      key: 'purchasedMonths',
-      label: 'Tích lũy',
-      cell: (row) => (
-        <span className="inline-block px-2 py-0.5 rounded-full bg-surface-container text-on-surface text-xs font-medium">
-          {row.purchasedMonths ? `${row.purchasedMonths} tháng` : '—'}
-        </span>
-      ),
-    },
-    {
       key: 'status',
       label: 'Trạng thái',
       cell: (row) => {
