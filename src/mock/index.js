@@ -1,5 +1,4 @@
 import apiClient from '../services/apiClient';
-import adminMockHandlers from '../modules/admin/mock/adminMockHandlers';
 import playdateMockHandlers from '../modules/playdate/mock/playdateMockHandlers';
 import subscriptionMockHandlers from '../modules/subscription/mock/subscriptionMockHandlers';
 import connectionMockHandlers from '../modules/connection/mock/connectionMockHandlers';
@@ -10,92 +9,11 @@ import {
   MOCK_CURRENT_PARENT,
 } from '../modules/playdate/mock/playdateMockData';
 
-export const MOCK_ADMIN_USER = {
-  id: 'user-admin-1',
-  email: 'admin@buddylink.com',
-  fullName: 'Quản trị viên Hệ thống',
-  role: 'admin',
-};
-
-const adminLoginResponse = async () => ({
-  success: true,
-  data: {
-    user: MOCK_ADMIN_USER,
-    parent: null,
-    tokens: {
-      accessToken: 'mock-jwt-token-admin',
-      refreshToken: 'mock-refresh-token-admin',
-    },
-  },
-});
-
-const adminMeResponse = async () => ({
-  success: true,
-  data: {
-    user: MOCK_ADMIN_USER,
-    parent: null,
-  },
-});
-
 /**
  * Centralized Mock Registry
  * Any developer can easily plug their module handlers here without touching production API code!
  */
-const authMockHandlers = [
-  // Admin auth endpoints (handles when URL is prefixed with /admin)
-  {
-    method: 'GET',
-    pattern: '/admin/auth/me',
-    handler: adminMeResponse,
-  },
-  {
-    method: 'POST',
-    pattern: '/admin/auth/login',
-    handler: adminLoginResponse,
-  },
-  {
-    method: 'POST',
-    pattern: '/admin/auth/logout',
-    handler: async () => ({ success: true, message: 'Logged out successfully' }),
-  },
-
-  // Standard/Parent auth endpoints
-  {
-    method: 'GET',
-    pattern: '/auth/me',
-    handler: async () => ({
-      success: true,
-      data: {
-        user: IS_ADMIN_PORTAL ? MOCK_ADMIN_USER : MOCK_CURRENT_USER,
-        parent: IS_ADMIN_PORTAL ? null : MOCK_CURRENT_PARENT,
-      },
-    }),
-  },
-  {
-    method: 'POST',
-    pattern: '/auth/login',
-    handler: async () => ({
-      success: true,
-      data: {
-        user: IS_ADMIN_PORTAL ? MOCK_ADMIN_USER : MOCK_CURRENT_USER,
-        parent: IS_ADMIN_PORTAL ? null : MOCK_CURRENT_PARENT,
-        tokens: {
-          accessToken: 'mock-jwt-token-playdates',
-          refreshToken: 'mock-refresh-token-playdates',
-        },
-      },
-    }),
-  },
-  {
-    method: 'POST',
-    pattern: '/auth/logout',
-    handler: async () => ({ success: true, message: 'Logged out successfully' }),
-  },
-];
-
 const mockHandlers = [
-  ...adminMockHandlers,
-  ...authMockHandlers,
   ...playdateMockHandlers,
   ...subscriptionMockHandlers,
   ...connectionMockHandlers,
@@ -106,26 +24,14 @@ const mockHandlers = [
   // ...discoveryMockHandlers,
 ];
 
-import { IS_ADMIN_PORTAL } from '../constants/app.constants';
-
 /**
  * Normalize request path by stripping origin, baseURL and query string
  */
-const normalizePath = (url = '', baseURL = '') => {
-  let full = url;
-  if (baseURL && !/^https?:\/\//i.test(url)) {
-    full = baseURL.replace(/\/+$/, '') + '/' + url.replace(/^\/+/, '');
-  }
-  let path = full
-    .replace(/^https?:\/\/[^/]+/, '') // remove origin e.g. http://localhost:5000 or http://localhost:5001
-    .replace(/^\/api\/v1/, '')        // remove /api/v1 prefix -> leaving /admin/playdates or /playdates
+const normalizePath = (url = '') => {
+  return url
+    .replace(/^https?:\/\/[^/]+/, '') // remove http://localhost:5000
+    .replace(/^\/api\/v1/, '')        // remove /api/v1 prefix
     .replace(/\?.*$/, '');            // remove query string
-
-  if (IS_ADMIN_PORTAL && !path.startsWith('/admin')) {
-    path = '/admin' + (path.startsWith('/') ? path : '/' + path);
-  }
-
-  return path;
 };
 
 /**
@@ -174,7 +80,7 @@ export const initMockServer = () => {
   // Replace with mock intercepting adapter
   apiClient.defaults.adapter = async (config) => {
     const method = (config.method || 'GET').toUpperCase();
-    const path = normalizePath(config.url, config.baseURL);
+    const path = normalizePath(config.url);
     const query = parseQueryParams(config.url, config.params);
 
     let body = {};
@@ -236,22 +142,10 @@ export const initMockServer = () => {
   // Auto-seed mock authentication session in localStorage if not already authenticated
   if (typeof window !== 'undefined') {
     const existingToken = localStorage.getItem(STORAGE_KEYS.ACCESS_TOKEN);
-    const existingUser = JSON.parse(localStorage.getItem(STORAGE_KEYS.USER_INFO) || 'null');
-    const isMismatch = IS_ADMIN_PORTAL ? existingUser?.role !== 'admin' : existingUser?.role === 'admin';
-
-    if (!existingToken || isMismatch) {
-      const isAdm = IS_ADMIN_PORTAL;
-      localStorage.setItem(STORAGE_KEYS.ACCESS_TOKEN, isAdm ? 'mock-jwt-token-admin' : 'mock-jwt-token-playdates');
-      localStorage.setItem(STORAGE_KEYS.REFRESH_TOKEN, isAdm ? 'mock-refresh-token-admin' : 'mock-refresh-token-playdates');
-      localStorage.setItem(
-        STORAGE_KEYS.USER_INFO,
-        JSON.stringify(isAdm ? MOCK_ADMIN_USER : MOCK_CURRENT_USER)
-      );
-      if (isAdm) {
-        localStorage.removeItem(STORAGE_KEYS.PARENT_INFO);
-      } else {
-        localStorage.setItem(STORAGE_KEYS.PARENT_INFO, JSON.stringify(MOCK_CURRENT_PARENT));
-      }
+    if (!existingToken) {
+      localStorage.setItem(STORAGE_KEYS.ACCESS_TOKEN, 'mock-jwt-token-playdates');
+      localStorage.setItem(STORAGE_KEYS.USER_INFO, JSON.stringify(MOCK_CURRENT_USER));
+      localStorage.setItem(STORAGE_KEYS.PARENT_INFO, JSON.stringify(MOCK_CURRENT_PARENT));
     }
   }
 

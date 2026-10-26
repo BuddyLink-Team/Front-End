@@ -7,7 +7,6 @@
     "dev": "vite",
     "dev:mock": "vite --mode mock",
     "dev:admin": "vite --mode admin --port 5174",
-    "dev:admin:mock": "vite --mode admin.mock --port 5174",
     "build": "vite build",
     "build:admin": "vite build --mode admin --outDir dist-admin",
     "preview": "vite preview",
