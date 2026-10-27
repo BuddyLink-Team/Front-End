@@ -11,6 +11,7 @@ import {
   SWIPE_FEEDBACK,
 } from '../constants/discoveryConstants';
 import { MatchScoreBar } from './MatchScoreBar';
+import { ChildAvatar } from './ChildAvatar';
 import { DiscoveryActionButtons } from './DiscoveryActionButtons';
 import { ICON_SIZE, ICON_STROKE } from '../../../constants/icon.constants';
 
@@ -53,8 +54,6 @@ export const DiscoveryCard = ({
 
   const {
     interests,
-    genderLabel,
-    avatarSrc,
     distanceLabel,
     preferredLocations,
     preferredPlaydateDays,
@@ -120,17 +119,7 @@ export const DiscoveryCard = ({
           {/* ── Header: Avatar + Info ── */}
           <div className="flex gap-4">
             {/* Avatar box */}
-            <div className="relative w-avatar-3xl h-avatar-3xl shrink-0 rounded-2xl bg-primary-container overflow-hidden flex items-center justify-center border border-primary">
-              <img
-                alt={profile.displayName}
-                src={avatarSrc}
-                className="w-full h-full object-cover select-none pointer-events-none"
-                draggable={false}
-              />
-              <span className="absolute bottom-0 left-0 right-0 text-center bg-secondary text-secondary-on-secondary text-label-xs font-bold py-0.5">
-                {genderLabel}
-              </span>
-            </div>
+            <ChildAvatar gender={profile.gender} alt={profile.displayName} />
 
             {/* Right info */}
             <div className="flex-1 flex flex-col gap-2 min-w-0">

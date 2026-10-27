@@ -5,6 +5,8 @@ import { Footer } from '../components/navigation/Footer';
 import PaywallModal from '../modules/subscription/components/PaywallModal';
 import RatingPrompt from '../modules/rating-feedback/components/RatingPrompt';
 import AchievementCelebration from '../modules/gamification/components/AchievementCelebration';
+import AIAssistantFab from '../modules/ai-assistant/components/AIAssistantFab';
+import AIAssistantDrawer from '../modules/ai-assistant/components/AIAssistantDrawer';
 import { useAuth } from '../modules/auth/hooks/useAuth';
 import { useNotificationSocket } from '../modules/notification/hooks/useNotificationSocket';
 
@@ -23,6 +25,9 @@ export const MainLayout = () => {
       <Footer />
       <RatingPrompt />
       <AchievementCelebration />
+      {/* AI assistant: floating button + slide-out drawer on every parent page */}
+      <AIAssistantFab />
+      <AIAssistantDrawer />
       {/* Global Paywall Modal */}
       <PaywallModal />
     </div>

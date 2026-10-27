@@ -67,7 +67,21 @@ export const BLOCK_REASONS = Object.freeze({
   CONNECTION: 'Không muốn tiếp tục kết nối',
 });
 
-export const EVIDENCE_ACCEPT = 'image/png, image/jpeg, image/webp';
+// Same image types as the backend upload middleware
+export const EVIDENCE_ACCEPT = 'image/png, image/jpeg, image/webp, image/gif';
+
+// Report form values when the modal opens
+export const REPORT_FORM_DEFAULTS = Object.freeze({
+  category: '',
+  description: '',
+  evidenceUrls: [],
+});
+
+// Client-side checks of the report form (shown before any request is sent)
+export const REPORT_FORM_MESSAGES = Object.freeze({
+  EVIDENCE_LIMIT: `Chỉ được tải lên tối đa ${REPORT_LIMITS.MAX_EVIDENCE_URLS} hình ảnh bằng chứng.`,
+  DESCRIPTION_TOO_LONG: `Mô tả không được vượt quá ${REPORT_LIMITS.MAX_DESCRIPTION_LENGTH} ký tự.`,
+});
 
 export const BLOCKED_USERS_PAGE_SIZE = 10;
 
@@ -81,14 +95,16 @@ export const SAFETY_ERROR_MESSAGES = Object.freeze({
   ID_REQUIRED: 'Thiếu thông tin phụ huynh cần xử lý.',
   TARGET_PARENT_NOT_FOUND: 'Không tìm thấy phụ huynh này.',
   SELF_BLOCK_NOT_ALLOWED: 'Bạn không thể tự chặn chính mình.',
+  BLOCK_INCOMPLETE: 'Đã chặn nhưng chưa hoàn tất việc gỡ kết nối. Vui lòng chặn lại một lần nữa.',
   REPORTED_USER_REQUIRED: 'Thiếu thông tin phụ huynh bị báo cáo.',
+  REPORT_TARGET_REQUIRED: 'Thiếu tin nhắn hoặc buổi hẹn cần báo cáo.',
+  REPORT_TARGET_NOT_FOUND: 'Tin nhắn hoặc buổi hẹn này không còn tồn tại.',
+  INVALID_REPORT_TARGET: 'Nội dung báo cáo không thuộc về phụ huynh này.',
   CATEGORY_REQUIRED: 'Vui lòng chọn danh mục vi phạm.',
-  INVALID_CATEGORY: 'Danh mục vi phạm không hợp lệ.',
-  REASON_REQUIRED: 'Vui lòng nhập lý do báo cáo.',
   REPORTED_USER_NOT_FOUND: 'Không tìm thấy phụ huynh bị báo cáo.',
   SELF_REPORT_NOT_ALLOWED: 'Bạn không thể tự báo cáo chính mình.',
   INVALID_EVIDENCE_URL: 'Ảnh bằng chứng không hợp lệ. Vui lòng tải ảnh lên lại qua BuddyLink.',
   FILE_REQUIRED: 'Vui lòng chọn ảnh bằng chứng.',
   REPORT_TOO_FREQUENT: 'Bạn đã báo cáo người này gần đây. Đội ngũ BuddyLink đang xem xét.',
-  VALIDATION_ERROR: 'Thông tin báo cáo chưa hợp lệ. Vui lòng kiểm tra lại.',
+  VALIDATION_ERROR: 'Thông tin chưa hợp lệ. Vui lòng kiểm tra lại.',
 });

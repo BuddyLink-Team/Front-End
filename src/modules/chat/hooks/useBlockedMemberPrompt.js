@@ -3,7 +3,7 @@ import { useDispatch } from 'react-redux';
 import { useToast } from '../../../hooks/useToast';
 import { getApiErrorMsg } from '../../../utils/errorUtils';
 import { cancelPlaydate, leavePlaydate } from '../../playdate/redux/playdateSlice';
-import { PLAYDATE_ERROR_MAP } from '../../playdate/constants/playdateConstants';
+import { PLAYDATE_ERROR_MESSAGES } from '../../playdate/constants/playdateConstants';
 import { BLOCKED_MEMBER_CANCEL_REASON, BLOCKED_MEMBER_PROMPT_STEPS } from '../constants/chatConstants.js';
 
 /**
@@ -51,7 +51,7 @@ export const useBlockedMemberPrompt = ({ conversation, currentParentId, onLeft }
       setStep(null);
       onLeft?.();
     } catch (err) {
-      toast.error(getApiErrorMsg(PLAYDATE_ERROR_MAP, err, 'Không thể rời buổi hẹn playdate. Vui lòng thử lại.'));
+      toast.error(getApiErrorMsg(PLAYDATE_ERROR_MESSAGES, err, 'Không thể rời buổi hẹn playdate. Vui lòng thử lại.'));
       setStep(BLOCKED_MEMBER_PROMPT_STEPS.ASK_CONTINUE);
     } finally {
       setIsLeaving(false);

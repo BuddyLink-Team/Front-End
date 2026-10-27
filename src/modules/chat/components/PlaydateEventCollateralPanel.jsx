@@ -19,11 +19,7 @@ import { StatusChip } from '../../../components/badges/StatusChip';
 import { InterestTag } from '../../../components/badges/InterestTag';
 import { cn } from '../../../utils/cn';
 import { formatChildAge } from '../../../utils/formatters';
-import {
-  PLAYDATE_PARTICIPANT_STATUS,
-  PLAYDATE_STATUS_CHIPS,
-  PARTICIPANT_STATUS_CHIPS,
-} from '../constants/chatConstants.js';
+import { PLAYDATE_PARTICIPANT_STATUS, PLAYDATE_STATUS_CHIPS } from '../constants/chatConstants.js';
 
 /**
  * Format scheduled date into friendly Vietnamese text
@@ -72,17 +68,16 @@ export const PlaydateEventCollateralPanel = ({
     participants = [],
   } = playdate;
 
-  // Filter accepted participants & total children count
-  const acceptedParticipants = participants.filter((p) => p.status === PLAYDATE_PARTICIPANT_STATUS.ACCEPTED);
+  // Only the group chat members: the host and the accepted families (the API already leaves out the others)
+  const members = participants.filter((p) => p.status === PLAYDATE_PARTICIPANT_STATUS.ACCEPTED);
   const allChildren = [
     ...(hostChild ? [{ ...hostChild, isHost: true, parentName: host?.fullName }] : []),
-    ...participants
+    ...members
       .filter((p) => p.child)
       .map((p) => ({
         ...p.child,
         isHost: false,
         parentName: p.parent?.fullName || 'Phụ huynh',
-        status: p.status,
       })),
   ];
 
@@ -202,17 +197,11 @@ export const PlaydateEventCollateralPanel = ({
                         )}
                       </div>
 
-                      {kid.isHost ? (
+                      {kid.isHost && (
                         <span className="text-label-xs font-bold px-2 py-0.5 rounded-full bg-primary-container text-on-primary-container shadow-2xs">
                           Bé chủ trì
                         </span>
-                      ) : kid.status ? (
-                        <StatusChip
-                          status={PARTICIPANT_STATUS_CHIPS[kid.status]?.variant ?? kid.status}
-                          label={PARTICIPANT_STATUS_CHIPS[kid.status]?.label}
-                          className="text-label-xs px-2 py-0"
-                        />
-                      ) : null}
+                      )}
                     </div>
 
                     <p className="text-label-sm text-on-surface-variant">
@@ -239,13 +228,8 @@ export const PlaydateEventCollateralPanel = ({
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-1.5 text-xs font-bold text-on-surface uppercase tracking-wider">
               <Users className="w-3.5 h-3.5 text-primary" />
-              <span>Phụ huynh ({participants.length + (host ? 1 : 0)})</span>
+              <span>Phụ huynh ({members.length + (host ? 1 : 0)})</span>
             </div>
-            {acceptedParticipants.length > 0 && (
-              <span className="text-label-sm text-primary font-semibold">
-                {acceptedParticipants.length + 1} đã xác nhận
-              </span>
-            )}
           </div>
 
           <div className="space-y-2">
@@ -278,7 +262,7 @@ export const PlaydateEventCollateralPanel = ({
             )}
 
             {/* Other Participating Parents */}
-            {participants.map((item, pIdx) => {
+            {members.map((item, pIdx) => {
               const parent = item.parent;
               if (!parent) return null;
 
@@ -305,12 +289,6 @@ export const PlaydateEventCollateralPanel = ({
                       </span>
                     </div>
                   </div>
-
-                  <StatusChip
-                    status={PARTICIPANT_STATUS_CHIPS[item.status]?.variant ?? item.status}
-                    label={PARTICIPANT_STATUS_CHIPS[item.status]?.label}
-                    className="shrink-0 text-label-xs px-2 py-0.5"
-                  />
                 </div>
               );
             })}

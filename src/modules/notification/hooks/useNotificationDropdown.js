@@ -6,12 +6,15 @@ import {
   fetchDropdownNotifications,
   markAllNotificationsAsRead,
 } from '../redux/notificationSlice';
-import { NOTIFICATION_PREVIEW_LIMIT } from '../constants/notification.constants';
+import { NOTIFICATION_PREVIEW_LIMIT, NOTIFICATION_ERROR_MESSAGES } from '../constants/notification.constants';
+import { useToast } from '../../../hooks/useToast';
+import { getApiErrorMsg } from '../../../utils/errorUtils';
 import { useOpenNotification } from './useOpenNotification';
 
 export const useNotificationDropdown = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
+  const toast = useToast();
   const openNotification = useOpenNotification();
   const dropdownRef = useRef(null);
   const [isOpen, setIsOpen] = useState(false);
@@ -46,9 +49,13 @@ export const useNotificationDropdown = () => {
   const handleMarkAllRead = useCallback((e) => {
     e?.stopPropagation?.();
     if (unreadCount > 0 && !isMarkingRead) {
-      dispatch(markAllNotificationsAsRead());
+      dispatch(markAllNotificationsAsRead())
+        .unwrap()
+        .catch((err) =>
+          toast.error(getApiErrorMsg(NOTIFICATION_ERROR_MESSAGES, err, 'Không thể đánh dấu tất cả là đã đọc.')),
+        );
     }
-  }, [dispatch, unreadCount, isMarkingRead]);
+  }, [dispatch, toast, unreadCount, isMarkingRead]);
 
   const handleViewAll = useCallback(() => {
     setIsOpen(false);

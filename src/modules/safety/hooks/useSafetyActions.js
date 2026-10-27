@@ -2,6 +2,7 @@ import { useCallback } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useToast } from '../../../hooks/useToast';
 import { getApiErrorMsg } from '../../../utils/errorUtils';
+import { COMMON_ERROR_MESSAGES } from '../../../constants/error.constants';
 import { blockParent, unblockParent, reportParent, uploadReportEvidence } from '../redux/safetySlice';
 import { BLOCK_REASONS, SAFETY_ERROR_MESSAGES } from '../constants/safetyConstants';
 
@@ -11,7 +12,8 @@ import { BLOCK_REASONS, SAFETY_ERROR_MESSAGES } from '../constants/safetyConstan
 export const useSafetyActions = () => {
   const toast = useToast();
   const dispatch = useDispatch();
-  const isSubmitting = useSelector((state) => state.safety.isSubmitting);
+  const isBlockSubmitting = useSelector((state) => state.safety.isBlockSubmitting);
+  const isReportSubmitting = useSelector((state) => state.safety.isReportSubmitting);
 
   const run = useCallback(
     async (thunkAction, successMessage, fallbackError) => {
@@ -29,7 +31,7 @@ export const useSafetyActions = () => {
   );
 
   const rejectMissingTarget = useCallback(
-    (msg) => {
+    (msg = SAFETY_ERROR_MESSAGES.ID_REQUIRED) => {
       toast.error(msg);
       return { success: false, error: msg };
     },
@@ -39,7 +41,7 @@ export const useSafetyActions = () => {
   const blockUser = useCallback(
     (targetParentId, displayName = 'phụ huynh', reason = BLOCK_REASONS.DEFAULT) => {
       if (!targetParentId) {
-        return Promise.resolve(rejectMissingTarget('Không tìm thấy thông tin đối phương để chặn'));
+        return Promise.resolve(rejectMissingTarget());
       }
       return run(
         blockParent({ blockedId: targetParentId, reason }),
@@ -53,7 +55,7 @@ export const useSafetyActions = () => {
   const unblockUser = useCallback(
     (targetParentId, displayName = 'phụ huynh') => {
       if (!targetParentId) {
-        return Promise.resolve(rejectMissingTarget('Không tìm thấy thông tin đối phương để bỏ chặn'));
+        return Promise.resolve(rejectMissingTarget());
       }
       return run(
         unblockParent(targetParentId),
@@ -67,7 +69,7 @@ export const useSafetyActions = () => {
   const reportUser = useCallback(
     (payload) => {
       if (!payload?.reportedUserId) {
-        return Promise.resolve(rejectMissingTarget('Không tìm thấy thông tin đối phương để báo cáo'));
+        return Promise.resolve(rejectMissingTarget(SAFETY_ERROR_MESSAGES.REPORTED_USER_REQUIRED));
       }
       return run(
         reportParent(payload),
@@ -88,11 +90,11 @@ export const useSafetyActions = () => {
       const urls = [];
       for (const file of files) {
         if (!file.type.startsWith('image/')) {
-          toast.error(`Tệp ${file.name} không phải là hình ảnh hợp lệ.`);
+          toast.error(`${file.name}: ${COMMON_ERROR_MESSAGES.INVALID_FILE_TYPE}`);
           continue;
         }
         if (file.size > 5 * 1024 * 1024) {
-          toast.error(`Ảnh ${file.name} vượt quá dung lượng tối đa 5MB.`);
+          toast.error(`${file.name}: ${COMMON_ERROR_MESSAGES.FILE_TOO_LARGE}`);
           continue;
         }
         try {
@@ -108,7 +110,7 @@ export const useSafetyActions = () => {
     [dispatch, toast],
   );
 
-  return { isSubmitting, blockUser, unblockUser, reportUser, uploadEvidence };
+  return { isBlockSubmitting, isReportSubmitting, blockUser, unblockUser, reportUser, uploadEvidence };
 };
 
 export default useSafetyActions;

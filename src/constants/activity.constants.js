@@ -81,6 +81,15 @@ export const ACTIVITIES = Object.freeze([
   { value: 'Xem phim hoạt hình', playdateTitle: 'Xem phim hoạt hình cùng nhau', category: ACTIVITY_CATEGORIES.FUN, icon: Clapperboard },
 ]);
 
+/** Combobox option of a catalog activity: its playdate title, listed under `group` */
+export const toActivityOption = (group) => (activity) => ({
+  value: activity.playdateTitle,
+  label: activity.playdateTitle,
+  description: activity.value,
+  icon: activity.icon,
+  group,
+});
+
 /** Activities grouped by category, in ACTIVITY_CATEGORY_META order */
 export const ACTIVITY_GROUPS = Object.freeze(
   Object.entries(ACTIVITY_CATEGORY_META).map(([category, meta]) => ({

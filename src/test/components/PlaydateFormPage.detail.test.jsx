@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { renderWithProviders, screen, fireEvent, waitFor } from '../utils/testUtils';
+import { renderWithProviders, screen, fireEvent, waitFor, within } from '../utils/testUtils';
 import { PlaydateFormPage as PlaydateDetailPage } from '../../modules/playdate/pages/PlaydateFormPage';
 import { playdateApi } from '../../modules/playdate/api/playdateApi';
 
@@ -14,6 +14,8 @@ vi.mock('../../modules/playdate/api/playdateApi', () => ({
     voteReschedule: vi.fn(),
     getNearbyPlaces: vi.fn(),
     getBusyTimes: vi.fn(),
+    getFriends: vi.fn(),
+    inviteParticipants: vi.fn(),
   },
 }));
 
@@ -81,6 +83,62 @@ describe('PlaydateDetailPage Component', () => {
     vi.clearAllMocks();
     playdateApi.getReschedule.mockResolvedValue({ data: null });
     playdateApi.getBusyTimes.mockResolvedValue({ data: { busy: [] } });
+  });
+
+  it('lets the host invite other friends once every invitee declined', async () => {
+    const declinedPlaydate = {
+      ...mockHostPlaydate,
+      hostChildId: 'child-host',
+      scheduledDate: '2030-11-02T00:00:00',
+      displayStatus: 'awaiting_playmates',
+      participants: [{ ...mockHostPlaydate.participants[0], status: 'declined' }],
+    };
+    playdateApi.getPlaydateById.mockResolvedValue({ data: declinedPlaydate });
+    const entry = (parentId, parentName, childId, childName) => ({
+      parent: { id: parentId, fullName: parentName, avatarUrl: '' },
+      child: { id: childId, displayName: childName, age: 5 },
+      matchScore: 70,
+      warnings: [],
+    });
+    playdateApi.getFriends.mockResolvedValue({
+      data: {
+        matched: [entry('parent-guest-1', 'Bố Minh', 'child-guest-1', 'Bé Sóc')],
+        others: [entry('parent-guest-2', 'Mẹ Hoa', 'child-guest-2', 'Bé Thư'), entry('parent-guest-3', 'Bố Nam', 'child-guest-3', 'Bé Tôm')],
+      },
+    });
+    playdateApi.inviteParticipants.mockResolvedValue({
+      data: {
+        ...declinedPlaydate,
+        displayStatus: 'pending',
+        participants: [...declinedPlaydate.participants, { parentId: 'parent-guest-2', child: { displayName: 'Bé Thư' }, status: 'pending' }],
+        warnings: [],
+      },
+    });
+
+    renderWithProviders(<PlaydateDetailPage />);
+
+    expect(await screen.findByText('Chưa có bạn tham gia')).toBeInTheDocument();
+    expect(screen.getByText(/Hiện chưa có bạn nào tham gia/)).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Mời thêm bạn' }));
+
+    // The family that declined can be invited again; the search ignores accents
+    expect(await screen.findByText('Bé Thư')).toBeInTheDocument();
+    const dialog = screen.getByRole('dialog');
+    expect(within(dialog).getByText(/Bé Sóc/)).toBeInTheDocument();
+    expect(playdateApi.getFriends).toHaveBeenCalledWith({ childId: 'child-host', limit: 100 });
+    fireEvent.change(screen.getByPlaceholderText('Tìm theo tên bé hoặc phụ huynh'), { target: { value: 'thu' } });
+    expect(screen.queryByText('Bé Tôm')).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: /Bé Thư/ }));
+    fireEvent.click(screen.getByRole('button', { name: 'Gửi lời mời (1)' }));
+    await waitFor(() =>
+      expect(playdateApi.inviteParticipants).toHaveBeenCalledWith('playdate-test-123', [
+        { parentId: 'parent-guest-2', childId: 'child-guest-2' },
+      ])
+    );
+    // Pending again: the status chip and the new invitee's card
+    await waitFor(() => expect(screen.queryByText('Chưa có bạn tham gia')).not.toBeInTheDocument());
+    expect(screen.getAllByText('Chờ phản hồi').length).toBeGreaterThanOrEqual(1);
   });
 
   it('tells an invited parent their child is busy at that time and does not let them accept', async () => {

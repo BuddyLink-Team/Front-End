@@ -66,8 +66,8 @@ export const QUOTA_MESSAGES = Object.freeze({
     message: 'Bạn đã dùng hết lượt tham gia cuộc hẹn chơi trong tháng. Nâng cấp Premium để tham gia không giới hạn!',
   },
   [QUOTA_FEATURES.AI_ASSISTANT]: {
-    title: 'Đã hết lượt hỏi Trợ lý AI tháng này',
-    message: 'Bạn đã dùng hết lượt hỏi Trợ lý AI trong tháng. Nâng cấp Premium để hỏi không giới hạn!',
+    title: 'Đã hết lượt trò chuyện với Trợ lý AI tháng này',
+    message: 'Bạn đã dùng hết số cuộc trò chuyện với Trợ lý AI trong tháng. Nâng cấp Premium để trò chuyện không giới hạn!',
   },
   [QUOTA_FEATURES.GENERAL]: {
     title: 'Đã chạm hạn mức gói Miễn phí',
@@ -88,6 +88,12 @@ export const PLAN_FEATURE_ROWS = Object.freeze([
 
 export const UNLIMITED_LABEL = 'Không giới hạn';
 
+// Quota errors any module can receive: they open the PaywallModal (services/apiClient.js, usePaywall)
+export const SUBSCRIPTION_ERROR_CODES = Object.freeze({
+  QUOTA_EXCEEDED: 'QUOTA_EXCEEDED',
+  CHILD_QUOTA_EXCEEDED: 'CHILD_QUOTA_EXCEEDED',
+});
+
 /**
  * Codes returned by the /subscriptions endpoints (the backend English message is never shown).
  * CHILD_QUOTA_EXCEEDED / QUOTA_EXCEEDED open the PaywallModal instead (services/apiClient.js).
@@ -101,6 +107,7 @@ export const SUBSCRIPTION_ERROR_MESSAGES = Object.freeze({
   PAYMENT_GATEWAY_ERROR: 'Cổng thanh toán PayOS đang gặp sự cố. Vui lòng thử lại sau.',
   PAYMENT_LINK_NOT_FOUND: 'Không tìm thấy liên kết thanh toán trên PayOS.',
   PAYMENT_SERVICE_UNAVAILABLE: 'Cổng thanh toán chưa sẵn sàng. Vui lòng thử lại sau.',
+  PARENT_NOT_FOUND: 'Không tìm thấy hồ sơ phụ huynh. Vui lòng thiết lập hồ sơ trước.',
 });
 
 // Rendered size (px) of the PayOS VietQR code

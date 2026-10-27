@@ -45,15 +45,26 @@ const DiscoveryFilterModal = ({ isOpen, onClose }) => {
                 Trong vòng {form.maxDistance} km
               </span>
             </div>
-            <input
-              type="range"
-              min={DISTANCE_RANGE_KM.MIN}
-              max={DISTANCE_RANGE_KM.MAX}
-              step={1}
-              value={form.maxDistance}
-              onChange={(e) => setMaxDistance(e.target.value)}
-              className="w-full h-2 rounded-full appearance-none cursor-pointer accent-primary bg-surface-container"
-            />
+            <div className="dual-range">
+              <div className="dual-range-track">
+                <div
+                  className="dual-range-fill"
+                  style={{
+                    left: 0,
+                    width: `${((form.maxDistance - DISTANCE_RANGE_KM.MIN) / (DISTANCE_RANGE_KM.MAX - DISTANCE_RANGE_KM.MIN)) * 100}%`,
+                  }}
+                />
+              </div>
+              <input
+                type="range"
+                aria-label="Khoảng cách"
+                min={DISTANCE_RANGE_KM.MIN}
+                max={DISTANCE_RANGE_KM.MAX}
+                step={1}
+                value={form.maxDistance}
+                onChange={(e) => setMaxDistance(e.target.value)}
+              />
+            </div>
             <div className="flex justify-between text-xs text-on-surface-variant">
               <span>{DISTANCE_RANGE_KM.MIN} km</span>
               <span>{DISTANCE_RANGE_KM.MAX} km</span>

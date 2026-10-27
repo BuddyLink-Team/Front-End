@@ -15,8 +15,7 @@ export const fetchNotifications = createAsyncThunk(
       const response = await notificationApi.getNotifications(params);
       return response.data;
     } catch (error) {
-      const message = error.message || 'Không thể tải danh sách thông báo';
-      return rejectWithValue(message);
+      return rejectWithValue(error);
     }
   }
 );
@@ -28,8 +27,7 @@ export const fetchDropdownNotifications = createAsyncThunk(
       const response = await notificationApi.getNotifications(params);
       return response.data;
     } catch (error) {
-      const message = error.message || 'Không thể tải thông báo';
-      return rejectWithValue(message);
+      return rejectWithValue(error);
     }
   }
 );
@@ -41,7 +39,7 @@ export const fetchUnreadCount = createAsyncThunk(
       const response = await notificationApi.getUnreadCount();
       return response.data?.unreadCount || 0;
     } catch (error) {
-      return rejectWithValue(error.message || 'Lỗi đếm thông báo');
+      return rejectWithValue(error);
     }
   }
 );
@@ -53,7 +51,7 @@ export const markNotificationAsRead = createAsyncThunk(
       const response = await notificationApi.markAsRead(notificationId);
       return response.data;
     } catch (error) {
-      return rejectWithValue(error.message || 'Không thể đánh dấu đã đọc');
+      return rejectWithValue(error);
     }
   }
 );
@@ -65,7 +63,7 @@ export const markAllNotificationsAsRead = createAsyncThunk(
       const response = await notificationApi.markAllAsRead();
       return response.data;
     } catch (error) {
-      return rejectWithValue(error.message || 'Không thể đánh dấu tất cả');
+      return rejectWithValue(error);
     }
   }
 );

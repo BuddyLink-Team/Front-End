@@ -33,6 +33,8 @@ export const API_ENDPOINTS = {
   },
   PLAYDATE: {
     BASE: '/playdates',
+    PENDING_RATINGS: '/playdates/ratings/pending',
+    RATINGS: (id) => `/playdates/${id}/ratings`,
   },
   PLACES: {
     BASE: '/places',
@@ -45,8 +47,9 @@ export const API_ENDPOINTS = {
     UPLOAD: '/chat/upload',
   },
   AI_ASSISTANT: {
-    RECOMMEND: '/ai/recommendations',
-    CHAT: '/ai/chat',
+    SESSIONS: '/ai-assistant/sessions',
+    SESSION: (id) => `/ai-assistant/sessions/${id}`,
+    MESSAGES: (id) => `/ai-assistant/sessions/${id}/messages`,
   },
   NOTIFICATION: {
     BASE: '/notifications',

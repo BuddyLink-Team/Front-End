@@ -63,6 +63,14 @@ export const playdateApi = {
     apiClient.patch(`${API_ENDPOINTS.PLAYDATE.BASE}/${id}/cancel`, payload),
 
   /**
+   * Host invites more friends' children (returns the playdate with schedule warnings)
+   * @param {string} id
+   * @param {Array<{ parentId: string, childId: string }>} participants
+   */
+  inviteParticipants: (id, participants) =>
+    apiClient.post(`${API_ENDPOINTS.PLAYDATE.BASE}/${id}/participants`, { participants }),
+
+  /**
    * Participant responds to playdate invitation (RSVP: accept / decline)
    */
   respondToPlaydate: (id, status) =>

@@ -18,6 +18,7 @@ import {
   Trash2,
   Shapes,
   StickyNote,
+  UserPlus,
   Flag,
 } from 'lucide-react';
 import { Button } from '../../../components/ui/Button';
@@ -32,10 +33,11 @@ import { FilterChips } from '../../../components/search/FilterChips';
 import { SearchBar } from '../../../components/search/SearchBar';
 import { FormPageHeader } from '../../../components/form/FormPageHeader';
 import { cn } from '../../../utils/cn';
-import { ACTIVITIES, ACTIVITY_GROUPS } from '../../../constants/activity.constants';
+import { ACTIVITIES, ACTIVITY_GROUPS, toActivityOption } from '../../../constants/activity.constants';
 import { ICON_STROKE } from '../../../constants/icon.constants';
 import { PlaceSearchModal } from '../components/PlaceSearchModal';
 import { RescheduleModal } from '../components/RescheduleModal';
+import { InvitePlaymatesModal } from '../components/InvitePlaymatesModal';
 import { PlaymateSelector } from '../components/PlaymateSelector';
 import { ScheduleAvailability } from '../components/ScheduleAvailability';
 import { PlaydateFormLayout, ReadOnlyField } from '../components/PlaydateFormLayout';
@@ -46,18 +48,15 @@ import { ReportModal } from '../../safety/components/ReportModal';
 import { useReportTarget } from '../../safety/hooks/useReportTarget';
 import { useCreatePlaydate } from '../hooks/useCreatePlaydate';
 import { usePlaydateDetail } from '../hooks/usePlaydateDetail';
-import { getDurationOptions, formatDurationLabel, DEFAULT_PLAYDATE_DURATION } from '../constants/playdateConstants';
+import {
+  getDurationOptions,
+  formatDurationLabel,
+  DEFAULT_PLAYDATE_DURATION,
+  PLAYDATE_STATUS_KEYS,
+} from '../constants/playdateConstants';
 import { addMinutesToTime, formatPlaydateTimeRange } from '../utils/playdateTime';
 import { googleMapsDirectionsUrl, toLngLat } from '../utils/placeLinks';
 import { formatDate } from '../../../utils/formatters';
-
-const toActivityOption = (group) => (activity) => ({
-  value: activity.playdateTitle,
-  label: activity.playdateTitle,
-  description: activity.value,
-  icon: activity.icon,
-  group,
-});
 
 // Quick start time presets
 const TIME_PRESETS = ['08:00', '09:00', '15:00', '16:30'].map((preset) => ({ id: preset, label: preset }));
@@ -515,7 +514,7 @@ const CreatePlaydateForm = () => {
         </div>
       }
       mobileActions={
-        <div className="lg:hidden sticky bottom-0 z-10 -mx-6 sm:mx-0 px-6 py-3 bg-surface/95 backdrop-blur border-t border-hairline sm:border sm:rounded-2xl space-y-2">
+        <div className="lg:hidden sticky bottom-0 z-10 -mx-6 sm:mx-0 px-6 py-3 bg-surface-container-lowest backdrop-blur border-t border-hairline sm:border sm:rounded-2xl space-y-2">
           <div className="flex items-center justify-between gap-3 text-xs text-text-muted">
             <span>{quotaText}</span>
             {selectedFriends.length > 0 && (
@@ -553,14 +552,18 @@ const PlaydateDetails = () => {
     isCancelled,
     canReschedule,
     canComplete,
+    canInvite,
     myPendingVote,
     showCancelModal,
     showRescheduleModal,
+    showInviteModal,
     setShowCancelModal,
     setShowRescheduleModal,
+    setShowInviteModal,
     handleComplete,
     handleCancel,
     handleRespond,
+    handleInvite,
     handleVoteReschedule,
     handleRescheduleSuccess,
     navigate,
@@ -583,6 +586,19 @@ const PlaydateDetails = () => {
   const participants = playdate.participants || [];
   const acceptedCount = participants.filter((p) => p.status === 'accepted').length;
   const canCancel = isHost && isUpcoming;
+  const isAwaitingPlaymates = playdate.displayStatus === PLAYDATE_STATUS_KEYS.AWAITING_PLAYMATES;
+  const inviteButton = canInvite && (
+    <Button
+      type="button"
+      variant={isAwaitingPlaymates ? 'primary' : 'outline'}
+      size="sm"
+      onClick={() => setShowInviteModal(true)}
+      leftIcon={<UserPlus className="w-4 h-4" />}
+      className="rounded-xl"
+    >
+      Mời thêm bạn
+    </Button>
+  );
   // A playdate report is filed against its host, so the host cannot report their own playdate
   const canReport = !isHost && Boolean(playdate.hostParent?.id);
   // Directions to the saved place, otherwise a search by its name and address
@@ -601,9 +617,20 @@ const PlaydateDetails = () => {
             <ParticipantCard key={p.parentId} parent={p.parent} childName={p.child?.displayName} status={p.status} />
           ))}
         </div>
-        {participants.length === 0 && (
+        {participants.length === 0 && isHost && (
           <p className="text-xs text-text-muted">Chưa có bạn bè nào được mời vào buổi hẹn này.</p>
         )}
+        {/* Other invitees are only counted: a guest never sees who else was invited or declined */}
+        {playdate.otherPendingCount > 0 && (
+          <p className="text-xs text-text-muted">{playdate.otherPendingCount} gia đình khác đang được mời.</p>
+        )}
+        {/* Nobody joined (every invitee declined or left): the host invites again or cancels */}
+        {isHost && isAwaitingPlaymates && participants.length > 0 && (
+          <p className="rounded-xl border border-tertiary-border bg-tertiary-soft px-3 py-2 text-xs text-tertiary-dark">
+            Hiện chưa có bạn nào tham gia. Bạn có thể mời thêm bạn khác hoặc hủy buổi hẹn.
+          </p>
+        )}
+        {inviteButton}
       </>
     ),
     schedule: (
@@ -635,7 +662,8 @@ const PlaydateDetails = () => {
         </ReadOnlyField>
         {playdate.note && (
           <ReadOnlyField label="Lời nhắn từ người tổ chức" icon={StickyNote}>
-            <span className="leading-relaxed">{playdate.note}</span>
+            {/* Keeps the line breaks of the note (AI agenda, extra requests) */}
+            <span className="leading-relaxed whitespace-pre-line">{playdate.note}</span>
           </ReadOnlyField>
         )}
       </>
@@ -744,7 +772,12 @@ const PlaydateDetails = () => {
       after={playdate.status === 'completed' && <PlaydateRatingsSection playdate={playdate} />}
       summary={{
         childName: playdate.hostChild?.displayName,
-        playmates: participants.map((p) => p.child?.displayName).filter(Boolean).join(', '),
+        // Families who declined are not part of the playdate anymore
+        playmates: participants
+          .filter((p) => p.status !== 'declined')
+          .map((p) => p.child?.displayName)
+          .filter(Boolean)
+          .join(', '),
         scheduledDate: playdate.scheduledDate,
         timeRange: formatPlaydateTimeRange(playdate),
         placeName: playdate.location?.name,
@@ -752,6 +785,15 @@ const PlaydateDetails = () => {
       }}
       actions={actions}
     >
+      {canInvite && (
+        <InvitePlaymatesModal
+          isOpen={showInviteModal}
+          onClose={() => setShowInviteModal(false)}
+          playdate={playdate}
+          onInvite={handleInvite}
+          isSubmitting={isActionLoading}
+        />
+      )}
       <RescheduleModal
         isOpen={showRescheduleModal}
         onClose={() => setShowRescheduleModal(false)}

@@ -1,8 +1,9 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useDebounce } from '../../../hooks/useDebounce';
+import { getApiErrorMsg } from '../../../utils/errorUtils';
 import { fetchBlockedUsers } from '../redux/safetySlice';
-import { BLOCKED_USERS_PAGE_SIZE } from '../constants/safetyConstants';
+import { BLOCKED_USERS_PAGE_SIZE, SAFETY_ERROR_MESSAGES } from '../constants/safetyConstants';
 import { useSafetyActions } from './useSafetyActions';
 
 /**
@@ -10,7 +11,7 @@ import { useSafetyActions } from './useSafetyActions';
  */
 export const useBlockedUsers = () => {
   const dispatch = useDispatch();
-  const { isSubmitting, unblockUser } = useSafetyActions();
+  const { isBlockSubmitting: isSubmitting, unblockUser } = useSafetyActions();
   const blockedUsers = useSelector((state) => state.safety.blockedUsers);
   const isLoading = useSelector((state) => state.safety.isLoadingBlockedUsers);
   const error = useSelector((state) => state.safety.blockedUsersError);
@@ -59,7 +60,9 @@ export const useBlockedUsers = () => {
     setSearch: changeSearch,
     isSearching: Boolean(debouncedSearch),
     isLoading,
-    error,
+    errorMessage: error
+      ? getApiErrorMsg(SAFETY_ERROR_MESSAGES, error, 'Đã xảy ra sự cố khi tải danh sách. Vui lòng thử lại.')
+      : null,
     isSubmitting,
     reload: load,
     unblock,

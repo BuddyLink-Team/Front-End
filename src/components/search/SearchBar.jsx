@@ -36,7 +36,7 @@ export const SearchBar = ({
         onChange={(e) => onChange?.(e.target.value)}
         placeholder={placeholder}
         className={cn(
-          'w-full bg-white border border-hairline text-text-primary rounded-xl pl-10 pr-4 py-2.5 text-sm transition-all duration-150 placeholder:text-text-muted/60 focus:outline-none focus:ring-2 focus:ring-primary/25 focus:border-primary shadow-xs',
+          'w-full bg-white border border-hairline-strong text-text-primary rounded-xl pl-10 pr-4 py-2.5 text-sm transition-all duration-150 placeholder:text-text-muted/60 focus:outline-none focus:ring-2 focus:ring-primary/25 focus:border-primary shadow-xs',
           showClear && 'pr-9'
         )}
       />

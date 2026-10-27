@@ -58,8 +58,8 @@ export const useChildForm = () => {
       try {
         const child = await dispatch(fetchChildById(id)).unwrap();
         setFormData(toFormData(child));
-      } catch {
-        toast.error('Không tìm thấy thông tin hồ sơ bé');
+      } catch (err) {
+        toast.error(getApiErrorMsg(CHILD_ERROR_MESSAGES, err, 'Không tìm thấy thông tin hồ sơ bé.'));
         navigate('/children', { replace: true });
       } finally {
         setIsFetchingChild(false);
