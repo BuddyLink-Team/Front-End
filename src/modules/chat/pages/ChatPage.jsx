@@ -36,7 +36,6 @@ export const ChatPage = () => {
     playdateError,
     currentParentId,
     canReportPlaydateChat,
-    reportPlaydateChat,
     handleSelectImage,
     handleClearImage,
     handleSendMessage,
@@ -144,7 +143,6 @@ export const ChatPage = () => {
             onBack={handleBackToConversations}
             currentParentId={currentParentId}
             canReport={canReportPlaydateChat}
-            onReport={reportPlaydateChat}
             className={!activeConversationId ? 'hidden lg:flex' : 'flex'}
           />
         ) : (

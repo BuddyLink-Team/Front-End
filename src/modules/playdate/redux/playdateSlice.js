@@ -81,6 +81,10 @@ export const respondToPlaydate = createApiThunk(
   ({ id, status }) => playdateApi.respondToPlaydate(id, status),
 );
 
+export const leavePlaydate = createApiThunk('playdate/leave', (id) =>
+  playdateApi.leavePlaydate(id),
+);
+
 export const createRescheduleRequest = createApiThunk(
   'playdate/createReschedule',
   ({ id, payload }) => playdateApi.createReschedule(id, payload),
@@ -264,7 +268,7 @@ export const playdateSlice = createSlice({
         applyCompleted(state, action.payload);
       })
       .addMatcher(
-        isAnyOf(cancelPlaydate.fulfilled, respondToPlaydate.fulfilled),
+        isAnyOf(cancelPlaydate.fulfilled, respondToPlaydate.fulfilled, leavePlaydate.fulfilled),
         (state, action) => {
           upsertPlaydate(state, action.payload);
         },
@@ -286,6 +290,7 @@ export const playdateSlice = createSlice({
           completePlaydate.pending,
           cancelPlaydate.pending,
           respondToPlaydate.pending,
+          leavePlaydate.pending,
           createRescheduleRequest.pending,
           voteRescheduleRequest.pending,
           createPlaydate.pending,
@@ -302,6 +307,8 @@ export const playdateSlice = createSlice({
           cancelPlaydate.rejected,
           respondToPlaydate.fulfilled,
           respondToPlaydate.rejected,
+          leavePlaydate.fulfilled,
+          leavePlaydate.rejected,
           createRescheduleRequest.fulfilled,
           createRescheduleRequest.rejected,
           voteRescheduleRequest.fulfilled,

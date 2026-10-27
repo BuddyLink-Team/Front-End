@@ -209,6 +209,24 @@ describe('PlaydateDetailPage Component', () => {
     expect(screen.queryByRole('button', { name: /đổi lịch hẹn/i })).not.toBeInTheDocument();
   });
 
+  it('lets an invited parent report the playdate (against its host)', async () => {
+    playdateApi.getPlaydateById.mockResolvedValue({ data: mockParticipantPlaydate });
+
+    renderWithProviders(<PlaydateDetailPage />);
+
+    fireEvent.click(await screen.findByRole('button', { name: 'Báo cáo buổi hẹn' }));
+    expect(await screen.findByText('Buổi hẹn Playdate:')).toBeInTheDocument();
+  });
+
+  it('does NOT let the host report their own playdate', async () => {
+    playdateApi.getPlaydateById.mockResolvedValue({ data: mockHostPlaydate });
+
+    renderWithProviders(<PlaydateDetailPage />);
+
+    await screen.findByRole('heading', { level: 1, name: 'Buổi chơi Lego & Công viên' });
+    expect(screen.queryByRole('button', { name: 'Báo cáo buổi hẹn' })).not.toBeInTheDocument();
+  });
+
   it('renders vote buttons when the API says the caller still has to vote', async () => {
     playdateApi.getPlaydateById.mockResolvedValue({
       data: { ...mockParticipantPlaydate, myParticipantStatus: 'accepted' },

@@ -14,6 +14,7 @@ const PlaydateListPage = lazy(() => import('../modules/playdate/pages/PlaydateLi
 const PlaydateFormPage = lazy(() => import('../modules/playdate/pages/PlaydateFormPage'));
 const ConnectionsPage = lazy(() => import('../modules/connection/pages/ConnectionsPage'));
 const NotificationPage = lazy(() => import('../modules/notification/pages/NotificationPage'));
+const BlockedUsersSettingsPage = lazy(() => import('../modules/safety/pages/BlockedUsersSettingsPage'));
 
 import GamificationPage from '../modules/gamification/pages/GamificationPage';
 
@@ -108,10 +109,8 @@ export const ParentRoutes = () => (
     <Route path="/payment/cancel" element={<PaymentCancelPage />} />
 
     {/* Safety & Settings */}
-    <Route
-      path="/safety"
-      element={<PlaceholderPage title="Trung tâm an toàn & Bảo mật" description="Quản lý danh sách chặn, quyền riêng tư hồ sơ và mẹo an toàn khi cho bé chơi." />}
-    />
+    <Route path="/blocked-users" element={<BlockedUsersSettingsPage />} />
+    <Route path="/safety" element={<Navigate to="/blocked-users" replace />} />
   </Route>
 );
 
