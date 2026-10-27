@@ -12,7 +12,8 @@ const mockReportUser = vi.fn();
 vi.mock('../../modules/safety/hooks/useSafetyActions', () => ({
   useSafetyActions: () => ({
     reportUser: mockReportUser,
-    isSubmitting: false,
+    uploadEvidence: vi.fn(),
+    isReportSubmitting: false,
   }),
 }));
 
@@ -42,8 +43,7 @@ describe('ReportModal Component', () => {
         <ReportModal
           isOpen={true}
           onClose={vi.fn()}
-          reportedUserId="target-user-123"
-          targetName="Phụ huynh Thảo"
+          target={{ reportedUserId: 'target-user-123', targetName: 'Phụ huynh Thảo' }}
           {...props}
         />
       </Provider>,
@@ -100,6 +100,28 @@ describe('ReportModal Component', () => {
       });
       expect(handleClose).toHaveBeenCalled();
       expect(handleSuccess).toHaveBeenCalled();
+    });
+  });
+
+  it('sends the reported message with a message report', async () => {
+    renderModal({
+      target: {
+        reportedUserId: 'target-user-123',
+        targetType: 'message',
+        targetMessageId: 'msg-1',
+        targetPlaydateId: 'ignored-playdate',
+        targetName: 'Phụ huynh Thảo',
+        targetSummary: 'Tin nhắn xấu',
+      },
+    });
+
+    fireEvent.click(screen.getByText('Spam / Tin rác'));
+    fireEvent.click(screen.getByRole('button', { name: /Gửi báo cáo/i }));
+
+    await waitFor(() => {
+      expect(mockReportUser).toHaveBeenCalledWith(
+        expect.objectContaining({ targetType: 'message', targetMessageId: 'msg-1', targetPlaydateId: null }),
+      );
     });
   });
 

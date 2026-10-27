@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useRef } from 'react';
 import {
   AlertTriangle,
   Upload,
@@ -19,8 +19,7 @@ import { Modal } from '../../../components/feedback/Modal';
 import { Button } from '../../../components/ui/Button';
 import { Textarea } from '../../../components/ui/Textarea';
 import { FilterChips } from '../../../components/search/FilterChips';
-import { useToast } from '../../../hooks/useToast';
-import { useSafetyActions } from '../hooks/useSafetyActions';
+import { useReportForm } from '../hooks/useReportForm';
 import {
   REPORT_TARGET_TYPES,
   REPORT_CATEGORIES,
@@ -48,118 +47,47 @@ const CATEGORY_CHIPS = REPORT_CATEGORY_OPTIONS.map((cat) => ({
 
 /**
  * ReportModal - Reusable modal to report inappropriate users, offensive messages,
- * or problematic playdates.
+ * or problematic playdates. The form lives in useReportForm.
  *
  * @param {Object} props
  * @param {boolean} props.isOpen
  * @param {Function} props.onClose
- * @param {Object} [props.target] - Target payload: { reportedUserId, targetType, targetMessageId, targetPlaydateId, targetName, targetSummary }
- * @param {string} [props.reportedUserId] - Directly supplied reported parent ID
- * @param {string} [props.targetType] - 'user' | 'message' | 'playdate' (default: 'user')
- * @param {string} [props.targetMessageId] - Message ObjectId if reporting a message
- * @param {string} [props.targetPlaydateId] - Playdate ObjectId if reporting a playdate
- * @param {string} [props.targetName] - Display name of target user
- * @param {string} [props.targetSummary] - Text snippet or playdate title for context
+ * @param {Object} [props.target] - { reportedUserId, targetType, targetMessageId, targetPlaydateId, targetName, targetSummary }
  * @param {Function} [props.onSubmitSuccess] - Callback fired on successful report
  */
-export const ReportModal = ({
-  isOpen,
-  onClose,
-  target,
-  reportedUserId: propReportedUserId,
-  targetType: propTargetType,
-  targetMessageId: propTargetMessageId,
-  targetPlaydateId: propTargetPlaydateId,
-  targetName: propTargetName,
-  targetSummary: propTargetSummary,
-  onSubmitSuccess,
-}) => {
-  const toast = useToast();
-  const { reportUser, uploadEvidence, isSubmitting } = useSafetyActions();
+export const ReportModal = ({ isOpen, onClose, target, onSubmitSuccess }) => {
   const fileInputRef = useRef(null);
+  const targetType = target?.targetType || REPORT_TARGET_TYPES.USER;
+  const targetName = target?.targetName || 'Người dùng';
+  const targetSummary = target?.targetSummary || null;
 
-  // Extract target fields from prop or target object
-  const reportedUserId = target?.reportedUserId || propReportedUserId;
-  const targetType = target?.targetType || propTargetType || REPORT_TARGET_TYPES.USER;
-  const targetMessageId = target?.targetMessageId || propTargetMessageId || null;
-  const targetPlaydateId = target?.targetPlaydateId || propTargetPlaydateId || null;
-  const targetName = target?.targetName || propTargetName || 'Người dùng';
-  const targetSummary = target?.targetSummary || propTargetSummary || null;
-
-  // Local state
-  const [selectedCategory, setSelectedCategory] = useState('');
-  const [description, setDescription] = useState('');
-  const [evidenceUrls, setEvidenceUrls] = useState([]);
-  const [isUploadingImage, setIsUploadingImage] = useState(false);
-
-  // Reset form when modal opens or closes
-  useEffect(() => {
-    if (isOpen) {
-      setSelectedCategory('');
-      setDescription('');
-      setEvidenceUrls([]);
-      setIsUploadingImage(false);
-    }
-  }, [isOpen]);
-
-  // Handle uploading evidence images (checks and upload live in useSafetyActions)
-  const handleFileChange = async (e) => {
-    const files = Array.from(e.target.files || []);
-    e.target.value = '';
-    if (!files.length) return;
-
-    if (evidenceUrls.length + files.length > REPORT_LIMITS.MAX_EVIDENCE_URLS) {
-      toast.error(`Chỉ được tải lên tối đa ${REPORT_LIMITS.MAX_EVIDENCE_URLS} hình ảnh bằng chứng.`);
-      return;
-    }
-
-    setIsUploadingImage(true);
-    try {
-      const urls = await uploadEvidence(files);
-      setEvidenceUrls((prev) => [...prev, ...urls].slice(0, REPORT_LIMITS.MAX_EVIDENCE_URLS));
-    } finally {
-      setIsUploadingImage(false);
-    }
-  };
-
-  // Remove evidence image
-  const handleRemoveImage = (indexToRemove) => {
-    setEvidenceUrls((prev) => prev.filter((_, idx) => idx !== indexToRemove));
-  };
-
-  // Handle submit report
-  const handleSubmit = async (e) => {
-    if (e) e.preventDefault();
-
-    if (!reportedUserId) {
-      toast.error('Không tìm thấy thông tin đối phương để báo cáo.');
-      return;
-    }
-
-    if (!selectedCategory) {
-      toast.error('Vui lòng chọn danh mục vi phạm.');
-      return;
-    }
-
-    const categoryObj = REPORT_CATEGORY_OPTIONS.find((c) => c.value === selectedCategory);
-    const reasonText = categoryObj?.label || selectedCategory;
-
-    const payload = {
-      reportedUserId,
-      targetType,
-      targetMessageId: targetType === REPORT_TARGET_TYPES.MESSAGE ? targetMessageId : null,
-      targetPlaydateId: targetType === REPORT_TARGET_TYPES.PLAYDATE ? targetPlaydateId : null,
-      category: selectedCategory,
-      reason: reasonText,
-      description: description.trim(),
-      evidenceUrls,
-    };
-
-    const result = await reportUser(payload);
-    if (result.success) {
+  const {
+    category,
+    selectedOption,
+    description,
+    evidenceUrls,
+    isUploading,
+    isSubmitting,
+    isBusy,
+    canAddEvidence,
+    selectCategory,
+    changeDescription,
+    addEvidence,
+    removeEvidence,
+    submit,
+  } = useReportForm({
+    target,
+    isOpen,
+    onSubmitted: () => {
       onClose();
       onSubmitSuccess?.();
-    }
+    },
+  });
+
+  const handleFileChange = (e) => {
+    const files = Array.from(e.target.files || []);
+    e.target.value = '';
+    addEvidence(files);
   };
 
   // Target type icon & label
@@ -199,12 +127,10 @@ export const ReportModal = ({
     );
   };
 
-  const selectedCategoryObj = REPORT_CATEGORY_OPTIONS.find((c) => c.value === selectedCategory);
-
   return (
     <Modal
       isOpen={isOpen}
-      onClose={() => !isSubmitting && !isUploadingImage && onClose()}
+      onClose={() => !isBusy && onClose()}
       title="Báo cáo vi phạm"
       maxWidth="max-w-lg"
       className="bg-white"
@@ -214,7 +140,7 @@ export const ReportModal = ({
             type="button"
             variant="ghost"
             onClick={onClose}
-            disabled={isSubmitting || isUploadingImage}
+            disabled={isBusy}
             className="border border-hairline text-text-muted hover:text-text-primary"
           >
             Hủy
@@ -222,8 +148,8 @@ export const ReportModal = ({
           <Button
             type="button"
             variant="danger"
-            onClick={handleSubmit}
-            disabled={!selectedCategory || isSubmitting || isUploadingImage}
+            onClick={submit}
+            disabled={!category || isBusy}
             isLoading={isSubmitting}
             className="font-semibold"
           >
@@ -246,15 +172,15 @@ export const ReportModal = ({
           </p>
           <FilterChips
             options={CATEGORY_CHIPS}
-            selected={selectedCategory}
-            onChange={(value) => setSelectedCategory(value || '')}
+            selected={category}
+            onChange={selectCategory}
             className="flex-wrap overflow-visible"
           />
 
           {/* Category description explanation */}
-          {selectedCategoryObj && (
+          {selectedOption && (
             <p className="mt-2 text-xs text-primary font-medium bg-primary-soft/40 px-3 py-1.5 rounded-lg border border-primary-border/60">
-              {selectedCategoryObj.description}
+              {selectedOption.description}
             </p>
           )}
         </div>
@@ -270,7 +196,7 @@ export const ReportModal = ({
             placeholder="Cung cấp thêm chi tiết về tình huống vi phạm để ban quản trị xử lý chính xác..."
             maxLength={REPORT_LIMITS.MAX_DESCRIPTION_LENGTH}
             value={description}
-            onChange={(e) => setDescription(e.target.value)}
+            onChange={(e) => changeDescription(e.target.value)}
             disabled={isSubmitting}
             className="text-xs sm:text-sm resize-none"
           />
@@ -294,7 +220,7 @@ export const ReportModal = ({
           </div>
 
           {/* Upload Button */}
-          {evidenceUrls.length < REPORT_LIMITS.MAX_EVIDENCE_URLS && (
+          {canAddEvidence && (
             <div className="mb-3">
               <input
                 ref={fileInputRef}
@@ -304,17 +230,17 @@ export const ReportModal = ({
                 className="hidden"
                 id="report-evidence-upload"
                 onChange={handleFileChange}
-                disabled={isSubmitting || isUploadingImage}
+                disabled={isBusy}
               />
               <Button
                 type="button"
                 variant="outline"
                 size="sm"
                 onClick={() => fileInputRef.current?.click()}
-                disabled={isSubmitting || isUploadingImage}
+                disabled={isBusy}
                 className="w-full flex items-center justify-center gap-2 border-dashed border-2 py-3 rounded-xl hover:border-primary text-text-muted hover:text-primary transition-colors"
               >
-                {isUploadingImage ? (
+                {isUploading ? (
                   <>
                     <Loader2 className="w-4 h-4 animate-spin text-primary" />
                     <span>Đang tải ảnh lên máy chủ BuddyLink...</span>
@@ -322,7 +248,7 @@ export const ReportModal = ({
                 ) : (
                   <>
                     <Upload className="w-4 h-4" />
-                    <span>Tải ảnh chụp màn hình bằng chứng (PNG, JPG, WebP)</span>
+                    <span>Tải ảnh chụp màn hình bằng chứng (PNG, JPG, WebP, GIF)</span>
                   </>
                 )}
               </Button>
@@ -344,7 +270,7 @@ export const ReportModal = ({
                   />
                   <button
                     type="button"
-                    onClick={() => handleRemoveImage(index)}
+                    onClick={() => removeEvidence(index)}
                     aria-label={`Xóa ảnh ${index + 1}`}
                     disabled={isSubmitting}
                     className="absolute top-1 right-1 bg-black/60 hover:bg-black/80 text-white rounded-full p-1 opacity-90 transition-opacity"

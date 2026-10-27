@@ -25,7 +25,9 @@ export const uploadReportEvidence = createApiThunk('safety/uploadReportEvidence'
 );
 
 const initialState = {
-  isSubmitting: false,
+  // Block / unblock and report are tracked apart so one never shows the other as busy
+  isBlockSubmitting: false,
+  isReportSubmitting: false,
   isLoadingBlockedUsers: false,
   blockedUsersError: null,
   blockedUsers: {
@@ -42,11 +44,7 @@ const initialState = {
 export const safetySlice = createSlice({
   name: 'safety',
   initialState,
-  reducers: {
-    clearBlockedUsersError: (state) => {
-      state.blockedUsersError = null;
-    },
-  },
+  reducers: {},
   extraReducers: (builder) => {
     builder
       // Fetch blocked users
@@ -74,32 +72,29 @@ export const safetySlice = createSlice({
       // Immediately remove unblocked user from the local list
       .addCase(unblockParent.fulfilled, (state, action) => {
         const unblockedId = action.meta.arg;
-        state.blockedUsers.items = state.blockedUsers.items.filter(
-          (item) => item.parentId !== unblockedId && item.id !== unblockedId,
-        );
+        state.blockedUsers.items = state.blockedUsers.items.filter((item) => item.parentId !== unblockedId);
         const { pagination } = state.blockedUsers;
         if (pagination.total > 0) pagination.total -= 1;
         pagination.totalPages = Math.ceil(pagination.total / pagination.limit) || 1;
       })
-      // Submitting block, unblock, or report
-      .addMatcher(isAnyOf(blockParent.pending, unblockParent.pending, reportParent.pending), (state) => {
-        state.isSubmitting = true;
+      // Submitting block or unblock
+      .addMatcher(isAnyOf(blockParent.pending, unblockParent.pending), (state) => {
+        state.isBlockSubmitting = true;
       })
       .addMatcher(
-        isAnyOf(
-          blockParent.fulfilled,
-          blockParent.rejected,
-          unblockParent.fulfilled,
-          unblockParent.rejected,
-          reportParent.fulfilled,
-          reportParent.rejected,
-        ),
+        isAnyOf(blockParent.fulfilled, blockParent.rejected, unblockParent.fulfilled, unblockParent.rejected),
         (state) => {
-          state.isSubmitting = false;
+          state.isBlockSubmitting = false;
         },
-      );
+      )
+      // Submitting a report
+      .addMatcher(isAnyOf(reportParent.pending), (state) => {
+        state.isReportSubmitting = true;
+      })
+      .addMatcher(isAnyOf(reportParent.fulfilled, reportParent.rejected), (state) => {
+        state.isReportSubmitting = false;
+      });
   },
 });
 
-export const { clearBlockedUsersError } = safetySlice.actions;
 export default safetySlice.reducer;

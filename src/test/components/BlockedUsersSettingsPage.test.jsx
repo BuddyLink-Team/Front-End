@@ -17,7 +17,7 @@ const baseState = () => ({
   setSearch: mockSetSearch,
   isSearching: false,
   isLoading: false,
-  error: null,
+  errorMessage: null,
   isSubmitting: false,
   reload: mockReload,
   unblock: mockUnblock,
@@ -56,6 +56,15 @@ describe('BlockedUsersSettingsPage Component', () => {
     renderPage();
 
     expect(screen.getByText('Đang tải danh sách người dùng đã chặn...')).toBeInTheDocument();
+  });
+
+  it('shows the mapped load error with a retry action', () => {
+    mockState.errorMessage = 'Thông tin chưa hợp lệ. Vui lòng kiểm tra lại.';
+    renderPage();
+
+    expect(screen.getByText('Thông tin chưa hợp lệ. Vui lòng kiểm tra lại.')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Thử lại' }));
+    expect(mockReload).toHaveBeenCalled();
   });
 
   it('renders empty state when there are no blocked users', () => {
