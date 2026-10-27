@@ -109,9 +109,8 @@ export const ParentRoutes = () => (
     <Route path="/payment/cancel" element={<PaymentCancelPage />} />
 
     {/* Safety & Settings */}
-    <Route path="/settings/blocked-users" element={<BlockedUsersSettingsPage />} />
-    <Route path="/settings" element={<Navigate to="/settings/blocked-users" replace />} />
-    <Route path="/safety" element={<Navigate to="/settings/blocked-users" replace />} />
+    <Route path="/blocked-users" element={<BlockedUsersSettingsPage />} />
+    <Route path="/safety" element={<Navigate to="/blocked-users" replace />} />
   </Route>
 );
 

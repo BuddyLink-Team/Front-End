@@ -6,6 +6,7 @@ import { useToast } from '../../../hooks/useToast';
 import { getApiErrorMsg } from '../../../utils/errorUtils';
 import { useSafetyActions } from '../../safety/hooks/useSafetyActions';
 import { openDirectConversation } from '../../chat/redux/chatSlice';
+import { BLOCK_REASONS } from '../../safety/constants/safetyConstants';
 import {
   TIME_SLOT_OPTIONS,
   LOCATION_PREFERENCE_OPTIONS,
@@ -162,7 +163,7 @@ const useConnections = () => {
     try {
       if (action === CONNECTION_ACTIONS.BLOCK) {
         // useSafetyActions shows its own success / error toast
-        const result = await blockUser(connection.partnerId, connection.parentName, 'Blocked from connections');
+        const result = await blockUser(connection.partnerId, connection.parentName, BLOCK_REASONS.CONNECTION);
         if (result.success) refresh();
       } else {
         await dispatch(ACTION_THUNKS[action](connection.id)).unwrap();

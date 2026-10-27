@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect, useLayoutEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useSelector, useDispatch } from 'react-redux';
+import { useSelector } from 'react-redux';
 import dayjs from 'dayjs';
 import {
   Send,
@@ -26,12 +26,11 @@ import { ImageLightbox } from './ImageLightbox.jsx';
 import { Spinner } from '../../../components/feedback/Spinner';
 import { cn } from '../../../utils/cn';
 import { CHAT_FILE_INPUT_ACCEPT, COMPOSER_TEXTAREA_CLASS } from '../constants/chatConstants.js';
-import { useSafetyActions } from '../../safety/hooks/useSafetyActions.js';
-import { REPORT_TARGET_TYPES } from '../../safety/constants/safetyConstants.js';
+import { useReportTarget } from '../../safety/hooks/useReportTarget.js';
+import { useConversationBlock } from '../hooks/useConversationBlock.js';
 import { ReportModal } from '../../safety/components/ReportModal.jsx';
 import { Button } from '../../../components/ui/Button.jsx';
 import Textarea from '../../../components/ui/Textarea.jsx';
-import { fetchConversationById, fetchConversations } from '../redux/chatSlice.js';
 
 const formatMessageDateGroup = (date) => {
   if (!date) return '';
@@ -62,8 +61,14 @@ export const DirectChatView = ({
   className,
 }) => {
   const navigate = useNavigate();
-  const dispatch = useDispatch();
-  const { isSubmitting: isSubmittingSafety, blockUser, unblockUser } = useSafetyActions();
+  const {
+    isSubmitting: isSubmittingSafety,
+    isBlockedByMe,
+    isBlockedByPartner,
+    block,
+    unblock,
+  } = useConversationBlock(conversation);
+  const { reportTarget, reportUser, reportMessage, closeReport } = useReportTarget();
   const currentParent = useSelector((state) => state.auth?.parent);
   const currentUser = useSelector((state) => state.auth?.user);
   const currentParentId = currentParent?._id || currentParent?.id || currentUser?._id || currentUser?.id;
@@ -75,13 +80,6 @@ export const DirectChatView = ({
   // Safety dialogs
   const [showBlockDialog, setShowBlockDialog] = useState(false);
   const [showUnblockConfirmDialog, setShowUnblockConfirmDialog] = useState(false);
-  const [showReportDialog, setShowReportDialog] = useState(false);
-  const [reportTarget, setReportTarget] = useState(null);
-  const [localBlockedByMe, setLocalBlockedByMe] = useState(null);
-
-  useEffect(() => {
-    setLocalBlockedByMe(null);
-  }, [conversation?.id]);
 
   const messagesContainerRef = useRef(null);
   // Distance from the bottom saved before older messages are prepended
@@ -100,10 +98,6 @@ export const DirectChatView = ({
   const isVerified = Boolean(partner?.verification?.isVerifiedParent);
   const partnerLocation = partner?.location?.area || partner?.location?.city || partner?.location?.address || '';
   const isPartnerOnline = Boolean(conversation?.isPartnerOnline || partner?.isOnline);
-
-  const isBlockedByMe = localBlockedByMe !== null ? localBlockedByMe : Boolean(conversation?.isBlockedByMe);
-  const isBlockedByPartner = Boolean(conversation?.isBlockedByPartner) || (Boolean(conversation?.isBlocked) && !isBlockedByMe);
-  const isBlocked = isBlockedByMe || isBlockedByPartner;
 
   // Auto scroll to bottom only on new messages or typing
   // Scroll only the message list: scrollIntoView would also scroll the page down to the input
@@ -220,51 +214,17 @@ export const DirectChatView = ({
     }
   };
 
-  // Block user action
   const handleConfirmBlock = async () => {
-    const targetId = partner?.id || partner?._id;
-    const result = await blockUser(targetId, partnerName);
-    if (result.success) {
-      setLocalBlockedByMe(true);
-      setShowBlockDialog(false);
-      if (conversation?.id) {
-        dispatch(fetchConversationById(conversation.id));
-      }
-      dispatch(fetchConversations());
-    }
+    const result = await block();
+    if (result.success) setShowBlockDialog(false);
   };
 
-  // Unblock user action
   const handleConfirmUnblock = async () => {
-    const targetId = partner?.id || partner?._id;
-    const result = await unblockUser(targetId, partnerName);
-    if (result.success) {
-      setLocalBlockedByMe(false);
-      setShowUnblockConfirmDialog(false);
-      if (conversation?.id) {
-        dispatch(fetchConversationById(conversation.id));
-      }
-      dispatch(fetchConversations());
-    }
+    const result = await unblock();
+    if (result.success) setShowUnblockConfirmDialog(false);
   };
 
-  // Report message handler
-  const handleReportMessage = (msg) => {
-    const senderId =
-      msg.senderId?._id ||
-      msg.senderId?.id ||
-      msg.senderId ||
-      msg.sender?.id ||
-      msg.sender?._id;
-    setReportTarget({
-      reportedUserId: senderId,
-      targetType: REPORT_TARGET_TYPES.MESSAGE,
-      targetMessageId: msg.id || msg._id,
-      targetName: msg.sender?.fullName || partnerName,
-      targetSummary: msg.content,
-    });
-    setShowReportDialog(true);
-  };
+  const handleReportMessage = (msg) => reportMessage(msg, partnerName);
 
   return (
     <section
@@ -361,14 +321,7 @@ export const DirectChatView = ({
           >
             <DropdownItem
               icon={Flag}
-              onClick={() => {
-                setReportTarget({
-                  reportedUserId: partner?.id || partner?._id,
-                  targetType: REPORT_TARGET_TYPES.USER,
-                  targetName: partnerName,
-                });
-                setShowReportDialog(true);
-              }}
+              onClick={() => reportUser(partner?.id || partner?._id, partnerName)}
               danger
             >
               Báo cáo vi phạm
@@ -479,7 +432,7 @@ export const DirectChatView = ({
           </div>
           <div>
             <p className="text-sm font-semibold text-text-primary">
-              Bạn đã chặn người này. Vui lòng mở chặn để trò chuyện tiếp
+              Bạn đã chặn người này. Hãy bỏ chặn và kết nối lại để trò chuyện tiếp
             </p>
           </div>
           <Button
@@ -617,7 +570,7 @@ export const DirectChatView = ({
       <ConfirmDialog
         open={showBlockDialog}
         title={`Chặn ${partnerName}?`}
-        description="Người này sẽ không thể gửi tin nhắn hoặc mời bạn tham gia Playdate nữa. Bạn có thể mở chặn trong Cài đặt riêng tư sau này."
+        description="Người này sẽ không thể nhắn tin hoặc mời bạn tham gia Playdate nữa, và kết nối giữa hai bạn sẽ bị gỡ. Bạn có thể bỏ chặn trong mục Người dùng đã chặn."
         confirmLabel="Chặn người dùng"
         cancelLabel="Hủy"
         variant="danger"
@@ -630,7 +583,7 @@ export const DirectChatView = ({
       <ConfirmDialog
         open={showUnblockConfirmDialog}
         title={`Bỏ chặn ${partnerName}?`}
-        description="Sau khi bỏ chặn, bạn và người này có thể tiếp tục trò chuyện với nhau."
+        description="Kết nối trước đây không tự khôi phục. Sau khi bỏ chặn, hãy gửi lại lời mời kết nối để tiếp tục trò chuyện."
         confirmLabel="Bỏ chặn"
         cancelLabel="Hủy"
         variant="info"
@@ -640,22 +593,7 @@ export const DirectChatView = ({
       />
 
       {/* 6. Report Modal with Categories & Evidence Uploads */}
-      {showReportDialog && (
-        <ReportModal
-          isOpen={showReportDialog}
-          onClose={() => {
-            setShowReportDialog(false);
-            setReportTarget(null);
-          }}
-          target={
-            reportTarget || {
-              reportedUserId: partner?.id || partner?._id,
-              targetType: REPORT_TARGET_TYPES.USER,
-              targetName: partnerName,
-            }
-          }
-        />
-      )}
+      <ReportModal isOpen={Boolean(reportTarget)} onClose={closeReport} target={reportTarget} />
     </section>
   );
 };

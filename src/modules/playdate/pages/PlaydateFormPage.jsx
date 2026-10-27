@@ -18,6 +18,7 @@ import {
   Trash2,
   Shapes,
   StickyNote,
+  Flag,
 } from 'lucide-react';
 import { Button } from '../../../components/ui/Button';
 import { Input } from '../../../components/ui/Input';
@@ -41,6 +42,8 @@ import { PlaydateFormLayout, ReadOnlyField } from '../components/PlaydateFormLay
 import { ParticipantCard, PlaydateBanners } from '../components/PlaydateDetailParts';
 import { TimeSlotSuggestions, PlaceSuggestionList, ActivitySuggestionChips } from '../components/PlanningSuggestions';
 import { PlaydateRatingsSection } from '../../rating-feedback/components/PlaydateRatingsSection';
+import { ReportModal } from '../../safety/components/ReportModal';
+import { useReportTarget } from '../../safety/hooks/useReportTarget';
 import { useCreatePlaydate } from '../hooks/useCreatePlaydate';
 import { usePlaydateDetail } from '../hooks/usePlaydateDetail';
 import { getDurationOptions, formatDurationLabel, DEFAULT_PLAYDATE_DURATION } from '../constants/playdateConstants';
@@ -562,6 +565,7 @@ const PlaydateDetails = () => {
     handleRescheduleSuccess,
     navigate,
   } = usePlaydateDetail();
+  const { reportTarget, reportPlaydate, closeReport } = useReportTarget();
 
   if (isLoading) {
     return (
@@ -579,6 +583,8 @@ const PlaydateDetails = () => {
   const participants = playdate.participants || [];
   const acceptedCount = participants.filter((p) => p.status === 'accepted').length;
   const canCancel = isHost && isUpcoming;
+  // A playdate report is filed against its host, so the host cannot report their own playdate
+  const canReport = !isHost && Boolean(playdate.hostParent?.id);
   // Directions to the saved place, otherwise a search by its name and address
   const placeMapsUrl =
     googleMapsDirectionsUrl(toLngLat(playdate.location?.coordinates)) ||
@@ -636,7 +642,7 @@ const PlaydateDetails = () => {
     ),
   };
 
-  const hasActions = canOpenGroupChat || canReschedule || canComplete || canCancel;
+  const hasActions = canOpenGroupChat || canReschedule || canComplete || canCancel || canReport;
   const actions = hasActions ? (
     <>
       {canComplete && (
@@ -686,6 +692,18 @@ const PlaydateDetails = () => {
           className="w-full rounded-xl text-error hover:bg-error/10"
         >
           Hủy hẹn
+        </Button>
+      )}
+      {canReport && (
+        <Button
+          type="button"
+          variant="ghost"
+          size="md"
+          onClick={() => reportPlaydate(playdate, playdate.hostParent?.fullName || 'Người tổ chức')}
+          leftIcon={<Flag className="w-4 h-4" />}
+          className="w-full rounded-xl text-error hover:bg-error/10"
+        >
+          Báo cáo buổi hẹn
         </Button>
       )}
     </>
@@ -751,6 +769,7 @@ const PlaydateDetails = () => {
         onConfirm={handleCancel}
         onCancel={() => setShowCancelModal(false)}
       />
+      <ReportModal isOpen={Boolean(reportTarget)} onClose={closeReport} target={reportTarget} />
     </PlaydateFormLayout>
   );
 };

@@ -18,16 +18,16 @@ import {
 import { Modal } from '../../../components/feedback/Modal';
 import { Button } from '../../../components/ui/Button';
 import { Textarea } from '../../../components/ui/Textarea';
+import { FilterChips } from '../../../components/search/FilterChips';
 import { useToast } from '../../../hooks/useToast';
 import { useSafetyActions } from '../hooks/useSafetyActions';
-import { safetyApi } from '../api/safetyApi';
 import {
   REPORT_TARGET_TYPES,
   REPORT_CATEGORIES,
   REPORT_CATEGORY_OPTIONS,
   REPORT_LIMITS,
+  EVIDENCE_ACCEPT,
 } from '../constants/safetyConstants';
-import { cn } from '../../../utils/cn';
 
 // Icon map for category chips
 const CATEGORY_ICONS = {
@@ -39,6 +39,12 @@ const CATEGORY_ICONS = {
   [REPORT_CATEGORIES.NO_SHOW]: CalendarX,
   [REPORT_CATEGORIES.OTHER]: HelpCircle,
 };
+
+const CATEGORY_CHIPS = REPORT_CATEGORY_OPTIONS.map((cat) => ({
+  id: cat.value,
+  label: cat.label,
+  icon: CATEGORY_ICONS[cat.value],
+}));
 
 /**
  * ReportModal - Reusable modal to report inappropriate users, offensive messages,
@@ -69,7 +75,7 @@ export const ReportModal = ({
   onSubmitSuccess,
 }) => {
   const toast = useToast();
-  const { reportUser, isSubmitting } = useSafetyActions();
+  const { reportUser, uploadEvidence, isSubmitting } = useSafetyActions();
   const fileInputRef = useRef(null);
 
   // Extract target fields from prop or target object
@@ -96,47 +102,23 @@ export const ReportModal = ({
     }
   }, [isOpen]);
 
-  // Handle uploading evidence image
+  // Handle uploading evidence images (checks and upload live in useSafetyActions)
   const handleFileChange = async (e) => {
     const files = Array.from(e.target.files || []);
+    e.target.value = '';
     if (!files.length) return;
 
     if (evidenceUrls.length + files.length > REPORT_LIMITS.MAX_EVIDENCE_URLS) {
       toast.error(`Chỉ được tải lên tối đa ${REPORT_LIMITS.MAX_EVIDENCE_URLS} hình ảnh bằng chứng.`);
-      e.target.value = '';
       return;
     }
 
     setIsUploadingImage(true);
     try {
-      for (const file of files) {
-        if (!file.type.startsWith('image/')) {
-          toast.error(`Tệp ${file.name} không phải là hình ảnh hợp lệ.`);
-          continue;
-        }
-        if (file.size > 5 * 1024 * 1024) {
-          toast.error(`Ảnh ${file.name} vượt quá dung lượng tối đa 5MB.`);
-          continue;
-        }
-
-        const response = await safetyApi.uploadEvidence(file);
-        const imageUrl = response?.data?.url || response?.url;
-        if (imageUrl) {
-          setEvidenceUrls((prev) => {
-            if (prev.length < REPORT_LIMITS.MAX_EVIDENCE_URLS) {
-              return [...prev, imageUrl];
-            }
-            return prev;
-          });
-        }
-      }
-    } catch {
-      toast.error('Tải ảnh bằng chứng thất bại. Vui lòng thử lại.');
+      const urls = await uploadEvidence(files);
+      setEvidenceUrls((prev) => [...prev, ...urls].slice(0, REPORT_LIMITS.MAX_EVIDENCE_URLS));
     } finally {
       setIsUploadingImage(false);
-      if (fileInputRef.current) {
-        fileInputRef.current.value = '';
-      }
     }
   };
 
@@ -262,28 +244,12 @@ export const ReportModal = ({
           <p className="text-xs text-text-muted mb-2.5">
             Chọn một danh mục phù hợp nhất với hành vi vi phạm:
           </p>
-          <div className="flex flex-wrap gap-2">
-            {REPORT_CATEGORY_OPTIONS.map((cat) => {
-              const IconComponent = CATEGORY_ICONS[cat.value] || AlertTriangle;
-              const isSelected = selectedCategory === cat.value;
-              return (
-                <button
-                  key={cat.value}
-                  type="button"
-                  onClick={() => setSelectedCategory(cat.value)}
-                  className={cn(
-                    'inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium transition-all border outline-none',
-                    isSelected
-                      ? 'bg-primary text-white border-primary shadow-xs font-semibold'
-                      : 'bg-surface-container-low text-text-primary border-hairline hover:border-primary/40 hover:bg-surface-container',
-                  )}
-                >
-                  <IconComponent className={cn('w-3.5 h-3.5', isSelected ? 'text-white' : 'text-text-muted')} />
-                  <span>{cat.label}</span>
-                </button>
-              );
-            })}
-          </div>
+          <FilterChips
+            options={CATEGORY_CHIPS}
+            selected={selectedCategory}
+            onChange={(value) => setSelectedCategory(value || '')}
+            className="flex-wrap overflow-visible"
+          />
 
           {/* Category description explanation */}
           {selectedCategoryObj && (
@@ -333,7 +299,7 @@ export const ReportModal = ({
               <input
                 ref={fileInputRef}
                 type="file"
-                accept="image/png, image/jpeg, image/webp"
+                accept={EVIDENCE_ACCEPT}
                 multiple
                 className="hidden"
                 id="report-evidence-upload"
@@ -368,7 +334,7 @@ export const ReportModal = ({
             <div className="grid grid-cols-5 gap-2 pt-1">
               {evidenceUrls.map((url, index) => (
                 <div
-                  key={index}
+                  key={url}
                   className="relative group aspect-square rounded-xl overflow-hidden border border-hairline bg-surface-container-low shadow-2xs"
                 >
                   <img

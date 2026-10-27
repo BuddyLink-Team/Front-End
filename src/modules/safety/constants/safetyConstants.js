@@ -60,6 +60,17 @@ export const REPORT_LIMITS = Object.freeze({
   MAX_DESCRIPTION_LENGTH: 1000,
 });
 
+// Default block reasons shown on the blocked users list (no reason input in the UI)
+export const BLOCK_REASONS = Object.freeze({
+  DEFAULT: 'Không muốn tiếp tục liên lạc',
+  CHAT: 'Không muốn tiếp tục trò chuyện',
+  CONNECTION: 'Không muốn tiếp tục kết nối',
+});
+
+export const EVIDENCE_ACCEPT = 'image/png, image/jpeg, image/webp';
+
+export const BLOCKED_USERS_PAGE_SIZE = 10;
+
 // Backend error codes -> user-facing messages (the API returns English messages)
 /**
  * Codes returned by the /safety endpoints (safety.service); shared middleware codes are in
@@ -77,7 +88,7 @@ export const SAFETY_ERROR_MESSAGES = Object.freeze({
   REPORTED_USER_NOT_FOUND: 'Không tìm thấy phụ huynh bị báo cáo.',
   SELF_REPORT_NOT_ALLOWED: 'Bạn không thể tự báo cáo chính mình.',
   INVALID_EVIDENCE_URL: 'Ảnh bằng chứng không hợp lệ. Vui lòng tải ảnh lên lại qua BuddyLink.',
+  FILE_REQUIRED: 'Vui lòng chọn ảnh bằng chứng.',
   REPORT_TOO_FREQUENT: 'Bạn đã báo cáo người này gần đây. Đội ngũ BuddyLink đang xem xét.',
   VALIDATION_ERROR: 'Thông tin báo cáo chưa hợp lệ. Vui lòng kiểm tra lại.',
 });
-

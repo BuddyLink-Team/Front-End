@@ -1,9 +1,20 @@
 import React from 'react';
 import { describe, it, expect, vi } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { PlaydateEventCollateralPanel } from '../../modules/chat/components/PlaydateEventCollateralPanel';
 import { PlaydateChatView } from '../../modules/chat/components/PlaydateChatView';
+
+const mockDispatch = vi.fn(() => ({ unwrap: () => Promise.resolve({}) }));
+
+vi.mock('react-redux', () => ({
+  useSelector: (fn) => fn({ safety: { isSubmitting: false } }),
+  useDispatch: () => mockDispatch,
+}));
+
+vi.mock('../../hooks/useToast', () => ({
+  useToast: () => ({ success: vi.fn(), error: vi.fn() }),
+}));
 
 describe('Playdate Group Chat & Collateral Panel (TASK-FE-11)', () => {
   const mockPlaydate = {
@@ -196,6 +207,7 @@ describe('Playdate Group Chat & Collateral Panel (TASK-FE-11)', () => {
           messages={mockMessages}
           isLoadingMessages={false}
           isSending={false}
+          currentParentId="parent-part-1"
         />
       </MemoryRouter>
     );
@@ -209,8 +221,8 @@ describe('Playdate Group Chat & Collateral Panel (TASK-FE-11)', () => {
     const declineContinueBtn = screen.getByRole('button', { name: /^Không$/i });
     fireEvent.click(declineContinueBtn);
 
-    // Dialog 2 should now appear: "Bạn có muốn rời playdate?"
-    expect(screen.getByText('Bạn có muốn rời playdate?')).toBeInTheDocument();
+    // Dialog 2 should now appear: leave the playdate (participant)
+    expect(screen.getByText('Rời buổi hẹn Playdate?')).toBeInTheDocument();
 
     // In Dialog 2, user clicks "Không" -> returns to Dialog 1
     const declineLeaveBtn = screen.getByRole('button', { name: /^Không$/i });
@@ -227,6 +239,45 @@ describe('Playdate Group Chat & Collateral Panel (TASK-FE-11)', () => {
     expect(
       screen.queryByText(/Bạn đã chặn Phụ huynh C\. Bạn có muốn tiếp tục trao đổi trong nhóm playdate\?/i)
     ).not.toBeInTheDocument();
-    expect(screen.queryByText('Bạn có muốn rời playdate?')).not.toBeInTheDocument();
+    expect(screen.queryByText('Rời buổi hẹn Playdate?')).not.toBeInTheDocument();
+  });
+
+  it('5. PlaydateChatView: a participant leaves the playdate and goes back to the list', async () => {
+    mockDispatch.mockClear();
+    const handleBack = vi.fn();
+    render(
+      <MemoryRouter>
+        <PlaydateChatView
+          conversation={{ ...mockConversation, blockedByMeParticipants: [{ id: 'parent-host', fullName: 'Mẹ Hoàng Yến' }] }}
+          messages={mockMessages}
+          currentParentId="parent-part-1"
+          onBack={handleBack}
+        />
+      </MemoryRouter>
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: /^Không$/i }));
+    fireEvent.click(screen.getByRole('button', { name: /Có, rời playdate/i }));
+
+    await waitFor(() => expect(handleBack).toHaveBeenCalled());
+    expect(mockDispatch).toHaveBeenCalledTimes(1);
+  });
+
+  it('6. PlaydateChatView: warns the host that leaving cancels the playdate for every family', () => {
+    render(
+      <MemoryRouter>
+        <PlaydateChatView
+          conversation={{ ...mockConversation, blockedByMeParticipants: [{ id: 'parent-part-1', fullName: 'Bố Minh Trí' }] }}
+          messages={mockMessages}
+          currentParentId="parent-host"
+        />
+      </MemoryRouter>
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: /^Không$/i }));
+
+    expect(screen.getByText('Hủy buổi hẹn Playdate?')).toBeInTheDocument();
+    expect(screen.getByText(/Hủy buổi hẹn sẽ hủy cho tất cả các gia đình/i)).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Hủy buổi hẹn cho mọi người/i })).toBeInTheDocument();
   });
 });

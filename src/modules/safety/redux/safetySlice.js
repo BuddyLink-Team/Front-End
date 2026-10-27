@@ -20,6 +20,10 @@ export const fetchBlockedUsers = createApiThunk('safety/fetchBlockedUsers', (par
   safetyApi.getBlockedUsers(params),
 );
 
+export const uploadReportEvidence = createApiThunk('safety/uploadReportEvidence', (file) =>
+  safetyApi.uploadEvidence(file),
+);
+
 const initialState = {
   isSubmitting: false,
   isLoadingBlockedUsers: false,
@@ -73,9 +77,9 @@ export const safetySlice = createSlice({
         state.blockedUsers.items = state.blockedUsers.items.filter(
           (item) => item.parentId !== unblockedId && item.id !== unblockedId,
         );
-        if (state.blockedUsers.pagination.total > 0) {
-          state.blockedUsers.pagination.total -= 1;
-        }
+        const { pagination } = state.blockedUsers;
+        if (pagination.total > 0) pagination.total -= 1;
+        pagination.totalPages = Math.ceil(pagination.total / pagination.limit) || 1;
       })
       // Submitting block, unblock, or report
       .addMatcher(isAnyOf(blockParent.pending, unblockParent.pending, reportParent.pending), (state) => {
@@ -99,4 +103,3 @@ export const safetySlice = createSlice({
 
 export const { clearBlockedUsersError } = safetySlice.actions;
 export default safetySlice.reducer;
-

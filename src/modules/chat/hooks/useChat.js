@@ -4,8 +4,6 @@ import { useToast } from '../../../hooks/useToast.js';
 import { useMediaQuery } from '../../../hooks/useMediaQuery.js';
 import { getApiErrorMsg } from '../../../utils/errorUtils.js';
 import useChatSocket, { SOCKET_ERROR_CODES } from './useChatSocket.js';
-import { useSafetyActions } from '../../safety/hooks/useSafetyActions.js';
-import { REPORT_TARGET_TYPES } from '../../safety/constants/safetyConstants.js';
 import {
   CONVERSATION_TYPES,
   MESSAGE_TYPES,
@@ -13,7 +11,6 @@ import {
   ALLOWED_IMAGE_TYPES,
   MAX_IMAGE_SIZE_BYTES,
   CHAT_ERROR_MESSAGES,
-  PLAYDATE_REPORT,
 } from '../constants/chatConstants.js';
 import {
   createTempId,
@@ -51,7 +48,6 @@ const getSenderId = (message) =>
 export const useChat = ({ initialConversationId = null, initialPlaydateId = null } = {}) => {
   const toast = useToast();
   const dispatch = useDispatch();
-  const { reportUser } = useSafetyActions();
   const isDesktop = useMediaQuery('(min-width: 1024px)');
   const currentParent = useSelector((state) => state.auth?.parent);
   const currentParentId = currentParent?._id || currentParent?.id;
@@ -171,20 +167,17 @@ export const useChat = ({ initialConversationId = null, initialPlaydateId = null
   const detailOfActive = activeConversationDetail?.id === activeConversationId ? activeConversationDetail : null;
   const activeConversation = useMemo(() => {
     if (!conversationFromList) return detailOfActive;
+    if (!detailOfActive) return conversationFromList;
+    // The list item stays the source of live fields (last message, unread count) updated by sockets;
+    // the detail only adds the playdate details and the latest block state
     return {
       ...conversationFromList,
-      ...(detailOfActive || {}),
-      playdate: detailOfActive?.playdate || conversationFromList.playdate,
+      playdate: detailOfActive.playdate || conversationFromList.playdate,
       blockedByMeParticipants:
-        detailOfActive?.blockedByMeParticipants ?? conversationFromList.blockedByMeParticipants ?? [],
-      blockedMeParticipants:
-        detailOfActive?.blockedMeParticipants ?? conversationFromList.blockedMeParticipants ?? [],
-      isBlockedByMe:
-        detailOfActive?.isBlockedByMe ?? conversationFromList.isBlockedByMe ?? false,
-      isBlockedByPartner:
-        detailOfActive?.isBlockedByPartner ?? conversationFromList.isBlockedByPartner ?? false,
-      isBlocked:
-        detailOfActive?.isBlocked ?? conversationFromList.isBlocked ?? false,
+        detailOfActive.blockedByMeParticipants ?? conversationFromList.blockedByMeParticipants ?? [],
+      isBlockedByMe: detailOfActive.isBlockedByMe ?? conversationFromList.isBlockedByMe ?? false,
+      isBlockedByPartner: detailOfActive.isBlockedByPartner ?? conversationFromList.isBlockedByPartner ?? false,
+      isBlocked: detailOfActive.isBlocked ?? conversationFromList.isBlocked ?? false,
     };
   }, [conversationFromList, detailOfActive]);
 
@@ -478,17 +471,6 @@ export const useChat = ({ initialConversationId = null, initialPlaydateId = null
   const canReportPlaydateChat =
     Boolean(playdateHostId) && String(playdateHostId) !== String(currentParentId);
 
-  const reportPlaydateChat = useCallback(() => {
-    const playdate = activeConversation?.playdate;
-    return reportUser({
-      reportedUserId: playdate?.host?.id,
-      targetType: REPORT_TARGET_TYPES.PLAYDATE,
-      targetPlaydateId: playdate?.id,
-      reason: PLAYDATE_REPORT.REASON,
-      description: PLAYDATE_REPORT.DESCRIPTION,
-    });
-  }, [activeConversation, reportUser]);
-
   return {
     conversations: filteredConversations,
     allConversations: conversations,
@@ -514,7 +496,6 @@ export const useChat = ({ initialConversationId = null, initialPlaydateId = null
     playdateError,
     currentParentId,
     canReportPlaydateChat,
-    reportPlaydateChat,
     handleSelectImage,
     handleClearImage,
     handleSendMessage,
