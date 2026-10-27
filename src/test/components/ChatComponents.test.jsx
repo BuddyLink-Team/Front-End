@@ -235,5 +235,83 @@ describe('Chat UI Components (TASK-FE-10)', () => {
     expect(screen.getByText('Quận Cầu Giấy, Hà Nội')).toBeInTheDocument();
     expect(screen.queryByText('TP. Hồ Chí Minh')).not.toBeInTheDocument();
   });
+
+  it('7. DirectChatView: displays blocked banner and unblock button when isBlockedByMe is true', () => {
+    const mockConv = {
+      id: 'conv-blocked-me',
+      partner: {
+        id: 'p-blocked-1',
+        fullName: 'Mẹ Thu Hà',
+      },
+      isBlockedByMe: true,
+    };
+
+    render(
+      <DirectChatView
+        conversation={mockConv}
+        messages={[]}
+      />
+    );
+
+    // Message input composer should not be shown
+    expect(screen.queryByPlaceholderText(/Nhắn tin cùng Mẹ Thu Hà.../i)).not.toBeInTheDocument();
+
+    // Blocked notification banner & button
+    expect(screen.getByText('Bạn đã chặn người này. Hãy bỏ chặn và kết nối lại để trò chuyện tiếp')).toBeInTheDocument();
+    const unblockBtn = screen.getByRole('button', { name: /Bỏ chặn/i });
+    expect(unblockBtn).toBeInTheDocument();
+
+    // Clicking unblock opens confirmation dialog
+    fireEvent.click(unblockBtn);
+    expect(screen.getByText('Bỏ chặn Mẹ Thu Hà?')).toBeInTheDocument();
+  });
+
+  it('8. DirectChatView: displays blocked notice when isBlockedByPartner is true', () => {
+    const mockConv = {
+      id: 'conv-blocked-partner',
+      partner: {
+        id: 'p-blocked-2',
+        fullName: 'Bố Minh Trí',
+      },
+      isBlockedByPartner: true,
+    };
+
+    render(
+      <DirectChatView
+        conversation={mockConv}
+        messages={[]}
+      />
+    );
+
+    expect(screen.queryByPlaceholderText(/Nhắn tin cùng Bố Minh Trí.../i)).not.toBeInTheDocument();
+    expect(screen.getByText('Bạn đã bị người này chặn và không thể trò chuyện')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /Bỏ chặn/i })).not.toBeInTheDocument();
+  });
+
+  it('9. MessageItem: calls onReportMessage when clicking Báo cáo on partner message', () => {
+    const handleReport = vi.fn();
+    const incomingMsg = {
+      id: 'msg-rep-1',
+      content: 'Nội dung phản cảm',
+      senderId: 'partner-123',
+      isMine: false,
+      createdAt: new Date().toISOString(),
+    };
+
+    render(
+      <MessageItem
+        message={incomingMsg}
+        partnerName="Phụ huynh khác"
+        currentParentId="my-parent-id"
+        onReportMessage={handleReport}
+      />
+    );
+
+    const reportBtn = screen.getByRole('button', { name: /Báo cáo/i });
+    expect(reportBtn).toBeInTheDocument();
+    fireEvent.click(reportBtn);
+
+    expect(handleReport).toHaveBeenCalledWith(incomingMsg);
+  });
 });
 

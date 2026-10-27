@@ -66,10 +66,13 @@ export const COMPOSER_TEXTAREA_CLASS =
 
 export const MAX_IMAGE_SIZE_BYTES = 5 * 1024 * 1024;
 
-export const PLAYDATE_REPORT = Object.freeze({
-  REASON: 'Báo cáo vi phạm trong nhóm chat cuộc hẹn chơi',
-  DESCRIPTION: 'Báo cáo từ màn hình trò chuyện nhóm Playdate.',
+// Prompt shown in a playdate group chat when the parent blocked one of its members
+export const BLOCKED_MEMBER_PROMPT_STEPS = Object.freeze({
+  ASK_CONTINUE: 'ask_continue',
+  ASK_LEAVE: 'ask_leave',
 });
+
+export const BLOCKED_MEMBER_CANCEL_REASON = 'Người tổ chức hủy buổi hẹn vì đã chặn một thành viên trong nhóm';
 
 export const QUICK_EMOJIS = ['😊', '❤️', '👍', '🎉', '👶', '🧸', '🎨', '⚽', '🍦', '⭐', '🤗', '✨'];
 

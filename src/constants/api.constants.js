@@ -65,8 +65,11 @@ export const API_ENDPOINTS = {
     DECLINE: (id) => `/connections/${id}/decline`,
   },
   SAFETY: {
-    REPORT: '/safety/report',
+    REPORTS: '/safety/reports',
+    REPORT_EVIDENCE: '/safety/reports/evidence',
     BLOCK: '/safety/block',
+    UNBLOCK: (id) => `/safety/unblock/${id}`,
+    BLOCKED_USERS: '/safety/blocked-users',
   },
   GAMIFICATION: {
     // Streak + badges of the current parent

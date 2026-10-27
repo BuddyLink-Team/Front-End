@@ -1,9 +1,10 @@
 import React from 'react';
-import { MapPin, CalendarDays, Brain, Heart, Clock } from 'lucide-react';
+import { MapPin, CalendarDays, Brain, Heart, Clock, Flag } from 'lucide-react';
 import { motion, useMotionValue, useTransform } from 'framer-motion';
 import { VerifiedBadge } from '../../../components/badges/VerifiedBadge';
 import { InterestTag } from '../../../components/badges/InterestTag';
 import { Avatar } from '../../../components/ui/Avatar';
+import { Button } from '../../../components/ui/Button';
 import { useDiscoveryCard } from '../hooks/useDiscoveryCard';
 import {
   SWIPE_DIRECTIONS,
@@ -20,6 +21,7 @@ export const DiscoveryCard = ({
   index,
   isTop,
   onViewDetail,
+  onReport,
 }) => {
   const x = useMotionValue(0);
   const rotate = useTransform(x, [-300, 300], [-4, 4]);
@@ -254,6 +256,21 @@ export const DiscoveryCard = ({
               <p className="text-sm text-on-surface-variant italic bg-white px-3.5 py-3 rounded-xl border border-hairline leading-relaxed">
                 &quot;{profile.parent.bio}&quot;
               </p>
+            )}
+
+            {isTop && onReport && (
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                // Keep the press from starting a swipe drag of the card
+                onPointerDown={(e) => e.stopPropagation()}
+                onClick={onReport}
+                leftIcon={<Flag size={ICON_SIZE.SM} strokeWidth={ICON_STROKE.THIN} />}
+                className="self-start text-error hover:bg-error/10"
+              >
+                Báo cáo phụ huynh
+              </Button>
             )}
           </div>
 

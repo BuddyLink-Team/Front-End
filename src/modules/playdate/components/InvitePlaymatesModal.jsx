@@ -12,12 +12,13 @@ const normalize = (text) => removeAccents(text).toLowerCase().trim();
 
 /**
  * Host invites more friends' children to an upcoming playdate (e.g. once every invitee declined).
- * Lists the children of connected families ranked for the host child, without the families already invited;
+ * Lists the children of connected families ranked for the host child, without the families still invited or joined
+ * (a family who declined or left can be invited again);
  * one child per family, as at creation.
  *
  * @param {boolean} isOpen
  * @param {Function} onClose
- * @param {Object} playdate - hostChildId and participants (families already invited)
+ * @param {Object} playdate - hostChildId and participants (families invited, with their answer)
  * @param {(participants: Array<{ parentId: string, childId: string }>) => Promise<boolean>} onInvite - true once sent
  * @param {boolean} [isSubmitting]
  */
@@ -39,7 +40,9 @@ export const InvitePlaymatesModal = ({ isOpen, onClose, playdate, onInvite, isSu
       .getFriends({ childId: playdate.hostChildId, limit: INVITE_FRIENDS_FETCH_LIMIT })
       .then((response) => {
         if (!active) return;
-        const invited = new Set((playdate.participants || []).map((p) => p.parentId));
+        const invited = new Set(
+          (playdate.participants || []).filter((p) => p.status !== 'declined').map((p) => p.parentId)
+        );
         const notInvited = (entries = []) => entries.filter((entry) => !invited.has(entry.parent.id));
         setLists({ matched: notInvited(response?.data?.matched), others: notInvited(response?.data?.others) });
       })

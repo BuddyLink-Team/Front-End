@@ -4,6 +4,7 @@ import subscriptionMockHandlers from '../modules/subscription/mock/subscriptionM
 import connectionMockHandlers from '../modules/connection/mock/connectionMockHandlers';
 import notificationMockHandlers from '../modules/notification/mock/notificationMockHandlers';
 import aiAssistantMockHandlers from '../modules/ai-assistant/mock/aiAssistantMockHandlers';
+import safetyMockHandlers from '../modules/safety/mock/safetyMockHandlers';
 import { STORAGE_KEYS } from '../constants/storage.constants';
 import {
   MOCK_CURRENT_USER,
@@ -20,6 +21,7 @@ const mockHandlers = [
   ...connectionMockHandlers,
   ...notificationMockHandlers,
   ...aiAssistantMockHandlers,
+  ...safetyMockHandlers,
   // Other developers can easily add their module mock handlers here:
   // ...chatMockHandlers,
   // ...authMockHandlers,

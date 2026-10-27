@@ -7,10 +7,10 @@ import {
   X,
   ArrowRight,
   User,
-  Settings,
   Baby,
   Crown,
   LogOut,
+  UserX,
 } from 'lucide-react';
 import { Avatar } from '../ui/Avatar';
 import { Button } from '../ui/Button';
@@ -169,8 +169,8 @@ export const Navbar = ({ onLogout } = {}) => {
                   <DropdownItem as={Link} to="/subscription" icon={Crown}>
                     Gói hội viên & Hạn mức
                   </DropdownItem>
-                  <DropdownItem as={Link} to="/settings" icon={Settings}>
-                    Cài đặt tài khoản
+                  <DropdownItem as={Link} to="/blocked-users" icon={UserX}>
+                    Người dùng đã chặn
                   </DropdownItem>
                 </div>
 
@@ -276,12 +276,12 @@ export const Navbar = ({ onLogout } = {}) => {
                   <span>Quản lý hồ sơ bé</span>
                 </Link>
                 <Link
-                  to="/settings"
+                  to="/blocked-users"
                   onClick={closeMobileMenu}
                   className="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-semibold text-text-primary hover:bg-canvas"
                 >
-                  <Settings className="w-4 h-4 text-text-muted" />
-                  <span>Cài đặt tài khoản</span>
+                  <UserX className="w-4 h-4 text-text-muted" />
+                  <span>Người dùng đã chặn</span>
                 </Link>
                 <button
                   type="button"

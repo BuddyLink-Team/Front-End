@@ -208,7 +208,7 @@ export default {
         'auth-card': '1000px',
         hero: '650px',
         'pricing-card': '520px',
-        'chat-frame': 'calc(100vh - 4.5rem)', // Chat page below the top bar
+        'chat-frame': 'calc(100dvh - 8rem)', // Full viewport fit: fills screen neatly without footer peeking up, footer visible on scroll
         chart: '280px', // Dashboard charts (BarChart)
         'place-modal': 'min(640px, 85vh)', // Place search modal: fixed, does not resize while loading
       },

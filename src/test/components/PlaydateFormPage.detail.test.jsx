@@ -118,13 +118,13 @@ describe('PlaydateDetailPage Component', () => {
     renderWithProviders(<PlaydateDetailPage />);
 
     expect(await screen.findByText('Chưa có bạn tham gia')).toBeInTheDocument();
-    expect(screen.getByText(/Các bạn được mời đã từ chối/)).toBeInTheDocument();
+    expect(screen.getByText(/Hiện chưa có bạn nào tham gia/)).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: 'Mời thêm bạn' }));
 
-    // The family that declined is not offered again; the search ignores accents
+    // The family that declined can be invited again; the search ignores accents
     expect(await screen.findByText('Bé Thư')).toBeInTheDocument();
     const dialog = screen.getByRole('dialog');
-    expect(within(dialog).queryByText(/Bé Sóc/)).not.toBeInTheDocument();
+    expect(within(dialog).getByText(/Bé Sóc/)).toBeInTheDocument();
     expect(playdateApi.getFriends).toHaveBeenCalledWith({ childId: 'child-host', limit: 100 });
     fireEvent.change(screen.getByPlaceholderText('Tìm theo tên bé hoặc phụ huynh'), { target: { value: 'thu' } });
     expect(screen.queryByText('Bé Tôm')).not.toBeInTheDocument();
@@ -265,6 +265,24 @@ describe('PlaydateDetailPage Component', () => {
     });
 
     expect(screen.queryByRole('button', { name: /đổi lịch hẹn/i })).not.toBeInTheDocument();
+  });
+
+  it('lets an invited parent report the playdate (against its host)', async () => {
+    playdateApi.getPlaydateById.mockResolvedValue({ data: mockParticipantPlaydate });
+
+    renderWithProviders(<PlaydateDetailPage />);
+
+    fireEvent.click(await screen.findByRole('button', { name: 'Báo cáo buổi hẹn' }));
+    expect(await screen.findByText('Buổi hẹn Playdate:')).toBeInTheDocument();
+  });
+
+  it('does NOT let the host report their own playdate', async () => {
+    playdateApi.getPlaydateById.mockResolvedValue({ data: mockHostPlaydate });
+
+    renderWithProviders(<PlaydateDetailPage />);
+
+    await screen.findByRole('heading', { level: 1, name: 'Buổi chơi Lego & Công viên' });
+    expect(screen.queryByRole('button', { name: 'Báo cáo buổi hẹn' })).not.toBeInTheDocument();
   });
 
   it('renders vote buttons when the API says the caller still has to vote', async () => {
