@@ -10,12 +10,12 @@ import { ICON_SIZE, ICON_STROKE } from '../../../constants/icon.constants';
 export const AdminStatStrip = ({ cards, stats, isLoading, hasError }) => (
   <div className="space-y-2">
     <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-      {cards.map(({ key, label, icon: Icon, variant }) => (
+      {cards.map(({ key, label, icon: Icon, variant, format = formatCount }) => (
         <StatCard
           key={key}
           icon={<Icon size={ICON_SIZE.LG} strokeWidth={ICON_STROKE.DEFAULT} />}
           title={label}
-          value={isLoading && !stats ? '…' : formatCount(stats?.[key])}
+          value={isLoading && !stats ? '…' : format(stats?.[key])}
           variant={variant}
           className="p-4 gap-3"
         />
@@ -32,6 +32,8 @@ AdminStatStrip.propTypes = {
       label: PropTypes.string.isRequired,
       icon: PropTypes.elementType.isRequired,
       variant: PropTypes.string,
+      // Formats the value (default: formatCount)
+      format: PropTypes.func,
     })
   ).isRequired,
   stats: PropTypes.object,

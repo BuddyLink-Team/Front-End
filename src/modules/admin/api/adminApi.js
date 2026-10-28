@@ -74,10 +74,13 @@ export const adminApi = {
   // Subscription plans & revenue
   /** All plans, inactive ones included */
   getPlans: () => apiClient.get(API_ENDPOINTS.ADMIN.PLANS),
+  /** One plan as stored now */
+  getPlanDetail: (id) => apiClient.get(API_ENDPOINTS.ADMIN.PLAN_BY_ID(id)),
   /** @param {{ name?: string, price?: number, isActive?: boolean, features?: Object }} payload */
   updatePlan: (id, payload) => apiClient.patch(API_ENDPOINTS.ADMIN.PLAN_BY_ID(id), payload),
   /** @param {Object} [params] - { search, planCode, status, page, limit } */
   getSubscriptions: (params) => apiClient.get(API_ENDPOINTS.ADMIN.SUBSCRIPTIONS, { params }),
+  getSubscriptionDetail: (id) => apiClient.get(API_ENDPOINTS.ADMIN.SUBSCRIPTION_BY_ID(id)),
   /** Payments of every parent. @param {Object} [params] - { search, status, planCode, fromDate, toDate, page, limit } */
   getTransactions: (params) => apiClient.get(API_ENDPOINTS.ADMIN.TRANSACTIONS, { params }),
   /** Payment audit detail (checkoutUrl and qrCode left out) */

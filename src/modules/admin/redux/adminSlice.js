@@ -62,10 +62,16 @@ export const removeAdminConnection = createApiThunk('admin/removeConnection', ({
 // Subscription plans & revenue: results are kept by the hooks of that screen
 export const fetchAdminPlans = createApiThunk('admin/fetchPlans', () => adminApi.getPlans());
 
+export const fetchAdminPlanDetail = createApiThunk('admin/fetchPlanDetail', (id) => adminApi.getPlanDetail(id));
+
 export const updateAdminPlan = createApiThunk('admin/updatePlan', ({ id, payload }) => adminApi.updatePlan(id, payload));
 
 export const fetchAdminSubscriptions = createApiThunk('admin/fetchSubscriptions', (params) =>
   adminApi.getSubscriptions(params)
+);
+
+export const fetchAdminSubscriptionDetail = createApiThunk('admin/fetchSubscriptionDetail', (id) =>
+  adminApi.getSubscriptionDetail(id)
 );
 
 export const fetchAdminTransactions = createApiThunk('admin/fetchTransactions', (params) =>

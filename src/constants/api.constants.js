@@ -100,6 +100,7 @@ export const API_ENDPOINTS = {
     PLANS: '/plans',
     PLAN_BY_ID: (id) => `/plans/${id}`,
     SUBSCRIPTIONS: '/subscriptions',
+    SUBSCRIPTION_BY_ID: (id) => `/subscriptions/${id}`,
     TRANSACTIONS: '/transactions',
     TRANSACTION_BY_ID: (id) => `/transactions/${id}`,
     REVENUE_SUMMARY: '/revenue/summary',

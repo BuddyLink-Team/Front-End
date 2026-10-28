@@ -5,6 +5,22 @@ import { getApiErrorMsg } from '../../../utils/errorUtils';
 import { fetchAdminPlans, updateAdminPlan } from '../redux/adminSlice';
 import { ADMIN_ERROR_MESSAGES } from '../constants/admin.constants';
 
+// Shown under the price of a plan bought for several months: its price per month and the saving
+// against paying the 1-month plan each month (null / 0 for the other plans)
+const withDerivedPrices = (plans) => {
+  const monthlyPrice = plans.find((plan) => plan.durationMonths === 1)?.price || 0;
+  return plans.map((plan) => {
+    const isMultiMonth = plan.durationMonths > 1;
+    const fullPrice = monthlyPrice * plan.durationMonths;
+    return {
+      ...plan,
+      monthlyEquivalent: isMultiMonth ? Math.round(plan.price / plan.durationMonths) : null,
+      savingsPercent:
+        isMultiMonth && fullPrice > plan.price ? Math.round((1 - plan.price / fullPrice) * 100) : 0,
+    };
+  });
+};
+
 /**
  * Subscription plans tab: every plan (inactive included) and editing one of them.
  */
@@ -20,7 +36,7 @@ export const useAdminPlans = () => {
     setIsLoading(true);
     try {
       const data = await dispatch(fetchAdminPlans()).unwrap();
-      setPlans(data?.plans || []);
+      setPlans(withDerivedPrices(data?.plans || []));
       setErrorMessage(null);
     } catch (err) {
       setErrorMessage(getApiErrorMsg(ADMIN_ERROR_MESSAGES, err, 'Không tải được danh sách gói dịch vụ.'));
@@ -39,7 +55,7 @@ export const useAdminPlans = () => {
       setIsUpdating(true);
       try {
         const { plan } = await dispatch(updateAdminPlan({ id, payload })).unwrap();
-        setPlans((prev) => prev.map((item) => (item.id === id ? { ...item, ...plan } : item)));
+        setPlans((prev) => withDerivedPrices(prev.map((item) => (item.id === id ? plan : item))));
         success('Đã cập nhật gói dịch vụ.');
         return true;
       } catch (err) {

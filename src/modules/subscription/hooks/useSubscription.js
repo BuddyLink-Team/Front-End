@@ -8,7 +8,12 @@ import {
   setBillingCycle,
   setSelectedPlan,
 } from '../redux/subscriptionSlice';
-import { PLAN_CODES, BILLING_CYCLES, SUBSCRIPTION_ERROR_MESSAGES } from '../constants/subscription.constants';
+import {
+  PLAN_CODES,
+  BILLING_CYCLES,
+  BILLING_CYCLE_OPTIONS,
+  SUBSCRIPTION_ERROR_MESSAGES,
+} from '../constants/subscription.constants';
 import { getApiErrorMsg } from '../../../utils/errorUtils';
 import { isPremiumActive } from '../utils/premiumStatus';
 
@@ -82,6 +87,18 @@ export const useSubscription = () => {
       ? Math.max(0, Math.round((1 - yearlyPlan.price / (monthlyPlan.price * 12)) * 100))
       : 0;
 
+  // Billing toggle: one tab per Premium plan on sale (a plan turned off by an admin is not returned)
+  const billingTabs = [
+    monthlyPlan && { id: BILLING_CYCLES.MONTHLY, label: BILLING_CYCLE_OPTIONS.monthly.label },
+    yearlyPlan && {
+      id: BILLING_CYCLES.YEARLY,
+      label: BILLING_CYCLE_OPTIONS.yearly.label,
+      ...(yearlySavingsPercentage > 0 && { count: `-${yearlySavingsPercentage}%` }),
+    },
+  ].filter(Boolean);
+  const singleBillingTitle =
+    billingTabs.length === 1 ? BILLING_CYCLE_OPTIONS[billingTabs[0].id].singleTitle : null;
+
   // The Premium card shown is the plan in use (renewal), not just any active Premium
   const isCurrentPremiumPlan = Boolean(isPremium && subscription?.planCode === currentActivePlan?.planCode);
 
@@ -114,6 +131,8 @@ export const useSubscription = () => {
     isPremium,
     effectivePlanCode,
     yearlySavingsPercentage,
+    billingTabs,
+    singleBillingTitle,
     loading: plansLoading || quotaLoading,
     historyLoading,
     error: error ? getApiErrorMsg(SUBSCRIPTION_ERROR_MESSAGES, error, 'Không thể tải thông tin gói dịch vụ.') : null,

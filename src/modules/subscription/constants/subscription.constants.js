@@ -8,6 +8,12 @@ export const PLAN_CODES = Object.freeze({
   PREMIUM_YEARLY: 'premium_yearly',
 });
 
+// Billing toggle of the subscription page: tab label and the title shown when only that cycle is on sale
+export const BILLING_CYCLE_OPTIONS = Object.freeze({
+  monthly: { label: 'Theo tháng', singleTitle: 'Gói Hội Viên Theo Tháng' },
+  yearly: { label: 'Theo năm', singleTitle: 'Gói Hội Viên Theo Năm' },
+});
+
 export const BILLING_CYCLES = Object.freeze({
   MONTHLY: 'monthly',
   YEARLY: 'yearly',

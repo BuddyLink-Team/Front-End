@@ -1,270 +1,219 @@
-import React, { useState, useEffect } from 'react';
-import { X, Sliders, AlertTriangle, Check } from 'lucide-react';
+import React from 'react';
+import { Controller } from 'react-hook-form';
+import { Sliders, AlertTriangle, Check } from 'lucide-react';
+import { Modal } from '../../../../components/feedback/Modal';
+import { ConfirmDialog } from '../../../../components/feedback/ConfirmDialog';
+import { Skeleton } from '../../../../components/feedback/Skeleton';
 import { Button } from '../../../../components/ui/Button';
 import { Input } from '../../../../components/ui/Input';
 import { Switch } from '../../../../components/ui/Switch';
-import { ConfirmDialog } from '../../../../components/feedback/ConfirmDialog';
+import { useEditPlanForm } from '../../hooks/useEditPlanForm';
+import { PLAN_BILLING_CYCLE_LABELS, PLAN_FEATURE_FIELDS } from '../../constants/admin.constants';
 import { formatCurrency } from '../../../../utils/formatters';
+import { cn } from '../../../../utils/cn';
+import { ICON_SIZE, ICON_STROKE } from '../../../../constants/icon.constants';
 
-const QUOTA_FIELDS = [
-  { key: 'childProfilesLimit', label: 'Hồ sơ trẻ tối đa', fallback: 1 },
-  { key: 'discoveryViewLimitPerDay', label: 'Lượt quẹt hồ sơ / ngày', fallback: 5 },
-  { key: 'connectionRequestsLimitPerMonth', label: 'Yêu cầu kết bạn / tháng', fallback: 5 },
-  { key: 'playdatesLimitPerMonth', label: 'Cuộc hẹn tạo / tháng', fallback: 3 },
-  { key: 'playdateParticipationLimitPerMonth', label: 'Cuộc hẹn tham gia / tháng', fallback: 3 },
-  { key: 'aiAssistantLimitPerMonth', label: 'Yêu cầu Trợ lý AI / tháng', fallback: 5 },
-];
+const FORM_ID = 'edit-plan-form';
+const LABEL_CLASS = 'block text-xs font-semibold text-on-surface mb-1';
 
-
-export const EditPlanModal = ({ plan, isOpen, onClose, onSave, isUpdating }) => {
-  const [formData, setFormData] = useState({
-    name: plan?.name || '',
-    price: plan?.price || 0,
-    isActive: plan?.isActive ?? true,
-    features: { ...(plan?.features || {}) },
-  });
-
-  const [showConfirmPrice, setShowConfirmPrice] = useState(false);
-
-  useEffect(() => {
-    if (plan) {
-      setFormData({
-        name: plan.name || '',
-        price: plan.price || 0,
-        isActive: plan.isActive ?? true,
-        features: { ...(plan.features || {}) },
-      });
-    }
-  }, [plan]);
-
-  if (!isOpen || !plan) return null;
-
-  const isFree = plan.planCode === 'free';
-
-  const handleFeatureToggleUnlimited = (key, fallbackValue) => {
-    setFormData((prev) => {
-      const currentVal = prev.features[key];
-      const isUnlimited = currentVal === -1;
-      return {
-        ...prev,
-        features: {
-          ...prev.features,
-          [key]: isUnlimited ? fallbackValue : -1,
-        },
-      };
-    });
-  };
-
-  const handleFeatureValueChange = (key, value) => {
-    const num = parseInt(value, 10);
-    setFormData((prev) => ({
-      ...prev,
-      features: {
-        ...prev.features,
-        [key]: isNaN(num) ? 0 : Math.max(0, num),
-      },
-    }));
-  };
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    if (!isFree && formData.price !== plan.price) {
-      setShowConfirmPrice(true);
-      return;
-    }
-    submitUpdate();
-  };
-
-  const submitUpdate = () => {
-    setShowConfirmPrice(false);
-    onSave(plan.id, formData);
-  };
+/**
+ * Edit a plan: name, limits and, for a Premium plan, price and on-sale state.
+ * The plan is fetched again each time the modal opens.
+ *
+ * @param {Object} plan - Plan of the list
+ * @param {boolean} isOpen
+ * @param {Function} onClose
+ * @param {(id: string, payload: Object) => Promise<boolean>} onSave - true when saved
+ * @param {boolean} [isUpdating]
+ */
+export const EditPlanModal = ({ plan: listPlan, isOpen, onClose, onSave, isUpdating }) => {
+  const {
+    plan,
+    isLoading,
+    loadError,
+    register,
+    control,
+    submit,
+    isDirty,
+    isActive,
+    errorOf,
+    isUnlimited,
+    toggleUnlimited,
+    pendingPayload,
+    confirmPriceChange,
+    cancelPriceChange,
+  } = useEditPlanForm(listPlan, isOpen, onSave, onClose);
+  const isFree = plan.isFree;
+  const isBusy = isUpdating || isLoading;
 
   return (
     <>
-      <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
-        <div className="bg-surface-container-lowest rounded-2xl max-w-lg w-full p-6 shadow-2xl relative my-8 animate-in fade-in zoom-in-95 duration-200">
-          {/* Header */}
-          <div className="flex items-center justify-between pb-4 border-b border-hairline">
-            <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-lg bg-primary-soft flex items-center justify-center text-primary-dark">
-                <Sliders className="w-4 h-4" />
-              </div>
-              <div>
-                <h3 className="text-base font-bold text-on-surface">Chỉnh sửa Gói dịch vụ</h3>
-                <p className="text-xs text-on-surface-variant font-mono">planCode: {plan.planCode}</p>
-              </div>
-            </div>
-            <button
-              type="button"
-              onClick={onClose}
-              className="text-on-surface-variant hover:text-on-surface p-1 rounded-lg hover:bg-surface-container transition-colors"
+      <Modal
+        isOpen={isOpen}
+        onClose={onClose}
+        title={
+          // Rendered inside the modal's <h3>: inline elements only
+          <span className="flex items-center gap-2.5">
+            <span className="w-8 h-8 rounded-lg bg-primary-soft flex items-center justify-center text-primary-dark">
+              <Sliders size={ICON_SIZE.MD} strokeWidth={ICON_STROKE.DEFAULT} />
+            </span>
+            <span>
+              <span className="block text-base font-semibold text-on-surface">Chỉnh sửa Gói dịch vụ</span>
+              <span className="block text-xs font-normal text-on-surface-variant font-mono">planCode: {plan.planCode}</span>
+            </span>
+          </span>
+        }
+        footer={
+          <div className="flex items-center justify-end gap-3 w-full">
+            <Button type="button" variant="ghost" onClick={onClose} disabled={isUpdating} className="rounded-full px-5 text-xs">
+              Hủy
+            </Button>
+            <Button
+              type="submit"
+              form={FORM_ID}
+              isLoading={isUpdating}
+              disabled={isBusy || Boolean(loadError) || !isDirty}
+              leftIcon={<Check size={ICON_SIZE.MD} strokeWidth={ICON_STROKE.DEFAULT} />}
+              className="rounded-full px-6 text-xs"
             >
-              <X className="w-5 h-5" />
-            </button>
+              Lưu thay đổi
+            </Button>
           </div>
-
-          {/* Form */}
-          <form onSubmit={handleSubmit} className="space-y-4 pt-4">
+        }
+      >
+        {isLoading ? (
+          <div className="space-y-3">
+            <Skeleton className="h-10 w-full rounded-xl" />
+            <Skeleton className="h-10 w-full rounded-xl" />
+            <Skeleton className="h-48 w-full rounded-xl" />
+          </div>
+        ) : loadError ? (
+          <p className="py-8 text-center text-xs text-error">{loadError}</p>
+        ) : (
+          <form id={FORM_ID} onSubmit={submit} className="space-y-4" noValidate>
             <div>
-              <label className="block text-xs font-semibold text-on-surface mb-1">
+              <label htmlFor="plan-name" className={LABEL_CLASS}>
                 Tên gói dịch vụ
               </label>
-              <Input
-                value={formData.name}
-                onChange={(e) => setFormData((prev) => ({ ...prev, name: e.target.value }))}
-                required
-                disabled={isUpdating}
-                className="w-full"
-              />
+              <Input id="plan-name" error={errorOf('name')} disabled={isUpdating} {...register('name')} />
             </div>
 
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="block text-xs font-semibold text-on-surface mb-1">
+                <label htmlFor="plan-price" className={LABEL_CLASS}>
                   Giá tiền (VNĐ)
                 </label>
                 <Input
+                  id="plan-price"
                   type="number"
                   min={isFree ? 0 : 1}
-                  value={formData.price}
-                  onChange={(e) =>
-                    setFormData((prev) => ({
-                      ...prev,
-                      price: Math.max(0, parseInt(e.target.value, 10) || 0),
-                    }))
-                  }
                   disabled={isFree || isUpdating}
-                  required
+                  error={errorOf('price')}
+                  {...register('price')}
                 />
                 <p className="text-xs text-on-surface-variant mt-1">
-                  {isFree ? 'Gói Free luôn có giá 0 đ' : 'Không được đặt giá âm (< 0 đ)'}
+                  {isFree ? 'Gói Free luôn có giá 0 đ' : 'Giá gói Premium phải lớn hơn 0 đ'}
                 </p>
               </div>
-
               <div>
-                <label className="block text-xs font-semibold text-on-surface mb-1">
+                <label htmlFor="plan-cycle" className={LABEL_CLASS}>
                   Chu kỳ thanh toán
                 </label>
                 <Input
-                  value={
-                    plan.billingCycle === 'monthly'
-                      ? 'Hàng tháng (30 ngày)'
-                      : plan.billingCycle === 'yearly'
-                      ? 'Hàng năm (365 ngày)'
-                      : 'Vô thời hạn'
-                  }
+                  id="plan-cycle"
+                  value={PLAN_BILLING_CYCLE_LABELS[plan.billingCycle] || plan.billingCycle}
                   disabled
-                  className="bg-surface-container/50 cursor-not-allowed"
+                  readOnly
+                  className="bg-surface-muted cursor-not-allowed"
                 />
               </div>
             </div>
 
             {/* Quota Limits */}
             <div>
-              <label className="block text-xs font-semibold text-on-surface mb-2">
-                Hạn mức &amp; Đặc quyền (Quotas):
-              </label>
+              <p className="block text-xs font-semibold text-on-surface mb-2">Hạn mức &amp; Đặc quyền (Quotas):</p>
               <div className="space-y-2 max-h-56 overflow-y-auto pr-1">
-                {QUOTA_FIELDS.map(({ key, label, fallback }) => {
-                  const currentValue = formData.features[key] ?? fallback;
-                  const isUnlimited = currentValue === -1;
-
-                  return (
-                    <div
-                      key={key}
-                      className="p-2.5 rounded-xl bg-surface-container-low border border-hairline flex items-center justify-between gap-2"
-                    >
-                      <span className="text-xs font-medium text-on-surface flex-1">{label}</span>
-                      <div className="flex items-center gap-2">
-                        <label className="flex items-center gap-1.5 cursor-pointer text-xs text-on-surface-variant">
-                          <Switch
-                            size="sm"
-                            checked={isUnlimited}
-                            disabled={isUpdating}
-                            onChange={() => handleFeatureToggleUnlimited(key, fallback)}
-                          />
-                          <span>Vô cực</span>
-                        </label>
-                        {!isUnlimited && (
-                          <input
-                            type="number"
-                            min="0"
-                            value={currentValue}
-                            disabled={isUpdating}
-                            onChange={(e) => handleFeatureValueChange(key, e.target.value)}
-                            className="w-14 px-2 py-0.5 text-xs text-right border border-hairline rounded-lg bg-surface focus:outline-none focus:ring-1 focus:ring-primary"
-                          />
-                        )}
-                      </div>
+                {PLAN_FEATURE_FIELDS.map(({ key, label, fallback }) => (
+                  <div
+                    key={key}
+                    className="p-2.5 rounded-xl bg-surface-container-low border border-hairline flex items-center justify-between gap-2"
+                  >
+                    <label htmlFor={`plan-feature-${key}`} className="text-xs font-medium text-on-surface flex-1">
+                      {label}
+                    </label>
+                    <div className="flex items-center gap-2">
+                      <span className="flex items-center gap-1.5 text-xs text-on-surface-variant">
+                        <Switch
+                          size="sm"
+                          aria-label={`${label}: vô cực`}
+                          checked={isUnlimited(key)}
+                          disabled={isUpdating}
+                          onChange={() => toggleUnlimited(key, fallback)}
+                        />
+                        <span>Vô cực</span>
+                      </span>
+                      {!isUnlimited(key) && (
+                        <input
+                          id={`plan-feature-${key}`}
+                          type="number"
+                          min="0"
+                          disabled={isUpdating}
+                          className={cn(
+                            'w-14 px-2 py-0.5 text-xs text-right border rounded-lg bg-surface focus:outline-none focus:ring-1 focus:ring-primary',
+                            errorOf(`features.${key}`) ? 'border-error' : 'border-hairline'
+                          )}
+                          {...register(`features.${key}`)}
+                        />
+                      )}
                     </div>
-                  );
-                })}
+                  </div>
+                ))}
               </div>
             </div>
 
-            {/* Trạng thái kích hoạt gói */}
+            {/* On-sale state */}
             <div className="p-3 rounded-xl bg-surface-container-low flex items-center justify-between">
               <div>
                 <div className="text-xs font-semibold text-on-surface">Trạng thái kích hoạt gói</div>
                 <div className="text-xs text-on-surface-variant">
-                  {formData.isActive ? 'Cho phép phụ huynh đăng ký gói này' : 'Tạm ngưng hiển thị gói'}
+                  {isFree || isActive ? 'Cho phép phụ huynh đăng ký gói này' : 'Tạm ngưng hiển thị gói'}
                 </div>
               </div>
-              <Switch
-                size="md"
-                checked={formData.isActive}
-                disabled={isFree || isUpdating}
-                onChange={(val) => {
-                  const nextChecked = typeof val === 'boolean' ? val : Boolean(val?.target?.checked);
-                  setFormData((prev) => ({ ...prev, isActive: nextChecked }));
-                }}
-              />
+              {isFree ? (
+                <Switch size="md" checked disabled />
+              ) : (
+                <Controller
+                  name="isActive"
+                  control={control}
+                  render={({ field }) => (
+                    <Switch size="md" checked={field.value} disabled={isUpdating} onChange={field.onChange} />
+                  )}
+                />
+              )}
             </div>
 
             {isFree && (
               <div className="p-2.5 rounded-xl bg-surface-container text-on-surface-variant text-xs flex items-center gap-2">
-                <AlertTriangle className="w-4 h-4 text-primary shrink-0" />
+                <AlertTriangle size={ICON_SIZE.MD} strokeWidth={ICON_STROKE.DEFAULT} className="text-primary shrink-0" />
                 <span>Gói Free mặc định của hệ thống không thể bị tắt hoặc sửa giá.</span>
               </div>
             )}
-
-            {/* Actions */}
-            <div className="flex items-center justify-end gap-3 pt-3 border-t border-hairline">
-              <Button
-                type="button"
-                variant="ghost"
-                onClick={onClose}
-                disabled={isUpdating}
-                className="rounded-full px-5 text-xs"
-              >
-                Hủy
-              </Button>
-              <Button
-                type="submit"
-                variant="primary"
-                loading={isUpdating}
-                disabled={isUpdating}
-                className="rounded-full px-6 text-xs flex items-center gap-1.5"
-              >
-                <Check className="w-4 h-4" />
-                <span>Lưu thay đổi</span>
-              </Button>
-            </div>
           </form>
-        </div>
-      </div>
+        )}
+      </Modal>
 
       <ConfirmDialog
-        open={showConfirmPrice}
+        open={Boolean(pendingPayload)}
         title="Xác nhận thay đổi giá gói cước"
-        description={`Bạn có chắc chắn muốn thay đổi giá gói ${plan.name} từ ${formatCurrency(plan.price)} thành ${formatCurrency(formData.price)}? Thay đổi này sẽ áp dụng cho tất cả các lượt đăng ký mới. Thuê bao hiện tại không bị ảnh hưởng.`}
+        description={`Bạn có chắc chắn muốn thay đổi giá gói ${plan.name} từ ${formatCurrency(plan.price)} thành ${formatCurrency(
+          pendingPayload?.price
+        )}? Thay đổi này sẽ áp dụng cho tất cả các lượt đăng ký mới. Thuê bao hiện tại không bị ảnh hưởng.`}
         confirmLabel="Đồng ý đổi giá"
         cancelLabel="Quay lại"
         variant="warning"
         isLoading={isUpdating}
-        onConfirm={submitUpdate}
-        onCancel={() => setShowConfirmPrice(false)}
+        onConfirm={confirmPriceChange}
+        onCancel={cancelPriceChange}
       />
     </>
   );

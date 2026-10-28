@@ -122,6 +122,19 @@ export const formatCount = (value) => {
   return new Intl.NumberFormat('vi-VN').format(number);
 };
 
+const compactFormatter = new Intl.NumberFormat('vi-VN', { notation: 'compact', maximumFractionDigits: 1 });
+
+/**
+ * Format a number in short form for chart axes (1500000 -> "1,5 Tr").
+ *
+ * @param {number|string} value
+ * @returns {string} Short number or '-' if invalid.
+ */
+export const formatCompactNumber = (value) => {
+  const number = Number(value);
+  return Number.isFinite(number) ? compactFormatter.format(number) : '-';
+};
+
 /**
  * Format a ratio as a Vietnamese percentage (0.125 -> "12,5%").
  *

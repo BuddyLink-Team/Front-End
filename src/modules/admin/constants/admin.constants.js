@@ -16,9 +16,13 @@ import {
   Clock,
   UserX,
   BarChart2,
-  Sparkles,
+  Package,
   Receipt,
+  CircleDollarSign,
+  TrendingUp,
+  UserMinus,
 } from 'lucide-react';
+import { formatCurrency, formatPercent } from '../../../utils/formatters';
 
 // `from` / `to` dayjs dates as the 'YYYY-MM-DD' range DateRangeFilter works with
 const toDateRange = (from, to) => ({ from: from.format('YYYY-MM-DD'), to: to.format('YYYY-MM-DD') });
@@ -158,7 +162,7 @@ export const RECENT_PAYMENTS_LIMIT = 5;
 // Subscription plans & revenue screen
 export const SUBSCRIPTION_TABS = [
   { id: 'overview', label: 'Tổng quan', icon: BarChart2 },
-  { id: 'plans', label: 'Gói dịch vụ', icon: Sparkles },
+  { id: 'plans', label: 'Gói dịch vụ', icon: Package },
   { id: 'subscribers', label: 'Thuê bao', icon: Users },
   { id: 'transactions', label: 'Giao dịch', icon: Receipt },
 ];
@@ -187,6 +191,47 @@ export const SUBSCRIPTION_STATUS_DISPLAY = Object.freeze({
   active: { status: 'active', label: 'Đang hiệu lực' },
   expired: { status: 'expired', label: 'Đã hết hạn' },
 });
+
+// Limits of a plan (`features` of subscription_plans), -1 = unlimited.
+// Every plan stores its limits; they apply to the parents on that plan
+export const UNLIMITED_LIMIT = -1;
+export const PLAN_NAME_MAX_LENGTH = 100;
+// `fallback`: the limit set when "Vô cực" is turned off
+export const PLAN_FEATURE_FIELDS = [
+  { key: 'childProfilesLimit', label: 'Hồ sơ trẻ tối đa', fallback: 1 },
+  { key: 'discoveryViewLimitPerDay', label: 'Lượt quẹt hồ sơ / ngày', fallback: 5 },
+  { key: 'connectionRequestsLimitPerMonth', label: 'Yêu cầu kết bạn / tháng', fallback: 5 },
+  { key: 'playdatesLimitPerMonth', label: 'Cuộc hẹn tạo / tháng', fallback: 3 },
+  { key: 'playdateParticipationLimitPerMonth', label: 'Cuộc hẹn tham gia / tháng', fallback: 3 },
+  { key: 'aiAssistantLimitPerMonth', label: 'Yêu cầu Trợ lý AI / tháng', fallback: 5 },
+];
+
+// Billing cycle of a plan, shown read-only in its edit form
+export const PLAN_BILLING_CYCLE_LABELS = Object.freeze({
+  monthly: 'Theo tháng (1 tháng)',
+  yearly: 'Theo năm (12 tháng)',
+  none: 'Không thời hạn',
+});
+
+// Revenue overview cards (`key` = field of `overview` in GET /revenue/summary; rates are percentages)
+export const REVENUE_STAT_CARDS = [
+  { key: 'totalRevenue', label: 'Tổng doanh thu', icon: CircleDollarSign, variant: 'primary', format: formatCurrency },
+  { key: 'activePremiumSubscribers', label: 'Premium đang hiệu lực', icon: Crown, variant: 'tertiary' },
+  {
+    key: 'conversionRate',
+    label: 'Tỷ lệ chuyển đổi',
+    icon: TrendingUp,
+    variant: 'secondary',
+    format: (value) => formatPercent(value / 100),
+  },
+  {
+    key: 'churnRate',
+    label: 'Tỷ lệ rời bỏ',
+    icon: UserMinus,
+    variant: 'error',
+    format: (value) => formatPercent(value / 100),
+  },
+];
 
 export const PAYMENT_METHOD_LABELS = Object.freeze({
   payos: 'VietQR (PayOS)',
@@ -256,5 +301,6 @@ export const ADMIN_ERROR_MESSAGES = Object.freeze({
   PLAN_NOT_FOUND: 'Không tìm thấy gói dịch vụ này.',
   FREE_PLAN_IMMUTABLE: 'Gói Miễn phí phải giữ giá 0đ và luôn được kích hoạt.',
   INVALID_PRICE: 'Giá gói Premium phải lớn hơn 0.',
+  SUBSCRIPTION_NOT_FOUND: 'Không tìm thấy thuê bao này.',
   PAYMENT_NOT_FOUND: 'Không tìm thấy giao dịch này.',
 });

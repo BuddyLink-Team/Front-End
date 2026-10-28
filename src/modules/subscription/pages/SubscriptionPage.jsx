@@ -6,7 +6,7 @@ import { PaymentHistoryList } from '../components/PaymentHistoryList';
 import { Button } from '../../../components/ui/Button';
 import { Tabs } from '../../../components/navigation/Tabs';
 import { Skeleton } from '../../../components/feedback/Skeleton';
-import { BILLING_CYCLES } from '../constants/subscription.constants';
+import { ICON_SIZE, ICON_STROKE } from '../../../constants/icon.constants';
 
 export const SubscriptionPage = () => {
   const {
@@ -23,6 +23,8 @@ export const SubscriptionPage = () => {
     isPremium,
     effectivePlanCode,
     yearlySavingsPercentage,
+    billingTabs,
+    singleBillingTitle,
     loading,
     historyLoading,
     error,
@@ -36,16 +38,6 @@ export const SubscriptionPage = () => {
   const formattedEndDate = subscription?.endDate
     ? new Date(subscription.endDate).toLocaleDateString('vi-VN')
     : null;
-
-  // Available billing tabs based on active plans
-  const billingTabs = [
-    monthlyPlan && { id: BILLING_CYCLES.MONTHLY, label: 'Theo tháng' },
-    yearlyPlan && {
-      id: BILLING_CYCLES.YEARLY,
-      label: 'Theo năm',
-      ...(yearlySavingsPercentage > 0 && { count: `-${yearlySavingsPercentage}%` }),
-    },
-  ].filter(Boolean);
 
   return (
     <div className="mx-auto space-y-10 pb-16">
@@ -115,12 +107,12 @@ export const SubscriptionPage = () => {
               />
             </div>
           )}
-          {billingTabs.length === 1 && (
+          {singleBillingTitle && (
             <div className="flex items-center justify-center">
               <span className="inline-flex items-center px-4 py-1.5 rounded-full bg-surface-container-high border border-outline-variant/40 text-xs font-semibold text-on-surface">
-                {billingTabs[0].label === 'Theo năm' ? 'Gói Hội Viên Theo Năm' : 'Gói Hội Viên Theo Tháng'}
+                {singleBillingTitle}
                 {billingTabs[0].count && (
-                  <span className="ml-1.5 px-1.5 py-0.5 rounded-full bg-tertiary/20 text-tertiary font-bold text-xs">
+                  <span className="ml-1.5 px-1.5 py-0.5 rounded-full bg-tertiary/20 text-tertiary font-semibold text-xs">
                     {billingTabs[0].count}
                   </span>
                 )}
@@ -156,10 +148,14 @@ export const SubscriptionPage = () => {
               />
             ) : (
               <div className="rounded-2xl border border-dashed border-outline-variant/60 bg-surface-container-lowest/60 p-8 flex flex-col items-center justify-center text-center space-y-3">
-                <ShieldCheck className="w-10 h-10 text-on-surface-variant/40" />
-                <h3 className="text-base font-bold text-on-surface">Gói Hội Viên Premium tạm ngưng</h3>
+                <ShieldCheck
+                  size={ICON_SIZE.XXXL}
+                  strokeWidth={ICON_STROKE.DEFAULT}
+                  className="text-on-surface-variant/40"
+                />
+                <h3 className="text-base font-semibold text-on-surface">Gói Premium tạm ngừng bán</h3>
                 <p className="text-xs text-on-surface-variant max-w-xs leading-relaxed">
-                  Hiện tại các gói Premium đang tạm thời ngưng nhận đăng ký mới để bảo trì hệ thống. Ba mẹ vui lòng quay lại sau!
+                  BuddyLink đang tạm ngừng bán gói Premium. Ba mẹ vui lòng quay lại sau nhé!
                 </p>
               </div>
             )}

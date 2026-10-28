@@ -15,7 +15,7 @@ import {
   TRANSACTION_STATUS_CHIPS,
 } from '../../constants/admin.constants';
 import { formatCurrency, formatDateTime } from '../../../../utils/formatters';
-import { ICON_SIZE } from '../../../../constants/icon.constants';
+import { ICON_SIZE, ICON_STROKE } from '../../../../constants/icon.constants';
 
 const COLUMNS = [
   { key: 'orderCode', label: 'Mã đơn', headerClassName: 'min-w-col-md' },
@@ -103,7 +103,7 @@ export const TransactionsTable = () => {
               className="p-1.5 rounded-lg text-text-muted hover:text-primary hover:bg-surface-low transition-colors"
               aria-label="Xem chi tiết giao dịch"
             >
-              <Eye size={ICON_SIZE.MD} />
+              <Eye size={ICON_SIZE.MD} strokeWidth={ICON_STROKE.DEFAULT} />
             </button>
           </div>
         );
@@ -155,7 +155,12 @@ export const TransactionsTable = () => {
             Hiển thị trang <span className="font-semibold text-text-primary">{pagination.page}</span> /{' '}
             <span>{pagination.totalPages}</span> ({pagination.total} giao dịch)
           </p>
-          <Pagination currentPage={pagination.page} totalPages={pagination.totalPages} onPageChange={setPage} />
+          <Pagination
+            currentPage={pagination.page}
+            totalPages={pagination.totalPages}
+            onPageChange={setPage}
+            inactiveItemClassName="bg-surface-container-lowest hover:bg-surface-container-low"
+          />
         </div>
       )}
 

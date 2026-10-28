@@ -1,7 +1,8 @@
 import adminMockService from './adminMockService';
+import adminSubscriptionMockService from './adminSubscriptionMockService';
 
 /**
- * Route handler definitions for Admin Playdates & Connections oversight.
+ * Route handler definitions for Admin Playdates & Connections oversight and Subscription plans & revenue.
  * Consumed by Central Mock Server Engine (src/mock/index.js).
  */
 export const adminMockHandlers = [
@@ -52,6 +53,48 @@ export const adminMockHandlers = [
     method: 'GET',
     pattern: '/admin/connections',
     handler: ({ query }) => adminMockService.getConnections(query),
+  },
+
+  // Subscription plans & revenue
+  {
+    method: 'GET',
+    pattern: '/admin/plans',
+    handler: () => adminSubscriptionMockService.getPlans(),
+  },
+  {
+    method: 'GET',
+    pattern: '/admin/plans/:id',
+    handler: ({ params }) => adminSubscriptionMockService.getPlanDetail(params.id),
+  },
+  {
+    method: 'PATCH',
+    pattern: '/admin/plans/:id',
+    handler: ({ params, body }) => adminSubscriptionMockService.updatePlan(params.id, body),
+  },
+  {
+    method: 'GET',
+    pattern: '/admin/subscriptions/:id',
+    handler: ({ params }) => adminSubscriptionMockService.getSubscriptionDetail(params.id),
+  },
+  {
+    method: 'GET',
+    pattern: '/admin/subscriptions',
+    handler: ({ query }) => adminSubscriptionMockService.getSubscriptions(query),
+  },
+  {
+    method: 'GET',
+    pattern: '/admin/transactions/:id',
+    handler: ({ params }) => adminSubscriptionMockService.getTransactionDetail(params.id),
+  },
+  {
+    method: 'GET',
+    pattern: '/admin/transactions',
+    handler: ({ query }) => adminSubscriptionMockService.getTransactions(query),
+  },
+  {
+    method: 'GET',
+    pattern: '/admin/revenue/summary',
+    handler: ({ query }) => adminSubscriptionMockService.getRevenueSummary(query),
   },
 ];
 

@@ -8,6 +8,7 @@ import { StatusChip } from '../../../../components/badges/StatusChip';
 import { Avatar } from '../../../../components/ui/Avatar';
 import { Modal } from '../../../../components/feedback/Modal';
 import { Button } from '../../../../components/ui/Button';
+import { Skeleton } from '../../../../components/feedback/Skeleton';
 import { useAdminSubscriptions } from '../../hooks/useAdminSubscriptions';
 import {
   SUBSCRIPTION_PLAN_FILTER_OPTIONS,
@@ -17,7 +18,7 @@ import {
 } from '../../constants/admin.constants';
 import { formatDate, formatDateTime } from '../../../../utils/formatters';
 import { cn } from '../../../../utils/cn';
-import { ICON_SIZE } from '../../../../constants/icon.constants';
+import { ICON_SIZE, ICON_STROKE } from '../../../../constants/icon.constants';
 
 const COLUMNS = [
   { key: 'parent', label: 'Phụ huynh', headerClassName: 'min-w-col-2xl' },
@@ -47,7 +48,10 @@ export const SubscribersTable = () => {
     filters,
     setFilter,
     setPage,
-    selectedSubscription,
+    isDetailOpen,
+    detail: selectedSubscription,
+    isDetailLoading,
+    detailErrorMessage,
     openDetail,
     closeDetail,
   } = useAdminSubscriptions();
@@ -95,12 +99,12 @@ export const SubscribersTable = () => {
               type="button"
               onClick={(e) => {
                 e.stopPropagation();
-                openDetail(row);
+                openDetail(row.id);
               }}
               className="p-1.5 rounded-lg text-text-muted hover:text-primary hover:bg-surface-low transition-colors"
               aria-label="Xem chi tiết thuê bao"
             >
-              <Eye size={ICON_SIZE.MD} />
+              <Eye size={ICON_SIZE.MD} strokeWidth={ICON_STROKE.DEFAULT} />
             </button>
           </div>
         );
@@ -135,7 +139,7 @@ export const SubscribersTable = () => {
         columns={COLUMNS}
         rows={rows}
         isLoading={isLoading}
-        onRowClick={openDetail}
+        onRowClick={(row) => openDetail(row.id)}
         renderCell={renderCell}
         emptyTitle={listErrorMessage ? 'Không tải được danh sách' : 'Chưa có thuê bao'}
         emptyMessage={listErrorMessage || 'Không tìm thấy thuê bao nào phù hợp với bộ lọc.'}
@@ -147,12 +151,17 @@ export const SubscribersTable = () => {
             Hiển thị trang <span className="font-semibold text-text-primary">{pagination.page}</span> /{' '}
             <span>{pagination.totalPages}</span> ({pagination.total} thuê bao)
           </p>
-          <Pagination currentPage={pagination.page} totalPages={pagination.totalPages} onPageChange={setPage} />
+          <Pagination
+            currentPage={pagination.page}
+            totalPages={pagination.totalPages}
+            onPageChange={setPage}
+            inactiveItemClassName="bg-surface-container-lowest hover:bg-surface-container-low"
+          />
         </div>
       )}
 
       <Modal
-        isOpen={Boolean(selectedSubscription)}
+        isOpen={isDetailOpen}
         onClose={closeDetail}
         title="Chi tiết thuê bao"
         maxWidth="max-w-md"
@@ -162,7 +171,13 @@ export const SubscribersTable = () => {
           </Button>
         }
       >
-        {selectedSubscription && (
+        {isDetailLoading && <Skeleton className="h-40 w-full rounded-xl" />}
+        {!isDetailLoading && !selectedSubscription && (
+          <p className="py-8 text-center text-body-md text-text-muted">
+            {detailErrorMessage || 'Không tìm thấy thông tin thuê bao.'}
+          </p>
+        )}
+        {!isDetailLoading && selectedSubscription && (
           <div className="space-y-4 text-body-md">
             <div className="flex items-center gap-3 p-3 rounded-xl bg-surface-low">
               <Avatar
