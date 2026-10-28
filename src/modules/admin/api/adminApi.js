@@ -4,7 +4,7 @@ import { API_ENDPOINTS } from '../../../constants/api.constants';
 const { USERS, CHILDREN, PAYMENTS } = API_ENDPOINTS.ADMIN;
 
 /**
- * Admin portal API callers (users, children, payments, playdate & connection oversight).
+ * Admin portal API callers (users, children, payments, playdate & connection oversight, plans & revenue).
  * The baseURL is configured via VITE_API_URL (e.g. http://localhost:5001/api/v1/admin).
  */
 export const adminApi = {
@@ -70,6 +70,23 @@ export const adminApi = {
   getConnectionDetail: (id) => apiClient.get(API_ENDPOINTS.ADMIN.CONNECTION_BY_ID(id)),
   removeConnection: (id, reason) =>
     apiClient.delete(API_ENDPOINTS.ADMIN.CONNECTION_BY_ID(id), { data: { reason } }),
+
+  // Subscription plans & revenue
+  /** All plans, inactive ones included */
+  getPlans: () => apiClient.get(API_ENDPOINTS.ADMIN.PLANS),
+  /** One plan as stored now */
+  getPlanDetail: (id) => apiClient.get(API_ENDPOINTS.ADMIN.PLAN_BY_ID(id)),
+  /** @param {{ name?: string, price?: number, isActive?: boolean, features?: Object }} payload */
+  updatePlan: (id, payload) => apiClient.patch(API_ENDPOINTS.ADMIN.PLAN_BY_ID(id), payload),
+  /** @param {Object} [params] - { search, planCode, status, page, limit } */
+  getSubscriptions: (params) => apiClient.get(API_ENDPOINTS.ADMIN.SUBSCRIPTIONS, { params }),
+  getSubscriptionDetail: (id) => apiClient.get(API_ENDPOINTS.ADMIN.SUBSCRIPTION_BY_ID(id)),
+  /** Payments of every parent. @param {Object} [params] - { search, status, planCode, fromDate, toDate, page, limit } */
+  getTransactions: (params) => apiClient.get(API_ENDPOINTS.ADMIN.TRANSACTIONS, { params }),
+  /** Payment audit detail (checkoutUrl and qrCode left out) */
+  getTransactionDetail: (id) => apiClient.get(API_ENDPOINTS.ADMIN.TRANSACTION_BY_ID(id)),
+  /** @param {{ fromDate?: string, toDate?: string }} [params] */
+  getRevenueSummary: (params) => apiClient.get(API_ENDPOINTS.ADMIN.REVENUE_SUMMARY, { params }),
 };
 
 export default adminApi;

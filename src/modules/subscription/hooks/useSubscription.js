@@ -8,7 +8,12 @@ import {
   setBillingCycle,
   setSelectedPlan,
 } from '../redux/subscriptionSlice';
-import { PLAN_CODES, BILLING_CYCLES, SUBSCRIPTION_ERROR_MESSAGES } from '../constants/subscription.constants';
+import {
+  PLAN_CODES,
+  BILLING_CYCLES,
+  BILLING_CYCLE_OPTIONS,
+  SUBSCRIPTION_ERROR_MESSAGES,
+} from '../constants/subscription.constants';
 import { getApiErrorMsg } from '../../../utils/errorUtils';
 import { isPremiumActive } from '../utils/premiumStatus';
 
@@ -58,9 +63,23 @@ export const useSubscription = () => {
   const freePlan = findPlan(PLAN_CODES.FREE);
   const monthlyPlan = findPlan(PLAN_CODES.PREMIUM_MONTHLY);
   const yearlyPlan = findPlan(PLAN_CODES.PREMIUM_YEARLY);
-  const plansLoaded = Boolean(freePlan && monthlyPlan && yearlyPlan);
+  const plansLoaded = !plansLoading && Boolean(freePlan);
 
-  const currentActivePlan = billingCycle === BILLING_CYCLES.YEARLY ? yearlyPlan : monthlyPlan;
+  // Automatically adjust billingCycle to match available premium plans
+  useEffect(() => {
+    if (plansLoaded) {
+      if (!monthlyPlan && yearlyPlan && billingCycle !== BILLING_CYCLES.YEARLY) {
+        dispatch(setBillingCycle(BILLING_CYCLES.YEARLY));
+      } else if (!yearlyPlan && monthlyPlan && billingCycle !== BILLING_CYCLES.MONTHLY) {
+        dispatch(setBillingCycle(BILLING_CYCLES.MONTHLY));
+      }
+    }
+  }, [plansLoaded, monthlyPlan, yearlyPlan, billingCycle, dispatch]);
+
+  const currentActivePlan =
+    billingCycle === BILLING_CYCLES.YEARLY
+      ? (yearlyPlan || monthlyPlan)
+      : (monthlyPlan || yearlyPlan);
 
   // Saving of the yearly plan against 12 monthly payments
   const yearlySavingsPercentage =
@@ -68,11 +87,24 @@ export const useSubscription = () => {
       ? Math.max(0, Math.round((1 - yearlyPlan.price / (monthlyPlan.price * 12)) * 100))
       : 0;
 
+  // Billing toggle: one tab per Premium plan on sale (a plan turned off by an admin is not returned)
+  const billingTabs = [
+    monthlyPlan && { id: BILLING_CYCLES.MONTHLY, label: BILLING_CYCLE_OPTIONS.monthly.label },
+    yearlyPlan && {
+      id: BILLING_CYCLES.YEARLY,
+      label: BILLING_CYCLE_OPTIONS.yearly.label,
+      ...(yearlySavingsPercentage > 0 && { count: `-${yearlySavingsPercentage}%` }),
+    },
+  ].filter(Boolean);
+  const singleBillingTitle =
+    billingTabs.length === 1 ? BILLING_CYCLE_OPTIONS[billingTabs[0].id].singleTitle : null;
+
   // The Premium card shown is the plan in use (renewal), not just any active Premium
   const isCurrentPremiumPlan = Boolean(isPremium && subscription?.planCode === currentActivePlan?.planCode);
 
   // Upgrade or Renew CTA action
   const handleUpgrade = (planCodeToBuy = currentActivePlan?.planCode) => {
+    if (!planCodeToBuy) return;
     dispatch(setSelectedPlan(planCodeToBuy));
     navigate(`/checkout?plan=${planCodeToBuy}`);
   };
@@ -99,6 +131,8 @@ export const useSubscription = () => {
     isPremium,
     effectivePlanCode,
     yearlySavingsPercentage,
+    billingTabs,
+    singleBillingTitle,
     loading: plansLoading || quotaLoading,
     historyLoading,
     error: error ? getApiErrorMsg(SUBSCRIPTION_ERROR_MESSAGES, error, 'Không thể tải thông tin gói dịch vụ.') : null,

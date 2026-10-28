@@ -97,5 +97,12 @@ export const API_ENDPOINTS = {
     CANCEL_PLAYDATE: (id) => `/playdates/${id}/cancel`,
     CONNECTIONS: '/connections',
     CONNECTION_BY_ID: (id) => `/connections/${id}`,
+    PLANS: '/plans',
+    PLAN_BY_ID: (id) => `/plans/${id}`,
+    SUBSCRIPTIONS: '/subscriptions',
+    SUBSCRIPTION_BY_ID: (id) => `/subscriptions/${id}`,
+    TRANSACTIONS: '/transactions',
+    TRANSACTION_BY_ID: (id) => `/transactions/${id}`,
+    REVENUE_SUMMARY: '/revenue/summary',
   },
 };

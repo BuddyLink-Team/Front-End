@@ -6,7 +6,7 @@ import { PaymentHistoryList } from '../components/PaymentHistoryList';
 import { Button } from '../../../components/ui/Button';
 import { Tabs } from '../../../components/navigation/Tabs';
 import { Skeleton } from '../../../components/feedback/Skeleton';
-import { BILLING_CYCLES } from '../constants/subscription.constants';
+import { ICON_SIZE, ICON_STROKE } from '../../../constants/icon.constants';
 
 export const SubscriptionPage = () => {
   const {
@@ -23,6 +23,8 @@ export const SubscriptionPage = () => {
     isPremium,
     effectivePlanCode,
     yearlySavingsPercentage,
+    billingTabs,
+    singleBillingTitle,
     loading,
     historyLoading,
     error,
@@ -36,10 +38,6 @@ export const SubscriptionPage = () => {
   const formattedEndDate = subscription?.endDate
     ? new Date(subscription.endDate).toLocaleDateString('vi-VN')
     : null;
-
-  // Prices for the billing toggle (plans from the database)
-  const monthlyPriceText = monthlyPlan ? `Theo tháng` : 'Theo tháng';
-  const yearlyPriceText = yearlyPlan ? `Theo năm` : 'Theo năm';
 
   return (
     <div className="mx-auto space-y-10 pb-16">
@@ -100,20 +98,27 @@ export const SubscriptionPage = () => {
       {plansLoaded && (
         <>
           {/* 2. Dynamic Billing Cycle Switch (Monthly vs Yearly) */}
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
-            <Tabs
-              tabs={[
-                { id: BILLING_CYCLES.MONTHLY, label: monthlyPriceText },
-                {
-                  id: BILLING_CYCLES.YEARLY,
-                  label: yearlyPriceText,
-                  ...(yearlySavingsPercentage > 0 && { count: `-${yearlySavingsPercentage}%` }),
-                },
-              ]}
-              activeTab={billingCycle}
-              onChange={handleBillingCycleChange}
-            />
-          </div>
+          {billingTabs.length > 1 && (
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
+              <Tabs
+                tabs={billingTabs}
+                activeTab={billingCycle}
+                onChange={handleBillingCycleChange}
+              />
+            </div>
+          )}
+          {singleBillingTitle && (
+            <div className="flex items-center justify-center">
+              <span className="inline-flex items-center px-4 py-1.5 rounded-full bg-surface-container-high border border-outline-variant/40 text-xs font-semibold text-on-surface">
+                {singleBillingTitle}
+                {billingTabs[0].count && (
+                  <span className="ml-1.5 px-1.5 py-0.5 rounded-full bg-tertiary/20 text-tertiary font-semibold text-xs">
+                    {billingTabs[0].count}
+                  </span>
+                )}
+              </span>
+            </div>
+          )}
 
           {/* 3. Pricing Cards (Free vs Premium) */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8 items-stretch">
@@ -130,16 +135,30 @@ export const SubscriptionPage = () => {
             />
 
             {/* Selected Premium plan: renew when it is the plan in use, otherwise buy / add months */}
-            <PricingCard
-              plan={currentActivePlan}
-              isCurrentPlan={isCurrentPremiumPlan}
-              isPremiumActive={isPremium}
-              endDate={subscription?.endDate}
-              onUpgrade={handleUpgrade}
-              disabled={loading}
-              billingCycle={billingCycle}
-              yearlySavingsPercentage={yearlySavingsPercentage}
-            />
+            {currentActivePlan ? (
+              <PricingCard
+                plan={currentActivePlan}
+                isCurrentPlan={isCurrentPremiumPlan}
+                isPremiumActive={isPremium}
+                endDate={subscription?.endDate}
+                onUpgrade={handleUpgrade}
+                disabled={loading}
+                billingCycle={billingCycle}
+                yearlySavingsPercentage={yearlySavingsPercentage}
+              />
+            ) : (
+              <div className="rounded-2xl border border-dashed border-outline-variant/60 bg-surface-container-lowest/60 p-8 flex flex-col items-center justify-center text-center space-y-3">
+                <ShieldCheck
+                  size={ICON_SIZE.XXXL}
+                  strokeWidth={ICON_STROKE.DEFAULT}
+                  className="text-on-surface-variant/40"
+                />
+                <h3 className="text-base font-semibold text-on-surface">Gói Premium tạm ngừng bán</h3>
+                <p className="text-xs text-on-surface-variant max-w-xs leading-relaxed">
+                  BuddyLink đang tạm ngừng bán gói Premium. Ba mẹ vui lòng quay lại sau nhé!
+                </p>
+              </div>
+            )}
           </div>
         </>
       )}
@@ -161,7 +180,7 @@ export const SubscriptionPage = () => {
 
       {/* 5. Comparison Matrix */}
       <div className="pt-2">
-        <ComparisonMatrix freePlan={freePlan} premiumPlan={monthlyPlan} />
+        <ComparisonMatrix freePlan={freePlan} premiumPlan={monthlyPlan || yearlyPlan} />
       </div>
 
       {/* 6. Payment Transaction History */}

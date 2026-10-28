@@ -15,7 +15,17 @@ import {
   Link2,
   Clock,
   UserX,
+  BarChart2,
+  Package,
+  Receipt,
+  CircleDollarSign,
+  TrendingUp,
+  UserMinus,
 } from 'lucide-react';
+import { formatCurrency, formatPercent } from '../../../utils/formatters';
+
+// `from` / `to` dayjs dates as the 'YYYY-MM-DD' range DateRangeFilter works with
+const toDateRange = (from, to) => ({ from: from.format('YYYY-MM-DD'), to: to.format('YYYY-MM-DD') });
 
 // Cards above the admin lists (`key` = field of the stats API), one per status tab below
 export const USER_STAT_CARDS = [
@@ -149,6 +159,92 @@ export const PAYMENT_STATUS_CHIPS = Object.freeze({
 
 export const RECENT_PAYMENTS_LIMIT = 5;
 
+// Subscription plans & revenue screen
+export const SUBSCRIPTION_TABS = [
+  { id: 'overview', label: 'Tổng quan', icon: BarChart2 },
+  { id: 'plans', label: 'Gói dịch vụ', icon: Package },
+  { id: 'subscribers', label: 'Thuê bao', icon: Users },
+  { id: 'transactions', label: 'Giao dịch', icon: Receipt },
+];
+
+export const SUBSCRIPTION_PLAN_FILTER_OPTIONS = [
+  { label: 'Tất cả gói', value: '' },
+  { label: SUBSCRIPTION_PLAN_NAMES.free, value: 'free' },
+  { label: SUBSCRIPTION_PLAN_NAMES.premium_monthly, value: 'premium_monthly' },
+  { label: SUBSCRIPTION_PLAN_NAMES.premium_yearly, value: 'premium_yearly' },
+];
+
+// Status tabs of the subscriptions and transactions lists: `value` is sent to the API as `status`
+export const SUBSCRIPTION_STATUS_CHIPS = [
+  { id: '', label: 'Tất cả', value: '' },
+  { id: 'active', label: 'Đang hiệu lực', value: 'active' },
+  { id: 'expired', label: 'Đã hết hạn', value: 'expired' },
+];
+
+export const TRANSACTION_STATUS_CHIPS = [
+  { id: '', label: 'Tất cả', value: '' },
+  ...Object.values(PAYMENT_STATUS_CHIPS).map(({ status, label }) => ({ id: status, label, value: status })),
+];
+
+// Subscription statuses as StatusChip props
+export const SUBSCRIPTION_STATUS_DISPLAY = Object.freeze({
+  active: { status: 'active', label: 'Đang hiệu lực' },
+  expired: { status: 'expired', label: 'Đã hết hạn' },
+});
+
+// Limits of a plan (`features` of subscription_plans), -1 = unlimited.
+// Every plan stores its limits; they apply to the parents on that plan
+export const UNLIMITED_LIMIT = -1;
+export const PLAN_NAME_MAX_LENGTH = 100;
+// `fallback`: the limit set when "Vô cực" is turned off
+export const PLAN_FEATURE_FIELDS = [
+  { key: 'childProfilesLimit', label: 'Hồ sơ trẻ tối đa', fallback: 1 },
+  { key: 'discoveryViewLimitPerDay', label: 'Lượt quẹt hồ sơ / ngày', fallback: 5 },
+  { key: 'connectionRequestsLimitPerMonth', label: 'Yêu cầu kết bạn / tháng', fallback: 5 },
+  { key: 'playdatesLimitPerMonth', label: 'Cuộc hẹn tạo / tháng', fallback: 3 },
+  { key: 'playdateParticipationLimitPerMonth', label: 'Cuộc hẹn tham gia / tháng', fallback: 3 },
+  { key: 'aiAssistantLimitPerMonth', label: 'Yêu cầu Trợ lý AI / tháng', fallback: 5 },
+];
+
+// Billing cycle of a plan, shown read-only in its edit form
+export const PLAN_BILLING_CYCLE_LABELS = Object.freeze({
+  monthly: 'Theo tháng (1 tháng)',
+  yearly: 'Theo năm (12 tháng)',
+  none: 'Không thời hạn',
+});
+
+// Revenue overview cards (`key` = field of `overview` in GET /revenue/summary; rates are percentages)
+export const REVENUE_STAT_CARDS = [
+  { key: 'totalRevenue', label: 'Tổng doanh thu', icon: CircleDollarSign, variant: 'primary', format: formatCurrency },
+  { key: 'activePremiumSubscribers', label: 'Premium đang hiệu lực', icon: Crown, variant: 'tertiary' },
+  {
+    key: 'conversionRate',
+    label: 'Tỷ lệ chuyển đổi',
+    icon: TrendingUp,
+    variant: 'secondary',
+    format: (value) => formatPercent(value / 100),
+  },
+  {
+    key: 'churnRate',
+    label: 'Tỷ lệ rời bỏ',
+    icon: UserMinus,
+    variant: 'error',
+    format: (value) => formatPercent(value / 100),
+  },
+];
+
+export const PAYMENT_METHOD_LABELS = Object.freeze({
+  payos: 'VietQR (PayOS)',
+});
+
+// Revenue overview presets of DateRangeFilter, on top of its 7 / 30 days defaults
+export const REVENUE_DATE_PRESETS = [
+  { id: '7d', label: '7 ngày', getRange: (today) => toDateRange(today.subtract(6, 'day'), today) },
+  { id: '30d', label: '30 ngày', getRange: (today) => toDateRange(today.subtract(29, 'day'), today) },
+  { id: '90d', label: '90 ngày', getRange: (today) => toDateRange(today.subtract(89, 'day'), today) },
+  { id: 'thisYear', label: 'Năm nay', getRange: (today) => toDateRange(today.startOf('year'), today) },
+];
+
 // Status tabs of the playdates and connections lists: `value` is sent to the API as `status`
 export const PLAYDATE_STATUS_CHIPS = [
   { id: '', label: 'Tất cả', value: '' },
@@ -202,4 +298,9 @@ export const ADMIN_ERROR_MESSAGES = Object.freeze({
   PLAYDATE_CHANGED: 'Cuộc hẹn chơi vừa được cập nhật, vui lòng tải lại.',
   CONNECTION_NOT_FOUND: 'Không tìm thấy kết nối này.',
   INVALID_CONNECTION_STATE: 'Chỉ có thể gỡ kết nối đang chờ hoặc đã kết nối.',
+  PLAN_NOT_FOUND: 'Không tìm thấy gói dịch vụ này.',
+  FREE_PLAN_IMMUTABLE: 'Gói Miễn phí phải giữ giá 0đ và luôn được kích hoạt.',
+  INVALID_PRICE: 'Giá gói Premium phải lớn hơn 0.',
+  SUBSCRIPTION_NOT_FOUND: 'Không tìm thấy thuê bao này.',
+  PAYMENT_NOT_FOUND: 'Không tìm thấy giao dịch này.',
 });

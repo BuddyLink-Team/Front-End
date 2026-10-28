@@ -2,6 +2,7 @@ import React from 'react';
 import { Route, Navigate } from 'react-router-dom';
 import { AdminLayout } from '../layouts/AdminLayout';
 import PlaceholderPage from '../components/feedback/PlaceholderPage';
+import AdminSubscriptionManagementPage from '../modules/admin/pages/AdminSubscriptionManagementPage';
 
 import AdminUserManagementPage from '../modules/admin/pages/AdminUserManagementPage';
 import AdminChildManagementPage from '../modules/admin/pages/AdminChildManagementPage';
@@ -43,7 +44,7 @@ export const AdminRoutes = () => (
     {/* Revenue: subscription plans, Premium payments and conversion (backend subscription module) */}
     <Route
       path="subscriptions"
-      element={<AdminPlaceholder title="Quản lý doanh thu" description="Gói Premium, lịch sử thanh toán, doanh thu theo tháng và tỷ lệ chuyển đổi." />}
+      element={<AdminSubscriptionManagementPage />}
     />
 
     {/* Safety & Moderation */}
