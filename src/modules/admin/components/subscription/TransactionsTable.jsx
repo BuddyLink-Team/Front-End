@@ -1,279 +1,170 @@
-import React, { useState } from 'react';
-import dayjs from 'dayjs';
+import React from 'react';
+import { Eye, Crown } from 'lucide-react';
+import { AdminListToolbar } from '../AdminListToolbar';
+import { AdminFilterDropdown } from '../AdminFilterDropdown';
+import { PaymentDetailModal } from './PaymentDetailModal';
 import { DataTable } from '../../../../components/ui/DataTable';
 import { Pagination } from '../../../../components/navigation/Pagination';
-import { useServerTable } from '../../../../hooks/useServerTable';
-import { adminSubscriptionApi } from '../../api/adminSubscriptionApi';
-import { PaymentDetailModal } from './PaymentDetailModal';
-import { Search, Eye, QrCode, Calendar } from 'lucide-react';
+import { StatusChip } from '../../../../components/badges/StatusChip';
+import { useAdminTransactions } from '../../hooks/useAdminTransactions';
+import {
+  PAYMENT_METHOD_LABELS,
+  PAYMENT_STATUS_CHIPS,
+  SUBSCRIPTION_PLAN_FILTER_OPTIONS,
+  SUBSCRIPTION_PLAN_NAMES,
+  TRANSACTION_STATUS_CHIPS,
+} from '../../constants/admin.constants';
+import { formatCurrency, formatDateTime } from '../../../../utils/formatters';
+import { ICON_SIZE } from '../../../../constants/icon.constants';
 
-const formatCurrency = (amount) => {
-  return new Intl.NumberFormat('vi-VN').format(amount || 0);
-};
-
-const PLAN_BADGE_MAP = {
-  free: { label: 'Free', className: 'bg-slate-200 text-black font-medium' },
-  premium_monthly: { label: 'Premium Tháng', className: 'bg-green-200 text-black font-semibold' },
-  premium_yearly: { label: 'Premium Năm', className: 'bg-blue-200 text-black font-semibold' },
-};
-
-const PAYMENT_STATUS_OPTIONS = [
-  { value: '', label: 'Tất cả trạng thái' },
-  { value: 'success', label: 'Thành công (Success)' },
-  { value: 'pending', label: 'Chờ thanh toán (Pending)' },
-  { value: 'creating', label: 'Khởi tạo (Creating)' },
-  { value: 'failed', label: 'Thất bại (Failed)' },
-  { value: 'cancelled', label: 'Đã hủy (Cancelled)' },
-  { value: 'expired', label: 'Hết hạn (Expired)' },
+const COLUMNS = [
+  { key: 'orderCode', label: 'Mã đơn', headerClassName: 'min-w-col-md' },
+  { key: 'parent', label: 'Phụ huynh', headerClassName: 'min-w-col-2xl' },
+  { key: 'plan', label: 'Gói dịch vụ', headerClassName: 'min-w-col-plan' },
+  { key: 'amount', label: 'Số tiền', align: 'right', headerClassName: 'min-w-col-md' },
+  { key: 'paymentMethod', label: 'Phương thức', headerClassName: 'min-w-col-md' },
+  { key: 'createdAt', label: 'Thời gian', headerClassName: 'min-w-col-lg' },
+  { key: 'status', label: 'Trạng thái', headerClassName: 'min-w-col-md' },
+  { key: 'actions', label: 'Thao tác', align: 'right', headerClassName: 'min-w-col-actions' },
 ];
 
-const STATUS_CONFIG = {
-  creating: { label: 'Khởi tạo', className: 'bg-surface-container text-on-surface-variant', dot: 'bg-outline' },
-  pending: { label: 'Chờ thanh toán', className: 'bg-yellow-100 text-yellow-800', dot: 'bg-yellow-500' },
-  success: { label: 'Thành công', className: 'bg-primary-soft text-primary-dark font-semibold', dot: 'bg-primary' },
-  failed: { label: 'Thất bại', className: 'bg-red-100 text-red-800 font-semibold', dot: 'bg-red-500' },
-  cancelled: { label: 'Đã hủy', className: 'bg-orange-100 text-orange-800 font-semibold', dot: 'bg-orange-500' },
-  expired: { label: 'Hết hạn', className: 'bg-surface-container-highest text-on-surface-variant', dot: 'bg-outline' },
-};
-
+/**
+ * Transactions tab: payments of every parent, filtered by status, plan and creation date.
+ */
 export const TransactionsTable = () => {
   const {
     rows,
     pagination,
     isLoading,
-    error,
-    filters,
+    listErrorMessage,
     searchInput,
     setSearch,
+    filters,
     setFilter,
     setFilters,
     setPage,
-  } = useServerTable({
-    fetcher: adminSubscriptionApi.getPayments,
-    syncWithUrl: false,
-  });
+    isDetailOpen,
+    detail,
+    isDetailLoading,
+    detailErrorMessage,
+    openDetail,
+    closeDetail,
+  } = useAdminTransactions();
 
-  const [selectedPaymentId, setSelectedPaymentId] = useState(null);
-  const [paymentDetail, setPaymentDetail] = useState(null);
-  const [isDetailLoading, setIsDetailLoading] = useState(false);
+  const renderCell = (key, _val, row) => {
+    switch (key) {
+      case 'orderCode':
+        return <span className="font-mono text-body-md font-semibold text-text-primary">#{row.orderCode}</span>;
 
-  const handleOpenDetail = async (id) => {
-    setSelectedPaymentId(id);
-    setIsDetailLoading(true);
-    try {
-      const res = await adminSubscriptionApi.getPaymentDetail(id);
-      setPaymentDetail(res?.data || res);
-    } catch {
-      setPaymentDetail(null);
-    } finally {
-      setIsDetailLoading(false);
+      case 'parent':
+        return (
+          <div className="text-body-md">
+            <p className="font-semibold text-text-primary">{row.parent?.fullName || '—'}</p>
+            <p className="text-label-md text-text-muted mt-0.5">{row.parent?.email || '—'}</p>
+          </div>
+        );
+
+      case 'plan': {
+        const planCode = row.planSnapshot?.planCode;
+        return (
+          <span className="text-body-md text-text-primary whitespace-nowrap">
+            {SUBSCRIPTION_PLAN_NAMES[planCode] || row.planSnapshot?.name || '—'}
+          </span>
+        );
+      }
+
+      case 'amount':
+        return <span className="font-semibold text-text-primary whitespace-nowrap">{formatCurrency(row.amount)}</span>;
+
+      case 'paymentMethod':
+        return (
+          <span className="text-body-md text-text-muted whitespace-nowrap">
+            {PAYMENT_METHOD_LABELS[row.paymentMethod] || row.paymentMethod || '—'}
+          </span>
+        );
+
+      case 'createdAt':
+        return <span className="text-body-md text-text-muted whitespace-nowrap">{formatDateTime(row.createdAt)}</span>;
+
+      case 'status': {
+        const chip = PAYMENT_STATUS_CHIPS[row.status];
+        return <StatusChip status={chip?.status || row.status} label={chip?.label} />;
+      }
+
+      case 'actions':
+        return (
+          <div className="flex justify-end">
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                openDetail(row.id);
+              }}
+              className="p-1.5 rounded-lg text-text-muted hover:text-primary hover:bg-surface-low transition-colors"
+              aria-label="Xem chi tiết giao dịch"
+            >
+              <Eye size={ICON_SIZE.MD} />
+            </button>
+          </div>
+        );
+
+      default:
+        return null;
     }
   };
 
-  const columns = [
-    {
-      key: 'orderCode',
-      label: 'Mã giao dịch',
-      cell: (row) => (
-        <span className="font-mono text-xs text-secondary font-bold">
-          #{row.orderCode || row.id?.slice(-8)}
-        </span>
-      ),
-    },
-    {
-      key: 'parent',
-      label: 'Phụ huynh',
-      cell: (row) => (
-        <div>
-          <div className="font-semibold text-on-surface text-xs">
-            {row.parent?.fullName || 'Chưa cập nhật'}
-          </div>
-          <div className="text-xs text-on-surface-variant">
-            {row.parent?.email || '—'}
-          </div>
-        </div>
-      ),
-    },
-    {
-      key: 'planSnapshot',
-      label: 'Gói dịch vụ',
-      cell: (row) => {
-        const planCode = row.planSnapshot?.planCode || row.planCode;
-        const badge = PLAN_BADGE_MAP[planCode] || {
-          label: row.planSnapshot?.name || 'Gói dịch vụ',
-          className: 'bg-slate-200 text-black font-medium',
-        };
-        return (
-          <span className={`inline-block px-2.5 py-0.5 rounded-full text-xs ${badge.className}`}>
-            {badge.label}
-          </span>
-        );
-      },
-    },
-    {
-      key: 'amount',
-      label: 'Số tiền',
-      cell: (row) => (
-        <span className="font-semibold text-on-surface text-xs">
-          {formatCurrency(row.amount)} {row.currency || 'đ'}
-        </span>
-      ),
-    },
-    {
-      key: 'paymentMethod',
-      label: 'Phương thức',
-      cell: (row) => (
-        <span className="inline-flex items-center gap-1 text-xs px-2.5 py-0.5 rounded-full bg-surface-container text-on-surface">
-          <QrCode className="w-3.5 h-3.5 text-secondary" />
-          <span>{row.paymentMethod === 'payos' ? 'VietQR' : row.paymentMethod || 'PayOS'}</span>
-        </span>
-      ),
-    },
-    {
-      key: 'createdAt',
-      label: 'Thời gian',
-      cell: (row) => (
-        <span className="text-xs text-on-surface-variant font-mono">
-          {row.createdAt ? dayjs(row.createdAt).format('DD/MM/YYYY HH:mm') : '—'}
-        </span>
-      ),
-    },
-    {
-      key: 'status',
-      label: 'Trạng thái',
-      cell: (row) => {
-        const conf = STATUS_CONFIG[row.status] || {
-          label: row.status,
-          className: 'bg-surface-container text-on-surface',
-          dot: 'bg-outline',
-        };
-        return (
-          <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs ${conf.className}`}>
-            <span className={`w-1.5 h-1.5 rounded-full ${conf.dot}`} />
-            {conf.label}
-          </span>
-        );
-      },
-    },
-    {
-      key: 'actions',
-      label: 'Thao tác',
-      cell: (row) => (
-        <div className="flex items-center justify-end" onClick={(e) => e.stopPropagation()}>
-          <button
-            type="button"
-            onClick={() => handleOpenDetail(row.id || row._id)}
-            className="p-1.5 rounded-lg hover:bg-surface-container text-on-surface-variant hover:text-primary transition-colors"
-            title="Xem chi tiết Hóa đơn e-Invoice"
-          >
-            <Eye className="w-4 h-4" />
-          </button>
-        </div>
-      ),
-    },
-  ];
-
   return (
-    <div className="bg-surface-container-lowest rounded-2xl border border-hairline shadow-xs overflow-hidden">
-      {/* Toolbar Search & Filter */}
-      <div className="p-5 flex flex-col lg:flex-row lg:items-center justify-between gap-4 border-b border-hairline">
-        <div>
-          <div className="flex items-center gap-2">
-            <h2 className="text-base font-bold text-on-surface">
-              Lịch sử Đối soát &amp; Giao dịch Thanh toán
-            </h2>
-            <span className="px-2 py-0.5 rounded-full bg-surface-container text-on-surface-variant text-xs font-semibold">
-              Thời gian thực
-            </span>
-          </div>
-          <p className="text-xs text-on-surface-variant mt-0.5">
-            Xử lý hóa đơn điện tử e-Invoice, sao kê cổng thanh toán và quản lý đối soát.
-          </p>
-        </div>
+    <div className="space-y-4">
+      <AdminListToolbar
+        searchValue={searchInput}
+        onSearchChange={setSearch}
+        searchPlaceholder="Tìm theo mã đơn, tên hoặc email phụ huynh..."
+        statusChips={{
+          options: TRANSACTION_STATUS_CHIPS,
+          selected: filters.status || '',
+          onChange: (val) => setFilter('status', val || undefined),
+        }}
+        dateRange={{
+          from: filters.fromDate || '',
+          to: filters.toDate || '',
+          onChange: ({ from, to }) => setFilters({ fromDate: from || undefined, toDate: to || undefined }),
+        }}
+      >
+        <AdminFilterDropdown
+          icon={Crown}
+          header="Gói dịch vụ"
+          options={SUBSCRIPTION_PLAN_FILTER_OPTIONS}
+          value={filters.planCode}
+          onChange={(val) => setFilter('planCode', val || undefined)}
+        />
+      </AdminListToolbar>
 
-        {/* Filters */}
-        <div className="flex flex-wrap items-center gap-2">
-          <div className="relative">
-            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant" />
-            <input
-              type="text"
-              value={searchInput}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Mã GD (#BL-...) hoặc phụ huynh..."
-              className="pl-9 pr-3 py-1.5 rounded-full bg-surface-container-low text-on-surface text-xs placeholder:text-outline focus:outline-none focus:ring-1 focus:ring-primary w-60 border-0"
-            />
-          </div>
-
-          <select
-            value={filters.status || ''}
-            onChange={(e) => setFilter('status', e.target.value || null)}
-            className="px-3 py-1.5 rounded-full bg-surface-container-low text-on-surface text-xs border-0 focus:ring-1 focus:ring-primary cursor-pointer"
-          >
-            {PAYMENT_STATUS_OPTIONS.map((opt) => (
-              <option key={opt.value} value={opt.value}>
-                {opt.label}
-              </option>
-            ))}
-          </select>
-
-          {/* Date range inputs */}
-          <div className="flex items-center gap-1 bg-surface-container-low px-3 py-1.5 rounded-full border border-hairline">
-            <Calendar className="w-3.5 h-3.5 text-on-surface-variant" />
-            <input
-              type="date"
-              value={filters.fromDate || ''}
-              onChange={(e) => setFilters({ fromDate: e.target.value })}
-              className="bg-transparent border-0 p-0 text-xs text-on-surface focus:ring-0"
-              title="Từ ngày"
-            />
-            <span className="text-xs text-on-surface-variant">-</span>
-            <input
-              type="date"
-              value={filters.toDate || ''}
-              onChange={(e) => setFilters({ toDate: e.target.value })}
-              className="bg-transparent border-0 p-0 text-xs text-on-surface focus:ring-0"
-              title="Đến ngày"
-            />
-          </div>
-        </div>
-      </div>
-
-      {/* Table */}
       <DataTable
-        columns={columns}
+        columns={COLUMNS}
         rows={rows}
         isLoading={isLoading}
-        onRowClick={(row) => handleOpenDetail(row.id || row._id)}
-        emptyMessage={
-          error ? 'Đã có lỗi xảy ra khi tải danh sách giao dịch' : 'Không tìm thấy giao dịch nào phù hợp.'
-        }
+        onRowClick={(row) => openDetail(row.id)}
+        renderCell={renderCell}
+        emptyTitle={listErrorMessage ? 'Không tải được danh sách' : 'Chưa có giao dịch'}
+        emptyMessage={listErrorMessage || 'Không tìm thấy giao dịch nào phù hợp với bộ lọc.'}
       />
 
-      {/* Pagination */}
-      {pagination.total > 0 && (
-        <div className="p-4 bg-surface-container-low/50 flex flex-col sm:flex-row items-center justify-between gap-3 border-t border-hairline">
-          <div className="text-xs text-on-surface-variant">
-            Hiển thị trang {pagination.page} trong tổng số {pagination.totalPages || 1} trang ({pagination.total} giao dịch)
-          </div>
-          {pagination.totalPages > 1 && (
-            <Pagination
-              currentPage={pagination.page}
-              totalPages={pagination.totalPages}
-              onPageChange={setPage}
-            />
-          )}
+      {pagination.totalPages > 1 && (
+        <div className="flex items-center justify-between pt-2">
+          <p className="text-body-md text-text-muted">
+            Hiển thị trang <span className="font-semibold text-text-primary">{pagination.page}</span> /{' '}
+            <span>{pagination.totalPages}</span> ({pagination.total} giao dịch)
+          </p>
+          <Pagination currentPage={pagination.page} totalPages={pagination.totalPages} onPageChange={setPage} />
         </div>
       )}
 
-      {/* e-Invoice Detail Modal */}
       <PaymentDetailModal
-        payment={paymentDetail}
-        isOpen={Boolean(selectedPaymentId)}
-        onClose={() => {
-          setSelectedPaymentId(null);
-          setPaymentDetail(null);
-        }}
+        isOpen={isDetailOpen}
+        onClose={closeDetail}
+        payment={detail}
         isLoading={isDetailLoading}
+        errorMessage={detailErrorMessage}
       />
     </div>
   );

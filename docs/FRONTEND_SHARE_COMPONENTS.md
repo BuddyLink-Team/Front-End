@@ -114,9 +114,9 @@ src/components/
 | **Navigation** | `Navbar` | `components/navigation/Navbar.jsx` | ✅ Đã code | Header sticky với pill navigation |
 | **Navigation** | `Sidebar` | `components/navigation/Sidebar.jsx` | ✅ Đã code | Collapsible sidebar cho Admin/Settings |
 | **Navigation** | `Tabs` | `components/navigation/Tabs.jsx` | ✅ Đã code | Hỗ trợ kiểu Pill và Line tab |
-| **Navigation** | `Pagination` | `components/navigation/Pagination.jsx` | ✅ Đã code | Phân trang kèm dấu chấm lửng (...) |
+| **Navigation** | `Pagination` | `components/navigation/Pagination.jsx` | ✅ Đã code | Phân trang kèm dấu chấm lửng (...); `inactiveItemClassName` thêm class cho các nút không phải trang hiện tại (admin dùng nền trắng `bg-surface-container-lowest`) |
 | **Search** | `SearchBar` | `components/search/SearchBar.jsx` | ✅ Đã code | Ô tìm kiếm có icon và submit trigger |
-| **Search** | `FilterChips` | `components/search/FilterChips.jsx` | ✅ Đã code | Bộ chip lọc đơn/đa tiêu chí kèm nút Clear |
+| **Search** | `FilterChips` | `components/search/FilterChips.jsx` | ✅ Đã code | Bộ chip lọc đơn/đa tiêu chí kèm nút Clear; mỗi option định danh bằng `id`, thiếu thì dùng `value` rồi `label` |
 | **Search** | `DateRangeFilter` | `components/search/DateRangeFilter.jsx` | ✅ Đã code | Preset + khoảng tùy chỉnh, giá trị `YYYY-MM-DD` |
 
 ---
@@ -191,7 +191,7 @@ src/components/
 - **Status bổ sung (màn Admin)**: `active` "Đang hoạt động" và `success` "Thành công" (màu `confirmed`), `locked` "Đã khóa" và `failed` "Thất bại" (màu `reported`), `expired` "Đã hết hạn", `removed` "Đã gỡ", `archived` "Đã xóa" (màu `cancelled`), `creating` "Đang khởi tạo" (màu `pending`).
 - **Props**: `status` (chọn màu và nhãn mặc định), `label` (thay nhãn), `tone` (`success` | `warning` | `danger` | `info` | `neutral`, ghi đè màu lấy từ `status`), `icon` (icon Lucide đặt trước nhãn), `className`.
 - **Quy tắc dùng**: Chỉ các status đã liệt kê có màu riêng; status khác (vd. `upcoming`, `accepted`, `declined`) sẽ rơi về màu `pending`. Với status mới của module, truyền `tone` + `label` thay vì thêm status vào component. Vì vậy module phải map trạng thái nghiệp vụ sang variant có sẵn và truyền `label` riêng, không truyền thẳng status của API:
-  - Playdate (`modules/chat/constants/chatConstants.js` → `PLAYDATE_STATUS_CHIPS`): `upcoming` → `confirmed` "Sắp diễn ra", `completed` → `completed`, `cancelled` → `cancelled`.
+  - Playdate (`modules/chat/constants/chat.constants.js` → `PLAYDATE_STATUS_CHIPS`): `upcoming` → `confirmed` "Sắp diễn ra", `completed` → `completed`, `cancelled` → `cancelled`.
   - Người tham gia Playdate (`PARTICIPANT_STATUS_CHIPS`): `pending` → `pending` "Chờ phản hồi", `accepted` → `confirmed` "Đã tham gia", `declined` → `cancelled` "Đã từ chối".
   - Huy hiệu thành tích (`BadgeCard`): đã mở khóa → `confirmed` + icon `CheckCircle2`, chưa mở → `cancelled` + icon `Lock`.
   - Streak tuần (`StreakBanner`): đã hoàn thành tuần → `confirmed`, chưa → `pending`.
@@ -225,7 +225,7 @@ src/components/
 - **Quy chuẩn**:
   - Lớp nền mờ: `backdrop-filter: blur(8px); background-color: rgba(45, 55, 72, 0.25);`
   - Hộp nội dung: Bo góc 24px (`rounded-3xl`), bóng đổ mịn `0 16px 40px -8px rgba(45, 55, 72, 0.08)`.
-- **`placement`**: `center` (mặc định), `sheet` (bottom sheet trên mobile), `right`: **Drawer** full chiều cao trượt từ phải (`animate-slide-in-right`), bo góc trái 24px từ `sm`, rộng theo `maxWidth` (vd. `max-w-md`; màn hẹp hơn thì full width). Dùng cho chi tiết phụ huynh/hồ sơ trẻ (Admin) và Trợ lý AI dạng drawer. Focus trap, Escape, khóa scroll dùng chung với modal thường.
+- **`placement`**: `center` (mặc định), `sheet` (bottom sheet trên mobile), `right`: **Drawer** full chiều cao trượt từ phải (`animate-slide-in-right`), bo góc trái 24px từ `sm`, rộng theo `maxWidth` (vd. `max-w-md`; màn hẹp hơn thì full width). Dùng cho chi tiết phụ huynh/hồ sơ trẻ, kết nối, cuộc hẹn chơi (Admin) và Trợ lý AI dạng drawer. Focus trap, Escape, khóa scroll dùng chung với modal thường.
 
 #### ⚠️ `ConfirmDialog.jsx`
 - **Mục đích**: Xác nhận nhanh các thao tác quan trọng (Hủy cuộc hẹn, Chặn phụ huynh khác, Đăng xuất).
@@ -297,6 +297,8 @@ src/components/
 
 #### 🗃️ `DataTable.jsx`: sort phía server
 - Truyền `onSortChange({ sortKey, sortDir })` cùng `sortKey`, `sortDir` hiện tại để bảng chỉ phát sự kiện sort và giữ nguyên thứ tự dòng server trả về (dùng với danh sách phân trang ở server). Không truyền `onSortChange` thì vẫn sort phía client bằng `useTableSort` như cũ.
+- **Tùy biến bảng & cột** (không truyền thì giữ style cũ): `tableClassName` gộp vào thẻ `<table>` (vd. `min-w-table-users` để bảng rộng cuộn ngang trong khung); mỗi cột nhận thêm `align` (`left` mặc định | `center` | `right`, áp cho cả tiêu đề và ô), `headerClassName` (vd. `min-w-col-md`) và `cellClassName`.
+- **Loading**: lần tải đầu (`isLoading` và chưa có dòng nào) khung bảng giữ chiều cao tối thiểu `min-h-table-loading` để spinner không bị kẹp trong hàng tiêu đề; các lần tải sau vẫn phủ overlay lên dòng cũ.
 
 ---
 

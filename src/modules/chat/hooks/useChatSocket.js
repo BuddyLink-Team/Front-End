@@ -1,6 +1,6 @@
 import { useEffect, useRef, useCallback } from 'react';
 import socketService from '../../../services/socket.js';
-import { SOCKET_EVENTS, SOCKET_ACK_TIMEOUT_MS } from '../constants/chatConstants.js';
+import { SOCKET_EVENTS, SOCKET_ACK_TIMEOUT_MS } from '../constants/chat.constants.js';
 
 // Transport failures (as opposed to business errors returned by the server in the ack)
 export const SOCKET_ERROR_CODES = Object.freeze({

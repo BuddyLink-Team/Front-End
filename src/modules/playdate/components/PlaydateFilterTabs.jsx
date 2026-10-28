@@ -1,5 +1,5 @@
 import React from 'react';
-import { PLAYDATE_TABS } from '../constants/playdateConstants';
+import { PLAYDATE_TABS } from '../constants/playdate.constants';
 import { Tabs } from '../../../components/navigation/Tabs';
 import { cn } from '../../../utils/cn';
 

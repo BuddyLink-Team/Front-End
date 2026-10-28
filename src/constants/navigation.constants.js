@@ -25,17 +25,30 @@ export const NAV_LINKS = [
 ];
 
 /**
+ * Admin console paths (admin portal build), shared by the sidebar and in-app navigation.
+ */
+export const ADMIN_ROUTES = Object.freeze({
+  DASHBOARD: '/admin/dashboard',
+  USERS: '/admin/users',
+  CHILDREN: '/admin/children',
+  CONNECTIONS: '/admin/connections',
+  PLAYDATES: '/admin/playdates',
+  SUBSCRIPTIONS: '/admin/subscriptions',
+  REPORTS: '/admin/reports',
+});
+
+/**
  * Sidebar links for the admin console (AdminLayout).
  * The first 5 items follow the Stitch "Tổng quan Quản trị" screen order;
  * the rest cover the remaining admin routes in AdminRoutes.jsx.
  * `name` is also the section label in AdminHeader, so keep it in line with each page's title.
  */
 export const ADMIN_NAV_LINKS = [
-  { name: 'Tổng quan', href: '/admin/dashboard', icon: BarChart3 },
-  { name: 'Phụ huynh', href: '/admin/users', icon: Users },
-  { name: 'Hồ sơ trẻ', href: '/admin/children', icon: Baby },
-  { name: 'Kết nối', href: '/admin/connections', icon: Link2 },
-  { name: 'Cuộc hẹn chơi', href: '/admin/playdates', icon: PartyPopper },
-  { name: 'Doanh thu', href: '/admin/subscriptions', icon: Wallet },
-  { name: 'Báo cáo vi phạm', href: '/admin/reports', icon: ShieldCheck },
+  { name: 'Tổng quan', href: ADMIN_ROUTES.DASHBOARD, icon: BarChart3 },
+  { name: 'Phụ huynh', href: ADMIN_ROUTES.USERS, icon: Users },
+  { name: 'Hồ sơ trẻ', href: ADMIN_ROUTES.CHILDREN, icon: Baby },
+  { name: 'Kết nối', href: ADMIN_ROUTES.CONNECTIONS, icon: Link2 },
+  { name: 'Cuộc hẹn chơi', href: ADMIN_ROUTES.PLAYDATES, icon: PartyPopper },
+  { name: 'Doanh thu', href: ADMIN_ROUTES.SUBSCRIPTIONS, icon: Wallet },
+  { name: 'Báo cáo vi phạm', href: ADMIN_ROUTES.REPORTS, icon: ShieldCheck },
 ];

@@ -1,277 +1,211 @@
-import React, { useState } from 'react';
-import dayjs from 'dayjs';
+import React from 'react';
+import { Eye, Crown } from 'lucide-react';
+import { AdminListToolbar } from '../AdminListToolbar';
+import { AdminFilterDropdown } from '../AdminFilterDropdown';
 import { DataTable } from '../../../../components/ui/DataTable';
-import { Avatar } from '../../../../components/ui/Avatar';
 import { Pagination } from '../../../../components/navigation/Pagination';
-import { useServerTable } from '../../../../hooks/useServerTable';
-import { adminSubscriptionApi } from '../../api/adminSubscriptionApi';
-import { Search, Eye } from 'lucide-react';
+import { StatusChip } from '../../../../components/badges/StatusChip';
+import { Avatar } from '../../../../components/ui/Avatar';
+import { Modal } from '../../../../components/feedback/Modal';
+import { Button } from '../../../../components/ui/Button';
+import { useAdminSubscriptions } from '../../hooks/useAdminSubscriptions';
+import {
+  SUBSCRIPTION_PLAN_FILTER_OPTIONS,
+  SUBSCRIPTION_PLAN_NAMES,
+  SUBSCRIPTION_STATUS_CHIPS,
+  SUBSCRIPTION_STATUS_DISPLAY,
+} from '../../constants/admin.constants';
+import { formatDate, formatDateTime } from '../../../../utils/formatters';
+import { cn } from '../../../../utils/cn';
+import { ICON_SIZE } from '../../../../constants/icon.constants';
 
-const PLAN_BADGE_MAP = {
-  free: { label: 'Free', className: 'bg-slate-200 text-black font-medium' },
-  premium_monthly: { label: 'Premium Tháng', className: 'bg-green-200 text-black font-semibold' },
-  premium_yearly: { label: 'Premium Năm', className: 'bg-blue-200 text-black font-semibold' },
+const COLUMNS = [
+  { key: 'parent', label: 'Phụ huynh', headerClassName: 'min-w-col-2xl' },
+  { key: 'planCode', label: 'Gói dịch vụ', headerClassName: 'min-w-col-plan' },
+  { key: 'startDate', label: 'Ngày bắt đầu', headerClassName: 'min-w-col-md' },
+  { key: 'endDate', label: 'Ngày hết hạn', headerClassName: 'min-w-col-md' },
+  { key: 'status', label: 'Trạng thái', headerClassName: 'min-w-col-md' },
+  { key: 'actions', label: 'Thao tác', align: 'right', headerClassName: 'min-w-col-actions' },
+];
+
+const SubscriptionStatusChip = ({ status }) => {
+  const chip = SUBSCRIPTION_STATUS_DISPLAY[status];
+  return <StatusChip status={chip?.status || status} label={chip?.label} />;
 };
 
-const PLAN_OPTIONS = [
-  { value: '', label: 'Tất cả gói' },
-  { value: 'free', label: 'Free (Miễn phí)' },
-  { value: 'premium_monthly', label: 'Premium Tháng' },
-  { value: 'premium_yearly', label: 'Premium Năm' },
-];
-
-const STATUS_OPTIONS = [
-  { value: '', label: 'Tất cả trạng thái' },
-  { value: 'active', label: 'Đang hoạt động (Active)' },
-  { value: 'expired', label: 'Đã hết hạn (Expired)' },
-];
-
+/**
+ * Subscribers tab: subscription of every parent, filtered by plan and status.
+ */
 export const SubscribersTable = () => {
   const {
     rows,
     pagination,
     isLoading,
-    error,
-    filters,
+    listErrorMessage,
     searchInput,
     setSearch,
+    filters,
     setFilter,
     setPage,
-  } = useServerTable({
-    fetcher: adminSubscriptionApi.getSubscriptions,
-    syncWithUrl: false,
-  });
+    selectedSubscription,
+    openDetail,
+    closeDetail,
+  } = useAdminSubscriptions();
 
-  const [selectedSub, setSelectedSub] = useState(null);
+  const renderCell = (key, _val, row) => {
+    switch (key) {
+      case 'parent':
+        return (
+          <div className="flex items-center gap-3">
+            <Avatar src={row.parent?.avatarUrl} alt={row.parent?.fullName} size="md" />
+            <div className="min-w-0 text-body-md">
+              <p className="font-semibold text-text-primary truncate">{row.parent?.fullName || '—'}</p>
+              <p className="text-label-md text-text-muted truncate">{row.parent?.email || '—'}</p>
+            </div>
+          </div>
+        );
 
-  const columns = [
-    {
-      key: 'parent',
-      label: 'Phụ huynh & Tài khoản',
-      cell: (row) => (
-        <div>
-          <div className="font-semibold text-on-surface text-xs">
-            {row.parent?.fullName || 'Chưa cập nhật tên'}
+      case 'planCode':
+        return (
+          <span className="text-body-md text-text-primary whitespace-nowrap">
+            {SUBSCRIPTION_PLAN_NAMES[row.planCode] || row.planCode}
+          </span>
+        );
+
+      case 'startDate':
+        return <span className="text-body-md text-text-muted whitespace-nowrap">{formatDate(row.startDate)}</span>;
+
+      case 'endDate': {
+        if (!row.endDate) return <span className="text-body-md text-text-muted">Không thời hạn</span>;
+        const isPast = new Date(row.endDate) < new Date();
+        return (
+          <span className={cn('text-body-md whitespace-nowrap', isPast ? 'text-error' : 'text-text-primary')}>
+            {formatDate(row.endDate)}
+          </span>
+        );
+      }
+
+      case 'status':
+        return <SubscriptionStatusChip status={row.status} />;
+
+      case 'actions':
+        return (
+          <div className="flex justify-end">
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                openDetail(row);
+              }}
+              className="p-1.5 rounded-lg text-text-muted hover:text-primary hover:bg-surface-low transition-colors"
+              aria-label="Xem chi tiết thuê bao"
+            >
+              <Eye size={ICON_SIZE.MD} />
+            </button>
           </div>
-          <div className="text-xs text-on-surface-variant">
-            {row.parent?.email || '—'}
-          </div>
-        </div>
-      ),
-    },
-    {
-      key: 'planCode',
-      label: 'Gói dịch vụ',
-      cell: (row) => {
-        const badge = PLAN_BADGE_MAP[row.planCode] || {
-          label: row.planCode || 'Free',
-          className: 'bg-slate-200 text-black font-medium',
-        };
-        return (
-          <span className={`inline-block px-2.5 py-0.5 rounded-full text-xs ${badge.className}`}>
-            {badge.label}
-          </span>
         );
-      },
-    },
-    {
-      key: 'startDate',
-      label: 'Ngày bắt đầu',
-      cell: (row) => (
-        <span className="text-xs text-on-surface-variant">
-          {row.startDate ? dayjs(row.startDate).format('DD/MM/YYYY') : '—'}
-        </span>
-      ),
-    },
-    {
-      key: 'endDate',
-      label: 'Kỳ hạn kế tiếp',
-      cell: (row) => {
-        if (!row.endDate) {
-          return <span className="text-xs text-on-surface-variant">Vô thời hạn</span>;
-        }
-        const isExpired = dayjs(row.endDate).isBefore(dayjs());
-        return (
-          <span className={`text-xs font-medium ${isExpired ? 'text-error' : 'text-on-surface'}`}>
-            {dayjs(row.endDate).format('DD/MM/YYYY')}
-          </span>
-        );
-      },
-    },
-    {
-      key: 'status',
-      label: 'Trạng thái',
-      cell: (row) => {
-        const isActive = row.status === 'active';
-        return (
-          <span
-            className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold ${
-              isActive
-                ? 'bg-primary-soft text-primary-dark'
-                : 'bg-surface-container-highest text-on-surface-variant'
-            }`}
-          >
-            <span className={`w-1.5 h-1.5 rounded-full ${isActive ? 'bg-primary' : 'bg-outline'}`} />
-            {isActive ? 'Active' : 'Expired'}
-          </span>
-        );
-      },
-    },
-    {
-      key: 'actions',
-      label: 'Thao tác',
-      cell: (row) => (
-        <div className="flex items-center justify-end">
-          <button
-            type="button"
-            onClick={() => setSelectedSub(row)}
-            className="p-1.5 rounded-lg hover:bg-surface-container text-on-surface-variant hover:text-primary transition-colors"
-            title="Xem chi tiết hồ sơ thuê bao"
-          >
-            <Eye className="w-4 h-4" />
-          </button>
-        </div>
-      ),
-    },
-  ];
+
+      default:
+        return null;
+    }
+  };
 
   return (
-    <div className="bg-surface-container-lowest rounded-2xl border border-hairline shadow-xs overflow-hidden">
-      {/* Toolbar Search & Filter */}
-      <div className="p-5 flex flex-col lg:flex-row lg:items-center justify-between gap-4 border-b border-hairline">
-        <div>
-          <div className="flex items-center gap-2">
-            <h2 className="text-base font-bold text-on-surface">Danh sách Thuê bao Hội viên</h2>
-            <span className="px-2.5 py-0.5 rounded-full bg-primary-soft text-primary-dark text-xs font-semibold">
-              {pagination.total || 0} Thuê bao
-            </span>
-          </div>
-          <p className="text-xs text-on-surface-variant mt-0.5">
-            Quản lý kỳ hạn, số tháng tích lũy và kiểm soát gia hạn tài khoản phụ huynh.
-          </p>
-        </div>
+    <div className="space-y-4">
+      <AdminListToolbar
+        searchValue={searchInput}
+        onSearchChange={setSearch}
+        searchPlaceholder="Tìm theo tên hoặc email phụ huynh..."
+        statusChips={{
+          options: SUBSCRIPTION_STATUS_CHIPS,
+          selected: filters.status || '',
+          onChange: (val) => setFilter('status', val || undefined),
+        }}
+      >
+        <AdminFilterDropdown
+          icon={Crown}
+          header="Gói dịch vụ"
+          options={SUBSCRIPTION_PLAN_FILTER_OPTIONS}
+          value={filters.planCode}
+          onChange={(val) => setFilter('planCode', val || undefined)}
+        />
+      </AdminListToolbar>
 
-        {/* Controls */}
-        <div className="flex flex-wrap items-center gap-2">
-          <div className="relative">
-            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant" />
-            <input
-              type="text"
-              value={searchInput}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Tên phụ huynh, email..."
-              className="pl-9 pr-3 py-1.5 rounded-full bg-surface-container-low text-on-surface text-xs placeholder:text-outline focus:outline-none focus:ring-1 focus:ring-primary w-56 border-0"
-            />
-          </div>
-
-          <select
-            value={filters.planCode || ''}
-            onChange={(e) => setFilter('planCode', e.target.value || null)}
-            className="px-3 py-1.5 rounded-full bg-surface-container-low text-on-surface text-xs border-0 focus:ring-1 focus:ring-primary cursor-pointer"
-          >
-            {PLAN_OPTIONS.map((opt) => (
-              <option key={opt.value} value={opt.value}>
-                {opt.label}
-              </option>
-            ))}
-          </select>
-
-          <select
-            value={filters.status || ''}
-            onChange={(e) => setFilter('status', e.target.value || null)}
-            className="px-3 py-1.5 rounded-full bg-surface-container-low text-on-surface text-xs border-0 focus:ring-1 focus:ring-primary cursor-pointer"
-          >
-            {STATUS_OPTIONS.map((opt) => (
-              <option key={opt.value} value={opt.value}>
-                {opt.label}
-              </option>
-            ))}
-          </select>
-        </div>
-      </div>
-
-      {/* Table */}
       <DataTable
-        columns={columns}
+        columns={COLUMNS}
         rows={rows}
         isLoading={isLoading}
-        emptyMessage={error ? 'Đã có lỗi xảy ra khi tải danh sách' : 'Không tìm thấy thuê bao nào phù hợp.'}
+        onRowClick={openDetail}
+        renderCell={renderCell}
+        emptyTitle={listErrorMessage ? 'Không tải được danh sách' : 'Chưa có thuê bao'}
+        emptyMessage={listErrorMessage || 'Không tìm thấy thuê bao nào phù hợp với bộ lọc.'}
       />
 
-      {/* Pagination */}
-      {pagination.total > 0 && (
-        <div className="p-4 bg-surface-container-low/50 flex flex-col sm:flex-row items-center justify-between gap-3 border-t border-hairline">
-          <div className="text-xs text-on-surface-variant">
-            Hiển thị trang {pagination.page} trong tổng số {pagination.totalPages || 1} trang ({pagination.total} thuê bao)
-          </div>
-          {pagination.totalPages > 1 && (
-            <Pagination
-              currentPage={pagination.page}
-              totalPages={pagination.totalPages}
-              onPageChange={setPage}
-            />
-          )}
+      {pagination.totalPages > 1 && (
+        <div className="flex items-center justify-between pt-2">
+          <p className="text-body-md text-text-muted">
+            Hiển thị trang <span className="font-semibold text-text-primary">{pagination.page}</span> /{' '}
+            <span>{pagination.totalPages}</span> ({pagination.total} thuê bao)
+          </p>
+          <Pagination currentPage={pagination.page} totalPages={pagination.totalPages} onPageChange={setPage} />
         </div>
       )}
 
-      {/* Detail Modal */}
-      {selectedSub && (
-        <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-surface-container-lowest rounded-2xl max-w-md w-full p-6 shadow-2xl relative animate-in fade-in zoom-in-95 duration-200 space-y-4">
-            <div className="flex items-center justify-between pb-3 border-b border-hairline">
-              <h3 className="text-base font-bold text-on-surface">Chi tiết Thuê bao</h3>
-              <button
-                type="button"
-                onClick={() => setSelectedSub(null)}
-                className="text-on-surface-variant hover:text-on-surface p-1 rounded-lg"
-              >
-                ✕
-              </button>
-            </div>
-            <div className="space-y-3 text-xs">
-              <div className="flex items-center gap-3 p-3 rounded-xl bg-surface-container-low">
-                <Avatar
-                  src={selectedSub.parent?.avatarUrl}
-                  alt={selectedSub.parent?.fullName || 'Parent'}
-                  size="md"
-                  fallbackText={selectedSub.parent?.fullName || 'PH'}
-                />
-                <div>
-                  <div className="font-semibold text-sm text-on-surface">{selectedSub.parent?.fullName}</div>
-                  <div className="text-on-surface-variant">{selectedSub.parent?.email}</div>
-                </div>
-              </div>
-              <div className="grid grid-cols-2 gap-3 p-3 border border-hairline rounded-xl">
-                <div>
-                  <span className="text-on-surface-variant block">Gói hiện tại:</span>
-                  <span className="font-semibold text-on-surface capitalize">{selectedSub.planCode}</span>
-                </div>
-                <div>
-                  <span className="text-on-surface-variant block">Trạng thái:</span>
-                  <span className="font-semibold capitalize text-primary">{selectedSub.status}</span>
-                </div>
-                <div>
-                  <span className="text-on-surface-variant block">Ngày bắt đầu:</span>
-                  <span className="font-mono">{selectedSub.startDate ? dayjs(selectedSub.startDate).format('DD/MM/YYYY HH:mm') : '—'}</span>
-                </div>
-                <div>
-                  <span className="text-on-surface-variant block">Ngày hết hạn:</span>
-                  <span className="font-mono">{selectedSub.endDate ? dayjs(selectedSub.endDate).format('DD/MM/YYYY HH:mm') : 'Vô thời hạn'}</span>
-                </div>
+      <Modal
+        isOpen={Boolean(selectedSubscription)}
+        onClose={closeDetail}
+        title="Chi tiết thuê bao"
+        maxWidth="max-w-md"
+        footer={
+          <Button type="button" variant="secondary" onClick={closeDetail}>
+            Đóng
+          </Button>
+        }
+      >
+        {selectedSubscription && (
+          <div className="space-y-4 text-body-md">
+            <div className="flex items-center gap-3 p-3 rounded-xl bg-surface-low">
+              <Avatar
+                src={selectedSubscription.parent?.avatarUrl}
+                alt={selectedSubscription.parent?.fullName}
+                size="md"
+              />
+              <div className="min-w-0">
+                <p className="font-semibold text-text-primary truncate">{selectedSubscription.parent?.fullName}</p>
+                <p className="text-label-md text-text-muted truncate">{selectedSubscription.parent?.email}</p>
               </div>
             </div>
-            <div className="flex justify-end pt-2">
-              <button
-                type="button"
-                onClick={() => setSelectedSub(null)}
-                className="px-4 py-2 rounded-full bg-surface-container text-xs font-semibold hover:bg-surface-container-high transition-colors"
-              >
-                Đóng
-              </button>
-            </div>
+            <dl className="grid grid-cols-2 gap-3">
+              <div>
+                <dt className="text-label-md text-text-muted">Gói hiện tại</dt>
+                <dd className="font-semibold text-text-primary">
+                  {SUBSCRIPTION_PLAN_NAMES[selectedSubscription.planCode] || selectedSubscription.planCode}
+                </dd>
+              </div>
+              <div>
+                <dt className="text-label-md text-text-muted">Trạng thái</dt>
+                <dd>
+                  <SubscriptionStatusChip status={selectedSubscription.status} />
+                </dd>
+              </div>
+              <div>
+                <dt className="text-label-md text-text-muted">Ngày bắt đầu</dt>
+                <dd className="text-text-primary">{formatDateTime(selectedSubscription.startDate)}</dd>
+              </div>
+              <div>
+                <dt className="text-label-md text-text-muted">Ngày hết hạn</dt>
+                <dd className="text-text-primary">
+                  {selectedSubscription.endDate ? formatDateTime(selectedSubscription.endDate) : 'Không thời hạn'}
+                </dd>
+              </div>
+              <div>
+                <dt className="text-label-md text-text-muted">Số tháng đã mua</dt>
+                <dd className="text-text-primary">{selectedSubscription.purchasedMonths || 0}</dd>
+              </div>
+            </dl>
           </div>
-        </div>
-      )}
+        )}
+      </Modal>
     </div>
   );
 };

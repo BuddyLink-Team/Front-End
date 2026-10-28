@@ -4,8 +4,10 @@ import { openPaywall, closePaywall } from '../redux/subscriptionSlice';
 import {
   QUOTA_FEATURES,
   QUOTA_MESSAGES,
-  PLAN_CODES,
-} from '../constants/subscriptionConstants';
+  SUBSCRIPTION_ERROR_CODES,
+} from '../constants/subscription.constants';
+import { getErrorCode } from '../../../utils/errorUtils';
+import { isPremiumActive } from '../utils/premiumStatus';
 
 export const usePaywall = () => {
   const dispatch = useDispatch();
@@ -15,12 +17,7 @@ export const usePaywall = () => {
     (state) => state.subscription
   );
 
-  const isUserPremium =
-    Boolean(isPremium) ||
-    (subscription?.status === 'active' &&
-      subscription?.planCode &&
-      subscription?.planCode !== PLAN_CODES.FREE &&
-      (!subscription?.endDate || new Date(subscription.endDate) > new Date()));
+  const isUserPremium = isPremiumActive(subscription, isPremium);
 
   /**
    * Handle server 403 / QUOTA_EXCEEDED errors cleanly
@@ -28,11 +25,11 @@ export const usePaywall = () => {
    * @returns {boolean} True if error was recognized and handled as a quota error
    */
   const handleQuotaError = (error) => {
-    const errorCode = error?.code || error?.error?.code;
+    const errorCode = getErrorCode(error);
     const details = error?.details || error?.error?.details;
     const feature = details?.feature;
 
-    if (errorCode === 'CHILD_QUOTA_EXCEEDED' || feature === QUOTA_FEATURES.CHILD_PROFILES) {
+    if (errorCode === SUBSCRIPTION_ERROR_CODES.CHILD_QUOTA_EXCEEDED || feature === QUOTA_FEATURES.CHILD_PROFILES) {
       dispatch(
         openPaywall({
           feature: QUOTA_FEATURES.CHILD_PROFILES,
@@ -42,7 +39,7 @@ export const usePaywall = () => {
       return true;
     }
 
-    if (errorCode === 'QUOTA_EXCEEDED') {
+    if (errorCode === SUBSCRIPTION_ERROR_CODES.QUOTA_EXCEEDED) {
       const quotaFeature = QUOTA_MESSAGES[feature] ? feature : QUOTA_FEATURES.GENERAL;
       dispatch(openPaywall({ feature: quotaFeature, ...QUOTA_MESSAGES[quotaFeature] }));
       return true;

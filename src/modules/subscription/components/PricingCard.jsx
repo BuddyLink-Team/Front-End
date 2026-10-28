@@ -9,7 +9,7 @@ import {
   Heart,
 } from 'lucide-react';
 import { Button } from '../../../components/ui/Button';
-import { PLAN_CODES } from '../constants/subscriptionConstants';
+import { PLAN_CODES } from '../constants/subscription.constants';
 import { getPlanBenefits } from '../utils/planBenefits';
 
 export const PricingCard = ({

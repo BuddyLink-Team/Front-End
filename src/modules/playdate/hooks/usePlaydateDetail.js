@@ -9,9 +9,10 @@ import {
   completePlaydate,
   cancelPlaydate,
   respondToPlaydate,
+  inviteParticipants,
   voteRescheduleRequest,
 } from '../redux/playdateSlice';
-import { PLAYDATE_ERROR_MAP, RESCHEDULE_STATUS } from '../constants/playdateConstants';
+import { PLAYDATE_ERROR_MESSAGES, PLAYDATE_WARNING_CODES, RESCHEDULE_STATUS } from '../constants/playdate.constants';
 import { hasPlaydateStarted } from '../utils/playdateTime';
 
 /**
@@ -36,6 +37,7 @@ export const usePlaydateDetail = () => {
   const [showCancelModal, setShowCancelModal] = useState(false);
   const [cancelReason, setCancelReason] = useState('');
   const [showRescheduleModal, setShowRescheduleModal] = useState(false);
+  const [showInviteModal, setShowInviteModal] = useState(false);
   const [hasLoadFailed, setHasLoadFailed] = useState(false);
 
   const fetchDetail = useCallback(async () => {
@@ -44,7 +46,7 @@ export const usePlaydateDetail = () => {
       await dispatch(fetchPlaydateDetail(id)).unwrap();
     } catch (err) {
       setHasLoadFailed(true);
-      toast.error(getApiErrorMsg(PLAYDATE_ERROR_MAP, err, 'Không thể tải thông tin chi tiết buổi hẹn chơi.'));
+      toast.error(getApiErrorMsg(PLAYDATE_ERROR_MESSAGES, err, 'Không thể tải thông tin chi tiết buổi hẹn chơi.'));
       return;
     }
     // Having no reschedule request is normal: failures are ignored here
@@ -63,7 +65,10 @@ export const usePlaydateDetail = () => {
   // Section 6.2: only the host proposes; voters are the accepted participants (myVote from the API)
   const canReschedule = isHost && isUpcoming;
   // Completing is possible only after the start time
-  const canComplete = isHost && isUpcoming && hasPlaydateStarted(currentPlaydate?.scheduledDate, currentPlaydate?.time);
+  const hasStarted = hasPlaydateStarted(currentPlaydate?.scheduledDate, currentPlaydate?.time);
+  const canComplete = isHost && isUpcoming && hasStarted;
+  // More friends can be invited until the playdate starts (e.g. once every invitee declined)
+  const canInvite = isHost && isUpcoming && !hasStarted;
   const pendingReschedule = rescheduleReq?.status === RESCHEDULE_STATUS.PENDING ? rescheduleReq : null;
   const myPendingVote = pendingReschedule?.myVote === 'pending';
   // Latest decided request (accepted / declined), shown so the host learns the outcome
@@ -83,7 +88,7 @@ export const usePlaydateDetail = () => {
         if (successMessage) toast.success(successMessage);
         return result;
       } catch (err) {
-        toast.error(getApiErrorMsg(PLAYDATE_ERROR_MAP, err, fallbackError));
+        toast.error(getApiErrorMsg(PLAYDATE_ERROR_MESSAGES, err, fallbackError));
         return null;
       }
     },
@@ -117,6 +122,23 @@ export const usePlaydateDetail = () => {
     if (result) dispatch(fetchRescheduleRequest(id));
   };
 
+  /**
+   * @param {Array<{ parentId: string, childId: string }>} participants
+   * @returns {Promise<boolean>} true once the invitations are sent
+   */
+  const handleInvite = async (participants) => {
+    const result = await runAction(
+      inviteParticipants({ id, participants }),
+      participants.length > 1 ? `Đã gửi lời mời tới ${participants.length} gia đình.` : 'Đã gửi lời mời.',
+      'Không thể gửi lời mời.',
+    );
+    // Busy children are still invited: they are checked again when their parent accepts
+    if (result?.warnings?.some((warning) => warning.code === PLAYDATE_WARNING_CODES.SCHEDULE_CONFLICT)) {
+      toast.toast('Có bé đã có lịch hẹn khác trùng giờ này. Phụ huynh của bé có thể chưa nhận lời được.', { icon: '⚠️' });
+    }
+    return Boolean(result);
+  };
+
   const handleVoteReschedule = (voteStatus) => {
     if (!pendingReschedule) return null;
     return runAction(
@@ -144,17 +166,21 @@ export const usePlaydateDetail = () => {
     isCompleted,
     canReschedule,
     canComplete,
+    canInvite,
     canOpenGroupChat,
     myPendingVote,
     showCancelModal,
     cancelReason,
     showRescheduleModal,
+    showInviteModal,
     setShowCancelModal,
     setCancelReason,
     setShowRescheduleModal,
+    setShowInviteModal,
     handleComplete,
     handleCancel,
     handleRespond,
+    handleInvite,
     handleVoteReschedule,
     handleRescheduleSuccess,
     navigate,

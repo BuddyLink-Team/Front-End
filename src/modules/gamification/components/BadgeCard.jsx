@@ -15,7 +15,7 @@ export function BadgeCard({ badge }) {
       padding="sm"
       className={cn(
         'flex flex-col justify-between',
-        unlocked ? cn('bg-gradient-to-br to-white shadow-elevated', theme.surface, theme.border) : 'bg-canvas',
+        unlocked ? cn('shadow-elevated', theme.surface, theme.border) : 'bg-surface-muted',
       )}
     >
       <div className="flex items-start gap-4">
@@ -39,7 +39,7 @@ export function BadgeCard({ badge }) {
       </div>
 
       {unlocked ? (
-        <div className="mt-4 flex items-center justify-between rounded-xl bg-white/70 px-3 py-2 text-label-md text-on-surface-variant">
+        <div className="mt-4 flex items-center justify-between rounded-xl bg-white px-3 py-2 text-label-md text-on-surface-variant">
           <span>{badge.unlockedDateLabel ? `Đạt ngày ${badge.unlockedDateLabel}` : 'Đã hoàn thành'}</span>
           <span className="text-primary-dark">Hoàn thành</span>
         </div>
@@ -52,7 +52,7 @@ export function BadgeCard({ badge }) {
             </span>
           </div>
           <div
-            className="w-full bg-surface-muted rounded-full h-1.5 overflow-hidden"
+            className="w-full bg-hairline-strong rounded-full h-1.5 overflow-hidden"
             role="progressbar"
             aria-valuemin={0}
             aria-valuemax={badge.requirementCount}

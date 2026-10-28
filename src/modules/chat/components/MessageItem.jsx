@@ -1,9 +1,9 @@
 import React from 'react';
 import dayjs from 'dayjs';
-import { Check, CheckCheck, Clock, AlertCircle, RotateCcw } from 'lucide-react';
+import { Check, CheckCheck, Clock, AlertCircle, RotateCcw, Flag } from 'lucide-react';
 import { Avatar } from '../../../components/ui/Avatar';
 import { ChatBubble } from '../../../components/chat/ChatBubble';
-import { MESSAGE_STATUS } from '../constants/chatConstants.js';
+import { MESSAGE_STATUS } from '../constants/chat.constants.js';
 
 export const MessageItem = ({
   message,
@@ -12,6 +12,7 @@ export const MessageItem = ({
   currentParentId,
   onImageClick,
   onRetry,
+  onReportMessage,
 }) => {
   const senderId =
     message.senderId?._id ||
@@ -43,7 +44,7 @@ export const MessageItem = ({
       meta={
         <>
           <span>{timeFormatted}</span>
-          {isMine && (
+          {isMine ? (
             <>
               <span>•</span>
               {isSending ? (
@@ -78,6 +79,21 @@ export const MessageItem = ({
                 </span>
               )}
             </>
+          ) : (
+            onReportMessage && (
+              <>
+                <span>•</span>
+                <button
+                  type="button"
+                  onClick={() => onReportMessage(message)}
+                  title="Báo cáo tin nhắn này"
+                  className="inline-flex items-center gap-0.5 text-outline hover:text-error transition-colors"
+                >
+                  <Flag className="w-3 h-3" />
+                  <span>Báo cáo</span>
+                </button>
+              </>
+            )
           )}
         </>
       }

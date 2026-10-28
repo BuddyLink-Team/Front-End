@@ -10,6 +10,7 @@ import { cn } from '../../utils/cn';
  * @param {number} [totalPages=1]
  * @param {Function} onPageChange
  * @param {boolean} [showPageNumbers=true]
+ * @param {string} [inactiveItemClassName] - Extra classes for the prev / next / page buttons that are not the current page (e.g. `bg-surface-container-lowest`)
  */
 export const Pagination = ({
   currentPage = 1,
@@ -17,6 +18,7 @@ export const Pagination = ({
   onPageChange,
   showPageNumbers = true,
   className,
+  inactiveItemClassName,
 }) => {
   const { isPrevDisabled, isNextDisabled, pages } = usePagination(
     currentPage,
@@ -35,7 +37,8 @@ export const Pagination = ({
         aria-label="Trang trước"
         className={cn(
           baseBtnClass,
-          'px-2.5 gap-1 border border-hairline text-text-muted hover:bg-surface-low hover:text-text-primary disabled:opacity-40 disabled:cursor-not-allowed'
+          'px-2.5 gap-1 border border-hairline text-text-muted hover:bg-surface-low hover:text-text-primary disabled:opacity-40 disabled:cursor-not-allowed',
+          inactiveItemClassName
         )}
       >
         <ChevronLeft className="w-4 h-4" />
@@ -61,7 +64,8 @@ export const Pagination = ({
                 baseBtnClass,
                 page === currentPage
                   ? 'bg-primary text-white shadow-xs'
-                  : 'border border-hairline text-text-muted hover:bg-surface-low hover:text-text-primary'
+                  : 'border border-hairline text-text-muted hover:bg-surface-low hover:text-text-primary',
+                page !== currentPage && inactiveItemClassName
               )}
             >
               {page}
@@ -76,7 +80,8 @@ export const Pagination = ({
         aria-label="Trang sau"
         className={cn(
           baseBtnClass,
-          'px-2.5 gap-1 border border-hairline text-text-muted hover:bg-surface-low hover:text-text-primary disabled:opacity-40 disabled:cursor-not-allowed'
+          'px-2.5 gap-1 border border-hairline text-text-muted hover:bg-surface-low hover:text-text-primary disabled:opacity-40 disabled:cursor-not-allowed',
+          inactiveItemClassName
         )}
       >
         <span className="hidden sm:inline">Sau</span>

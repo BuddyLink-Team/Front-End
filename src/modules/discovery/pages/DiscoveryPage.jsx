@@ -8,7 +8,9 @@ import { DiscoveryFilterBar } from '../components/DiscoveryFilterBar';
 import { DiscoveryCard } from '../components/DiscoveryCard';
 import DiscoveryFilterModal from '../components/DiscoveryFilterModal';
 import ChildProfileDetailModal from '../components/ChildProfileDetailModal';
-import { VISIBLE_CARD_COUNT } from '../constants/discoveryConstants';
+import { ReportModal } from '../../safety/components/ReportModal';
+import { useReportTarget } from '../../safety/hooks/useReportTarget';
+import { VISIBLE_CARD_COUNT } from '../constants/discovery.constants';
 import { ICON_SIZE, ICON_STROKE } from '../../../constants/icon.constants';
 
 export const DiscoveryPage = () => {
@@ -21,6 +23,7 @@ export const DiscoveryPage = () => {
     openChildDetail,
     closeChildDetail,
   } = useDiscoveryModals();
+  const { reportTarget, reportUser, closeReport } = useReportTarget();
 
   const {
     profiles,
@@ -37,7 +40,11 @@ export const DiscoveryPage = () => {
     refetch,
     handleSwipe,
     goToUpgrade,
-  } = useDiscovery({ isKeyboardEnabled: !isAnyModalOpen, onViewDetail: openChildDetail });
+  } = useDiscovery({
+    // Arrow keys must not swipe a card while a modal (filter, detail, report) is open
+    isKeyboardEnabled: !isAnyModalOpen && !reportTarget,
+    onViewDetail: openChildDetail,
+  });
 
   // Render the top cards only, bottom-most first so the top card sits above the others
   const visibleProfiles = profiles.slice(0, VISIBLE_CARD_COUNT).reverse();
@@ -86,6 +93,7 @@ export const DiscoveryPage = () => {
           isTop={index === 0}
           onSwipe={(direction) => handleSwipe(profile, direction)}
           onViewDetail={() => openChildDetail(profile.childId)}
+          onReport={() => reportUser(profile.parentId, profile.parent?.fullName)}
         />
       );
     });
@@ -122,6 +130,8 @@ export const DiscoveryPage = () => {
         onSwipe={(direction) => handleSwipe(selectedChildId, direction)}
         isSwiping={isSwiping}
       />
+
+      <ReportModal isOpen={Boolean(reportTarget)} onClose={closeReport} target={reportTarget} />
     </div>
   );
 };

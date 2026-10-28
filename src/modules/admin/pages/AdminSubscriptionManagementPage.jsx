@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import dayjs from 'dayjs';
+import { Download, CheckCircle2 } from 'lucide-react';
 import { RevenueKpiCards } from '../components/subscription/RevenueKpiCards';
 import { MonthlyRevenueChart } from '../components/subscription/MonthlyRevenueChart';
 import { PlanEditCard } from '../components/subscription/PlanEditCard';
@@ -8,73 +9,30 @@ import { TransactionsTable } from '../components/subscription/TransactionsTable'
 import { useAdminPlans } from '../hooks/useAdminPlans';
 import { useAdminRevenueSummary } from '../hooks/useAdminRevenueSummary';
 import { Skeleton } from '../../../components/feedback/Skeleton';
-import {
-  ChevronRight,
-  Download,
-  BarChart2,
-  Sparkles,
-  Users,
-  Receipt,
-  Calendar,
-  CheckCircle2,
-} from 'lucide-react';
+import { Tabs } from '../../../components/navigation/Tabs';
+import { DateRangeFilter } from '../../../components/search/DateRangeFilter';
+import { Button } from '../../../components/ui/Button';
 import { useToast } from '../../../hooks/useToast';
-
-const TABS = [
-  { id: 'overview', label: 'Tổng quan (Overview)', icon: BarChart2 },
-  { id: 'plans', label: 'Gói dịch vụ (Plans)', icon: Sparkles },
-  { id: 'subscribers', label: 'Thuê bao (Subscriptions)', icon: Users },
-  { id: 'transactions', label: 'Giao dịch (Payments)', icon: Receipt },
-];
+import { REVENUE_DATE_PRESETS, SUBSCRIPTION_TABS } from '../constants/admin.constants';
+import { ICON_SIZE } from '../../../constants/icon.constants';
+import { formatDate } from '../../../utils/formatters';
 
 export const AdminSubscriptionManagementPage = () => {
   const toast = useToast();
-  const [activeTab, setActiveTab] = useState('overview');
+  const [activeTab, setActiveTab] = useState(SUBSCRIPTION_TABS[0].id);
 
-  const {
-    summary,
-    isLoading: isSummaryLoading,
-    dateRange,
-    setDateRange,
-  } = useAdminRevenueSummary();
+  // No range = the API default (last 6 months)
+  const { summary, isLoading: isSummaryLoading, errorMessage: summaryError, dateRange, setDateRange } =
+    useAdminRevenueSummary();
 
   const {
     plans,
     isLoading: isPlansLoading,
+    errorMessage: plansError,
     isUpdating: isPlanUpdating,
     updatePlan,
   } = useAdminPlans();
-
-  // Local date picker draft state
-  const [tempDateFrom, setTempDateFrom] = useState(dateRange.from || dayjs().subtract(30, 'day').format('YYYY-MM-DD'));
-  const [tempDateTo, setTempDateTo] = useState(dateRange.to || dayjs().format('YYYY-MM-DD'));
-  const [activeQuickFilter, setActiveQuickFilter] = useState('30d');
-
-  const handleApplyDateRange = () => {
-    setDateRange({ from: tempDateFrom, to: tempDateTo });
-    toast.success('Đã cập nhật khoảng thời gian thống kê');
-  };
-
-  const handleQuickFilter = (type) => {
-    setActiveQuickFilter(type);
-    const today = dayjs();
-    let from;
-    const to = today.format('YYYY-MM-DD');
-
-    if (type === '7d') {
-      from = today.subtract(6, 'day').format('YYYY-MM-DD');
-    } else if (type === '30d') {
-      from = today.subtract(29, 'day').format('YYYY-MM-DD');
-    } else if (type === 'quarter') {
-      from = today.subtract(90, 'day').format('YYYY-MM-DD');
-    } else if (type === 'year') {
-      from = today.startOf('year').format('YYYY-MM-DD');
-    }
-
-    setTempDateFrom(from);
-    setTempDateTo(to);
-    setDateRange({ from, to });
-  };
+  const activePlansCount = plans.filter((plan) => plan.isActive).length;
 
   const handleExportFinancialReport = () => {
     // Generate CSV for monthly revenue and KPI summary
@@ -84,7 +42,7 @@ export const AdminSubscriptionManagementPage = () => {
     let csvContent = 'data:text/csv;charset=utf-8,';
     csvContent += 'BÁO CÁO TÀI CHÍNH & HỘI VIÊN BUDDYLINK\n';
     csvContent += `Thời gian xuất: ${dayjs().format('DD/MM/YYYY HH:mm:ss')}\n`;
-    csvContent += `Khoảng thời gian: ${dateRange.from || 'Tất cả'} đến ${dateRange.to || 'Hiện tại'}\n\n`;
+    csvContent += `Khoảng thời gian: ${formatDate(summary?.filter?.fromDate)} đến ${formatDate(summary?.filter?.toDate)}\n\n`;
 
     csvContent += 'CHỈ SỐ TỔNG HỢP (KPI)\n';
     csvContent += `Tổng doanh thu (VNĐ),${overview.totalRevenue || 0}\n`;
@@ -108,126 +66,45 @@ export const AdminSubscriptionManagementPage = () => {
     link.click();
     document.body.removeChild(link);
 
-    toast.success('Đã xuất báo cáo tài chính thành công!');
+    toast.success('Đã xuất báo cáo tài chính.');
   };
 
   return (
     <div className="space-y-6">
-      {/* Tiêu đề Header & Nút hành động nhanh (Stitch Layout) */}
+      {/* Page Header */}
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
-        <div className="space-y-1">
-          <div className="flex items-center gap-1.5 text-on-surface-variant text-xs">
-            <span>Cổng điều hành</span>
-            <ChevronRight className="w-3.5 h-3.5" />
-            <span className="text-primary font-semibold">Doanh thu &amp; Hội viên</span>
-          </div>
-          <h1 className="text-2xl font-bold tracking-tight text-on-surface">
-            Quản lý Gói cước &amp; Doanh thu Hội viên
+        <div>
+          <h1 className="text-headline-md font-semibold tracking-tight text-text-primary">
+            Gói cước &amp; doanh thu
           </h1>
-          <p className="text-xs text-on-surface-variant max-w-2xl leading-relaxed">
-            Theo dõi lưu lượng dòng tiền, tối ưu cấu hình gói cước, quản lý vòng đời thuê bao phụ huynh và đối soát thanh toán đa kênh.
+          <p className="text-body-md text-text-muted mt-1">
+            Doanh thu, cấu hình gói cước, thuê bao của phụ huynh và đối soát giao dịch thanh toán.
           </p>
         </div>
-
-        <div className="flex items-center gap-3 shrink-0">
-          <button
-            type="button"
-            onClick={handleExportFinancialReport}
-            className="flex items-center gap-2 px-4 py-2.5 rounded-full bg-primary text-on-primary hover:bg-primary-dark transition-all shadow-xs text-xs font-semibold"
-          >
-            <Download className="w-4 h-4" />
-            <span>Xuất báo cáo tài chính</span>
-          </button>
-        </div>
+        <Button
+          type="button"
+          onClick={handleExportFinancialReport}
+          disabled={!summary}
+          leftIcon={<Download size={ICON_SIZE.MD} />}
+          className="shrink-0"
+        >
+          Xuất báo cáo tài chính
+        </Button>
       </div>
 
-      {/* Thanh Navigation Tabs 4 mục chuyển đổi mượt mà */}
-      <div className="border-b border-hairline">
-        <div className="flex items-center gap-2 overflow-x-auto">
-          {TABS.map((tab) => {
-            const Icon = tab.icon;
-            const isActive = activeTab === tab.id;
-            return (
-              <button
-                key={tab.id}
-                type="button"
-                onClick={() => setActiveTab(tab.id)}
-                className={`flex items-center gap-2 py-3 px-4 border-b-2 text-xs font-semibold transition-all whitespace-nowrap ${
-                  isActive
-                    ? 'border-primary text-primary font-bold'
-                    : 'border-transparent text-on-surface-variant hover:text-on-surface'
-                }`}
-              >
-                <Icon className={`w-4 h-4 ${isActive ? 'text-primary' : 'text-on-surface-variant'}`} />
-                <span>{tab.label}</span>
-              </button>
-            );
-          })}
-        </div>
-      </div>
+      <Tabs tabs={SUBSCRIPTION_TABS} activeTab={activeTab} onChange={setActiveTab} variant="line" />
 
       {/* TAB 1: TỔNG QUAN (OVERVIEW) */}
       {activeTab === 'overview' && (
         <div className="space-y-6">
-          {/* Date Range Picker & Quick filters */}
-          <div className="bg-surface-container-lowest p-4 rounded-2xl border border-hairline shadow-xs flex flex-col xl:flex-row xl:items-center justify-between gap-4">
-            <div className="flex flex-wrap items-center gap-2">
-              <span className="text-xs text-on-surface font-semibold flex items-center gap-1.5 mr-1">
-                <Calendar className="w-4 h-4 text-primary" />
-                Thời gian:
-              </span>
+          <DateRangeFilter
+            from={dateRange.from}
+            to={dateRange.to}
+            onChange={setDateRange}
+            presets={REVENUE_DATE_PRESETS}
+          />
 
-              <div className="flex items-center gap-1.5 bg-surface-container-low px-3 py-1.5 rounded-full border border-hairline text-xs">
-                <span className="text-on-surface-variant">Từ</span>
-                <input
-                  type="date"
-                  value={tempDateFrom}
-                  onChange={(e) => setTempDateFrom(e.target.value)}
-                  className="bg-transparent border-0 p-0 text-on-surface text-xs focus:ring-0"
-                />
-              </div>
-
-              <div className="flex items-center gap-1.5 bg-surface-container-low px-3 py-1.5 rounded-full border border-hairline text-xs">
-                <span className="text-on-surface-variant">Đến</span>
-                <input
-                  type="date"
-                  value={tempDateTo}
-                  onChange={(e) => setTempDateTo(e.target.value)}
-                  className="bg-transparent border-0 p-0 text-on-surface text-xs focus:ring-0"
-                />
-              </div>
-
-              <button
-                type="button"
-                onClick={handleApplyDateRange}
-                className="px-4 py-1.5 rounded-full bg-primary text-on-primary text-xs font-semibold hover:bg-primary-dark transition-all shadow-xs"
-              >
-                Áp dụng
-              </button>
-            </div>
-
-            <div className="flex flex-wrap items-center gap-1.5">
-              {[
-                { id: '7d', label: '7 ngày qua' },
-                { id: '30d', label: '30 ngày qua' },
-                { id: 'quarter', label: 'Quý này' },
-                { id: 'year', label: 'Năm nay' },
-              ].map((btn) => (
-                <button
-                  key={btn.id}
-                  type="button"
-                  onClick={() => handleQuickFilter(btn.id)}
-                  className={`px-3 py-1 rounded-full text-xs transition-all ${
-                    activeQuickFilter === btn.id
-                      ? 'bg-primary text-on-primary font-semibold shadow-xs'
-                      : 'bg-surface-container-low hover:bg-surface-container text-on-surface-variant'
-                  }`}
-                >
-                  {btn.label}
-                </button>
-              ))}
-            </div>
-          </div>
+          {summaryError && <p className="text-body-md text-error">{summaryError}</p>}
 
           {/* 4 KPI Cards */}
           <RevenueKpiCards overview={summary?.overview} isLoading={isSummaryLoading} />
@@ -244,20 +121,17 @@ export const AdminSubscriptionManagementPage = () => {
       {/* TAB 2: GÓI DỊCH VỤ (PLANS) */}
       {activeTab === 'plans' && (
         <div className="space-y-6">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-surface-container-lowest p-5 rounded-2xl border border-hairline shadow-xs">
-            <div>
-              <h2 className="text-base font-bold text-on-surface">Cấu hình Danh mục Gói Hội viên</h2>
-              <p className="text-xs text-on-surface-variant mt-0.5">
-                Tùy biến mức giá, chu kỳ cước và hạn mức tính năng kết nối cho từng đối tượng phụ huynh.
-              </p>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-primary-soft text-primary-dark text-xs font-semibold">
-                <CheckCircle2 className="w-3.5 h-3.5" />
-                3 Gói đang sẵn sàng
-              </span>
-            </div>
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <p className="text-body-md text-text-muted">
+              Giá, trạng thái và hạn mức tính năng của từng gói. Đổi giá chỉ áp dụng cho lượt mua mới.
+            </p>
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-label-sm font-semibold bg-primary-soft text-primary-dark shrink-0">
+              <CheckCircle2 size={ICON_SIZE.SM} />
+              {activePlansCount}/{plans.length} gói đang bán
+            </span>
           </div>
+
+          {plansError && <p className="text-body-md text-error">{plansError}</p>}
 
           {isPlansLoading ? (
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -288,7 +162,7 @@ export const AdminSubscriptionManagementPage = () => {
       {/* TAB 3: THUÊ BAO (SUBSCRIPTIONS) */}
       {activeTab === 'subscribers' && <SubscribersTable />}
 
-      {/* TAB 4: GIAO DỊCH (PAYMENTS) */}
+      {/* TAB 4: GIAO DỊCH */}
       {activeTab === 'transactions' && <TransactionsTable />}
     </div>
   );

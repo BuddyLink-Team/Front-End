@@ -5,7 +5,12 @@ import { CLIENT_ERROR_CODES } from '../constants/error.constants';
 import socketService from './socket';
 import tokenStore from './tokenStore';
 import { APP_EVENTS } from '../constants/event.constants';
-import { QUOTA_FEATURES, QUOTA_MESSAGES } from '../modules/subscription/constants/subscriptionConstants';
+import {
+  QUOTA_FEATURES,
+  QUOTA_MESSAGES,
+  SUBSCRIPTION_ERROR_CODES,
+} from '../modules/subscription/constants/subscription.constants';
+import { getErrorCode } from '../utils/errorUtils';
 
 const baseURL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api/v1';
 
@@ -86,10 +91,11 @@ const NO_REFRESH_ENDPOINTS = [
  * Sent as a browser event (PaywallModal listens) so this client never imports the store.
  */
 const openPaywallOnQuotaError = (error) => {
-  const errorCode = error.response?.data?.error?.code;
+  const errorCode = getErrorCode(error.response?.data);
   const feature = error.response?.data?.error?.details?.feature;
-  const isChildQuota = errorCode === 'CHILD_QUOTA_EXCEEDED' || feature === QUOTA_FEATURES.CHILD_PROFILES;
-  if (!isChildQuota && errorCode !== 'QUOTA_EXCEEDED') return;
+  const isChildQuota =
+    errorCode === SUBSCRIPTION_ERROR_CODES.CHILD_QUOTA_EXCEEDED || feature === QUOTA_FEATURES.CHILD_PROFILES;
+  if (!isChildQuota && errorCode !== SUBSCRIPTION_ERROR_CODES.QUOTA_EXCEEDED) return;
 
   let quotaFeature = QUOTA_MESSAGES[feature] ? feature : QUOTA_FEATURES.GENERAL;
   if (isChildQuota) quotaFeature = QUOTA_FEATURES.CHILD_PROFILES;

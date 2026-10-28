@@ -25,7 +25,7 @@ export const FormPageHeader = ({
             size="sm"
             onClick={onBack}
             aria-label={backLabel}
-            className="rounded-xl border border-hairline hover:bg-surface-container-lowest shrink-0 mt-0.5"
+            className="rounded-xl bg-white border border-hairline hover:bg-surface-container-lowest shrink-0 mt-0.5"
           >
             <ArrowLeft className="w-4 h-4" />
           </Button>

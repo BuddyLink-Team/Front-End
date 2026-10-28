@@ -5,7 +5,7 @@ import { useToast } from '../../../hooks/useToast';
 import { fetchChildById, createChild, updateChild, deleteChild, setError } from '../redux/childSlice';
 import { childSchema, getFieldErrors } from '../validation/onboardingValidation';
 import { getApiErrorMsg, getErrorCode } from '../../../utils/errorUtils';
-import { CHILD_ERROR_CODES, CHILD_ERROR_MESSAGES } from '../constants/childConstants';
+import { CHILD_ERROR_CODES, CHILD_ERROR_MESSAGES } from '../constants/child.constants';
 
 const EMPTY_FORM = {
   displayName: '',
@@ -58,8 +58,8 @@ export const useChildForm = () => {
       try {
         const child = await dispatch(fetchChildById(id)).unwrap();
         setFormData(toFormData(child));
-      } catch {
-        toast.error('Không tìm thấy thông tin hồ sơ bé');
+      } catch (err) {
+        toast.error(getApiErrorMsg(CHILD_ERROR_MESSAGES, err, 'Không tìm thấy thông tin hồ sơ bé.'));
         navigate('/children', { replace: true });
       } finally {
         setIsFetchingChild(false);

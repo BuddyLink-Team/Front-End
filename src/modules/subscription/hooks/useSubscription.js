@@ -8,8 +8,9 @@ import {
   setBillingCycle,
   setSelectedPlan,
 } from '../redux/subscriptionSlice';
-import { PLAN_CODES, BILLING_CYCLES, SUBSCRIPTION_ERROR_MESSAGES } from '../constants/subscriptionConstants';
+import { PLAN_CODES, BILLING_CYCLES, SUBSCRIPTION_ERROR_MESSAGES } from '../constants/subscription.constants';
 import { getApiErrorMsg } from '../../../utils/errorUtils';
+import { isPremiumActive } from '../utils/premiumStatus';
 
 export const useSubscription = () => {
   const dispatch = useDispatch();
@@ -22,7 +23,7 @@ export const useSubscription = () => {
     subscription,
     usage,
     effectivePlanCode,
-    isPremium,
+    isPremium: isPremiumFlag,
     paymentHistory,
     plansLoading,
     loading: quotaLoading,
@@ -32,6 +33,7 @@ export const useSubscription = () => {
   } = useSelector((state) => state.subscription);
 
   const { isAuthenticated } = useSelector((state) => state.auth || {});
+  const isPremium = isPremiumActive(subscription, isPremiumFlag);
 
   // Load plans and my subscription on mount
   const loadSubscriptionData = useCallback(() => {

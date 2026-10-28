@@ -4,6 +4,7 @@ import { Button } from '../../../../components/ui/Button';
 import { Input } from '../../../../components/ui/Input';
 import { Switch } from '../../../../components/ui/Switch';
 import { ConfirmDialog } from '../../../../components/feedback/ConfirmDialog';
+import { formatCurrency } from '../../../../utils/formatters';
 
 const QUOTA_FIELDS = [
   { key: 'childProfilesLimit', label: 'Hồ sơ trẻ tối đa', fallback: 1 },
@@ -14,9 +15,6 @@ const QUOTA_FIELDS = [
   { key: 'aiAssistantLimitPerMonth', label: 'Yêu cầu Trợ lý AI / tháng', fallback: 5 },
 ];
 
-const formatCurrency = (amount) => {
-  return new Intl.NumberFormat('vi-VN').format(amount || 0);
-};
 
 export const EditPlanModal = ({ plan, isOpen, onClose, onSave, isUpdating }) => {
   const [formData, setFormData] = useState({
@@ -260,11 +258,7 @@ export const EditPlanModal = ({ plan, isOpen, onClose, onSave, isUpdating }) => 
       <ConfirmDialog
         open={showConfirmPrice}
         title="Xác nhận thay đổi giá gói cước"
-        description={`Bạn có chắc chắn muốn thay đổi giá gói ${plan.name} từ ${formatCurrency(
-          plan.price
-        )} ₫ thành ${formatCurrency(
-          formData.price
-        )} ₫? Thay đổi này sẽ áp dụng cho tất cả các lượt đăng ký mới. Thuê bao hiện tại không bị ảnh hưởng.`}
+        description={`Bạn có chắc chắn muốn thay đổi giá gói ${plan.name} từ ${formatCurrency(plan.price)} thành ${formatCurrency(formData.price)}? Thay đổi này sẽ áp dụng cho tất cả các lượt đăng ký mới. Thuê bao hiện tại không bị ảnh hưởng.`}
         confirmLabel="Đồng ý đổi giá"
         cancelLabel="Quay lại"
         variant="warning"

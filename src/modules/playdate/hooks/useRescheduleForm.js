@@ -3,7 +3,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { useToast } from '../../../hooks/useToast';
 import { getApiErrorMsg } from '../../../utils/errorUtils';
 import { createRescheduleRequest } from '../redux/playdateSlice';
-import { DEFAULT_PLAYDATE_DURATION, PLAYDATE_ERROR_MAP } from '../constants/playdateConstants';
+import { DEFAULT_PLAYDATE_DURATION, PLAYDATE_ERROR_MESSAGES } from '../constants/playdate.constants';
 import { getLocalDateString } from '../../../utils/formatters';
 import { PLAYDATE_TIME_REGEX, hasPlaydateStarted } from '../utils/playdateTime';
 import { useScheduleCheck } from './useScheduleCheck';
@@ -84,7 +84,7 @@ export const useRescheduleForm = ({ isOpen, playdate, onSuccess, onClose }) => {
     else if (form.newDate && hasPlaydateStarted(form.newDate, form.newStartTime.trim())) {
       errs.newStartTime = 'Lịch hẹn mới phải ở tương lai';
     } else if (scheduleCheck.ownConflicts.length > 0) {
-      errs.newStartTime = PLAYDATE_ERROR_MAP.SCHEDULE_CONFLICT;
+      errs.newStartTime = PLAYDATE_ERROR_MESSAGES.SCHEDULE_CONFLICT;
     }
     // A new location needs both a name and an address
     if (Boolean(name) !== Boolean(address)) errs.location = 'Vui lòng nhập cả tên và địa chỉ địa điểm mới';
@@ -132,7 +132,7 @@ export const useRescheduleForm = ({ isOpen, playdate, onSuccess, onClose }) => {
       onSuccess?.(result);
       onClose?.();
     } catch (err) {
-      toast.error(getApiErrorMsg(PLAYDATE_ERROR_MAP, err, 'Có lỗi xảy ra khi gửi đề xuất đổi lịch.'));
+      toast.error(getApiErrorMsg(PLAYDATE_ERROR_MESSAGES, err, 'Có lỗi xảy ra khi gửi đề xuất đổi lịch.'));
     }
   };
 

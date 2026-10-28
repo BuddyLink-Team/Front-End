@@ -10,10 +10,8 @@ import {
 } from 'recharts';
 import { Skeleton } from '../../../../components/feedback/Skeleton';
 import { QrCode, Wallet, CreditCard, ShieldCheck, Lightbulb, ArrowRight } from 'lucide-react';
+import { formatCurrency } from '../../../../utils/formatters';
 
-const formatCurrency = (amount) => {
-  return new Intl.NumberFormat('vi-VN').format(amount || 0);
-};
 
 const CustomTooltip = ({ active, payload, label }) => {
   if (active && payload && payload.length) {
@@ -21,7 +19,7 @@ const CustomTooltip = ({ active, payload, label }) => {
     return (
       <div className="bg-surface-container-lowest p-3 rounded-xl border border-hairline shadow-md text-xs space-y-1">
         <p className="font-semibold text-on-surface">{label || data.month}</p>
-        <p className="text-primary font-bold">{formatCurrency(data.revenue)} VNĐ</p>
+        <p className="text-primary font-bold">{formatCurrency(data.revenue)}</p>
         <p className="text-on-surface-variant">{data.transactionCount || 0} giao dịch thành công</p>
       </div>
     );
@@ -147,7 +145,7 @@ export const MonthlyRevenueChart = ({ data = [], isLoading, onNavigateToPlans })
                   <div className="text-xs text-on-surface-variant">Cổng thanh toán chính</div>
                 </div>
               </div>
-              <span className="text-xs font-semibold text-on-surface">{formatCurrency(vietQrAmount)} đ</span>
+              <span className="text-xs font-semibold text-on-surface">{formatCurrency(vietQrAmount)}</span>
             </div>
 
             <div className="p-3 rounded-xl bg-surface-container-low flex items-center justify-between">
@@ -160,7 +158,7 @@ export const MonthlyRevenueChart = ({ data = [], isLoading, onNavigateToPlans })
                   <div className="text-xs text-on-surface-variant">Liên kết qua PayOS</div>
                 </div>
               </div>
-              <span className="text-xs font-semibold text-on-surface">{formatCurrency(momoAmount)} đ</span>
+              <span className="text-xs font-semibold text-on-surface">{formatCurrency(momoAmount)}</span>
             </div>
 
             <div className="p-3 rounded-xl bg-surface-container-low flex items-center justify-between">
@@ -173,7 +171,7 @@ export const MonthlyRevenueChart = ({ data = [], isLoading, onNavigateToPlans })
                   <div className="text-xs text-on-surface-variant">Thanh toán tức thì</div>
                 </div>
               </div>
-              <span className="text-xs font-semibold text-on-surface">{formatCurrency(cardAmount)} đ</span>
+              <span className="text-xs font-semibold text-on-surface">{formatCurrency(cardAmount)}</span>
             </div>
           </div>
         </div>

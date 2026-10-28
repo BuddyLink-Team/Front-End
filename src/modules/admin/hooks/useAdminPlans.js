@@ -1,61 +1,58 @@
-import { useState, useEffect, useCallback } from 'react';
-import toast from 'react-hot-toast';
-import { adminSubscriptionApi } from '../api/adminSubscriptionApi';
+import { useCallback, useEffect, useState } from 'react';
+import { useDispatch } from 'react-redux';
+import { useToast } from '../../../hooks/useToast';
+import { getApiErrorMsg } from '../../../utils/errorUtils';
+import { fetchAdminPlans, updateAdminPlan } from '../redux/adminSlice';
+import { ADMIN_ERROR_MESSAGES } from '../constants/admin.constants';
 
+/**
+ * Subscription plans tab: every plan (inactive included) and editing one of them.
+ */
 export const useAdminPlans = () => {
+  const dispatch = useDispatch();
+  const { success, error: toastError } = useToast();
   const [plans, setPlans] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [errorMessage, setErrorMessage] = useState(null);
   const [isUpdating, setIsUpdating] = useState(false);
 
-  const fetchPlans = useCallback(async () => {
+  const reload = useCallback(async () => {
     setIsLoading(true);
-    setError(null);
     try {
-      const response = await adminSubscriptionApi.getPlans();
-      const planList = response?.data?.plans || response?.plans || [];
-      setPlans(planList);
+      const data = await dispatch(fetchAdminPlans()).unwrap();
+      setPlans(data?.plans || []);
+      setErrorMessage(null);
     } catch (err) {
-      const message = err?.response?.data?.message || err?.message || 'Không thể tải danh sách gói dịch vụ';
-      setError(message);
-      toast.error(message);
+      setErrorMessage(getApiErrorMsg(ADMIN_ERROR_MESSAGES, err, 'Không tải được danh sách gói dịch vụ.'));
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [dispatch]);
 
   useEffect(() => {
-    fetchPlans();
-  }, [fetchPlans]);
+    reload();
+  }, [reload]);
 
+  /** @returns {Promise<boolean>} true when saved */
   const updatePlan = useCallback(
     async (id, payload) => {
       setIsUpdating(true);
       try {
-        const response = await adminSubscriptionApi.updatePlan(id, payload);
-        const updated = response?.data?.plan || response?.plan;
-        setPlans((prev) => prev.map((p) => (p.id === id ? { ...p, ...updated } : p)));
-        toast.success('Cập nhật gói dịch vụ thành công!');
-        return { success: true, plan: updated };
+        const { plan } = await dispatch(updateAdminPlan({ id, payload })).unwrap();
+        setPlans((prev) => prev.map((item) => (item.id === id ? { ...item, ...plan } : item)));
+        success('Đã cập nhật gói dịch vụ.');
+        return true;
       } catch (err) {
-        const message = err?.response?.data?.message || err?.message || 'Không thể cập nhật gói dịch vụ';
-        toast.error(message);
-        return { success: false, error: message };
+        toastError(getApiErrorMsg(ADMIN_ERROR_MESSAGES, err, 'Không cập nhật được gói dịch vụ.'));
+        return false;
       } finally {
         setIsUpdating(false);
       }
     },
-    []
+    [dispatch, success, toastError]
   );
 
-  return {
-    plans,
-    isLoading,
-    error,
-    isUpdating,
-    refetch: fetchPlans,
-    updatePlan,
-  };
+  return { plans, isLoading, errorMessage, isUpdating, reload, updatePlan };
 };
 
 export default useAdminPlans;

@@ -23,28 +23,26 @@ import { cn } from '../../utils/cn';
  */
 export const DataTable = ({
   columns = [],
-  rows: rowsProp,
-  data: dataProp,
-  isLoading: isLoadingProp,
-  loading: loadingProp,
+  rows = [],
+  isLoading = false,
   emptyTitle = 'Chưa có dữ liệu',
   emptyMessage = 'Không có kết quả phù hợp.',
   onRowClick,
   renderCell,
   className,
+  tableClassName,
   sortKey: serverSortKey,
   sortDir: serverSortDir,
   onSortChange,
 }) => {
-  const rows = rowsProp ?? dataProp ?? [];
-  const isLoading = isLoadingProp ?? loadingProp ?? false;
-
   const clientSort = useTableSort(rows);
   const isServerSort = typeof onSortChange === 'function';
 
   const sortKey = isServerSort ? serverSortKey : clientSort.sortKey;
   const sortDir = isServerSort ? serverSortDir : clientSort.sortDir;
   const sortedRows = isServerSort ? rows : clientSort.sortedRows;
+  // First load: no row yet, so the table would only be as tall as its header
+  const isFirstLoad = isLoading && sortedRows.length === 0;
 
   // Same toggle as useTableSort: a new column starts ascending, the same column flips direction
   const handleSort = (key) => {
@@ -60,47 +58,46 @@ export const DataTable = ({
     <div
       className={cn(
         'relative w-full overflow-x-auto rounded-2xl border border-hairline bg-white shadow-xs',
+        isFirstLoad && 'min-h-table-loading',
         className
       )}
     >
       <LoadingOverlay show={isLoading} fullPage={false} />
 
-      <table className="w-full text-left border-collapse text-sm">
+      <table className={cn('w-full text-left border-collapse text-sm', tableClassName)}>
         {/* Table Head */}
         <thead className="bg-surface-muted/70 border-b border-hairline">
           <tr>
-            {columns.map((col, cIdx) => {
-              const colKey = col.key ?? col.accessorKey ?? col.id ?? `col_${cIdx}`;
-              const colLabel = col.label ?? col.header ?? '';
-              return (
-                <th
-                  key={colKey}
-                  onClick={() => col.sortable && handleSort(colKey)}
-                  className={`px-4 py-3.5 text-xs font-semibold text-text-muted uppercase tracking-wider select-none ${
-                    col.sortable
-                      ? 'cursor-pointer hover:text-text-primary transition-colors'
-                      : ''
-                  }`}
-                >
-                  <span className="inline-flex items-center gap-1.5">
-                    {colLabel}
-                    {col.sortable && (
-                      <span className="inline-flex text-text-muted">
-                        {sortKey === colKey ? (
-                          sortDir === 'asc' ? (
-                            <ArrowUp className="w-3.5 h-3.5 text-primary" />
-                          ) : (
-                            <ArrowDown className="w-3.5 h-3.5 text-primary" />
-                          )
+            {columns.map((col) => (
+              <th
+                key={col.key}
+                onClick={() => col.sortable && handleSort(col.key)}
+                className={cn(
+                  'px-4 py-3.5 text-xs font-semibold text-text-muted uppercase tracking-wider select-none whitespace-nowrap',
+                  col.sortable && 'cursor-pointer hover:text-text-primary transition-colors',
+                  col.align === 'right' && 'text-right',
+                  col.align === 'center' && 'text-center',
+                  col.headerClassName
+                )}
+              >
+                <span className="inline-flex items-center gap-1.5">
+                  {col.label}
+                  {col.sortable && (
+                    <span className="inline-flex text-text-muted">
+                      {sortKey === col.key ? (
+                        sortDir === 'asc' ? (
+                          <ArrowUp className="w-3.5 h-3.5 text-primary" />
                         ) : (
-                          <ChevronsUpDown className="w-3.5 h-3.5 opacity-50" />
-                        )}
-                      </span>
-                    )}
-                  </span>
-                </th>
-              );
-            })}
+                          <ArrowDown className="w-3.5 h-3.5 text-primary" />
+                        )
+                      ) : (
+                        <ChevronsUpDown className="w-3.5 h-3.5 opacity-50" />
+                      )}
+                    </span>
+                  )}
+                </span>
+              </th>
+            ))}
           </tr>
         </thead>
 
@@ -115,7 +112,7 @@ export const DataTable = ({
           ) : (
             sortedRows.map((row, idx) => (
               <tr
-                key={row.id ?? row._id ?? idx}
+                key={row.id ?? idx}
                 onClick={() => onRowClick?.(row)}
                 className={`transition-colors duration-100 ${
                   onRowClick
@@ -123,25 +120,21 @@ export const DataTable = ({
                     : 'hover:bg-gray-50/50'
                 }`}
               >
-                {columns.map((col, cIdx) => {
-                  const colKey = col.key ?? col.accessorKey ?? col.id ?? `col_${cIdx}`;
-                  let cellContent;
-                  if (typeof col.cell === 'function') {
-                    cellContent = col.cell(row);
-                  } else if (typeof col.render === 'function') {
-                    cellContent = col.render(row[colKey], row);
-                  } else if (typeof renderCell === 'function') {
-                    cellContent = renderCell(colKey, row[colKey], row);
-                  } else {
-                    cellContent = String(row[colKey] ?? '—');
-                  }
-
-                  return (
-                    <td key={colKey} className="px-4 py-3 text-text-primary">
-                      {cellContent}
-                    </td>
-                  );
-                })}
+                {columns.map((col) => (
+                  <td
+                    key={col.key}
+                    className={cn(
+                      'px-4 py-3 text-text-primary align-middle',
+                      col.align === 'right' && 'text-right',
+                      col.align === 'center' && 'text-center',
+                      col.cellClassName
+                    )}
+                  >
+                    {renderCell
+                      ? renderCell(col.key, row[col.key], row)
+                      : String(row[col.key] ?? '—')}
+                  </td>
+                ))}
               </tr>
             ))
           )}

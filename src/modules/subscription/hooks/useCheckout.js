@@ -10,7 +10,7 @@ import {
   verifyPayment,
   clearCurrentOrder,
 } from '../redux/subscriptionSlice';
-import { PLAN_CODES, PAYMENT_STATUS, SUBSCRIPTION_ERROR_MESSAGES } from '../constants/subscriptionConstants';
+import { PLAN_CODES, PAYMENT_STATUS, SUBSCRIPTION_ERROR_MESSAGES } from '../constants/subscription.constants';
 import { getCheckoutKey, regenerateCheckoutKey, clearCheckoutKey } from '../utils/checkoutKeys';
 import { getApiErrorMsg } from '../../../utils/errorUtils';
 

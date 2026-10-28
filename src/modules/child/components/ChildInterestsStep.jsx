@@ -4,7 +4,7 @@ import { SelectableOptions } from '../../../components';
 import {
   POPULAR_INTERESTS,
   PERSONALITY_TRAITS,
-} from '../constants/childConstants';
+} from '../constants/child.constants';
 import { ACTIVITIES, ACTIVITY_GROUPS } from '../../../constants/activity.constants';
 
 const toOptions = (values) => values.map((value) => ({ value, label: value }));

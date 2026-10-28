@@ -86,6 +86,27 @@ Use **SCREAMING_SNAKE_CASE** for constant variables and files:
 
 ---
 
+## ⚠️ API Error Message Rules
+
+1. **Module Error Map**: Each module maps the backend error codes its endpoints return to Vietnamese messages in its own constants file, as `<MODULE>_ERROR_MESSAGES`:
+   ```javascript
+   // modules/connection/constants/connection.constants.js
+   export const CONNECTION_ERROR_MESSAGES = Object.freeze({
+     CONNECTION_NOT_FOUND: 'Không tìm thấy kết nối này.',
+     INVALID_CONNECTION_STATE: 'Lời mời này đã được xử lý trước đó.',
+   });
+   ```
+2. **Common Errors Are Shared**: Codes returned by every endpoint (auth, role, rate limit, validation, network, timeout, ...) already live in `COMMON_ERROR_MESSAGES` (`src/constants/error.constants.js`). Do not repeat them in module maps; add new shared codes there instead.
+3. **Resolve Messages in Hooks with `getApiErrorMsg`**: Hooks get the user-facing message through `getApiErrorMsg(errorMap, err, fallback)` from `src/utils/errorUtils.js` (module map → common map → fallback). Use `getErrorCode(err)` when logic must branch on a specific code.
+   - ❌ `toast.error(err.message)` / `toast.error('Không thể kết nối.')` for an API failure / `throw new Error('...')` with a hard-coded message
+   - ✅
+     ```javascript
+     toast.error(getApiErrorMsg(CONNECTION_ERROR_MESSAGES, err, 'Thao tác không thành công. Vui lòng thử lại.'));
+     ```
+4. **Never Show the Backend's English Message**: Unmapped codes fall back to the Vietnamese `fallback`; when the backend adds a new code, add it to the module map (or the common map).
+
+---
+
 ## 🎨 Styling & Design System Rules
 
 1. **Design System First**: Adhere to token variables defined in `DESIGN.md`:

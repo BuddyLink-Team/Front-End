@@ -13,6 +13,7 @@ import {
   Lock,
   Flag,
   UserX,
+  UserCheck,
 } from 'lucide-react';
 import { Avatar } from '../../../components/ui/Avatar';
 import { VerifiedBadge } from '../../../components/badges/VerifiedBadge';
@@ -24,9 +25,10 @@ import { EmojiPopover } from './EmojiPopover.jsx';
 import { ImageLightbox } from './ImageLightbox.jsx';
 import { Spinner } from '../../../components/feedback/Spinner';
 import { cn } from '../../../utils/cn';
-import { CHAT_FILE_INPUT_ACCEPT, COMPOSER_TEXTAREA_CLASS } from '../constants/chatConstants.js';
-import { useSafetyActions } from '../../safety/hooks/useSafetyActions.js';
-import { REPORT_TARGET_TYPES } from '../../safety/constants/safetyConstants.js';
+import { CHAT_FILE_INPUT_ACCEPT, COMPOSER_TEXTAREA_CLASS } from '../constants/chat.constants.js';
+import { useReportTarget } from '../../safety/hooks/useReportTarget.js';
+import { useConversationBlock } from '../hooks/useConversationBlock.js';
+import { ReportModal } from '../../safety/components/ReportModal.jsx';
 import { Button } from '../../../components/ui/Button.jsx';
 import Textarea from '../../../components/ui/Textarea.jsx';
 
@@ -59,7 +61,14 @@ export const DirectChatView = ({
   className,
 }) => {
   const navigate = useNavigate();
-  const { isSubmitting: isSubmittingSafety, blockUser, reportUser } = useSafetyActions();
+  const {
+    isSubmitting: isSubmittingSafety,
+    isBlockedByMe,
+    isBlockedByPartner,
+    block,
+    unblock,
+  } = useConversationBlock(conversation);
+  const { reportTarget, reportUser, reportMessage, closeReport } = useReportTarget();
   const currentParent = useSelector((state) => state.auth?.parent);
   const currentUser = useSelector((state) => state.auth?.user);
   const currentParentId = currentParent?._id || currentParent?.id || currentUser?._id || currentUser?.id;
@@ -70,7 +79,7 @@ export const DirectChatView = ({
 
   // Safety dialogs
   const [showBlockDialog, setShowBlockDialog] = useState(false);
-  const [showReportDialog, setShowReportDialog] = useState(false);
+  const [showUnblockConfirmDialog, setShowUnblockConfirmDialog] = useState(false);
 
   const messagesContainerRef = useRef(null);
   // Distance from the bottom saved before older messages are prepended
@@ -205,29 +214,17 @@ export const DirectChatView = ({
     }
   };
 
-  // Block user action
   const handleConfirmBlock = async () => {
-    const targetId = partner?.id || partner?._id;
-    const result = await blockUser(targetId, partnerName);
-    if (result.success) {
-      setShowBlockDialog(false);
-      if (onBack) onBack();
-    }
+    const result = await block();
+    if (result.success) setShowBlockDialog(false);
   };
 
-  // Report user action
-  const handleConfirmReport = async () => {
-    const targetId = partner?.id || partner?._id;
-    const result = await reportUser({
-      reportedUserId: targetId,
-      targetType: REPORT_TARGET_TYPES.USER,
-      reason: 'Báo cáo vi phạm từ cuộc trò chuyện',
-      description: 'Báo cáo người dùng từ màn hình trò chuyện trực tiếp.',
-    });
-    if (result.success) {
-      setShowReportDialog(false);
-    }
+  const handleConfirmUnblock = async () => {
+    const result = await unblock();
+    if (result.success) setShowUnblockConfirmDialog(false);
   };
+
+  const handleReportMessage = (msg) => reportMessage(msg, partnerName);
 
   return (
     <section
@@ -324,18 +321,27 @@ export const DirectChatView = ({
           >
             <DropdownItem
               icon={Flag}
-              onClick={() => setShowReportDialog(true)}
+              onClick={() => reportUser(partner?.id || partner?._id, partnerName)}
               danger
             >
               Báo cáo vi phạm
             </DropdownItem>
-            <DropdownItem
-              icon={UserX}
-              onClick={() => setShowBlockDialog(true)}
-              danger
-            >
-              Chặn người dùng
-            </DropdownItem>
+            {isBlockedByMe ? (
+              <DropdownItem
+                icon={UserCheck}
+                onClick={() => setShowUnblockConfirmDialog(true)}
+              >
+                Bỏ chặn người dùng
+              </DropdownItem>
+            ) : (
+              <DropdownItem
+                icon={UserX}
+                onClick={() => setShowBlockDialog(true)}
+                danger
+              >
+                Chặn người dùng
+              </DropdownItem>
+            )}
           </Dropdown>
         </div>
       </div>
@@ -401,6 +407,7 @@ export const DirectChatView = ({
                   currentParentId={currentParentId}
                   onImageClick={(url) => setLightboxImageUrl(url)}
                   onRetry={onRetryMessage}
+                  onReportMessage={handleReportMessage}
                 />
               </React.Fragment>
             );
@@ -417,111 +424,144 @@ export const DirectChatView = ({
 
       </div>
 
-      {/* 3. Message Input Composer */}
-      <div className="p-3.5 bg-surface-container-lowest border-t border-hairline relative">
-        {/* Emoji Popover */}
-        <EmojiPopover
-          isOpen={isEmojiOpen}
-          onClose={() => setIsEmojiOpen(false)}
-          onSelectEmoji={handleInsertEmoji}
-        />
+      {/* 3. Message Input Composer / Blocked States */}
+      {isBlockedByMe ? (
+        <div className="p-6 bg-surface-container-low border-t border-hairline flex flex-col items-center justify-center text-center gap-3">
+          <div className="w-10 h-10 rounded-full bg-error-container/40 text-error flex items-center justify-center">
+            <UserX className="w-5 h-5" />
+          </div>
+          <div>
+            <p className="text-sm font-semibold text-text-primary">
+              Bạn đã chặn người này. Hãy bỏ chặn và kết nối lại để trò chuyện tiếp
+            </p>
+          </div>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => setShowUnblockConfirmDialog(true)}
+            isLoading={isSubmittingSafety}
+            className="rounded-full px-5 border-error/30 text-error hover:bg-error-container/20 font-medium"
+          >
+            <UserCheck className="w-4 h-4 mr-1.5" />
+            Bỏ chặn
+          </Button>
+        </div>
+      ) : isBlockedByPartner ? (
+        <div className="p-6 bg-surface-container-low border-t border-hairline flex flex-col items-center justify-center text-center gap-2">
+          <div className="w-10 h-10 rounded-full bg-surface-container-high text-text-muted flex items-center justify-center">
+            <Lock className="w-5 h-5" />
+          </div>
+          <p className="text-sm font-medium text-text-muted">
+            Bạn đã bị người này chặn và không thể trò chuyện
+          </p>
+        </div>
+      ) : (
+        <div className="p-3.5 bg-surface-container-lowest border-t border-hairline relative">
+          {/* Emoji Popover */}
+          <EmojiPopover
+            isOpen={isEmojiOpen}
+            onClose={() => setIsEmojiOpen(false)}
+            onSelectEmoji={handleInsertEmoji}
+          />
 
-        {/* Image Attachment Preview */}
-        {imagePreviewUrl && (
-          <div className="mb-2 relative inline-block animate-pop-in">
-            <img
-              src={imagePreviewUrl}
-              alt="Preview"
-              className="w-20 h-20 object-cover rounded-xl chat-image-preview-card"
+          {/* Image Attachment Preview */}
+          {imagePreviewUrl && (
+            <div className="mb-2 relative inline-block animate-pop-in">
+              <img
+                src={imagePreviewUrl}
+                alt="Preview"
+                className="w-20 h-20 object-cover rounded-xl chat-image-preview-card"
+              />
+              <Button
+                type="button"
+                variant="ghost"
+                onClick={onClearImage}
+                aria-label="Bỏ ảnh"
+                className="absolute -top-2 -right-2 w-5 h-5 p-0 rounded-full bg-on-surface text-white flex items-center justify-center shadow-xs hover:bg-error transition-colors"
+              >
+                <X className="w-3 h-3" />
+              </Button>
+            </div>
+          )}
+
+          <form onSubmit={handleSubmit} className="flex items-end gap-2 rounded-2xl bg-surface-container-low p-2">
+            {/* Hidden File Input */}
+            <input
+              type="file"
+              ref={fileInputRef}
+              onChange={(e) => {
+                if (e.target.files?.[0]) {
+                  onSelectImage(e.target.files[0]);
+                }
+                // Reset so selecting the same file again still triggers onChange
+                e.target.value = '';
+              }}
+              accept={CHAT_FILE_INPUT_ACCEPT}
+              className="hidden"
             />
+
+            {/* Add Image Button */}
             <Button
               type="button"
               variant="ghost"
-              onClick={onClearImage}
-              aria-label="Bỏ ảnh"
-              className="absolute -top-2 -right-2 w-5 h-5 p-0 rounded-full bg-on-surface text-white flex items-center justify-center shadow-xs hover:bg-error transition-colors"
+              onClick={() => fileInputRef.current?.click()}
+              className="p-2 rounded-full text-on-surface-variant hover:text-primary hover:bg-surface-container transition-colors shrink-0"
+              title="Đính kèm ảnh bé chơi"
             >
-              <X className="w-3 h-3" />
+              <ImageIcon className="w-5 h-5" />
             </Button>
+
+            {/* Emoji Button */}
+            <Button
+              type="button"
+              variant="ghost"
+              onClick={() => setIsEmojiOpen((prev) => !prev)}
+              className="p-2 rounded-full text-on-surface-variant hover:text-secondary hover:bg-surface-container transition-colors shrink-0"
+              title="Chọn biểu cảm icon"
+            >
+              <Smile className="w-5 h-5" />
+            </Button>
+
+            {/* Elastic Textarea */}
+            <Textarea
+              ref={textareaRef}
+              rows={1}
+              value={inputText}
+              onChange={handleTextChange}
+              onKeyDown={handleKeyDown}
+              placeholder={`Nhắn tin cùng ${partnerName}...`}
+              containerClassName="flex-1 [&>div]:shadow-none"
+              className={COMPOSER_TEXTAREA_CLASS}
+            />
+
+            {/* Send Button */}
+            <Button
+              type="submit"
+              disabled={(!inputText.trim() && !selectedImageFile) || isSending}
+              aria-label="Gửi tin nhắn"
+              className={cn(
+                'p-2.5 rounded-full transition-all flex items-center justify-center shrink-0 shadow-xs active:scale-95 disabled:opacity-100',
+                (inputText.trim() || selectedImageFile) && !isSending
+                  ? 'bg-primary text-white hover:bg-primary-hover'
+                  : 'bg-surface-container text-outline cursor-not-allowed'
+              )}
+              title="Gửi tin nhắn"
+            >
+              <Send className="w-4 h-4" />
+            </Button>
+          </form>
+
+          {/* Security & Helper Note */}
+          <div className="flex items-center justify-between px-2 pt-2 text-label-sm text-on-surface-variant">
+            <span className="flex items-center gap-1 text-primary">
+              <Lock className="w-3.5 h-3.5" />
+              <span>Tin nhắn được bảo vệ quyền riêng tư gia đình</span>
+            </span>
+            <span className="hidden sm:inline text-outline">Nhấn Enter để gửi, Shift+Enter xuống dòng</span>
           </div>
-        )}
-
-        <form onSubmit={handleSubmit} className="flex items-end gap-2 rounded-2xl bg-surface-container-low p-2">
-          {/* Hidden File Input */}
-          <input
-            type="file"
-            ref={fileInputRef}
-            onChange={(e) => {
-              if (e.target.files?.[0]) {
-                onSelectImage(e.target.files[0]);
-              }
-              // Reset so selecting the same file again still triggers onChange
-              e.target.value = '';
-            }}
-            accept={CHAT_FILE_INPUT_ACCEPT}
-            className="hidden"
-          />
-
-          {/* Add Image Button */}
-          <Button
-            type="button"
-            variant="ghost"
-            onClick={() => fileInputRef.current?.click()}
-            className="p-2 rounded-full text-on-surface-variant hover:text-primary hover:bg-surface-container transition-colors shrink-0"
-            title="Đính kèm ảnh bé chơi"
-          >
-            <ImageIcon className="w-5 h-5" />
-          </Button>
-
-          {/* Emoji Button */}
-          <Button
-            type="button"
-            variant="ghost"
-            onClick={() => setIsEmojiOpen((prev) => !prev)}
-            className="p-2 rounded-full text-on-surface-variant hover:text-secondary hover:bg-surface-container transition-colors shrink-0"
-            title="Chọn biểu cảm icon"
-          >
-            <Smile className="w-5 h-5" />
-          </Button>
-
-          {/* Elastic Textarea */}
-          <Textarea
-            ref={textareaRef}
-            rows={1}
-            value={inputText}
-            onChange={handleTextChange}
-            onKeyDown={handleKeyDown}
-            placeholder={`Nhắn tin cùng ${partnerName}...`}
-            containerClassName="flex-1 [&>div]:shadow-none"
-            className={COMPOSER_TEXTAREA_CLASS}
-          />
-
-          {/* Send Button */}
-          <Button
-            type="submit"
-            disabled={(!inputText.trim() && !selectedImageFile) || isSending}
-            aria-label="Gửi tin nhắn"
-            className={cn(
-              'p-2.5 rounded-full transition-all flex items-center justify-center shrink-0 shadow-xs active:scale-95 disabled:opacity-100',
-              (inputText.trim() || selectedImageFile) && !isSending
-                ? 'bg-primary text-white hover:bg-primary-hover'
-                : 'bg-surface-container text-outline cursor-not-allowed'
-            )}
-            title="Gửi tin nhắn"
-          >
-            <Send className="w-4 h-4" />
-          </Button>
-        </form>
-
-        {/* Security & Helper Note */}
-        <div className="flex items-center justify-between px-2 pt-2 text-label-sm text-on-surface-variant">
-          <span className="flex items-center gap-1 text-primary">
-            <Lock className="w-3.5 h-3.5" />
-            <span>Tin nhắn được bảo vệ quyền riêng tư gia đình</span>
-          </span>
-          <span className="hidden sm:inline text-outline">Nhấn Enter để gửi, Shift+Enter xuống dòng</span>
         </div>
-      </div>
+      )}
 
       {/* 4. Lightbox Modal for Full Image View */}
       <ImageLightbox imageUrl={lightboxImageUrl} onClose={() => setLightboxImageUrl(null)} />
@@ -530,7 +570,7 @@ export const DirectChatView = ({
       <ConfirmDialog
         open={showBlockDialog}
         title={`Chặn ${partnerName}?`}
-        description="Người này sẽ không thể gửi tin nhắn hoặc mời bạn tham gia Playdate nữa. Bạn có thể mở chặn trong Cài đặt riêng tư sau này."
+        description="Người này sẽ không thể nhắn tin hoặc mời bạn tham gia Playdate nữa, và kết nối giữa hai bạn sẽ bị gỡ. Bạn có thể bỏ chặn trong mục Người dùng đã chặn."
         confirmLabel="Chặn người dùng"
         cancelLabel="Hủy"
         variant="danger"
@@ -539,18 +579,21 @@ export const DirectChatView = ({
         onCancel={() => setShowBlockDialog(false)}
       />
 
-      {/* 6. Report User Confirm Dialog */}
+      {/* 5b. Unblock User Confirm Dialog */}
       <ConfirmDialog
-        open={showReportDialog}
-        title={`Báo cáo ${partnerName}?`}
-        description="Bạn có nhận thấy hành vi không phù hợp hoặc vi phạm an toàn trẻ em từ tài khoản này? Quản trị viên sẽ kiểm tra lại nội dung."
-        confirmLabel="Gửi báo cáo"
+        open={showUnblockConfirmDialog}
+        title={`Bỏ chặn ${partnerName}?`}
+        description="Kết nối trước đây không tự khôi phục. Sau khi bỏ chặn, hãy gửi lại lời mời kết nối để tiếp tục trò chuyện."
+        confirmLabel="Bỏ chặn"
         cancelLabel="Hủy"
-        variant="warning"
+        variant="info"
         isLoading={isSubmittingSafety}
-        onConfirm={handleConfirmReport}
-        onCancel={() => setShowReportDialog(false)}
+        onConfirm={handleConfirmUnblock}
+        onCancel={() => setShowUnblockConfirmDialog(false)}
       />
+
+      {/* 6. Report Modal with Categories & Evidence Uploads */}
+      <ReportModal isOpen={Boolean(reportTarget)} onClose={closeReport} target={reportTarget} />
     </section>
   );
 };

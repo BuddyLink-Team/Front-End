@@ -1,10 +1,8 @@
 import React from 'react';
 import { CircleDollarSign, Crown, TrendingUp, UserMinus, ArrowUpRight, ArrowDownRight } from 'lucide-react';
 import { Skeleton } from '../../../../components/feedback/Skeleton';
+import { formatCurrency } from '../../../../utils/formatters';
 
-const formatCurrency = (amount) => {
-  return new Intl.NumberFormat('vi-VN').format(amount || 0);
-};
 
 export const RevenueKpiCards = ({ overview, isLoading }) => {
   if (isLoading) {
@@ -49,8 +47,7 @@ export const RevenueKpiCards = ({ overview, isLoading }) => {
             Tổng doanh thu
           </span>
           <div className="text-2xl font-bold text-on-surface tracking-tight mt-1">
-            {formatCurrency(totalRevenue)}{' '}
-            <span className="text-xs font-semibold text-on-surface-variant">VNĐ</span>
+            {formatCurrency(totalRevenue)}
           </div>
           <div className="mt-2 flex items-center gap-1 text-xs text-on-surface-variant">
             <span>{payingParentsCount} phụ huynh đã thanh toán</span>

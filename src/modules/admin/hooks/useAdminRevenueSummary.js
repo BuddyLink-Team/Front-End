@@ -1,49 +1,40 @@
-import { useState, useEffect, useCallback } from 'react';
-import toast from 'react-hot-toast';
-import { adminSubscriptionApi } from '../api/adminSubscriptionApi';
+import { useCallback, useEffect, useState } from 'react';
+import { useDispatch } from 'react-redux';
+import { getApiErrorMsg } from '../../../utils/errorUtils';
+import { fetchAdminRevenueSummary } from '../redux/adminSlice';
+import { ADMIN_ERROR_MESSAGES } from '../constants/admin.constants';
 
-export const useAdminRevenueSummary = (initialDateRange = { from: '', to: '' }) => {
-  const [dateRange, setDateRange] = useState(initialDateRange);
+/**
+ * Revenue overview tab: KPIs and monthly revenue over a date range.
+ * @param {{ from: string, to: string }} [initialRange] - 'YYYY-MM-DD'; empty = the API default (last 6 months)
+ */
+export const useAdminRevenueSummary = (initialRange = { from: '', to: '' }) => {
+  const dispatch = useDispatch();
+  const [dateRange, setDateRange] = useState(initialRange);
   const [summary, setSummary] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [errorMessage, setErrorMessage] = useState(null);
 
-  const fetchSummary = useCallback(async (range) => {
+  const reload = useCallback(async () => {
     setIsLoading(true);
-    setError(null);
     try {
       const params = {};
-      if (range?.from) params.fromDate = range.from;
-      if (range?.to) params.toDate = range.to;
-
-      const response = await adminSubscriptionApi.getRevenueSummary(params);
-      const data = response?.data || response;
-      setSummary(data);
+      if (dateRange.from) params.fromDate = dateRange.from;
+      if (dateRange.to) params.toDate = dateRange.to;
+      setSummary(await dispatch(fetchAdminRevenueSummary(params)).unwrap());
+      setErrorMessage(null);
     } catch (err) {
-      const message = err?.response?.data?.message || err?.message || 'Không thể tải thống kê doanh thu';
-      setError(message);
-      toast.error(message);
+      setErrorMessage(getApiErrorMsg(ADMIN_ERROR_MESSAGES, err, 'Không tải được thống kê doanh thu.'));
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [dispatch, dateRange]);
 
   useEffect(() => {
-    fetchSummary(dateRange);
-  }, [fetchSummary, dateRange]);
+    reload();
+  }, [reload]);
 
-  const handleDateRangeChange = useCallback((newRange) => {
-    setDateRange(newRange);
-  }, []);
-
-  return {
-    summary,
-    isLoading,
-    error,
-    dateRange,
-    setDateRange: handleDateRangeChange,
-    refetch: () => fetchSummary(dateRange),
-  };
+  return { summary, isLoading, errorMessage, dateRange, setDateRange, reload };
 };
 
 export default useAdminRevenueSummary;

@@ -1,7 +1,7 @@
 import { createSlice, isAnyOf } from '@reduxjs/toolkit';
 import { createApiThunk } from '../../../utils/reduxUtils';
 import { playdateApi } from '../api/playdateApi';
-import { PLAYDATE_VIEW_MODES } from '../constants/playdateConstants';
+import { PLAYDATE_VIEW_MODES } from '../constants/playdate.constants';
 
 // ---- Thunks (all playdate API calls live here) ----
 
@@ -79,6 +79,15 @@ export const cancelPlaydate = createApiThunk(
 export const respondToPlaydate = createApiThunk(
   'playdate/respond',
   ({ id, status }) => playdateApi.respondToPlaydate(id, status),
+);
+
+export const inviteParticipants = createApiThunk(
+  'playdate/inviteParticipants',
+  ({ id, participants }) => playdateApi.inviteParticipants(id, participants),
+);
+
+export const leavePlaydate = createApiThunk('playdate/leave', (id) =>
+  playdateApi.leavePlaydate(id),
 );
 
 export const createRescheduleRequest = createApiThunk(
@@ -264,7 +273,12 @@ export const playdateSlice = createSlice({
         applyCompleted(state, action.payload);
       })
       .addMatcher(
-        isAnyOf(cancelPlaydate.fulfilled, respondToPlaydate.fulfilled),
+        isAnyOf(
+          cancelPlaydate.fulfilled,
+          respondToPlaydate.fulfilled,
+          inviteParticipants.fulfilled,
+          leavePlaydate.fulfilled,
+        ),
         (state, action) => {
           upsertPlaydate(state, action.payload);
         },
@@ -286,6 +300,8 @@ export const playdateSlice = createSlice({
           completePlaydate.pending,
           cancelPlaydate.pending,
           respondToPlaydate.pending,
+          inviteParticipants.pending,
+          leavePlaydate.pending,
           createRescheduleRequest.pending,
           voteRescheduleRequest.pending,
           createPlaydate.pending,
@@ -302,6 +318,10 @@ export const playdateSlice = createSlice({
           cancelPlaydate.rejected,
           respondToPlaydate.fulfilled,
           respondToPlaydate.rejected,
+          inviteParticipants.fulfilled,
+          inviteParticipants.rejected,
+          leavePlaydate.fulfilled,
+          leavePlaydate.rejected,
           createRescheduleRequest.fulfilled,
           createRescheduleRequest.rejected,
           voteRescheduleRequest.fulfilled,

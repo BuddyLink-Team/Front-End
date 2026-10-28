@@ -4,6 +4,11 @@ import { AdminLayout } from '../layouts/AdminLayout';
 import PlaceholderPage from '../components/feedback/PlaceholderPage';
 import AdminSubscriptionManagementPage from '../modules/admin/pages/AdminSubscriptionManagementPage';
 
+import AdminUserManagementPage from '../modules/admin/pages/AdminUserManagementPage';
+import AdminChildManagementPage from '../modules/admin/pages/AdminChildManagementPage';
+import { AdminConnectionManagementPage } from '../modules/admin/pages/AdminConnectionManagementPage';
+import { AdminPlaydateManagementPage } from '../modules/admin/pages/AdminPlaydateManagementPage';
+
 // Title on the admin type scale (semi-bold), matching the AdminHeader section label
 const AdminPlaceholder = (props) => (
   <PlaceholderPage titleClassName="text-headline-md font-semibold text-on-surface" {...props} />
@@ -25,22 +30,16 @@ export const AdminRoutes = () => (
     {/* User & Children Management */}
     <Route
       path="users"
-      element={<AdminPlaceholder title="Quản lý phụ huynh" description="Danh sách tài khoản phụ huynh, trạng thái xác thực và lịch sử hoạt động." />}
+      element={<AdminUserManagementPage />}
     />
     <Route
       path="children"
-      element={<AdminPlaceholder title="Quản lý hồ sơ trẻ" description="Danh sách hồ sơ trẻ em trên toàn hệ thống." />}
+      element={<AdminChildManagementPage />}
     />
 
     {/* Connection & Playdate Management */}
-    <Route
-      path="connections"
-      element={<AdminPlaceholder title="Quản lý kết nối" description="Giám sát các mối liên kết giữa các gia đình và xử lý gỡ kết nối vi phạm." />}
-    />
-    <Route
-      path="playdates"
-      element={<AdminPlaceholder title="Quản lý cuộc hẹn chơi" description="Theo dõi toàn bộ Playdate trên hệ thống và xử lý hủy khi có sự cố." />}
-    />
+    <Route path="connections" element={<AdminConnectionManagementPage />} />
+    <Route path="playdates" element={<AdminPlaydateManagementPage />} />
 
     {/* Revenue: subscription plans, Premium payments and conversion (backend subscription module) */}
     <Route

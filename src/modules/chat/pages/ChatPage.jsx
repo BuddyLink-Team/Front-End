@@ -6,7 +6,7 @@ import ConversationList from '../components/ConversationList.jsx';
 import DirectChatView from '../components/DirectChatView.jsx';
 import PlaydateChatView from '../components/PlaydateChatView.jsx';
 import EmptyChatState from '../components/EmptyChatState.jsx';
-import { CONVERSATION_TYPES } from '../constants/chatConstants.js';
+import { CONVERSATION_TYPES } from '../constants/chat.constants.js';
 import { Button } from '../../../components/ui/Button';
 
 export const ChatPage = () => {
@@ -36,7 +36,6 @@ export const ChatPage = () => {
     playdateError,
     currentParentId,
     canReportPlaydateChat,
-    reportPlaydateChat,
     handleSelectImage,
     handleClearImage,
     handleSendMessage,
@@ -144,7 +143,6 @@ export const ChatPage = () => {
             onBack={handleBackToConversations}
             currentParentId={currentParentId}
             canReport={canReportPlaydateChat}
-            onReport={reportPlaydateChat}
             className={!activeConversationId ? 'hidden lg:flex' : 'flex'}
           />
         ) : (

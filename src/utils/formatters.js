@@ -70,6 +70,20 @@ export const formatDateTime = (date) => {
 };
 
 /**
+ * Format a start time and a duration as a time range (e.g. "10:00 - 12:00").
+ *
+ * @param {string} time - Start time "HH:mm"
+ * @param {number} [durationMinutes]
+ * @returns {string} The range, the start time alone without a valid duration, or an empty string.
+ */
+export const formatTimeRange = (time, durationMinutes) => {
+  if (!time) return '';
+  const start = dayjs(`2000-01-01T${time}`);
+  if (!start.isValid() || !(durationMinutes > 0)) return time;
+  return `${start.format('HH:mm')} - ${start.add(durationMinutes, 'minute').format('HH:mm')}`;
+};
+
+/**
  * Format a child's age from their date of birth: years from 1 year old, months below.
  *
  * @param {Date|string|number} dateOfBirth
@@ -83,6 +97,29 @@ export const formatChildAge = (dateOfBirth, now = new Date()) => {
   const years = dayjs(now).diff(birth, 'year');
   if (years >= 1) return `${years} tuổi`;
   return `${Math.max(1, dayjs(now).diff(birth, 'month'))} tháng`;
+};
+
+/**
+ * Format an age already computed in whole years (e.g. by the API) when the date of birth is not available.
+ *
+ * @param {number|null|undefined} age
+ * @returns {string} e.g. "5 tuổi", "Dưới 1 tuổi", or an empty string when unknown.
+ */
+export const formatAgeYears = (age) => {
+  if (typeof age !== 'number' || Number.isNaN(age) || age < 0) return '';
+  return age >= 1 ? `${age} tuổi` : 'Dưới 1 tuổi';
+};
+
+/**
+ * Format a count with Vietnamese digit grouping (1248 -> "1.248").
+ *
+ * @param {number|string} value
+ * @returns {string} Formatted count or '-' if invalid.
+ */
+export const formatCount = (value) => {
+  const number = Number(value);
+  if (value === null || value === undefined || value === '' || !Number.isFinite(number)) return '-';
+  return new Intl.NumberFormat('vi-VN').format(number);
 };
 
 /**

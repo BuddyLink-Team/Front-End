@@ -1,10 +1,8 @@
 import React, { useState } from 'react';
 import { ShieldCheck, Sparkles, Crown, CheckCircle2, Lock, Sliders, Edit3 } from 'lucide-react';
 import { EditPlanModal } from './EditPlanModal';
+import { formatCurrency } from '../../../../utils/formatters';
 
-const formatCurrency = (amount) => {
-  return new Intl.NumberFormat('vi-VN').format(amount || 0);
-};
 
 export const PlanEditCard = ({ plan, onUpdate, isUpdating }) => {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -92,7 +90,7 @@ export const PlanEditCard = ({ plan, onUpdate, isUpdating }) => {
                 {formatCurrency(plan.price)}
               </span>{' '}
               <span className="text-xs font-medium text-on-surface-variant">
-                VNĐ / {plan.billingCycle === 'yearly' ? 'năm' : 'tháng'}
+                / {plan.billingCycle === 'yearly' ? 'năm' : 'tháng'}
               </span>
             </div>
             <span className="text-xs text-on-surface-variant">
@@ -100,7 +98,7 @@ export const PlanEditCard = ({ plan, onUpdate, isUpdating }) => {
                 ? 'Không giới hạn thời gian sử dụng'
                 : isMonthly
                 ? 'Tự động gia hạn mỗi 30 ngày'
-                : `Chỉ ~${formatCurrency(monthlyPriceBreakdown)} đ/tháng (Tiết kiệm tối đa)`}
+                : `Chỉ ~${formatCurrency(monthlyPriceBreakdown)}/tháng (Tiết kiệm tối đa)`}
             </span>
           </div>
 
@@ -214,8 +212,7 @@ export const PlanEditCard = ({ plan, onUpdate, isUpdating }) => {
         isOpen={isEditModalOpen}
         onClose={() => setIsEditModalOpen(false)}
         onSave={async (id, data) => {
-          await onUpdate(id, data);
-          setIsEditModalOpen(false);
+          if (await onUpdate(id, data)) setIsEditModalOpen(false);
         }}
         isUpdating={isUpdating}
       />

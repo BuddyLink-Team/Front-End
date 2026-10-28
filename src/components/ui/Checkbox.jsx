@@ -44,7 +44,7 @@ export const Checkbox = React.forwardRef(
           <label
             htmlFor={checkboxId}
             className={cn(
-              'w-5 h-5 rounded-md border border-hairline bg-white flex items-center justify-center transition-all duration-150 cursor-pointer shadow-2xs',
+              'w-5 h-5 rounded-md border border-outline-variant bg-white flex items-center justify-center transition-all duration-150 cursor-pointer shadow-2xs',
               'hover:border-primary/50',
               'peer-checked:bg-primary peer-checked:border-primary peer-checked:text-white',
               'peer-focus-visible:ring-2 peer-focus-visible:ring-primary/25 peer-focus-visible:ring-offset-1',

@@ -12,7 +12,7 @@ import {
 import { useVerifyOtp } from '../hooks/useVerifyOtp';
 import { formatTimer, maskPhone, maskEmail } from '../../../utils/formatters';
 import { Button, Input } from '../../../components';
-import { OTP_VALIDITY_MINUTES } from '../constants/authConstants';
+import { OTP_VALIDITY_MINUTES } from '../constants/auth.constants';
 
 export const VerifyOtpPage = () => {
   const {

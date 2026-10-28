@@ -1,0 +1,109 @@
+export const CONVERSATION_TYPES = Object.freeze({
+  ALL: 'all',
+  DIRECT: 'direct',
+  PLAYDATE: 'playdate',
+});
+
+export const MESSAGE_TYPES = Object.freeze({
+  TEXT: 'text',
+  IMAGE: 'image',
+  EMOJI: 'emoji',
+  SYSTEM: 'system',
+});
+
+// Playdate participant statuses (mirror of the backend PARTICIPANT_STATUS)
+export const PLAYDATE_PARTICIPANT_STATUS = Object.freeze({
+  PENDING: 'pending',
+  ACCEPTED: 'accepted',
+  DECLINED: 'declined',
+});
+
+// Playdate status -> existing StatusChip variant (components/badges/StatusChip.jsx) + label.
+// StatusChip only styles pending/confirmed/cancelled/reported/completed, other statuses fall back to pending.
+export const PLAYDATE_STATUS_CHIPS = Object.freeze({
+  upcoming: { variant: 'confirmed', label: 'Sắp diễn ra' },
+  completed: { variant: 'completed', label: 'Đã hoàn thành' },
+  cancelled: { variant: 'cancelled', label: 'Đã hủy' },
+});
+
+// Client-only delivery states of optimistic messages (persisted messages have no status)
+export const MESSAGE_STATUS = Object.freeze({
+  SENDING: 'sending',
+  FAILED: 'failed',
+});
+
+// Ack wait time before an optimistic message is marked as failed
+export const SOCKET_ACK_TIMEOUT_MS = 8000;
+
+export const PAGE_SIZE = 50;
+
+export const CHAT_TABS = Object.freeze([
+  { id: CONVERSATION_TYPES.ALL, label: 'Tất cả' },
+  { id: CONVERSATION_TYPES.DIRECT, label: 'Kết nối' },
+  { id: CONVERSATION_TYPES.PLAYDATE, label: 'Nhóm Playdate' },
+]);
+
+export const SOCKET_EVENTS = Object.freeze({
+  JOIN_CHAT: 'join_chat',
+  LEAVE_CHAT: 'leave_chat',
+  SEND_MESSAGE: 'send_message',
+  RECEIVE_MESSAGE: 'receive_message',
+  TYPING: 'typing',
+  USER_TYPING: 'user_typing',
+  READ_STATUS: 'read_status',
+  MESSAGE_READ: 'message_read',
+  CONVERSATION_UPDATED: 'conversation_updated',
+});
+
+// Must match the image types accepted by the backend upload middleware
+export const ALLOWED_IMAGE_EXTENSIONS = Object.freeze(['.jpg', '.jpeg', '.png', '.webp', '.gif']);
+export const ALLOWED_IMAGE_TYPES = Object.freeze(['image/jpeg', 'image/png', 'image/webp', 'image/gif']);
+export const CHAT_FILE_INPUT_ACCEPT = '.jpg,.jpeg,.png,.webp,.gif,image/jpeg,image/png,image/webp,image/gif';
+
+// Composer textarea: the shared Textarea without its form-field frame (the composer pill draws it)
+export const COMPOSER_TEXTAREA_CLASS =
+  'bg-transparent border-none shadow-none rounded-none text-on-surface placeholder:text-outline text-sm py-2 px-1 focus:outline-none focus:ring-0 resize-none max-h-24 scrollbar-none';
+
+export const MAX_IMAGE_SIZE_BYTES = 5 * 1024 * 1024;
+
+// Prompt shown in a playdate group chat when the parent blocked one of its members
+export const BLOCKED_MEMBER_PROMPT_STEPS = Object.freeze({
+  ASK_CONTINUE: 'ask_continue',
+  ASK_LEAVE: 'ask_leave',
+});
+
+export const BLOCKED_MEMBER_CANCEL_REASON = 'Người tổ chức hủy buổi hẹn vì đã chặn một thành viên trong nhóm';
+
+export const QUICK_EMOJIS = ['😊', '❤️', '👍', '🎉', '👶', '🧸', '🎨', '⚽', '🍦', '⭐', '🤗', '✨'];
+
+
+/**
+ * Codes returned by the chat REST endpoints and socket acks (chat.service, chat.socket,
+ * upload middleware, storage adapter); shared middleware codes are in constants/error.constants.js.
+ */
+export const CHAT_ERROR_MESSAGES = Object.freeze({
+  PARENT_REQUIRED: 'Chỉ tài khoản phụ huynh mới sử dụng được tính năng trò chuyện.',
+  PARENT_NOT_FOUND: 'Không tìm thấy hồ sơ phụ huynh.',
+  ID_REQUIRED: 'Thiếu thông tin cuộc trò chuyện. Vui lòng thử lại.',
+  CONVERSATION_NOT_FOUND: 'Không tìm thấy cuộc trò chuyện.',
+  FORBIDDEN_CONVERSATION_ACCESS: 'Bạn không có quyền truy cập cuộc trò chuyện này.',
+  SELF_CHAT_NOT_ALLOWED: 'Bạn không thể tự nhắn tin cho chính mình.',
+  TARGET_PARENT_NOT_FOUND: 'Không tìm thấy phụ huynh này.',
+  USER_BLOCKED: 'Không thể nhắn tin vì một trong hai người đã chặn nhau.',
+  CONNECTION_REQUIRED: 'Bạn chỉ có thể nhắn tin với phụ huynh đã kết nối.',
+  INVALID_MESSAGE_TYPE: 'Loại tin nhắn không hợp lệ.',
+  INVALID_MESSAGE_PAYLOAD: 'Dữ liệu tin nhắn không hợp lệ.',
+  MESSAGE_TOO_LONG: 'Tin nhắn không được vượt quá 5000 ký tự.',
+  MESSAGE_EMPTY: 'Tin nhắn không được để trống.',
+  INVALID_MEDIA_URL: 'Ảnh đính kèm không hợp lệ. Vui lòng tải ảnh lên lại.',
+  // Playdate group chat
+  PLAYDATE_NOT_FOUND: 'Không tìm thấy cuộc hẹn chơi này.',
+  PLAYDATE_ID_REQUIRED: 'Thiếu thông tin cuộc hẹn chơi.',
+  FORBIDDEN_NOT_IN_PLAYDATE: 'Bạn không thuộc danh sách tham gia cuộc hẹn chơi này.',
+  FORBIDDEN_PLAYDATE_CHAT_ACCESS:
+    'Chỉ chủ cuộc hẹn và phụ huynh đã chấp nhận lời mời mới được tham gia nhóm chat.',
+  JOIN_REJECTED: 'Không thể mở cuộc trò chuyện. Vui lòng thử lại.',
+  INTERNAL_ERROR: 'Không thể gửi tin nhắn. Vui lòng thử lại sau.',
+  // Image upload (file type / size / storage codes: COMMON_ERROR_MESSAGES)
+  FILE_REQUIRED: 'Vui lòng chọn ảnh để gửi.',
+});
