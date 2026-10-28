@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { parentInfoSchema, changePasswordSchema } from './parentValidation';
+import { parentInfoSchema, changePasswordSchema } from '../../modules/parent/validation/parentValidation';
 
 describe('parentInfoSchema validation', () => {
   it('should validate valid parent info', () => {

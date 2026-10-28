@@ -13,7 +13,7 @@ import {
   TIME_SLOT_OPTIONS,
   LOCATION_PREFERENCE_OPTIONS,
   DISTANCE_SLIDER,
-} from '../../child/constants/childConstants';
+} from '../../child/constants/child.constants';
 import { useProfilePreferences } from '../hooks/useParentTabHooks';
 
 export const ProfilePreferencesTab = ({ profile, onUpdate, isUpdating }) => {

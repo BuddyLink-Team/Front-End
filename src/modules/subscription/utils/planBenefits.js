@@ -1,4 +1,4 @@
-import { PLAN_FEATURE_ROWS, UNLIMITED_LABEL } from '../constants/subscriptionConstants';
+import { PLAN_FEATURE_ROWS, UNLIMITED_LABEL } from '../constants/subscription.constants';
 
 /**
  * Limit text of one plan feature: "Không giới hạn", "1 hồ sơ bé", "5 hồ sơ / ngày"...

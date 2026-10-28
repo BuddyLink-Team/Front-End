@@ -7,7 +7,7 @@ import { useShowMore } from '../../../hooks/useShowMore';
 import { MatchScoreBar } from '../../discovery/components/MatchScoreBar';
 import { cn } from '../../../utils/cn';
 import { ICON_STROKE } from '../../../constants/icon.constants';
-import { PLAYDATE_WARNING_CODES } from '../constants/playdateConstants';
+import { PLAYDATE_WARNING_CODES } from '../constants/playdate.constants';
 
 const warningText = (warning) =>
   warning.code === PLAYDATE_WARNING_CODES.AGE_GAP ? `Chênh lệch ${warning.ageGapYears} tuổi` : null;

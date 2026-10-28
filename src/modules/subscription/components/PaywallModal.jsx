@@ -11,7 +11,7 @@ import {
   QUOTA_FEATURES,
   QUOTA_MESSAGES,
   PLAN_CODES,
-} from '../constants/subscriptionConstants';
+} from '../constants/subscription.constants';
 
 export const PaywallModal = () => {
   const dispatch = useDispatch();

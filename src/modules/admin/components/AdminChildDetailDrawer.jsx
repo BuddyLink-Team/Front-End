@@ -79,7 +79,7 @@ export const AdminChildDetailDrawer = ({ childId, isOpen, onClose, onViewParent 
                 <h4 className="text-title-md font-semibold text-text-primary">{childDetail.displayName}</h4>
                 <p className="text-body-md text-text-muted mt-0.5">
                   {formatChildAge(childDetail.dateOfBirth) || 'Chưa rõ tuổi'} •{' '}
-                  {GENDER_LABELS[childDetail.gender] || GENDER_LABELS.other}
+                  {GENDER_LABELS[childDetail.gender] || '—'}
                 </p>
                 <p className="text-label-sm text-text-muted">Ngày sinh: {formatDate(childDetail.dateOfBirth)}</p>
               </div>

@@ -41,6 +41,8 @@ export const DataTable = ({
   const sortKey = isServerSort ? serverSortKey : clientSort.sortKey;
   const sortDir = isServerSort ? serverSortDir : clientSort.sortDir;
   const sortedRows = isServerSort ? rows : clientSort.sortedRows;
+  // First load: no row yet, so the table would only be as tall as its header
+  const isFirstLoad = isLoading && sortedRows.length === 0;
 
   // Same toggle as useTableSort: a new column starts ascending, the same column flips direction
   const handleSort = (key) => {
@@ -56,6 +58,7 @@ export const DataTable = ({
     <div
       className={cn(
         'relative w-full overflow-x-auto rounded-2xl border border-hairline bg-white shadow-xs',
+        isFirstLoad && 'min-h-table-loading',
         className
       )}
     >

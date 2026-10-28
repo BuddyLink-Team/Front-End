@@ -6,7 +6,7 @@ import { ShowMoreButton } from '../../../components/ui/ShowMoreButton';
 import { useShowMore } from '../../../hooks/useShowMore';
 import { cn } from '../../../utils/cn';
 import { ICON_STROKE } from '../../../constants/icon.constants';
-import { PLACE_TYPE_LABELS, TIME_SLOT_LABELS, formatDurationLabel } from '../constants/playdateConstants';
+import { PLACE_TYPE_LABELS, TIME_SLOT_LABELS, formatDurationLabel } from '../constants/playdate.constants';
 import { googleMapsDirectionsUrl } from '../utils/placeLinks';
 import {
   formatSlotDay,

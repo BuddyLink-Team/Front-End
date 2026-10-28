@@ -32,6 +32,12 @@ Kiến trúc này được thiết kế để giải quyết triệt để bài 
 npm run dev:mock
 ```
 
+Admin portal chạy bằng mock (cần `cp .env.admin.mock.example .env.admin.mock` một lần):
+
+```bash
+npm run dev:admin:mock
+```
+
 ### Cơ chế hoạt động:
 - Lệnh trên kích hoạt `vite --mode mock`.
 - Vite nạp biến môi trường từ `.env.mock` (`VITE_USE_MOCK=true`).

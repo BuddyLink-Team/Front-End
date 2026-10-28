@@ -19,9 +19,9 @@ import { formatDate } from '../../../utils/formatters';
 import { cn } from '../../../utils/cn';
 import { ReadOnlyField } from '../../playdate/components/PlaydateFormLayout';
 import { ParticipantCard } from '../../playdate/components/PlaydateDetailParts';
-import { formatDurationLabel } from '../../playdate/constants/playdateConstants';
+import { formatDurationLabel } from '../../playdate/constants/playdate.constants';
 import { formatPlaydateTimeRange } from '../../playdate/utils/playdateTime';
-import { PLACE_TYPE_LABELS } from '../../playdate/constants/playdateConstants';
+import { PLACE_TYPE_LABELS } from '../../playdate/constants/playdate.constants';
 import { familyDistanceText, LINK_CLASS } from '../../playdate/utils/suggestionFormatters';
 import { googleMapsSearchUrl } from '../utils/aiAssistantUtils';
 import { OptionLinks } from './OptionLinks';
@@ -33,7 +33,7 @@ import {
   AI_LINK_KINDS,
   AI_TONE_CYCLE,
   DRAFT_WARNING_TEXT,
-} from '../constants/aiAssistantConstants';
+} from '../constants/ai-assistant.constants';
 
 // Same three parts as the playdate detail page (PlaydateFormLayout)
 const Part = ({ step, title, children }) => (

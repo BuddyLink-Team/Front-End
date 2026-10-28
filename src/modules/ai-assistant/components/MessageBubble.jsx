@@ -15,7 +15,7 @@ import {
   AI_MESSAGE_STATUS,
   AI_NON_RETRYABLE_ERRORS,
   TOOL_LABELS,
-} from '../constants/aiAssistantConstants';
+} from '../constants/ai-assistant.constants';
 
 const timeOf = (message) => (message.createdAt ? dayjs(message.createdAt).format('HH:mm') : '');
 

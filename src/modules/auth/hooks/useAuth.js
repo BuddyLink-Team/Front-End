@@ -25,7 +25,7 @@ import { resetConnections } from '../../connection/redux/connectionSlice';
 import { getRoleHomePath, USER_ROLES } from '../../../constants/role.constants';
 import socketService from '../../../services/socket';
 import { getApiErrorMsg } from '../../../utils/errorUtils';
-import { AUTH_ERROR_MESSAGES } from '../constants/authConstants';
+import { AUTH_ERROR_MESSAGES } from '../constants/auth.constants';
 import { needsVerification } from '../utils/verification';
 
 /**

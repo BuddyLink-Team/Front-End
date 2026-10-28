@@ -5,6 +5,8 @@ import PlaceholderPage from '../components/feedback/PlaceholderPage';
 
 import AdminUserManagementPage from '../modules/admin/pages/AdminUserManagementPage';
 import AdminChildManagementPage from '../modules/admin/pages/AdminChildManagementPage';
+import { AdminConnectionManagementPage } from '../modules/admin/pages/AdminConnectionManagementPage';
+import { AdminPlaydateManagementPage } from '../modules/admin/pages/AdminPlaydateManagementPage';
 
 // Title on the admin type scale (semi-bold), matching the AdminHeader section label
 const AdminPlaceholder = (props) => (
@@ -35,14 +37,8 @@ export const AdminRoutes = () => (
     />
 
     {/* Connection & Playdate Management */}
-    <Route
-      path="connections"
-      element={<AdminPlaceholder title="Quản lý kết nối" description="Giám sát các mối liên kết giữa các gia đình và xử lý gỡ kết nối vi phạm." />}
-    />
-    <Route
-      path="playdates"
-      element={<AdminPlaceholder title="Quản lý cuộc hẹn chơi" description="Theo dõi toàn bộ Playdate trên hệ thống và xử lý hủy khi có sự cố." />}
-    />
+    <Route path="connections" element={<AdminConnectionManagementPage />} />
+    <Route path="playdates" element={<AdminPlaydateManagementPage />} />
 
     {/* Revenue: subscription plans, Premium payments and conversion (backend subscription module) */}
     <Route

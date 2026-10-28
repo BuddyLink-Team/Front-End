@@ -2,7 +2,7 @@ import { useCallback, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { openAIDrawer, closeAIDrawer } from '../redux/aiAssistantSlice';
-import { AI_ROUTE, AI_SESSION_PARAM } from '../constants/aiAssistantConstants';
+import { AI_ROUTE, AI_SESSION_PARAM } from '../constants/ai-assistant.constants';
 import { USER_ROLES } from '../../../constants/role.constants';
 
 // The floating button would cover these pages' own composer / the assistant itself

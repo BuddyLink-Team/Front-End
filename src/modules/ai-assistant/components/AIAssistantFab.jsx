@@ -3,7 +3,7 @@ import { X } from 'lucide-react';
 import { useAIAssistantDrawer } from '../hooks/useAIAssistantDrawer';
 import { useFabReminder } from '../hooks/useFabReminder';
 import { AIMascotAvatar } from './AIMascotAvatar';
-import { AI_FAB_REMINDER } from '../constants/aiAssistantConstants';
+import { AI_FAB_REMINDER } from '../constants/ai-assistant.constants';
 
 /**
  * Floating chat bubble (mascot) opening the assistant drawer, with a reminder message next to it.

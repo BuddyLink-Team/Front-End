@@ -1,4 +1,4 @@
-import { CHILD_GENDERS, PERSONALITY_TRAITS } from '../../child/constants/childConstants';
+import { CHILD_GENDERS, PERSONALITY_TRAITS } from '../../child/constants/child.constants';
 
 // Personality chips must use the exact values stored on child profiles
 export const PERSONALITY_FILTER_OPTIONS = PERSONALITY_TRAITS.map((trait) => ({ id: trait, label: trait }));

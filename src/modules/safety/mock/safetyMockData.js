@@ -1,4 +1,4 @@
-import { BLOCK_REASONS } from '../constants/safetyConstants';
+import { BLOCK_REASONS } from '../constants/safety.constants';
 
 // Same shape as GET /safety/blocked-users items (SafetyDTO.toBlockedUserResponse)
 export const INITIAL_MOCK_BLOCKED_USERS = [

@@ -6,7 +6,7 @@ import {
   DEFAULT_DISCOVERY_FILTERS,
   DISCOVERY_PAGE_SIZE,
   DISTANCE_RANGE_KM,
-} from '../constants/discoveryConstants';
+} from '../constants/discovery.constants';
 
 // ---- Thunks ----
 

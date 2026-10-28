@@ -2,7 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import { Calendar, Edit3, Lock, Trash2 } from 'lucide-react';
 import { Card, Button, Avatar, InterestTag } from '../../../components';
-import { CHILD_GENDERS, GENDER_OPTIONS } from '../constants/childConstants';
+import { CHILD_GENDERS, GENDER_OPTIONS } from '../constants/child.constants';
 
 /**
  * ChildCard Component

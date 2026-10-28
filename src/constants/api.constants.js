@@ -92,5 +92,10 @@ export const API_ENDPOINTS = {
     USERS: '/users',
     CHILDREN: '/children',
     PAYMENTS: '/payments',
+    PLAYDATES: '/playdates',
+    PLAYDATE_BY_ID: (id) => `/playdates/${id}`,
+    CANCEL_PLAYDATE: (id) => `/playdates/${id}/cancel`,
+    CONNECTIONS: '/connections',
+    CONNECTION_BY_ID: (id) => `/connections/${id}`,
   },
 };

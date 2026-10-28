@@ -2,12 +2,12 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import { MapPin, Trees, Coffee, FerrisWheel, BookOpen, Building2, Palette, Clock, Calendar } from 'lucide-react';
 import { Button } from '../../../components/ui/Button';
-import { PLACE_TYPE_LABELS } from '../../playdate/constants/playdateConstants';
+import { PLACE_TYPE_LABELS } from '../../playdate/constants/playdate.constants';
 import { formatKm } from '../../playdate/utils/suggestionFormatters';
 import { cn } from '../../../utils/cn';
 import { OptionLinks } from './OptionLinks';
 import { ToolCardFrame } from './ToolCardFrame';
-import { AI_CARD_TONES, AI_CARD_TYPES, AI_TONES } from '../constants/aiAssistantConstants';
+import { AI_CARD_TONES, AI_CARD_TYPES, AI_TONES } from '../constants/ai-assistant.constants';
 
 // Places have no photo: a tile with the place type's icon (the same as the playdate place search) stands in for the Stitch picture
 const PLACE_TYPE_TILES = {

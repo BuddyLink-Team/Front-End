@@ -13,8 +13,8 @@ import {
 } from '../redux/discoverySlice';
 import { fetchMyChildren, CHILD_LIST_STATUS } from '../../child/redux/childSlice';
 import { fetchMyParentProfile } from '../../parent/redux/parentSlice';
-import { PARENT_ERROR_MESSAGES } from '../../parent/constants/parentConstants';
-import { CHILD_ERROR_MESSAGES } from '../../child/constants/childConstants';
+import { PARENT_ERROR_MESSAGES } from '../../parent/constants/parent.constants';
+import { CHILD_ERROR_MESSAGES } from '../../child/constants/child.constants';
 import {
   DISCOVERY_ERROR_CODES,
   DISCOVERY_ERROR_MESSAGES,
@@ -22,7 +22,7 @@ import {
   SUBSCRIPTION_PAGE_PATH,
   SWIPE_DIRECTIONS,
   UNLIMITED_QUOTA,
-} from '../constants/discoveryConstants';
+} from '../constants/discovery.constants';
 
 const FETCH_ERROR_FALLBACK = 'Lỗi tải danh sách khám phá';
 const SWIPE_ERROR_FALLBACK = 'Không thể ghi nhận lựa chọn. Vui lòng thử lại.';

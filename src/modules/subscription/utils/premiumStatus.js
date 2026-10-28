@@ -1,4 +1,4 @@
-import { PLAN_CODES } from '../constants/subscriptionConstants';
+import { PLAN_CODES } from '../constants/subscription.constants';
 
 /**
  * Whether the parent has Premium benefits right now.

@@ -259,7 +259,7 @@ export const AdminUserDetailDrawer = ({
                       </p>
                       <p className="text-label-sm text-text-muted mt-0.5">
                         {formatAgeYears(child.age) || 'Chưa rõ tuổi'} •{' '}
-                        {GENDER_LABELS[child.gender] || GENDER_LABELS.other}
+                        {GENDER_LABELS[child.gender] || '—'}
                       </p>
                     </div>
                     <StatusChip {...getChildChip(child)} />

@@ -4,7 +4,7 @@ import { useToast } from '../../../hooks/useToast';
 import { getApiErrorMsg } from '../../../utils/errorUtils';
 import { fetchAISessions, deleteAISession, setActiveAISession } from '../redux/aiAssistantSlice';
 import { groupSessionsByDate } from '../utils/aiAssistantUtils';
-import { AI_ERROR_MESSAGES, AI_LIMITS } from '../constants/aiAssistantConstants';
+import { AI_ERROR_MESSAGES, AI_LIMITS } from '../constants/ai-assistant.constants';
 
 /**
  * Conversation history: grouped list, paging, selection, new conversation and delete.

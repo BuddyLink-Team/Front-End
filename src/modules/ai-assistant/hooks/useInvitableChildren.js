@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { playdateApi } from '../../playdate/api/playdateApi';
-import { AI_LIMITS } from '../constants/aiAssistantConstants';
+import { AI_LIMITS } from '../constants/ai-assistant.constants';
 
 /**
  * Children of the connected families who can be invited with one own child

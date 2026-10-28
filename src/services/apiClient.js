@@ -9,7 +9,7 @@ import {
   QUOTA_FEATURES,
   QUOTA_MESSAGES,
   SUBSCRIPTION_ERROR_CODES,
-} from '../modules/subscription/constants/subscriptionConstants';
+} from '../modules/subscription/constants/subscription.constants';
 import { getErrorCode } from '../utils/errorUtils';
 
 const baseURL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api/v1';

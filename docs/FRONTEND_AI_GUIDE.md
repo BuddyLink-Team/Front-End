@@ -88,7 +88,7 @@ modules/playdate/
 ├── pages/           # Page routes (PlaydateDiscoveryPage.jsx, PlaydateDetailPage.jsx)
 ├── components/      # Module-only UI (PlaydateCard.jsx, MatchFilterDrawer.jsx)
 ├── validation/      # Form schema validations (playdateValidation.js)
-└── constants/       # Enums and constants (playdateConstants.js)
+└── constants/       # Enums and constants (playdate.constants.js)
 ```
 
 ---

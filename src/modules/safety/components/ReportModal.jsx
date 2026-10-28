@@ -26,7 +26,7 @@ import {
   REPORT_CATEGORY_OPTIONS,
   REPORT_LIMITS,
   EVIDENCE_ACCEPT,
-} from '../constants/safetyConstants';
+} from '../constants/safety.constants';
 
 // Icon map for category chips
 const CATEGORY_ICONS = {

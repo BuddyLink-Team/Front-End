@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { RefreshCw } from 'lucide-react';
 import { useParentProfile } from '../hooks/useParentProfile';
-import { PROFILE_TABS, TAB_CONFIGS } from '../constants/parentConstants';
+import { PROFILE_TABS, TAB_CONFIGS } from '../constants/parent.constants';
 import {
   ProfileHeaderCard,
   ProfileInfoTab,

@@ -19,7 +19,7 @@ import {
   PLAYDATE_VIEW_MODES,
   PLAYDATE_PAGE_SIZE,
   PLAYDATE_CALENDAR_LIMIT,
-} from '../constants/playdateConstants';
+} from '../constants/playdate.constants';
 
 const SEARCH_DEBOUNCE_MS = 350;
 // The calendar grid also shows the end of the previous month and the start of the next one

@@ -73,6 +73,12 @@ VITE_APP_TARGET=admin
 VITE_API_URL=http://localhost:5001/api/v1/admin
 ```
 
+To run the admin portal on mock data (no backend), `--mode admin.mock` reads `.env.admin.mock` instead:
+
+```bash
+cp .env.admin.mock.example .env.admin.mock
+```
+
 ---
 
 ## 🏃 Run Application
@@ -92,6 +98,10 @@ npm run dev:admin
 ```
 
 > Admin portal runs at: **http://localhost:5174** (talks to the admin API on port 5001)
+
+```bash
+npm run dev:admin:mock   # Admin portal on mock data (needs .env.admin.mock)
+```
 
 ### Build for Production
 

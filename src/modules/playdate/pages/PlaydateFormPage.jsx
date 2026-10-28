@@ -53,7 +53,7 @@ import {
   formatDurationLabel,
   DEFAULT_PLAYDATE_DURATION,
   PLAYDATE_STATUS_KEYS,
-} from '../constants/playdateConstants';
+} from '../constants/playdate.constants';
 import { addMinutesToTime, formatPlaydateTimeRange } from '../utils/playdateTime';
 import { googleMapsDirectionsUrl, toLngLat } from '../utils/placeLinks';
 import { formatDate } from '../../../utils/formatters';

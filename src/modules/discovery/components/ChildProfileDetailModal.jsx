@@ -12,7 +12,7 @@ import {
   UserCheck,
 } from 'lucide-react';
 import { useChildProfile } from '../hooks/useChildProfile';
-import { SWIPE_DIRECTIONS, VIEWER_CONNECTION_STATUS } from '../constants/discoveryConstants';
+import { SWIPE_DIRECTIONS, VIEWER_CONNECTION_STATUS } from '../constants/discovery.constants';
 import { ChildAvatar } from './ChildAvatar';
 import { VerifiedBadge } from '../../../components/badges/VerifiedBadge';
 import { InterestTag } from '../../../components/badges/InterestTag';

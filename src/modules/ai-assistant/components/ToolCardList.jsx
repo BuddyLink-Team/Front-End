@@ -1,6 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import { AI_CARD_TYPES, AI_OPTION_IDS, AI_PLAN_STEPS, AI_STEPS } from '../constants/aiAssistantConstants';
+import { AI_CARD_TYPES, AI_OPTION_IDS, AI_PLAN_STEPS, AI_STEPS } from '../constants/ai-assistant.constants';
 import { ChoiceCard } from './ChoiceCard';
 import { AgendaCard } from './AgendaCard';
 import { PlaceSuggestionCard } from './PlaceSuggestionCard';

@@ -1,6 +1,6 @@
-import { SESSION_GROUPS, AI_LIMITS, AI_STEPS, AI_APP_SECTIONS } from '../constants/aiAssistantConstants';
+import { SESSION_GROUPS, AI_LIMITS, AI_STEPS, AI_APP_SECTIONS } from '../constants/ai-assistant.constants';
 import { ACTIVITIES, ACTIVITY_GROUPS, toActivityOption } from '../../../constants/activity.constants';
-import { POPULAR_INTERESTS } from '../../child/constants/childConstants';
+import { POPULAR_INTERESTS } from '../../child/constants/child.constants';
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 const AGENDA_NOTE_HEADER = 'Hoạt động chính (gợi ý bởi BuddyLink AI):';

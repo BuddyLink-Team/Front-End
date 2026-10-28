@@ -6,7 +6,7 @@ import { Input } from '../../../components/ui/Input';
 import { cn } from '../../../utils/cn';
 import { normalizeAgenda } from '../utils/aiAssistantUtils';
 import { ToolCardFrame } from './ToolCardFrame';
-import { AI_CHOICE_STATUS, AI_LIMITS, AI_STEP_TONES, AI_STEPS, AI_TONE_CYCLE } from '../constants/aiAssistantConstants';
+import { AI_CHOICE_STATUS, AI_LIMITS, AI_STEP_TONES, AI_STEPS, AI_TONE_CYCLE } from '../constants/ai-assistant.constants';
 
 const NumberBadge = ({ index }) => (
   <span

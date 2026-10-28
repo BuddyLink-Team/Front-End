@@ -1,6 +1,6 @@
 import { useSelector } from 'react-redux';
 import { useSubscriptionQuota } from '../../subscription/hooks/useSubscriptionQuota';
-import { QUOTA_FEATURES } from '../../subscription/constants/subscriptionConstants';
+import { QUOTA_FEATURES } from '../../subscription/constants/subscription.constants';
 
 /**
  * Monthly AI conversations of the parent: one unit per conversation, used by its first reply.

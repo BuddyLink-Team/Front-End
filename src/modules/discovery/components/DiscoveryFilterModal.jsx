@@ -4,7 +4,7 @@ import { Modal } from '../../../components/feedback/Modal';
 import { Button } from '../../../components/ui/Button';
 import { FilterChips } from '../../../components/search/FilterChips';
 import { useDiscoveryFilterForm } from '../hooks/useDiscoveryFilterForm';
-import { AGE_RANGE_YEARS, DISTANCE_RANGE_KM, PERSONALITY_FILTER_OPTIONS } from '../constants/discoveryConstants';
+import { AGE_RANGE_YEARS, DISTANCE_RANGE_KM, PERSONALITY_FILTER_OPTIONS } from '../constants/discovery.constants';
 import { ICON_SIZE, ICON_STROKE } from '../../../constants/icon.constants';
 
 /**

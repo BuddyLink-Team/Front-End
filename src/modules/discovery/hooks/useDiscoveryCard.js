@@ -5,7 +5,7 @@ import {
   TIME_LABELS,
   SWIPE_DIRECTIONS,
   SWIPE_THRESHOLD_PX,
-} from '../constants/discoveryConstants';
+} from '../constants/discovery.constants';
 
 const translate = (labels, values = []) => values.map((v) => labels[v] || v);
 

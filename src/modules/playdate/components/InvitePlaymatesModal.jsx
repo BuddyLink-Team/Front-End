@@ -6,7 +6,7 @@ import { Button } from '../../../components/ui/Button';
 import { PlaymateSelector } from './PlaymateSelector';
 import { playdateApi } from '../api/playdateApi';
 import { removeAccents } from '../../../utils/formatters';
-import { INVITE_FRIENDS_FETCH_LIMIT } from '../constants/playdateConstants';
+import { INVITE_FRIENDS_FETCH_LIMIT } from '../constants/playdate.constants';
 
 const normalize = (text) => removeAccents(text).toLowerCase().trim();
 

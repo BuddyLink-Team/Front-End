@@ -4,7 +4,7 @@ import { useToast } from '../../../hooks/useToast';
 import { getApiErrorMsg } from '../../../utils/errorUtils';
 import { createAISession, fetchAISession, sendAIMessage, setActiveAISession } from '../redux/aiAssistantSlice';
 import { choiceMessageText, createLocalId } from '../utils/aiAssistantUtils';
-import { AI_ERROR_MESSAGES, AI_LIMITS } from '../constants/aiAssistantConstants';
+import { AI_ERROR_MESSAGES, AI_LIMITS } from '../constants/ai-assistant.constants';
 
 const EMPTY_MESSAGES = [];
 

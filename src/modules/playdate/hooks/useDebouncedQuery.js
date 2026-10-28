@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useDispatch } from 'react-redux';
 import { useDebounce } from '../../../hooks/useDebounce';
-import { SUGGESTION_DEBOUNCE_MS } from '../constants/playdateConstants';
+import { SUGGESTION_DEBOUNCE_MS } from '../constants/playdate.constants';
 
 const EMPTY = [];
 

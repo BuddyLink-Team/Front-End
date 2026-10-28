@@ -1,7 +1,7 @@
 import React from 'react';
 import { Check, ShieldCheck } from 'lucide-react';
 import { Input } from '../../../components';
-import { GENDER_OPTIONS } from '../constants/childConstants';
+import { GENDER_OPTIONS } from '../constants/child.constants';
 
 export const ChildBasicInfoStep = ({ formData, formErrors, updateField, showPrivacyNote = true }) => {
   return (

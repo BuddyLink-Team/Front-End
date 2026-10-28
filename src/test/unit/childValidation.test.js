@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { childSchema } from './onboardingValidation';
+import { childSchema } from '../../modules/child/validation/onboardingValidation';
 
 describe('childSchema validation', () => {
   it('should validate valid child data', () => {

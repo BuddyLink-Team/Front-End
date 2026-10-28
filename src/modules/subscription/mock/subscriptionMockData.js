@@ -1,4 +1,4 @@
-import { PLAN_CODES } from '../constants/subscriptionConstants';
+import { PLAN_CODES } from '../constants/subscription.constants';
 
 // Same plans as the backend SUBSCRIPTION_PLAN_DEFAULTS (SubscriptionDTO.toPlanResponse shape)
 export const MOCK_PLANS = [
