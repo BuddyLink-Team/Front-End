@@ -40,14 +40,8 @@ export const PARENT_ERROR_MESSAGES = Object.freeze({
   INVALID_CURRENT_PASSWORD: 'Mật khẩu hiện tại không chính xác.',
   SAME_AS_OLD_PASSWORD: 'Mật khẩu mới không được trùng với mật khẩu hiện tại.',
   SOCIAL_ACCOUNT_NO_PASSWORD: 'Tài khoản đăng nhập qua Google không thể đổi mật khẩu tại đây.',
-  // Avatar upload
+  // Avatar upload (file type / size / storage codes: COMMON_ERROR_MESSAGES)
   AVATAR_FILE_REQUIRED: 'Vui lòng chọn tệp hình ảnh để tải lên.',
-  INVALID_FILE_TYPE: 'Chỉ chấp nhận ảnh JPG, PNG, WEBP hoặc GIF.',
-  FILE_TOO_LARGE: 'Kích thước ảnh tối đa 5MB. Vui lòng chọn ảnh nhỏ hơn!',
-  FILE_UPLOAD_ERROR: 'Tệp tải lên không hợp lệ. Vui lòng chọn ảnh khác.',
-  UPLOAD_BUFFER_EMPTY: 'Tệp tải lên không hợp lệ hoặc bị lỗi.',
-  STORAGE_UPLOAD_ERROR: 'Tải ảnh lên máy chủ thất bại. Vui lòng thử lại sau!',
-  STORAGE_NOT_CONFIGURED: 'Hệ thống lưu trữ ảnh đang gặp sự cố. Vui lòng thử lại sau.',
 });
 
 // Must match the backend upload limit (upload.middleware.js)

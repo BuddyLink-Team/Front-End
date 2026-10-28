@@ -67,6 +67,8 @@ export const INITIAL_MOCK_SUBSCRIPTION_STATE = {
     child_profiles: { limit: 1, used: 1, remaining: 0, periodType: null, resetAt: null },
     discovery_swipes: { limit: 5, used: 2, remaining: 3, periodType: 'daily', resetAt: null },
     playdates_created: { limit: 3, used: 1, remaining: 2, periodType: 'monthly', resetAt: null },
+    // One unit per AI chat session
+    ai_assistant: { limit: 5, used: 1, remaining: 4, periodType: 'monthly', resetAt: null },
   },
   payments: [],
 };

@@ -28,6 +28,14 @@ export const DEFAULT_CHILD_AVATARS = Object.freeze({
   DEFAULT: '/avatars/default_boy.jpg',
 });
 
+// connectionStatus of a child public profile: viewer <-> that child's parent
+export const VIEWER_CONNECTION_STATUS = Object.freeze({
+  NONE: 'none',
+  SENT: 'sent',
+  RECEIVED: 'received',
+  CONNECTED: 'connected',
+});
+
 // Parent preference values (backend enums) -> Vietnamese labels
 export const LOCATION_LABELS = Object.freeze({
   park: 'Công viên',
@@ -118,7 +126,6 @@ export const DISCOVERY_ERROR_MESSAGES = Object.freeze({
   [DISCOVERY_ERROR_CODES.DUPLICATE_SWIPE]: 'Bạn đã phản hồi hồ sơ này rồi.',
   [DISCOVERY_ERROR_CODES.CHILD_REQUIRED_FOR_SWIPE]:
     'Hãy chọn bé bạn đang tìm bạn cho ở mục "Đang tìm bạn cho" phía trên (hoặc thêm hồ sơ bé trước).',
-  INVALID_QUOTA_ACTION: 'Không thể kiểm tra hạn mức sử dụng. Vui lòng thử lại sau.',
   BLOCKED_INTERACTION: 'Bạn không thể tương tác với hồ sơ này.',
   // Like = connection request (connection.service)
   CONNECTION_NOT_ALLOWED: 'Phụ huynh này hiện không nhận lời mời kết nối.',

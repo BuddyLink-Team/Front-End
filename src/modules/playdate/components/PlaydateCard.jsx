@@ -101,7 +101,9 @@ export const PlaydateCard = ({
   // Participant Kids & Parents
   const hostChildName = hostChild?.displayName || 'Bé';
   const hostChildAge = hostChild?.ageText ? ` (${hostChild.ageText})` : '';
-  const firstParticipant = participants[0];
+  // The guest shown on the card: someone who joined, else someone still invited (never a family who declined)
+  const firstParticipant =
+    participants.find((p) => p.status === 'accepted') || participants.find((p) => p.status === 'pending');
   const guestChildName = firstParticipant?.child?.displayName || 'Bé bạn';
   const guestChildAge = firstParticipant?.child?.ageText ? ` (${firstParticipant.child.ageText})` : '';
   const hostParentName = hostParent?.fullName || 'Phụ huynh';
@@ -122,11 +124,11 @@ export const PlaydateCard = ({
         }
       : null;
   // Tile colour follows the status (Design System tokens)
-  const tileClass = isCancelled
+  const tileClass = isCancelled || displayStatus === 'declined'
     ? 'bg-surface-container-low border-hairline text-text-muted opacity-70'
     : isCompleted
       ? 'bg-surface-container border-secondary-container text-secondary-dark'
-      : displayStatus === 'pending'
+      : displayStatus === 'pending' || displayStatus === 'awaiting_playmates'
         ? 'bg-tertiary-soft border-tertiary-border text-tertiary-dark'
         : 'bg-primary-soft border-primary-border text-primary-ink';
 
@@ -228,10 +230,10 @@ export const PlaydateCard = ({
       <div className="shrink-0 flex items-center flex-wrap gap-2 justify-end pt-3 xl:pt-0 border-t xl:border-t-0 border-hairline w-full xl:w-auto">
         <Button
           type="button"
-          variant="ghost"
+          variant="outline"
           size="sm"
           onClick={() => navigate(`/playdates/${id}`)}
-          className="rounded-full border border-hairline"
+          className="rounded-full"
         >
           Chi tiết lịch trình
         </Button>
@@ -242,7 +244,7 @@ export const PlaydateCard = ({
             variant="secondary"
             size="sm"
             onClick={() => (onReschedule ? onReschedule(playdate) : navigate(`/playdates/${id}`))}
-            className="rounded-full"
+            className="rounded-full bg-secondary-soft text-secondary-dark border border-secondary-border hover:bg-secondary-fixed"
           >
             Đổi lịch hẹn
           </Button>
@@ -285,7 +287,7 @@ export const PlaydateCard = ({
           <button
             type="button"
             onClick={() => (onCancel ? onCancel(playdate) : navigate(`/playdates/${id}`))}
-            className="w-7 h-7 rounded-full border border-hairline text-text-muted hover:text-error hover:border-error hover:bg-error-container flex items-center justify-center transition-colors"
+            className="w-7 h-7 rounded-full border border-error-container bg-surface-container-lowest text-error hover:border-error hover:bg-error-container flex items-center justify-center transition-colors"
             title="Hủy cuộc hẹn"
             aria-label="Hủy cuộc hẹn"
           >

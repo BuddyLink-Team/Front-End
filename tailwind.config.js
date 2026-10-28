@@ -74,6 +74,9 @@ export default {
           'fixed-dim': '#9bcee7',
           'on-fixed': '#001f2a',
           'on-fixed-variant': '#114d62',
+          // Pastel badge surface + its border (DESIGN.md: age group badges)
+          soft: '#e8f4fa',
+          border: '#cbe5f2',
         },
 
         // --- Tertiary Brand (Butter Yellow) ---
@@ -106,9 +109,10 @@ export default {
         // --- Neutrals & Backgrounds ---
         background: '#f9f9ff',
         'on-background': '#121c2c',
-        canvas: '#fafbf9',
-        'text-primary': '#2d3748',
-        'text-muted': '#718096',
+        // DESIGN.md frontmatter wins over the prose (canvas #fafbf9, text #2d3748 / #718096)
+        canvas: '#f9f9ff', // background
+        'text-primary': '#121c2c', // on-surface
+        'text-muted': '#717970', // outline
       },
 
       fontFamily: {
@@ -192,6 +196,8 @@ export default {
         // Chat message bubbles
         bubble: '85%',
         'bubble-sm': '75%',
+        'ai-drawer': '30rem', // AI assistant slide-out drawer
+        'ai-thread': '52rem', // AI assistant message column (full screen)
       },
       width: {
         'chat-panel': '350px', // Conversation list & playdate side panel
@@ -202,7 +208,7 @@ export default {
         'auth-card': '1000px',
         hero: '650px',
         'pricing-card': '520px',
-        'chat-frame': 'calc(100vh - 4.5rem)', // Chat page below the top bar
+        'chat-frame': 'calc(100dvh - 8rem)', // Full viewport fit: fills screen neatly without footer peeking up, footer visible on scroll
         chart: '280px', // Dashboard charts (BarChart)
         'place-modal': 'min(640px, 85vh)', // Place search modal: fixed, does not resize while loading
       },
@@ -223,10 +229,23 @@ export default {
         'pagination-item': '36px',
         'field-sm': '140px', // Table columns, compact selects
         'field-md': '200px',
+        'table-users': '1200px',
+        'table-children': '1050px',
+        'col-actions': '100px',
+        'col-actions-sm': '90px',
+        'col-xs': '80px',
+        'col-sm': '110px',
+        'col-md': '140px',
+        'col-lg': '160px',
+        'col-xl': '190px',
+        'col-2xl': '220px',
+        'col-plan': '150px',
+        'col-gender': '120px',
       },
       maxHeight: {
         modal: '90vh',
         'modal-mobile': '85vh',
+        composer: '10rem', // Auto-growing chat input
       },
       gridTemplateColumns: {
         navbar: '1fr auto 1fr', // Equal side columns keep the center nav truly centered

@@ -28,8 +28,15 @@ import { ImageLightbox } from './ImageLightbox.jsx';
 import { Button } from '../../../components/ui/Button';
 import { Textarea } from '../../../components/ui/Textarea';
 import { Spinner } from '../../../components/feedback/Spinner';
-import { CHAT_FILE_INPUT_ACCEPT, COMPOSER_TEXTAREA_CLASS } from '../constants/chatConstants.js';
+import {
+  BLOCKED_MEMBER_PROMPT_STEPS,
+  CHAT_FILE_INPUT_ACCEPT,
+  COMPOSER_TEXTAREA_CLASS,
+} from '../constants/chatConstants.js';
 import { cn } from '../../../utils/cn';
+import { useBlockedMemberPrompt } from '../hooks/useBlockedMemberPrompt.js';
+import { ReportModal } from '../../safety/components/ReportModal';
+import { useReportTarget } from '../../safety/hooks/useReportTarget';
 
 /**
  * Format date group label for messages separator
@@ -62,7 +69,6 @@ export const PlaydateChatView = ({
   onBack,
   currentParentId,
   canReport = false,
-  onReport,
   className,
 }) => {
   const navigate = useNavigate();
@@ -71,7 +77,12 @@ export const PlaydateChatView = ({
   const [lightboxImageUrl, setLightboxImageUrl] = useState(null);
   const [isCollateralOpen, setIsCollateralOpen] = useState(true);
   const [showMobileCollateral, setShowMobileCollateral] = useState(false);
-  const [showReportDialog, setShowReportDialog] = useState(false);
+  const { reportTarget, reportMessage, reportPlaydate, closeReport } = useReportTarget();
+  const blockedPrompt = useBlockedMemberPrompt({
+    conversation,
+    currentParentId,
+    onLeft: () => (onBack ? onBack() : navigate('/chat')),
+  });
 
   const messagesContainerRef = useRef(null);
   const textareaRef = useRef(null);
@@ -162,12 +173,7 @@ export const PlaydateChatView = ({
     }
   };
 
-  const handleConfirmReport = async () => {
-    const result = await onReport?.();
-    if (result?.success) {
-      setShowReportDialog(false);
-    }
-  };
+  const handleReportMessage = (msg) => reportMessage(msg, 'Thành viên');
 
   // Format short schedule snippet for header
   const scheduleSnippet = playdate?.scheduledDate
@@ -285,7 +291,7 @@ export const PlaydateChatView = ({
             </Button>
 
             {/* Menu More / Report (reported against the host, so hidden for the host) */}
-            {canReport && onReport && (
+            {canReport && (
               <Dropdown
                 trigger={
                   <Button
@@ -302,7 +308,7 @@ export const PlaydateChatView = ({
                 <DropdownItem
                   icon={Flag}
                   danger
-                  onClick={() => setShowReportDialog(true)}
+                  onClick={() => reportPlaydate(playdate, groupTitle)}
                 >
                   Báo cáo nhóm chat
                 </DropdownItem>
@@ -314,12 +320,12 @@ export const PlaydateChatView = ({
         {/* 2. Messages Stream */}
         <div ref={messagesContainerRef} className="flex-1 overflow-y-auto px-5 py-4 space-y-4 chat-stream-canvas scroll-smooth">
           {/* Playdate Scheduled Event Banner inside chat stream */}
-          <div className="p-3.5 rounded-2xl bg-surface-container-lowest border border-hairline shadow-xs flex items-center justify-between gap-3 mx-auto max-w-xl">
-            <div className="flex items-center gap-3">
+          <div className="p-3.5 rounded-2xl bg-surface-container-lowest border border-hairline shadow-xs flex items-center justify-between gap-3 mx-auto w-full max-w-xl">
+            <div className="flex items-center gap-3 min-w-0 flex-1">
               <div className="w-9 h-9 rounded-xl bg-primary-container/25 text-primary flex items-center justify-center shrink-0">
                 <CalendarHeart className="w-4 h-4" />
               </div>
-              <div className="text-xs">
+              <div className="text-xs min-w-0 flex-1">
                 <p className="font-bold text-on-surface leading-tight">
                   {groupTitle}
                 </p>
@@ -400,6 +406,7 @@ export const PlaydateChatView = ({
                     currentParentId={currentParentId}
                     onImageClick={(url) => setLightboxImageUrl(url)}
                     onRetry={onRetryMessage}
+                    onReportMessage={handleReportMessage}
                   />
                 </React.Fragment>
               );
@@ -561,18 +568,39 @@ export const PlaydateChatView = ({
       <ImageLightbox imageUrl={lightboxImageUrl} onClose={() => setLightboxImageUrl(null)} />
 
       {/* ============================================================== */}
-      {/* Report Group Modal                                             */}
+      {/* Blocked Member Prompt: stay in the chat or leave the playdate  */}
       {/* ============================================================== */}
       <ConfirmDialog
-        open={showReportDialog}
-        title="Báo cáo nhóm chat này?"
-        description="Bạn có nhận thấy tin nhắn phản cảm, vi phạm an toàn trẻ nhỏ hoặc nội dung không lành mạnh trong nhóm này? Quản trị viên BuddyLink sẽ kiểm tra ngay lập tức."
-        confirmLabel="Gửi báo cáo"
-        cancelLabel="Hủy"
+        open={blockedPrompt.step === BLOCKED_MEMBER_PROMPT_STEPS.ASK_CONTINUE}
+        title="Thành viên bị chặn trong nhóm"
+        description={`Bạn đã chặn ${blockedPrompt.blockedNames || 'một thành viên trong nhóm này'}. Bạn có muốn tiếp tục trao đổi trong nhóm playdate?`}
+        confirmLabel="Có, tiếp tục"
+        cancelLabel="Không"
         variant="warning"
-        onConfirm={handleConfirmReport}
-        onCancel={() => setShowReportDialog(false)}
+        onConfirm={blockedPrompt.stay}
+        onCancel={blockedPrompt.askLeave}
       />
+
+      <ConfirmDialog
+        open={blockedPrompt.step === BLOCKED_MEMBER_PROMPT_STEPS.ASK_LEAVE}
+        title={blockedPrompt.isHost ? 'Hủy buổi hẹn Playdate?' : 'Rời buổi hẹn Playdate?'}
+        description={
+          blockedPrompt.isHost
+            ? 'Bạn là người tổ chức nên không thể rời buổi hẹn. Hủy buổi hẹn sẽ hủy cho tất cả các gia đình đã được mời và không thể hoàn tác.'
+            : 'Bạn sẽ rời khỏi buổi hẹn và nhóm trò chuyện này. Các gia đình khác vẫn tham gia như bình thường.'
+        }
+        confirmLabel={blockedPrompt.isHost ? 'Hủy buổi hẹn cho mọi người' : 'Có, rời playdate'}
+        cancelLabel="Không"
+        variant="danger"
+        isLoading={blockedPrompt.isLeaving}
+        onConfirm={blockedPrompt.leave}
+        onCancel={blockedPrompt.backToContinue}
+      />
+
+      {/* ============================================================== */}
+      {/* Report Playdate / Message Modal                                */}
+      {/* ============================================================== */}
+      <ReportModal isOpen={Boolean(reportTarget)} onClose={closeReport} target={reportTarget} />
     </section>
   );
 };

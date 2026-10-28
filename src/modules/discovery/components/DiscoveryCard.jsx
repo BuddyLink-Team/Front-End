@@ -1,15 +1,17 @@
 import React from 'react';
-import { MapPin, CalendarDays, Brain, Heart, Clock } from 'lucide-react';
+import { MapPin, CalendarDays, Brain, Heart, Clock, Flag } from 'lucide-react';
 import { motion, useMotionValue, useTransform } from 'framer-motion';
 import { VerifiedBadge } from '../../../components/badges/VerifiedBadge';
 import { InterestTag } from '../../../components/badges/InterestTag';
 import { Avatar } from '../../../components/ui/Avatar';
+import { Button } from '../../../components/ui/Button';
 import { useDiscoveryCard } from '../hooks/useDiscoveryCard';
 import {
   SWIPE_DIRECTIONS,
   SWIPE_FEEDBACK,
 } from '../constants/discoveryConstants';
 import { MatchScoreBar } from './MatchScoreBar';
+import { ChildAvatar } from './ChildAvatar';
 import { DiscoveryActionButtons } from './DiscoveryActionButtons';
 import { ICON_SIZE, ICON_STROKE } from '../../../constants/icon.constants';
 
@@ -19,6 +21,7 @@ export const DiscoveryCard = ({
   index,
   isTop,
   onViewDetail,
+  onReport,
 }) => {
   const x = useMotionValue(0);
   const rotate = useTransform(x, [-300, 300], [-4, 4]);
@@ -51,8 +54,6 @@ export const DiscoveryCard = ({
 
   const {
     interests,
-    genderLabel,
-    avatarSrc,
     distanceLabel,
     preferredLocations,
     preferredPlaydateDays,
@@ -118,17 +119,7 @@ export const DiscoveryCard = ({
           {/* ── Header: Avatar + Info ── */}
           <div className="flex gap-4">
             {/* Avatar box */}
-            <div className="relative w-avatar-3xl h-avatar-3xl shrink-0 rounded-2xl bg-primary-container overflow-hidden flex items-center justify-center border border-primary">
-              <img
-                alt={profile.displayName}
-                src={avatarSrc}
-                className="w-full h-full object-cover select-none pointer-events-none"
-                draggable={false}
-              />
-              <span className="absolute bottom-0 left-0 right-0 text-center bg-secondary text-secondary-on-secondary text-label-xs font-bold py-0.5">
-                {genderLabel}
-              </span>
-            </div>
+            <ChildAvatar gender={profile.gender} alt={profile.displayName} />
 
             {/* Right info */}
             <div className="flex-1 flex flex-col gap-2 min-w-0">
@@ -265,6 +256,21 @@ export const DiscoveryCard = ({
               <p className="text-sm text-on-surface-variant italic bg-white px-3.5 py-3 rounded-xl border border-hairline leading-relaxed">
                 &quot;{profile.parent.bio}&quot;
               </p>
+            )}
+
+            {isTop && onReport && (
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                // Keep the press from starting a swipe drag of the card
+                onPointerDown={(e) => e.stopPropagation()}
+                onClick={onReport}
+                leftIcon={<Flag size={ICON_SIZE.SM} strokeWidth={ICON_STROKE.THIN} />}
+                className="self-start text-error hover:bg-error/10"
+              >
+                Báo cáo phụ huynh
+              </Button>
             )}
           </div>
 

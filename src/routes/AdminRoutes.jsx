@@ -3,6 +3,8 @@ import { Route, Navigate } from 'react-router-dom';
 import { AdminLayout } from '../layouts/AdminLayout';
 import PlaceholderPage from '../components/feedback/PlaceholderPage';
 
+import AdminUserManagementPage from '../modules/admin/pages/AdminUserManagementPage';
+import AdminChildManagementPage from '../modules/admin/pages/AdminChildManagementPage';
 import { AdminConnectionManagementPage } from '../modules/admin/pages/AdminConnectionManagementPage';
 import { AdminPlaydateManagementPage } from '../modules/admin/pages/AdminPlaydateManagementPage';
 
@@ -27,11 +29,11 @@ export const AdminRoutes = () => (
     {/* User & Children Management */}
     <Route
       path="users"
-      element={<AdminPlaceholder title="Quản lý phụ huynh" description="Danh sách tài khoản phụ huynh, trạng thái xác thực và lịch sử hoạt động." />}
+      element={<AdminUserManagementPage />}
     />
     <Route
       path="children"
-      element={<AdminPlaceholder title="Quản lý hồ sơ trẻ" description="Danh sách hồ sơ trẻ em trên toàn hệ thống." />}
+      element={<AdminChildManagementPage />}
     />
 
     {/* Connection & Playdate Management */}

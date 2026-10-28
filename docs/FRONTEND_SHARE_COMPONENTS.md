@@ -114,9 +114,9 @@ src/components/
 | **Navigation** | `Navbar` | `components/navigation/Navbar.jsx` | ✅ Đã code | Header sticky với pill navigation |
 | **Navigation** | `Sidebar` | `components/navigation/Sidebar.jsx` | ✅ Đã code | Collapsible sidebar cho Admin/Settings |
 | **Navigation** | `Tabs` | `components/navigation/Tabs.jsx` | ✅ Đã code | Hỗ trợ kiểu Pill và Line tab |
-| **Navigation** | `Pagination` | `components/navigation/Pagination.jsx` | ✅ Đã code | Phân trang kèm dấu chấm lửng (...) |
+| **Navigation** | `Pagination` | `components/navigation/Pagination.jsx` | ✅ Đã code | Phân trang kèm dấu chấm lửng (...); `inactiveItemClassName` thêm class cho các nút không phải trang hiện tại (admin dùng nền trắng `bg-surface-container-lowest`) |
 | **Search** | `SearchBar` | `components/search/SearchBar.jsx` | ✅ Đã code | Ô tìm kiếm có icon và submit trigger |
-| **Search** | `FilterChips` | `components/search/FilterChips.jsx` | ✅ Đã code | Bộ chip lọc đơn/đa tiêu chí kèm nút Clear |
+| **Search** | `FilterChips` | `components/search/FilterChips.jsx` | ✅ Đã code | Bộ chip lọc đơn/đa tiêu chí kèm nút Clear; mỗi option định danh bằng `id`, thiếu thì dùng `value` rồi `label` |
 | **Search** | `DateRangeFilter` | `components/search/DateRangeFilter.jsx` | ✅ Đã code | Preset + khoảng tùy chỉnh, giá trị `YYYY-MM-DD` |
 
 ---
@@ -297,6 +297,7 @@ src/components/
 
 #### 🗃️ `DataTable.jsx`: sort phía server
 - Truyền `onSortChange({ sortKey, sortDir })` cùng `sortKey`, `sortDir` hiện tại để bảng chỉ phát sự kiện sort và giữ nguyên thứ tự dòng server trả về (dùng với danh sách phân trang ở server). Không truyền `onSortChange` thì vẫn sort phía client bằng `useTableSort` như cũ.
+- **Tùy biến bảng & cột** (không truyền thì giữ style cũ): `tableClassName` gộp vào thẻ `<table>` (vd. `min-w-table-users` để bảng rộng cuộn ngang trong khung); mỗi cột nhận thêm `align` (`left` mặc định | `center` | `right`, áp cho cả tiêu đề và ô), `headerClassName` (vd. `min-w-col-md`) và `cellClassName`.
 
 ---
 

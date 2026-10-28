@@ -6,6 +6,7 @@ import { useToast } from '../../../hooks/useToast';
 import { getApiErrorMsg } from '../../../utils/errorUtils';
 import { useSafetyActions } from '../../safety/hooks/useSafetyActions';
 import { openDirectConversation } from '../../chat/redux/chatSlice';
+import { BLOCK_REASONS } from '../../safety/constants/safetyConstants';
 import {
   TIME_SLOT_OPTIONS,
   LOCATION_PREFERENCE_OPTIONS,
@@ -18,7 +19,7 @@ import {
   declineConnection,
   removeConnection,
 } from '../redux/connectionSlice';
-import { CONNECTION_ACTIONS, CONNECTION_ERROR_MAP, CONNECTION_LISTS } from '../constants/connection.constants';
+import { CONNECTION_ACTIONS, CONNECTION_ERROR_MESSAGES, CONNECTION_LISTS } from '../constants/connection.constants';
 
 const labelsOf = (values = [], options) =>
   values.map((value) => options.find((option) => option.value === value)?.label || value);
@@ -162,7 +163,7 @@ const useConnections = () => {
     try {
       if (action === CONNECTION_ACTIONS.BLOCK) {
         // useSafetyActions shows its own success / error toast
-        const result = await blockUser(connection.partnerId, connection.parentName, 'Blocked from connections');
+        const result = await blockUser(connection.partnerId, connection.parentName, BLOCK_REASONS.CONNECTION);
         if (result.success) refresh();
       } else {
         await dispatch(ACTION_THUNKS[action](connection.id)).unwrap();
@@ -171,7 +172,7 @@ const useConnections = () => {
         refresh();
       }
     } catch (err) {
-      toast.error(getApiErrorMsg(CONNECTION_ERROR_MAP, err, 'Thao tác không thành công. Vui lòng thử lại.'));
+      toast.error(getApiErrorMsg(CONNECTION_ERROR_MESSAGES, err, 'Thao tác không thành công. Vui lòng thử lại.'));
     } finally {
       setIsConfirming(false);
       setPendingConfirm(null);
@@ -185,7 +186,7 @@ const useConnections = () => {
         const conversation = await dispatch(openDirectConversation(connection.partnerId)).unwrap();
         navigate(`/chat/${conversation.id}`);
       } catch (err) {
-        toast.error(getApiErrorMsg(CONNECTION_ERROR_MAP, err, 'Không thể mở cuộc trò chuyện.'));
+        toast.error(getApiErrorMsg(CONNECTION_ERROR_MESSAGES, err, 'Không thể mở cuộc trò chuyện.'));
       }
     },
     [dispatch, navigate, toast]
@@ -214,7 +215,7 @@ const useConnections = () => {
     changePage,
     isLoading,
     pendingActionId,
-    fetchError: error ? getApiErrorMsg(CONNECTION_ERROR_MAP, error, 'Không thể tải danh sách kết nối.') : null,
+    fetchError: error ? getApiErrorMsg(CONNECTION_ERROR_MESSAGES, error, 'Không thể tải danh sách kết nối.') : null,
     pendingConfirm,
     isConfirming,
     requestAction,

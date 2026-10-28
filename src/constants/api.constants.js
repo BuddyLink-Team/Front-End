@@ -33,6 +33,8 @@ export const API_ENDPOINTS = {
   },
   PLAYDATE: {
     BASE: '/playdates',
+    PENDING_RATINGS: '/playdates/ratings/pending',
+    RATINGS: (id) => `/playdates/${id}/ratings`,
   },
   PLACES: {
     BASE: '/places',
@@ -45,8 +47,9 @@ export const API_ENDPOINTS = {
     UPLOAD: '/chat/upload',
   },
   AI_ASSISTANT: {
-    RECOMMEND: '/ai/recommendations',
-    CHAT: '/ai/chat',
+    SESSIONS: '/ai-assistant/sessions',
+    SESSION: (id) => `/ai-assistant/sessions/${id}`,
+    MESSAGES: (id) => `/ai-assistant/sessions/${id}/messages`,
   },
   NOTIFICATION: {
     BASE: '/notifications',
@@ -62,8 +65,11 @@ export const API_ENDPOINTS = {
     DECLINE: (id) => `/connections/${id}/decline`,
   },
   SAFETY: {
-    REPORT: '/safety/report',
+    REPORTS: '/safety/reports',
+    REPORT_EVIDENCE: '/safety/reports/evidence',
     BLOCK: '/safety/block',
+    UNBLOCK: (id) => `/safety/unblock/${id}`,
+    BLOCKED_USERS: '/safety/blocked-users',
   },
   GAMIFICATION: {
     // Streak + badges of the current parent
@@ -84,6 +90,8 @@ export const API_ENDPOINTS = {
   ADMIN: {
     DASHBOARD_STATS: '/stats',
     USERS: '/users',
+    CHILDREN: '/children',
+    PAYMENTS: '/payments',
     PLAYDATES: '/playdates',
     PLAYDATE_BY_ID: (id) => `/playdates/${id}`,
     CANCEL_PLAYDATE: (id) => `/playdates/${id}/cancel`,

@@ -8,30 +8,14 @@ import { cn } from '../../../utils/cn';
 import { ICON_STROKE } from '../../../constants/icon.constants';
 import { PLACE_TYPE_LABELS, TIME_SLOT_LABELS, formatDurationLabel } from '../constants/playdateConstants';
 import { googleMapsDirectionsUrl } from '../utils/placeLinks';
-
-const WEEKDAYS = ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7'];
-
-// "2026-11-01" -> "CN 01/11" (the date of a slot is a calendar day, read it without a time zone shift)
-const formatSlotDay = (date) => {
-  const [year, month, day] = date.split('-').map(Number);
-  const weekDay = new Date(Date.UTC(year, month - 1, day)).getUTCDay();
-  return `${WEEKDAYS[weekDay]} ${String(day).padStart(2, '0')}/${String(month).padStart(2, '0')}`;
-};
-
-const slotFitText = ({ matchedParents, totalParents }) => {
-  if (!matchedParents) return 'Chưa ai đặt lịch ưu tiên';
-  if (matchedParents === totalParents) return totalParents > 1 ? 'Hợp với cả các gia đình' : 'Hợp với lịch ưu tiên của bạn';
-  return `Hợp với ${matchedParents}/${totalParents} gia đình`;
-};
-
-const formatKm = (km) => `${String(km).replace('.', ',')} km`;
-
-const CHIP_CLASS = 'text-left px-3 py-2 rounded-xl border transition-colors flex flex-col gap-0.5 min-w-0';
-const chipState = (isActive) =>
-  isActive
-    ? 'border-primary bg-primary-soft text-text-primary shadow-2xs'
-    : 'border-hairline bg-surface-container-lowest hover:border-primary-border hover:bg-surface-container-low';
-const LINK_CLASS = 'inline-flex items-center gap-1 text-label-sm font-semibold text-primary-dark hover:underline';
+import {
+  formatSlotDay,
+  slotFitText,
+  familyDistanceText,
+  CHIP_CLASS,
+  chipState,
+  LINK_CLASS,
+} from '../utils/suggestionFormatters';
 
 const SuggestionHeading = ({ icon: Icon, children, isRefreshing }) => (
   <p className="flex items-center gap-1.5 text-label-md uppercase tracking-wider text-text-muted">
@@ -131,10 +115,6 @@ TimeSlotSuggestions.propTypes = {
   selectedTime: PropTypes.string,
   onSelect: PropTypes.func.isRequired,
 };
-
-// "Nhà bạn 1,2 km · Mẹ Lan 2,4 km": from each family's ward center to the place
-const familyDistanceText = (familyDistances = []) =>
-  familyDistances.map((d) => `${d.label} ${formatKm(d.distanceKm)}`).join(' · ');
 
 /**
  * Places around the families (places API, OpenStreetMap data): preferred place types first.

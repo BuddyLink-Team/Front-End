@@ -84,7 +84,7 @@ export const Switch = React.forwardRef(
           onClick={handleToggle}
           className={cn(
             'relative inline-flex shrink-0 cursor-pointer rounded-full transition-colors duration-200 ease-in-out p-0.5 focus:outline-none focus:ring-2 focus:ring-primary/25 focus:ring-offset-2',
-            checked ? 'bg-primary' : 'bg-gray-200',
+            checked ? 'bg-primary' : 'bg-outline-variant',
             disabled && 'cursor-not-allowed opacity-50 bg-gray-200',
             currentSize.track
           )}

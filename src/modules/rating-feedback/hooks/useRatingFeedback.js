@@ -1,5 +1,7 @@
 import { useState, useRef } from 'react';
 import { ratingFeedbackApi } from '../api/ratingFeedbackApi';
+import { RATING_ERROR_CODES, RATING_FEEDBACK_ERROR_MESSAGES } from '../constants/ratingFeedbackConstants';
+import { getApiErrorMsg, getErrorCode } from '../../../utils/errorUtils';
 
 export function useRatingFeedback({ playdate, onSubmitted }) {
   const [rating, setRating] = useState(0);
@@ -28,10 +30,10 @@ export function useRatingFeedback({ playdate, onSubmitted }) {
       });
       if (onSubmitted) onSubmitted();
     } catch (err) {
-      if (err.error?.code === 'RATING_ALREADY_EXISTS') {
+      if (getErrorCode(err) === RATING_ERROR_CODES.RATING_ALREADY_EXISTS) {
         if (onSubmitted) onSubmitted();
       } else {
-        setError(err.message || 'Không thể gửi đánh giá. Vui lòng thử lại.');
+        setError(getApiErrorMsg(RATING_FEEDBACK_ERROR_MESSAGES, err, 'Không thể gửi đánh giá. Vui lòng thử lại.'));
       }
     } finally {
       savingRef.current = false;

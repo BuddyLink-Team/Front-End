@@ -30,6 +30,7 @@ export const DataTable = ({
   onRowClick,
   renderCell,
   className,
+  tableClassName,
   sortKey: serverSortKey,
   sortDir: serverSortDir,
   onSortChange,
@@ -60,7 +61,7 @@ export const DataTable = ({
     >
       <LoadingOverlay show={isLoading} fullPage={false} />
 
-      <table className="w-full text-left border-collapse text-sm">
+      <table className={cn('w-full text-left border-collapse text-sm', tableClassName)}>
         {/* Table Head */}
         <thead className="bg-surface-muted/70 border-b border-hairline">
           <tr>
@@ -68,11 +69,13 @@ export const DataTable = ({
               <th
                 key={col.key}
                 onClick={() => col.sortable && handleSort(col.key)}
-                className={`px-4 py-3.5 text-xs font-semibold text-text-muted uppercase tracking-wider select-none ${
-                  col.sortable
-                    ? 'cursor-pointer hover:text-text-primary transition-colors'
-                    : ''
-                }`}
+                className={cn(
+                  'px-4 py-3.5 text-xs font-semibold text-text-muted uppercase tracking-wider select-none whitespace-nowrap',
+                  col.sortable && 'cursor-pointer hover:text-text-primary transition-colors',
+                  col.align === 'right' && 'text-right',
+                  col.align === 'center' && 'text-center',
+                  col.headerClassName
+                )}
               >
                 <span className="inline-flex items-center gap-1.5">
                   {col.label}
@@ -115,7 +118,15 @@ export const DataTable = ({
                 }`}
               >
                 {columns.map((col) => (
-                  <td key={col.key} className="px-4 py-3 text-text-primary">
+                  <td
+                    key={col.key}
+                    className={cn(
+                      'px-4 py-3 text-text-primary align-middle',
+                      col.align === 'right' && 'text-right',
+                      col.align === 'center' && 'text-center',
+                      col.cellClassName
+                    )}
+                  >
                     {renderCell
                       ? renderCell(col.key, row[col.key], row)
                       : String(row[col.key] ?? '—')}

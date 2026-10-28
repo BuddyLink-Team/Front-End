@@ -2,6 +2,7 @@ import { useEffect, useCallback } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchMySubscriptionQuota } from '../redux/subscriptionSlice';
 import { getApiErrorMsg } from '../../../utils/errorUtils';
+import { isPremiumActive } from '../utils/premiumStatus';
 import { PLAN_CODES, QUOTA_FEATURES, SUBSCRIPTION_ERROR_MESSAGES } from '../constants/subscriptionConstants';
 
 /**
@@ -33,8 +34,7 @@ export const useSubscriptionQuota = () => {
   }, [fetchQuota]);
 
   const usage = storedUsage || {};
-  const isPremium =
-    Boolean(isPremiumFlag) || (subscription?.status === 'active' && subscription?.planCode !== PLAN_CODES.FREE);
+  const isPremium = isPremiumActive(subscription, isPremiumFlag);
   const effectivePlanCode = storedPlanCode || subscription?.planCode || PLAN_CODES.FREE;
 
   // Child profile quota mapped from usage.child_profiles
