@@ -1,4 +1,5 @@
 import apiClient from '../services/apiClient';
+import { IS_ADMIN_PORTAL } from '../constants/app.constants';
 import adminMockHandlers from '../modules/admin/mock/adminMockHandlers';
 import playdateMockHandlers from '../modules/playdate/mock/playdateMockHandlers';
 import subscriptionMockHandlers from '../modules/subscription/mock/subscriptionMockHandlers';
@@ -109,8 +110,6 @@ const mockHandlers = [
   // ...authMockHandlers,
   // ...discoveryMockHandlers,
 ];
-
-import { IS_ADMIN_PORTAL } from '../constants/app.constants';
 
 /**
  * Normalize request path by stripping origin, baseURL and query string

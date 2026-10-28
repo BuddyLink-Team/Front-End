@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { setFilters, resetFilters } from '../redux/discoverySlice';
-import { AGE_RANGE_YEARS, DEFAULT_DISCOVERY_FILTERS } from '../constants/discoveryConstants';
+import { AGE_RANGE_YEARS, DEFAULT_DISCOVERY_FILTERS } from '../constants/discovery.constants';
 
 const toFormState = (filters) => ({ ...DEFAULT_DISCOVERY_FILTERS, ...(filters || {}) });
 

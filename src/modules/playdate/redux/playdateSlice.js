@@ -1,7 +1,7 @@
 import { createSlice, isAnyOf } from '@reduxjs/toolkit';
 import { createApiThunk } from '../../../utils/reduxUtils';
 import { playdateApi } from '../api/playdateApi';
-import { PLAYDATE_VIEW_MODES } from '../constants/playdateConstants';
+import { PLAYDATE_VIEW_MODES } from '../constants/playdate.constants';
 
 // ---- Thunks (all playdate API calls live here) ----
 

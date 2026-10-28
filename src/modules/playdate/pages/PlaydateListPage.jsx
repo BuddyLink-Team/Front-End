@@ -14,7 +14,7 @@ import { PlaydateFilterTabs } from '../components/PlaydateFilterTabs';
 import { RescheduleModal } from '../components/RescheduleModal';
 import { RatingModal } from '../../rating-feedback/components/RatingModal';
 import { usePlaydate } from '../hooks/usePlaydate';
-import { PLAYDATE_VIEW_MODES } from '../constants/playdateConstants';
+import { PLAYDATE_VIEW_MODES } from '../constants/playdate.constants';
 
 const VIEW_MODE_OPTIONS = [
   { id: PLAYDATE_VIEW_MODES.LIST, icon: LayoutGrid, title: 'Dạng danh sách' },

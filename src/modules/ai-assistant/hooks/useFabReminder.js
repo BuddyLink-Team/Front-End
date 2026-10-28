@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import { AI_FAB_REMINDER } from '../constants/aiAssistantConstants';
+import { AI_FAB_REMINDER } from '../constants/ai-assistant.constants';
 
 const readDismissed = () => {
   try {

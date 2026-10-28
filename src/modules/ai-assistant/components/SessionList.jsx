@@ -6,7 +6,7 @@ import { Button } from '../../../components/ui/Button';
 import { Skeleton } from '../../../components/feedback/Skeleton';
 import { ConfirmDialog } from '../../../components/feedback/ConfirmDialog';
 import { useAISessions } from '../hooks/useAISessions';
-import { SESSION_GROUP_LABELS } from '../constants/aiAssistantConstants';
+import { SESSION_GROUP_LABELS } from '../constants/ai-assistant.constants';
 
 /**
  * Conversation history (Stitch left column): new conversation, sessions grouped by day, delete

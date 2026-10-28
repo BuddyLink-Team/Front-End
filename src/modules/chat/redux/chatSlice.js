@@ -1,7 +1,7 @@
 import { createSlice } from '@reduxjs/toolkit';
 import { createApiThunk } from '../../../utils/reduxUtils';
 import chatApi from '../api/chatApi';
-import { PAGE_SIZE } from '../constants/chatConstants';
+import { PAGE_SIZE } from '../constants/chat.constants';
 import { upsertMessage, setMessageStatus } from '../utils/chatMessageUtils';
 
 // ---- Thunks (REST calls for chat live here, not in hooks/components) ----

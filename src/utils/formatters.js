@@ -70,6 +70,20 @@ export const formatDateTime = (date) => {
 };
 
 /**
+ * Format a start time and a duration as a time range (e.g. "10:00 - 12:00").
+ *
+ * @param {string} time - Start time "HH:mm"
+ * @param {number} [durationMinutes]
+ * @returns {string} The range, the start time alone without a valid duration, or an empty string.
+ */
+export const formatTimeRange = (time, durationMinutes) => {
+  if (!time) return '';
+  const start = dayjs(`2000-01-01T${time}`);
+  if (!start.isValid() || !(durationMinutes > 0)) return time;
+  return `${start.format('HH:mm')} - ${start.add(durationMinutes, 'minute').format('HH:mm')}`;
+};
+
+/**
  * Format a child's age from their date of birth: years from 1 year old, months below.
  *
  * @param {Date|string|number} dateOfBirth

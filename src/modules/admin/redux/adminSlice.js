@@ -30,6 +30,35 @@ export const fetchAdminChildDetail = createApiThunk('admin/fetchChildDetail', (c
   adminApi.getChildDetail(childId)
 );
 
+// Playdates & connections oversight: list, detail, and the admin action on one of them
+export const fetchAdminPlaydates = createApiThunk('admin/fetchPlaydates', (params) => adminApi.getPlaydates(params));
+
+export const fetchAdminPlaydateStats = createApiThunk('admin/fetchPlaydateStats', () => adminApi.getPlaydateStats());
+
+export const fetchAdminPlaydateDetail = createApiThunk('admin/fetchPlaydateDetail', (playdateId) =>
+  adminApi.getPlaydateDetail(playdateId)
+);
+
+export const cancelAdminPlaydate = createApiThunk('admin/cancelPlaydate', ({ id, reason }) =>
+  adminApi.cancelPlaydate(id, reason)
+);
+
+export const fetchAdminConnections = createApiThunk('admin/fetchConnections', (params) =>
+  adminApi.getConnections(params)
+);
+
+export const fetchAdminConnectionStats = createApiThunk('admin/fetchConnectionStats', () =>
+  adminApi.getConnectionStats()
+);
+
+export const fetchAdminConnectionDetail = createApiThunk('admin/fetchConnectionDetail', (connectionId) =>
+  adminApi.getConnectionDetail(connectionId)
+);
+
+export const removeAdminConnection = createApiThunk('admin/removeConnection', ({ id, reason }) =>
+  adminApi.removeConnection(id, reason)
+);
+
 const emptyDetail = { data: null, isLoading: false, error: null, requestId: null };
 
 const initialState = {
@@ -37,10 +66,49 @@ const initialState = {
   payments: { items: [], total: 0, isLoading: false, requestId: null },
   childDetail: { ...emptyDetail },
   isUpdatingStatus: false,
+  playdateDetail: { ...emptyDetail },
+  connectionDetail: { ...emptyDetail },
+  isOversightActionLoading: false,
 };
 
 // A detail request answered after another one started (or after the drawer closed) is ignored
 const isCurrentRequest = (slot, action) => slot.requestId === action.meta.requestId;
+
+// Detail slot of an oversight modal: keep the open item on screen while it reloads (after an admin action)
+const addOversightDetailCases = (builder, thunk, slotKey) =>
+  builder
+    .addCase(thunk.pending, (state, action) => {
+      const isSameItem = state[slotKey].data?.id === action.meta.arg;
+      state[slotKey] = {
+        data: isSameItem ? state[slotKey].data : null,
+        isLoading: true,
+        error: null,
+        requestId: action.meta.requestId,
+      };
+    })
+    .addCase(thunk.fulfilled, (state, action) => {
+      if (!isCurrentRequest(state[slotKey], action)) return;
+      state[slotKey].data = action.payload;
+      state[slotKey].isLoading = false;
+    })
+    .addCase(thunk.rejected, (state, action) => {
+      if (!isCurrentRequest(state[slotKey], action)) return;
+      state[slotKey].data = null;
+      state[slotKey].isLoading = false;
+      state[slotKey].error = action.payload || action.error;
+    });
+
+const addOversightActionCases = (builder, thunk) =>
+  builder
+    .addCase(thunk.pending, (state) => {
+      state.isOversightActionLoading = true;
+    })
+    .addCase(thunk.fulfilled, (state) => {
+      state.isOversightActionLoading = false;
+    })
+    .addCase(thunk.rejected, (state) => {
+      state.isOversightActionLoading = false;
+    });
 
 export const adminSlice = createSlice({
   name: 'admin',
@@ -52,6 +120,12 @@ export const adminSlice = createSlice({
     },
     clearChildDetail: (state) => {
       state.childDetail = { ...emptyDetail };
+    },
+    clearPlaydateDetail: (state) => {
+      state.playdateDetail = { ...emptyDetail };
+    },
+    clearConnectionDetail: (state) => {
+      state.connectionDetail = { ...emptyDetail };
     },
   },
   extraReducers: (builder) => {
@@ -123,9 +197,14 @@ export const adminSlice = createSlice({
         state.childDetail.isLoading = false;
         state.childDetail.error = action.payload || action.error;
       });
+
+    addOversightDetailCases(builder, fetchAdminPlaydateDetail, 'playdateDetail');
+    addOversightDetailCases(builder, fetchAdminConnectionDetail, 'connectionDetail');
+    addOversightActionCases(builder, cancelAdminPlaydate);
+    addOversightActionCases(builder, removeAdminConnection);
   },
 });
 
-export const { clearUserDetail, clearChildDetail } = adminSlice.actions;
+export const { clearUserDetail, clearChildDetail, clearPlaydateDetail, clearConnectionDetail } = adminSlice.actions;
 
 export default adminSlice.reducer;

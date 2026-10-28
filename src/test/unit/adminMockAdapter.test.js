@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { initMockServer } from '../../mock';
 import apiClient from '../../services/apiClient';
 import { adminApi } from '../../modules/admin/api/adminApi';

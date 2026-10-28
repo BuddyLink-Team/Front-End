@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { REPORT_FORM_MESSAGES, REPORT_LIMITS, SAFETY_ERROR_MESSAGES } from '../constants/safetyConstants';
+import { REPORT_FORM_MESSAGES, REPORT_LIMITS, SAFETY_ERROR_MESSAGES } from '../constants/safety.constants';
 
 /**
  * Report form (ReportModal). Same limits as the backend createReportValidation.

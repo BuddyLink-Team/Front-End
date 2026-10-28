@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { Crown, AlertTriangle, ShieldCheck } from 'lucide-react';
 import { cn } from '../../../utils/cn';
 import { UpgradeButton } from '../../../components/ui/UpgradeButton';
-import { AI_LIMITS } from '../constants/aiAssistantConstants';
+import { AI_LIMITS } from '../constants/ai-assistant.constants';
 
 /**
  * AI conversations left this month (Free plan), and the session's own message cap.

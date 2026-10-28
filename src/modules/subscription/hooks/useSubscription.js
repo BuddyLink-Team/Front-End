@@ -8,7 +8,7 @@ import {
   setBillingCycle,
   setSelectedPlan,
 } from '../redux/subscriptionSlice';
-import { PLAN_CODES, BILLING_CYCLES, SUBSCRIPTION_ERROR_MESSAGES } from '../constants/subscriptionConstants';
+import { PLAN_CODES, BILLING_CYCLES, SUBSCRIPTION_ERROR_MESSAGES } from '../constants/subscription.constants';
 import { getApiErrorMsg } from '../../../utils/errorUtils';
 import { isPremiumActive } from '../utils/premiumStatus';
 

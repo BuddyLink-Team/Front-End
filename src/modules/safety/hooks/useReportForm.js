@@ -10,7 +10,7 @@ import {
   REPORT_FORM_MESSAGES,
   REPORT_LIMITS,
   REPORT_TARGET_TYPES,
-} from '../constants/safetyConstants';
+} from '../constants/safety.constants';
 
 /**
  * Report form of the ReportModal: category, description, evidence images and the report sent.

@@ -2,7 +2,7 @@ import { useEffect, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useSearchParams } from 'react-router-dom';
 import { setActiveAISession } from '../redux/aiAssistantSlice';
-import { AI_SESSION_PARAM } from '../constants/aiAssistantConstants';
+import { AI_SESSION_PARAM } from '../constants/ai-assistant.constants';
 
 /**
  * Full-screen page: the open conversation follows ?session=<id>, so a refresh or a shared link

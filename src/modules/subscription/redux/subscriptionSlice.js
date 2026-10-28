@@ -1,7 +1,7 @@
 import { createSlice, isAnyOf } from '@reduxjs/toolkit';
 import { createApiThunk } from '../../../utils/reduxUtils';
 import { subscriptionApi } from '../api/subscriptionApi';
-import { BILLING_CYCLES, PLAN_CODES, QUOTA_FEATURES, QUOTA_MESSAGES } from '../constants/subscriptionConstants';
+import { BILLING_CYCLES, PLAN_CODES, QUOTA_FEATURES, QUOTA_MESSAGES } from '../constants/subscription.constants';
 import { createChild, deleteChild, completeOnboarding } from '../../child/redux/childSlice';
 
 // ---- Thunks (rejected payload: API error body { message, error: { code } }) ----

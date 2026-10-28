@@ -6,7 +6,7 @@ import {
   setMessageStatus,
   getOldestPersistedMessageId,
 } from '../../modules/chat/utils/chatMessageUtils';
-import { MESSAGE_STATUS } from '../../modules/chat/constants/chatConstants';
+import { MESSAGE_STATUS } from '../../modules/chat/constants/chat.constants';
 
 const optimistic = (tempId, content = 'Xin chào') =>
   buildOptimisticMessage({

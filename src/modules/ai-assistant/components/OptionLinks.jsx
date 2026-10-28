@@ -2,7 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import { ExternalLink, Baby, Navigation } from 'lucide-react';
 import { LINK_CLASS } from '../../playdate/utils/suggestionFormatters';
-import { AI_LINK_KINDS, AI_LINK_LABELS } from '../constants/aiAssistantConstants';
+import { AI_LINK_KINDS, AI_LINK_LABELS } from '../constants/ai-assistant.constants';
 
 const ICONS = {
   [AI_LINK_KINDS.CHILD_PROFILE]: Baby,

@@ -3,9 +3,9 @@ import PropTypes from 'prop-types';
 import { useNavigate } from 'react-router-dom';
 import { Crown } from 'lucide-react';
 import { UpgradeButton } from '../../../components/ui/UpgradeButton';
-import { QUOTA_MESSAGES } from '../../subscription/constants/subscriptionConstants';
+import { QUOTA_MESSAGES } from '../../subscription/constants/subscription.constants';
 import { ToolCardFrame } from './ToolCardFrame';
-import { AI_CARD_TONES, AI_CARD_TYPES } from '../constants/aiAssistantConstants';
+import { AI_CARD_TONES, AI_CARD_TYPES } from '../constants/ai-assistant.constants';
 
 /**
  * Another quota blocks what the parent asked (e.g. no playdate can be created this month)

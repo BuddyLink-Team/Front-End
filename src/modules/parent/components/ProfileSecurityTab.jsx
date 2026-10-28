@@ -6,7 +6,7 @@ import {
   Save,
 } from 'lucide-react';
 import { Card, Button, Switch } from '../../../components';
-import { CONNECTION_PRIVACY_OPTIONS } from '../constants/parentConstants';
+import { CONNECTION_PRIVACY_OPTIONS } from '../constants/parent.constants';
 import ChangePasswordModal from './ChangePasswordModal';
 import { useProfileSecurity } from '../hooks/useParentTabHooks';
 

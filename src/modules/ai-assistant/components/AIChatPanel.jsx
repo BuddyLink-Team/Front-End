@@ -12,7 +12,7 @@ import { QuickPrompts } from './QuickPrompts';
 import { QuotaBanner } from './QuotaBanner';
 import { ChatComposer } from './ChatComposer';
 import { AIMascotAvatar } from './AIMascotAvatar';
-import { AI_CARD_TYPES } from '../constants/aiAssistantConstants';
+import { AI_CARD_TYPES } from '../constants/ai-assistant.constants';
 
 /**
  * The assistant conversation, shared by the full-screen page and the slide-out drawer:

@@ -4,7 +4,7 @@ import { useToast } from '../../../hooks/useToast';
 import { getApiErrorMsg } from '../../../utils/errorUtils';
 import { COMMON_ERROR_MESSAGES } from '../../../constants/error.constants';
 import { blockParent, unblockParent, reportParent, uploadReportEvidence } from '../redux/safetySlice';
-import { BLOCK_REASONS, SAFETY_ERROR_MESSAGES } from '../constants/safetyConstants';
+import { BLOCK_REASONS, SAFETY_ERROR_MESSAGES } from '../constants/safety.constants';
 
 /**
  * Block / unblock / report another parent. API calls live in the safety slice thunks.

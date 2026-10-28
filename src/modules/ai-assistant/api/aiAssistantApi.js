@@ -1,6 +1,6 @@
 import apiClient from '../../../services/apiClient';
 import { API_ENDPOINTS } from '../../../constants/api.constants';
-import { AI_LIMITS } from '../constants/aiAssistantConstants';
+import { AI_LIMITS } from '../constants/ai-assistant.constants';
 
 const { AI_ASSISTANT } = API_ENDPOINTS;
 

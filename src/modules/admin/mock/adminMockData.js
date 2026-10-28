@@ -60,7 +60,6 @@ export const INITIAL_MOCK_ADMIN_PLAYDATES = [
       },
     ],
     numberOfParticipants: 1,
-    participantCount: 1,
     cancellation: null,
     completedAt: null,
     pendingReschedule: null,
@@ -123,7 +122,6 @@ export const INITIAL_MOCK_ADMIN_PLAYDATES = [
       },
     ],
     numberOfParticipants: 1,
-    participantCount: 1,
     cancellation: null,
     completedAt: null,
     // Active pending reschedule request for testing modal alerts
@@ -202,7 +200,6 @@ export const INITIAL_MOCK_ADMIN_PLAYDATES = [
       },
     ],
     numberOfParticipants: 1,
-    participantCount: 1,
     cancellation: null,
     completedAt: new Date(Date.now() - 86400000 * 4 + 7200000).toISOString(),
     pendingReschedule: null,
@@ -242,7 +239,6 @@ export const INITIAL_MOCK_ADMIN_PLAYDATES = [
     },
     participants: [],
     numberOfParticipants: 0,
-    participantCount: 0,
     cancellation: {
       cancelledBy: null,
       cancelledByAdmin: true,
@@ -287,7 +283,6 @@ export const INITIAL_MOCK_ADMIN_PLAYDATES = [
     },
     participants: [],
     numberOfParticipants: 0,
-    participantCount: 0,
     cancellation: {
       cancelledBy: 'parent-5',
       cancelledByAdmin: false,
@@ -334,7 +329,10 @@ export const INITIAL_MOCK_ADMIN_CONNECTIONS = [
     removedByAdmin: false,
     childPairs: [
       {
-        childIds: ['child-host-1', 'child-friend-1'],
+        children: [
+          { id: 'child-host-1', parentId: 'parent-host-1', displayName: 'Bé Bơ', age: 4, gender: 'boy', isArchived: false },
+          { id: 'child-friend-1', parentId: 'parent-friend-1', displayName: 'Bé Min', age: 4, gender: 'boy', isArchived: false },
+        ],
         source: 'discovery',
         matchScore: 88,
         createdAt: new Date(Date.now() - 86400000 * 16).toISOString(),
@@ -375,7 +373,10 @@ export const INITIAL_MOCK_ADMIN_CONNECTIONS = [
     removedByAdmin: false,
     childPairs: [
       {
-        childIds: ['child-3', 'child-host-1'],
+        children: [
+          { id: 'child-3', parentId: 'parent-3', displayName: 'Bé Sam', age: 4, gender: 'girl', isArchived: false },
+          { id: 'child-host-1', parentId: 'parent-host-1', displayName: 'Bé Bơ', age: 4, gender: 'boy', isArchived: false },
+        ],
         source: 'discovery',
         matchScore: 92,
         createdAt: new Date(Date.now() - 86400000 * 2).toISOString(),

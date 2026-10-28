@@ -6,7 +6,7 @@ import { PaymentHistoryList } from '../components/PaymentHistoryList';
 import { Button } from '../../../components/ui/Button';
 import { Tabs } from '../../../components/navigation/Tabs';
 import { Skeleton } from '../../../components/feedback/Skeleton';
-import { BILLING_CYCLES } from '../constants/subscriptionConstants';
+import { BILLING_CYCLES } from '../constants/subscription.constants';
 
 export const SubscriptionPage = () => {
   const {

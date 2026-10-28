@@ -7,7 +7,7 @@ import { ChildCard } from '../components';
 import { useChildrenList } from '../hooks/useChildrenList';
 import { useSubscriptionQuota } from '../../subscription/hooks/useSubscriptionQuota';
 import { openPaywall } from '../../subscription/redux/subscriptionSlice';
-import { QUOTA_FEATURES, QUOTA_MESSAGES } from '../../subscription/constants/subscriptionConstants';
+import { QUOTA_FEATURES, QUOTA_MESSAGES } from '../../subscription/constants/subscription.constants';
 
 export const ChildrenManagementPage = () => {
   const navigate = useNavigate();

@@ -9,7 +9,7 @@ import { useDiscoveryCard } from '../hooks/useDiscoveryCard';
 import {
   SWIPE_DIRECTIONS,
   SWIPE_FEEDBACK,
-} from '../constants/discoveryConstants';
+} from '../constants/discovery.constants';
 import { MatchScoreBar } from './MatchScoreBar';
 import { ChildAvatar } from './ChildAvatar';
 import { DiscoveryActionButtons } from './DiscoveryActionButtons';

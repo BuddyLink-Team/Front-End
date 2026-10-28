@@ -5,7 +5,7 @@ import { Avatar } from '../../../components/ui/Avatar';
 import { SearchBar } from '../../../components/search/SearchBar';
 import { FilterChips } from '../../../components/search/FilterChips';
 import { Skeleton } from '../../../components/feedback/Skeleton';
-import { CHAT_TABS, CONVERSATION_TYPES } from '../constants/chatConstants.js';
+import { CHAT_TABS, CONVERSATION_TYPES } from '../constants/chat.constants.js';
 import { cn } from '../../../utils/cn';
 
 /**

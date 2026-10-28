@@ -19,7 +19,7 @@ import { StatusChip } from '../../../components/badges/StatusChip';
 import { InterestTag } from '../../../components/badges/InterestTag';
 import { cn } from '../../../utils/cn';
 import { formatChildAge } from '../../../utils/formatters';
-import { PLAYDATE_PARTICIPANT_STATUS, PLAYDATE_STATUS_CHIPS } from '../constants/chatConstants.js';
+import { PLAYDATE_PARTICIPANT_STATUS, PLAYDATE_STATUS_CHIPS } from '../constants/chat.constants.js';
 
 /**
  * Format scheduled date into friendly Vietnamese text

@@ -1,7 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import { cn } from '../../../utils/cn';
-import { AI_TONES } from '../constants/aiAssistantConstants';
+import { AI_TONES } from '../constants/ai-assistant.constants';
 
 /**
  * Shell of a Tool UI Card: white card with a strong hairline border + small shadow (like the rest of the web), pastel icon badge + title

@@ -12,7 +12,7 @@ import { interestOptions, customFormDefaults, ACTIVITY_OPTIONS } from '../utils/
 import { useInvitableChildren } from '../hooks/useInvitableChildren';
 import { useChoiceCustomForm } from '../hooks/useChoiceCustomForm';
 import { SearchChecklist } from './SearchChecklist';
-import { AI_STEPS } from '../constants/aiAssistantConstants';
+import { AI_STEPS } from '../constants/ai-assistant.constants';
 import { MATCH_CRITERIA_LIMITS } from '../validation/aiAssistantValidation';
 
 const toggleValue = (list, value) => (list.includes(value) ? list.filter((item) => item !== value) : [...list, value]);

@@ -5,7 +5,7 @@ import {
   QUOTA_FEATURES,
   QUOTA_MESSAGES,
   SUBSCRIPTION_ERROR_CODES,
-} from '../constants/subscriptionConstants';
+} from '../constants/subscription.constants';
 import { getErrorCode } from '../../../utils/errorUtils';
 import { isPremiumActive } from '../utils/premiumStatus';
 

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
-import { AUTH_MODES, AUTH_MODE_TABS } from '../constants/authConstants';
+import { AUTH_MODES, AUTH_MODE_TABS } from '../constants/auth.constants';
 import { Tabs } from '../../../components/navigation/Tabs';
 import AuthCardLayout from '../components/AuthCardLayout';
 import LoginForm from '../components/LoginForm';

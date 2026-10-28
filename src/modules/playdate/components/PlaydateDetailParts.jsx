@@ -19,7 +19,7 @@ import { Avatar } from '../../../components/ui/Avatar';
 import { formatDate, getLocalDateString } from '../../../utils/formatters';
 import { formatPlaydateTimeRange } from '../utils/playdateTime';
 import { useScheduleCheck } from '../hooks/useScheduleCheck';
-import { DEFAULT_PLAYDATE_DURATION } from '../constants/playdateConstants';
+import { DEFAULT_PLAYDATE_DURATION } from '../constants/playdate.constants';
 
 const RSVP_BADGES = {
   host: { label: 'Người tổ chức', icon: Crown, className: 'bg-primary text-primary-on-primary border-primary' },

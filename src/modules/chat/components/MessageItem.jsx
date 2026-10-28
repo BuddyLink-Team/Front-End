@@ -3,7 +3,7 @@ import dayjs from 'dayjs';
 import { Check, CheckCheck, Clock, AlertCircle, RotateCcw, Flag } from 'lucide-react';
 import { Avatar } from '../../../components/ui/Avatar';
 import { ChatBubble } from '../../../components/chat/ChatBubble';
-import { MESSAGE_STATUS } from '../constants/chatConstants.js';
+import { MESSAGE_STATUS } from '../constants/chat.constants.js';
 
 export const MessageItem = ({
   message,

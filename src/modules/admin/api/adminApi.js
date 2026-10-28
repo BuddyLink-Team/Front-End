@@ -57,12 +57,16 @@ export const adminApi = {
 
   // Playdates
   getPlaydates: (params) => apiClient.get(API_ENDPOINTS.ADMIN.PLAYDATES, { params }),
+  /** Playdates across the platform: { total, upcoming, completed, cancelled } */
+  getPlaydateStats: () => apiClient.get(`${API_ENDPOINTS.ADMIN.PLAYDATES}/stats`),
   getPlaydateDetail: (id) => apiClient.get(API_ENDPOINTS.ADMIN.PLAYDATE_BY_ID(id)),
   cancelPlaydate: (id, reason) =>
     apiClient.patch(API_ENDPOINTS.ADMIN.CANCEL_PLAYDATE(id), { reason }),
 
   // Connections
   getConnections: (params) => apiClient.get(API_ENDPOINTS.ADMIN.CONNECTIONS, { params }),
+  /** Connections across the platform: { total, pending, accepted, declined, removed } */
+  getConnectionStats: () => apiClient.get(`${API_ENDPOINTS.ADMIN.CONNECTIONS}/stats`),
   getConnectionDetail: (id) => apiClient.get(API_ENDPOINTS.ADMIN.CONNECTION_BY_ID(id)),
   removeConnection: (id, reason) =>
     apiClient.delete(API_ENDPOINTS.ADMIN.CONNECTION_BY_ID(id), { data: { reason } }),

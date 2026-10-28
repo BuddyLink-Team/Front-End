@@ -5,7 +5,7 @@ import { useToast } from '../../../hooks/useToast';
 import { completeOnboarding, setError } from '../redux/childSlice';
 import { childSchema, criteriaSchema, getFieldErrors } from '../validation/onboardingValidation';
 import { getApiErrorMsg } from '../../../utils/errorUtils';
-import { CHILD_ERROR_MESSAGES } from '../constants/childConstants';
+import { CHILD_ERROR_MESSAGES } from '../constants/child.constants';
 
 export const useOnboardingChild = () => {
   const toast = useToast();

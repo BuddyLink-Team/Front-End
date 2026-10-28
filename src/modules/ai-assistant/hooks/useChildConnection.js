@@ -8,7 +8,7 @@ import {
   DISCOVERY_ERROR_MESSAGES,
   LIKE_SUCCESS_MESSAGES,
   SWIPE_DIRECTIONS,
-} from '../../discovery/constants/discoveryConstants';
+} from '../../discovery/constants/discovery.constants';
 
 const SWIPE_ERROR_FALLBACK = 'Không thể ghi nhận lựa chọn. Vui lòng thử lại.';
 

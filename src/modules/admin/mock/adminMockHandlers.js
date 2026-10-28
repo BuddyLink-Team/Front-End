@@ -11,6 +11,12 @@ export const adminMockHandlers = [
     pattern: '/admin/playdates/:id/cancel',
     handler: ({ params, body }) => adminMockService.cancelPlaydate(params.id, body),
   },
+  // Platform-wide counts (before :id, which would take 'stats' as an ID)
+  {
+    method: 'GET',
+    pattern: '/admin/playdates/stats',
+    handler: () => adminMockService.getPlaydateStats(),
+  },
   // 2. Playdate detail by ID
   {
     method: 'GET',
@@ -24,6 +30,11 @@ export const adminMockHandlers = [
     handler: ({ query }) => adminMockService.getPlaydates(query),
   },
 
+  {
+    method: 'GET',
+    pattern: '/admin/connections/stats',
+    handler: () => adminMockService.getConnectionStats(),
+  },
   // 4. Single connection detail by ID
   {
     method: 'GET',

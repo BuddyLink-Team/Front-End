@@ -219,6 +219,7 @@ export default {
         'ai-panel': '350px',
         placeholder: '280px',
         list: '220px',
+        'table-loading': '360px', // DataTable first load: room for the spinner before any row arrives
         'calendar-cell': '90px',
         'calendar-cell-md': '110px',
         'auth-heading': '76px',

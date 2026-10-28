@@ -12,7 +12,7 @@ import {
   ALLOWED_IMAGE_TYPES,
   MAX_IMAGE_SIZE_BYTES,
   CHAT_ERROR_MESSAGES,
-} from '../constants/chatConstants.js';
+} from '../constants/chat.constants.js';
 import {
   createTempId,
   buildOptimisticMessage,

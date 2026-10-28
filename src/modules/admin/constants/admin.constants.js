@@ -1,4 +1,21 @@
-import { CheckCircle2, EyeOff, Lock, Trash2, Crown, Users, UserCheck, Baby, Eye } from 'lucide-react';
+import {
+  CheckCircle2,
+  EyeOff,
+  Lock,
+  Trash2,
+  Crown,
+  Users,
+  UserCheck,
+  Baby,
+  Eye,
+  CalendarDays,
+  CalendarClock,
+  CalendarCheck,
+  CalendarX,
+  Link2,
+  Clock,
+  UserX,
+} from 'lucide-react';
 
 // Cards above the admin lists (`key` = field of the stats API), one per status tab below
 export const USER_STAT_CARDS = [
@@ -13,6 +30,21 @@ export const CHILD_STAT_CARDS = [
   { key: 'active', label: 'Chưa xóa', icon: Eye, variant: 'primary' },
   { key: 'archived', label: 'Đã xóa', icon: Trash2, variant: 'error' },
   { key: 'planLocked', label: 'Khóa do gói Free', icon: Crown, variant: 'tertiary' },
+];
+
+export const PLAYDATE_STAT_CARDS = [
+  { key: 'total', label: 'Tổng cuộc hẹn', icon: CalendarDays, variant: 'secondary' },
+  { key: 'upcoming', label: 'Sắp diễn ra', icon: CalendarClock, variant: 'primary' },
+  { key: 'completed', label: 'Đã hoàn thành', icon: CalendarCheck, variant: 'tertiary' },
+  { key: 'cancelled', label: 'Đã hủy', icon: CalendarX, variant: 'error' },
+];
+
+// The strip has 4 slots: declined requests are left out (still a status tab of the list)
+export const CONNECTION_STAT_CARDS = [
+  { key: 'total', label: 'Tổng kết nối', icon: Link2, variant: 'secondary' },
+  { key: 'accepted', label: 'Đã kết nối', icon: UserCheck, variant: 'primary' },
+  { key: 'pending', label: 'Đang chờ', icon: Clock, variant: 'tertiary' },
+  { key: 'removed', label: 'Đã gỡ', icon: UserX, variant: 'error' },
 ];
 
 /**
@@ -54,13 +86,11 @@ export const GENDER_FILTER_OPTIONS = [
   { label: 'Tất cả giới tính', value: '' },
   { label: 'Bé trai', value: 'boy' },
   { label: 'Bé gái', value: 'girl' },
-  { label: 'Khác', value: 'other' },
 ];
 
 export const GENDER_LABELS = Object.freeze({
   boy: 'Bé trai',
   girl: 'Bé gái',
-  other: 'Khác',
 });
 
 export const AGE_RANGE_OPTIONS = [
@@ -119,9 +149,57 @@ export const PAYMENT_STATUS_CHIPS = Object.freeze({
 
 export const RECENT_PAYMENTS_LIMIT = 5;
 
+// Status tabs of the playdates and connections lists: `value` is sent to the API as `status`
+export const PLAYDATE_STATUS_CHIPS = [
+  { id: '', label: 'Tất cả', value: '' },
+  { id: 'upcoming', label: 'Sắp diễn ra', value: 'upcoming' },
+  { id: 'completed', label: 'Đã hoàn thành', value: 'completed' },
+  { id: 'cancelled', label: 'Đã hủy', value: 'cancelled' },
+];
+
+export const CONNECTION_STATUS_CHIPS = [
+  { id: '', label: 'Tất cả', value: '' },
+  { id: 'pending', label: 'Đang chờ', value: 'pending' },
+  { id: 'accepted', label: 'Đã kết nối', value: 'accepted' },
+  { id: 'declined', label: 'Đã từ chối', value: 'declined' },
+  { id: 'removed', label: 'Đã gỡ', value: 'removed' },
+];
+
+// Connection statuses as StatusChip props
+export const CONNECTION_STATUS_DISPLAY = Object.freeze({
+  pending: { tone: 'warning', label: 'Đang chờ' },
+  accepted: { tone: 'success', label: 'Đã kết nối' },
+  declined: { tone: 'danger', label: 'Đã từ chối' },
+  removed: { tone: 'neutral', label: 'Đã gỡ' },
+});
+
+// Playdate participant answers as StatusChip props
+export const PARTICIPANT_STATUS_DISPLAY = Object.freeze({
+  pending: { tone: 'warning', label: 'Chờ phản hồi' },
+  accepted: { tone: 'success', label: 'Đã tham gia' },
+  declined: { tone: 'neutral', label: 'Đã từ chối' },
+});
+
+// Where a child pair of a connection comes from (connection childPairs[].source)
+export const CHILD_PAIR_SOURCE_LABELS = Object.freeze({
+  discovery: 'Ghép từ Khám phá',
+  playdate: 'Đã chơi chung buổi hẹn',
+  manual: 'Phụ huynh tự ghép',
+});
+
+// Only these can be force-cancelled / removed by an admin
+export const CANCELLABLE_PLAYDATE_STATUSES = ['upcoming'];
+export const REMOVABLE_CONNECTION_STATUSES = ['pending', 'accepted'];
+
 export const ADMIN_ERROR_MESSAGES = Object.freeze({
   CANNOT_LOCK_SELF: 'Bạn không thể tự khóa tài khoản của mình.',
   CANNOT_LOCK_ADMIN: 'Không thể khóa tài khoản quản trị viên khác.',
   PARENT_NOT_FOUND: 'Không tìm thấy hồ sơ phụ huynh của tài khoản này.',
   CHILD_NOT_FOUND: 'Không tìm thấy hồ sơ trẻ này.',
+  PLAYDATE_NOT_FOUND: 'Không tìm thấy cuộc hẹn chơi này.',
+  ALREADY_CANCELLED: 'Cuộc hẹn chơi này đã bị hủy trước đó.',
+  INVALID_PLAYDATE_STATUS: 'Không thể hủy cuộc hẹn chơi đã hoàn thành.',
+  PLAYDATE_CHANGED: 'Cuộc hẹn chơi vừa được cập nhật, vui lòng tải lại.',
+  CONNECTION_NOT_FOUND: 'Không tìm thấy kết nối này.',
+  INVALID_CONNECTION_STATE: 'Chỉ có thể gỡ kết nối đang chờ hoặc đã kết nối.',
 });

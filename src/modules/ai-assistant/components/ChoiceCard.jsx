@@ -8,7 +8,7 @@ import { useChoiceCard } from '../hooks/useChoiceCard';
 import { OptionLinks } from './OptionLinks';
 import { ChoiceCustomForm } from './ChoiceCustomForm';
 import { ToolCardFrame } from './ToolCardFrame';
-import { AI_STEPS, AI_STEP_TONES, AI_TONES } from '../constants/aiAssistantConstants';
+import { AI_STEPS, AI_STEP_TONES, AI_TONES } from '../constants/ai-assistant.constants';
 
 // Same icons as the Playdate and Discovery pages
 const STEP_ICONS = {

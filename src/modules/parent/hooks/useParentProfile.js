@@ -3,7 +3,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { useToast } from '../../../hooks/useToast';
 import { getApiErrorMsg } from '../../../utils/errorUtils';
 import { COMMON_ERROR_MESSAGES } from '../../../constants/error.constants';
-import { PARENT_ERROR_MESSAGES, MAX_AVATAR_SIZE_BYTES } from '../constants/parentConstants';
+import { PARENT_ERROR_MESSAGES, MAX_AVATAR_SIZE_BYTES } from '../constants/parent.constants';
 import {
   fetchMyParentProfile,
   saveParentProfile,

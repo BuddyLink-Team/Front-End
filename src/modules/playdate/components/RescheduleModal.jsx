@@ -10,7 +10,7 @@ import { PlaceSearchModal } from './PlaceSearchModal';
 import { ScheduleAvailability } from './ScheduleAvailability';
 import { useRescheduleForm } from '../hooks/useRescheduleForm';
 import { getLocalDateString } from '../../../utils/formatters';
-import { getDurationOptions } from '../constants/playdateConstants';
+import { getDurationOptions } from '../constants/playdate.constants';
 import { addMinutesToTime } from '../utils/playdateTime';
 
 const TIME_PRESETS = ['08:00', '09:00', '15:00', '16:30'].map((preset) => ({

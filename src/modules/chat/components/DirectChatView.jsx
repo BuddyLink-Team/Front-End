@@ -25,7 +25,7 @@ import { EmojiPopover } from './EmojiPopover.jsx';
 import { ImageLightbox } from './ImageLightbox.jsx';
 import { Spinner } from '../../../components/feedback/Spinner';
 import { cn } from '../../../utils/cn';
-import { CHAT_FILE_INPUT_ACCEPT, COMPOSER_TEXTAREA_CLASS } from '../constants/chatConstants.js';
+import { CHAT_FILE_INPUT_ACCEPT, COMPOSER_TEXTAREA_CLASS } from '../constants/chat.constants.js';
 import { useReportTarget } from '../../safety/hooks/useReportTarget.js';
 import { useConversationBlock } from '../hooks/useConversationBlock.js';
 import { ReportModal } from '../../safety/components/ReportModal.jsx';

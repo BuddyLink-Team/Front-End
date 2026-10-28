@@ -3,7 +3,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { useDebounce } from '../../../hooks/useDebounce';
 import { getApiErrorMsg } from '../../../utils/errorUtils';
 import { fetchBlockedUsers } from '../redux/safetySlice';
-import { BLOCKED_USERS_PAGE_SIZE, SAFETY_ERROR_MESSAGES } from '../constants/safetyConstants';
+import { BLOCKED_USERS_PAGE_SIZE, SAFETY_ERROR_MESSAGES } from '../constants/safety.constants';
 import { useSafetyActions } from './useSafetyActions';
 
 /**

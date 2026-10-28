@@ -8,7 +8,7 @@ import {
   AI_CHOICE_STATUS,
   AI_MESSAGE_STATUS,
   AI_LIMITS,
-} from '../constants/aiAssistantConstants';
+} from '../constants/ai-assistant.constants';
 
 export const fetchAISessions = createApiThunk('aiAssistant/fetchSessions', (params) =>
   aiAssistantApi.listSessions(params),

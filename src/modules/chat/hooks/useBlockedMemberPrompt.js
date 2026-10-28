@@ -3,8 +3,8 @@ import { useDispatch } from 'react-redux';
 import { useToast } from '../../../hooks/useToast';
 import { getApiErrorMsg } from '../../../utils/errorUtils';
 import { cancelPlaydate, leavePlaydate } from '../../playdate/redux/playdateSlice';
-import { PLAYDATE_ERROR_MESSAGES } from '../../playdate/constants/playdateConstants';
-import { BLOCKED_MEMBER_CANCEL_REASON, BLOCKED_MEMBER_PROMPT_STEPS } from '../constants/chatConstants.js';
+import { PLAYDATE_ERROR_MESSAGES } from '../../playdate/constants/playdate.constants';
+import { BLOCKED_MEMBER_CANCEL_REASON, BLOCKED_MEMBER_PROMPT_STEPS } from '../constants/chat.constants.js';
 
 /**
  * Prompt of a playdate group chat when the parent blocked one of its members: stay in the chat,

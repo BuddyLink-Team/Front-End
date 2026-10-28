@@ -115,7 +115,7 @@ modules/playdate/
 ├── pages/           # Page views for this module (PlaydateListPage.jsx)
 ├── components/      # Feature-specific subcomponents (PlaydateCard.jsx)
 ├── validation/      # Form validation schemas (Yup / Zod schema)
-└── constants/       # Module constants & status enums (playdateConstants.js)
+└── constants/       # Module constants & status enums (playdate.constants.js)
 ```
 
 ---

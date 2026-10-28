@@ -2,7 +2,7 @@ import React, { useRef, useState } from 'react';
 import PropTypes from 'prop-types';
 import { Send } from 'lucide-react';
 import { cn } from '../../../utils/cn';
-import { AI_DISCLAIMER, AI_LIMITS } from '../constants/aiAssistantConstants';
+import { AI_DISCLAIMER, AI_LIMITS } from '../constants/ai-assistant.constants';
 
 /**
  * Message input: Enter sends, Shift+Enter adds a line; grows with its content

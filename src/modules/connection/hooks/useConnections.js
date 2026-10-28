@@ -6,12 +6,12 @@ import { useToast } from '../../../hooks/useToast';
 import { getApiErrorMsg } from '../../../utils/errorUtils';
 import { useSafetyActions } from '../../safety/hooks/useSafetyActions';
 import { openDirectConversation } from '../../chat/redux/chatSlice';
-import { BLOCK_REASONS } from '../../safety/constants/safetyConstants';
+import { BLOCK_REASONS } from '../../safety/constants/safety.constants';
 import {
   TIME_SLOT_OPTIONS,
   LOCATION_PREFERENCE_OPTIONS,
   PLAYDATE_DAY_OPTIONS,
-} from '../../child/constants/childConstants';
+} from '../../child/constants/child.constants';
 import {
   fetchConnectionLists,
   fetchConnectionList,

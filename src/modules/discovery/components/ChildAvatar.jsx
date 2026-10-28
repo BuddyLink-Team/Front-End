@@ -1,7 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import { cn } from '../../../utils/cn';
-import { DEFAULT_CHILD_AVATARS, GENDER_LABELS } from '../constants/discoveryConstants';
+import { DEFAULT_CHILD_AVATARS, GENDER_LABELS } from '../constants/discovery.constants';
 
 const SIZES = {
   sm: 'w-14 h-14 rounded-xl',

@@ -3,8 +3,8 @@ import {
   INITIAL_MOCK_ADMIN_CONNECTIONS,
 } from './adminMockData';
 
-const PLAYDATE_STORAGE_KEY = 'buddylink_mock_admin_playdates_v1';
-const CONNECTION_STORAGE_KEY = 'buddylink_mock_admin_connections_v1';
+const PLAYDATE_STORAGE_KEY = 'buddylink_mock_admin_playdates_v2';
+const CONNECTION_STORAGE_KEY = 'buddylink_mock_admin_connections_v2';
 
 const delay = (ms = 120) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -69,6 +69,16 @@ class AdminMockService {
   /**
    * GET /api/v1/admin/playdates
    */
+  async getPlaydateStats() {
+    await delay();
+    const items = this._getPlaydates();
+    const countOf = (status) => items.filter((p) => p.status === status).length;
+    return {
+      success: true,
+      data: { total: items.length, upcoming: countOf('upcoming'), completed: countOf('completed'), cancelled: countOf('cancelled') },
+    };
+  }
+
   async getPlaydates(params = {}) {
     await delay();
     const { status, search, fromDate, toDate, page = 1, limit = 10 } = params;
@@ -213,6 +223,22 @@ class AdminMockService {
   /**
    * GET /api/v1/admin/connections
    */
+  async getConnectionStats() {
+    await delay();
+    const items = this._getConnections();
+    const countOf = (status) => items.filter((c) => c.status === status).length;
+    return {
+      success: true,
+      data: {
+        total: items.length,
+        pending: countOf('pending'),
+        accepted: countOf('accepted'),
+        declined: countOf('declined'),
+        removed: countOf('removed'),
+      },
+    };
+  }
+
   async getConnections(params = {}) {
     await delay();
     const { status, search, page = 1, limit = 10 } = params;

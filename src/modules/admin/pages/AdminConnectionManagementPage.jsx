@@ -3,6 +3,7 @@ import dayjs from 'dayjs';
 import { Eye, UserX, Mail } from 'lucide-react';
 import { useAdminConnections } from '../hooks/useAdminConnections';
 import { AdminListToolbar } from '../components/AdminListToolbar';
+import { AdminStatStrip } from '../components/AdminStatStrip';
 import { DataTable } from '../../../components/ui/DataTable';
 import { Pagination } from '../../../components/navigation/Pagination';
 import { StatusChip } from '../../../components/badges/StatusChip';
@@ -12,9 +13,12 @@ import { Button } from '../../../components/ui/Button';
 import { ConfirmDialog } from '../../../components/feedback/ConfirmDialog';
 import { AdminConnectionDetailModal } from '../components/AdminConnectionDetailModal';
 import {
-  ADMIN_CONNECTION_STATUS_OPTIONS,
-  CONNECTION_STATUS_CONFIG,
-} from '../constants/adminConstants';
+  CONNECTION_STATUS_CHIPS,
+  CONNECTION_STAT_CARDS,
+  CONNECTION_STATUS_DISPLAY,
+  REMOVABLE_CONNECTION_STATUSES,
+} from '../constants/admin.constants';
+import { ICON_SIZE } from '../../../constants/icon.constants';
 
 export const AdminConnectionManagementPage = () => {
   const {
@@ -26,15 +30,17 @@ export const AdminConnectionManagementPage = () => {
     setSearch,
     setFilter,
     setPage,
+    stats,
+    listErrorMessage,
     detailData,
     isDetailLoading,
     isDetailModalOpen,
     openDetail,
     closeDetail,
-    removingConnection,
-    initiateRemove,
-    cancelRemove,
-    confirmRemove,
+    actionTarget: removingConnection,
+    openAction: initiateRemove,
+    closeAction: cancelRemove,
+    confirmAction: confirmRemove,
     isActionLoading,
   } = useAdminConnections();
 
@@ -53,17 +59,21 @@ export const AdminConnectionManagementPage = () => {
         const p = row.requester;
         return (
           <div className="flex items-center gap-2.5">
-            <Avatar src={p?.avatarUrl} name={p?.fullName || 'Requester'} size="sm" />
+            <Avatar
+              src={p?.avatarUrl}
+              name={p?.fullName || 'Requester'}
+              size="sm"
+            />
             <div className="min-w-0">
               <div className="flex items-center gap-1">
-                <span className="font-semibold text-xs text-text-primary truncate">
+                <span className="font-semibold text-label-md text-text-primary truncate">
                   {p?.fullName || '—'}
                 </span>
                 {p?.isVerified && <VerifiedBadge size="sm" />}
               </div>
               {p?.email && (
-                <span className="text-2xs text-text-muted flex items-center gap-0.5 truncate">
-                  <Mail className="w-2.5 h-2.5" />
+                <span className="text-label-sm text-text-muted flex items-center gap-0.5 truncate">
+                  <Mail size={ICON_SIZE.XS} />
                   {p.email}
                 </span>
               )}
@@ -76,17 +86,21 @@ export const AdminConnectionManagementPage = () => {
         const p = row.recipient;
         return (
           <div className="flex items-center gap-2.5">
-            <Avatar src={p?.avatarUrl} name={p?.fullName || 'Recipient'} size="sm" />
+            <Avatar
+              src={p?.avatarUrl}
+              name={p?.fullName || 'Recipient'}
+              size="sm"
+            />
             <div className="min-w-0">
               <div className="flex items-center gap-1">
-                <span className="font-semibold text-xs text-text-primary truncate">
+                <span className="font-semibold text-label-md text-text-primary truncate">
                   {p?.fullName || '—'}
                 </span>
                 {p?.isVerified && <VerifiedBadge size="sm" />}
               </div>
               {p?.email && (
-                <span className="text-2xs text-text-muted flex items-center gap-0.5 truncate">
-                  <Mail className="w-2.5 h-2.5" />
+                <span className="text-label-sm text-text-muted flex items-center gap-0.5 truncate">
+                  <Mail size={ICON_SIZE.XS} />
                   {p.email}
                 </span>
               )}
@@ -96,19 +110,17 @@ export const AdminConnectionManagementPage = () => {
       }
 
       case 'status': {
-        const config = CONNECTION_STATUS_CONFIG[row.status];
         return (
           <StatusChip
             status={row.status}
-            label={config?.label}
-            tone={config?.tone}
+            {...CONNECTION_STATUS_DISPLAY[row.status]}
           />
         );
       }
 
       case 'createdAt':
         return (
-          <span className="text-xs text-text-muted">
+          <span className="text-label-md text-text-muted">
             {row.createdAt ? dayjs(row.createdAt).format('DD/MM/YYYY') : '—'}
           </span>
         );
@@ -122,19 +134,22 @@ export const AdminConnectionManagementPage = () => {
         } else if (row.status === 'removed' && row.removedAt) {
           label = `Đã gỡ: ${dayjs(row.removedAt).format('DD/MM/YYYY')}`;
         }
-        return <span className="text-xs text-text-muted">{label}</span>;
+        return <span className="text-label-md text-text-muted">{label}</span>;
       }
 
       case 'actions': {
-        const isRemovable = ['pending', 'accepted'].includes(row.status);
+        const isRemovable = REMOVABLE_CONNECTION_STATUSES.includes(row.status);
         return (
-          <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
+          <div
+            className="flex items-center gap-1"
+            onClick={(e) => e.stopPropagation()}
+          >
             <Button
               type="button"
               variant="ghost"
               size="sm"
               title="Xem chi tiết"
-              leftIcon={<Eye className="w-3.5 h-3.5" />}
+              leftIcon={<Eye size={ICON_SIZE.SM} />}
               onClick={() => openDetail(row)}
             >
               Xem
@@ -146,7 +161,7 @@ export const AdminConnectionManagementPage = () => {
                 size="sm"
                 title="Gỡ kết nối"
                 className="text-error hover:bg-error-container/40"
-                leftIcon={<UserX className="w-3.5 h-3.5" />}
+                leftIcon={<UserX size={ICON_SIZE.SM} />}
                 onClick={() => initiateRemove(row)}
               >
                 Gỡ
@@ -165,13 +180,22 @@ export const AdminConnectionManagementPage = () => {
     <div className="space-y-6">
       {/* Page Header */}
       <div>
-        <h1 className="text-2xl font-bold tracking-tight text-text-primary">
-          Quản lý kết nối (Connections)
+        <h1 className="text-headline-md font-semibold tracking-tight text-text-primary">
+          Quản lý kết nối
         </h1>
-        <p className="text-sm text-text-muted mt-1">
-          Giám sát các mối liên kết giữa các gia đình và xử lý gỡ kết nối khi có vi phạm hoặc mâu thuẫn.
+        <p className="text-body-md text-text-muted mt-1">
+          Giám sát các mối liên kết giữa các gia đình và xử lý gỡ kết nối khi có
+          vi phạm hoặc mâu thuẫn.
         </p>
       </div>
+
+      {/* Platform-wide counts */}
+      <AdminStatStrip
+        cards={CONNECTION_STAT_CARDS}
+        stats={stats.stats}
+        isLoading={stats.isLoading}
+        hasError={stats.hasError}
+      />
 
       {/* Toolbar: Search & Status Chips */}
       <AdminListToolbar
@@ -179,7 +203,7 @@ export const AdminConnectionManagementPage = () => {
         onSearchChange={setSearch}
         searchPlaceholder="Tìm kiếm theo tên phụ huynh hoặc tên bé..."
         statusChips={{
-          options: ADMIN_CONNECTION_STATUS_OPTIONS,
+          options: CONNECTION_STATUS_CHIPS,
           selected: filters.status || '',
           onChange: (val) => setFilter('status', val || undefined),
         }}
@@ -193,22 +217,36 @@ export const AdminConnectionManagementPage = () => {
           isLoading={isLoading}
           onRowClick={(row) => openDetail(row)}
           renderCell={renderCell}
-          emptyTitle="Không tìm thấy mối kết nối nào"
-          emptyMessage="Thử thay đổi từ khóa tìm kiếm hoặc trạng thái kết nối."
+          emptyTitle={
+            listErrorMessage
+              ? 'Không tải được danh sách'
+              : 'Không tìm thấy mối kết nối nào'
+          }
+          emptyMessage={
+            listErrorMessage ||
+            'Thử thay đổi từ khóa tìm kiếm hoặc trạng thái kết nối.'
+          }
         />
 
         {/* Pagination & Summary */}
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-2">
-          <p className="text-xs text-text-muted">
-            Hiển thị <span className="font-semibold text-text-primary">{rows.length}</span> trên tổng số{' '}
-            <span className="font-semibold text-text-primary">{pagination.total}</span> kết nối
-          </p>
-          <Pagination
-            currentPage={pagination.page}
-            totalPages={pagination.totalPages}
-            onPageChange={setPage}
-          />
-        </div>
+        {pagination.totalPages > 1 && (
+          <div className="flex items-center justify-between pt-2">
+            <p className="text-body-md text-text-muted">
+              Hiển thị trang{' '}
+              <span className="font-semibold text-text-primary">
+                {pagination.page}
+              </span>{' '}
+              / <span>{pagination.totalPages}</span> ({pagination.total} kết
+              nối)
+            </p>
+            <Pagination
+              currentPage={pagination.page}
+              totalPages={pagination.totalPages}
+              onPageChange={setPage}
+              inactiveItemClassName="bg-surface-container-lowest hover:bg-surface-container-low"
+            />
+          </div>
+        )}
       </div>
 
       {/* Detail Modal */}

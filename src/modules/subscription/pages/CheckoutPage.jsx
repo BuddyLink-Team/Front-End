@@ -5,7 +5,7 @@ import { Button } from '../../../components/ui/Button';
 import { CheckoutStatusCard } from '../components/CheckoutStatusCard';
 import { CheckoutOrderSummary } from '../components/CheckoutOrderSummary';
 import { CheckoutQrPanel } from '../components/CheckoutQrPanel';
-import { PAYMENT_STATUS } from '../constants/subscriptionConstants';
+import { PAYMENT_STATUS } from '../constants/subscription.constants';
 
 export const CheckoutPage = () => {
   const navigate = useNavigate();

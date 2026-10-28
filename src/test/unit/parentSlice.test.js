@@ -7,7 +7,7 @@ import parentReducer, {
   fetchMyParentProfile,
   saveParentProfile,
   uploadParentAvatar,
-} from './parentSlice';
+} from '../../modules/parent/redux/parentSlice';
 
 describe('parentSlice reducer', () => {
   const initialState = {

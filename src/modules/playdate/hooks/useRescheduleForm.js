@@ -3,7 +3,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { useToast } from '../../../hooks/useToast';
 import { getApiErrorMsg } from '../../../utils/errorUtils';
 import { createRescheduleRequest } from '../redux/playdateSlice';
-import { DEFAULT_PLAYDATE_DURATION, PLAYDATE_ERROR_MESSAGES } from '../constants/playdateConstants';
+import { DEFAULT_PLAYDATE_DURATION, PLAYDATE_ERROR_MESSAGES } from '../constants/playdate.constants';
 import { getLocalDateString } from '../../../utils/formatters';
 import { PLAYDATE_TIME_REGEX, hasPlaydateStarted } from '../utils/playdateTime';
 import { useScheduleCheck } from './useScheduleCheck';

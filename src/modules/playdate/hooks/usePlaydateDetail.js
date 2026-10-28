@@ -12,7 +12,7 @@ import {
   inviteParticipants,
   voteRescheduleRequest,
 } from '../redux/playdateSlice';
-import { PLAYDATE_ERROR_MESSAGES, PLAYDATE_WARNING_CODES, RESCHEDULE_STATUS } from '../constants/playdateConstants';
+import { PLAYDATE_ERROR_MESSAGES, PLAYDATE_WARNING_CODES, RESCHEDULE_STATUS } from '../constants/playdate.constants';
 import { hasPlaydateStarted } from '../utils/playdateTime';
 
 /**

@@ -1,6 +1,6 @@
 import { useState, useRef } from 'react';
 import { ratingFeedbackApi } from '../api/ratingFeedbackApi';
-import { RATING_ERROR_CODES, RATING_FEEDBACK_ERROR_MESSAGES } from '../constants/ratingFeedbackConstants';
+import { RATING_ERROR_CODES, RATING_FEEDBACK_ERROR_MESSAGES } from '../constants/rating-feedback.constants';
 import { getApiErrorMsg, getErrorCode } from '../../../utils/errorUtils';
 
 export function useRatingFeedback({ playdate, onSubmitted }) {

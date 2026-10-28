@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useDispatch } from 'react-redux';
 import { fetchNearbyPlaces, fetchPlaceDetail } from '../redux/playdateSlice';
 import { getApiErrorMsg } from '../../../utils/errorUtils';
-import { PLAYDATE_ERROR_MESSAGES } from '../constants/playdateConstants';
+import { PLAYDATE_ERROR_MESSAGES } from '../constants/playdate.constants';
 
 const SEARCH_DEBOUNCE_MS = 350;
 // While the Back-End fetches the places of a new area, the list is reloaded on its own

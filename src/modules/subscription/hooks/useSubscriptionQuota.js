@@ -3,7 +3,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { fetchMySubscriptionQuota } from '../redux/subscriptionSlice';
 import { getApiErrorMsg } from '../../../utils/errorUtils';
 import { isPremiumActive } from '../utils/premiumStatus';
-import { PLAN_CODES, QUOTA_FEATURES, SUBSCRIPTION_ERROR_MESSAGES } from '../constants/subscriptionConstants';
+import { PLAN_CODES, QUOTA_FEATURES, SUBSCRIPTION_ERROR_MESSAGES } from '../constants/subscription.constants';
 
 /**
  * Current plan and usage quota of the signed-in parent (data lives in the subscription slice).

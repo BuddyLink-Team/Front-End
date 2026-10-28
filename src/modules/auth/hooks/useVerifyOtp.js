@@ -13,7 +13,7 @@ import { getApiErrorMsg } from '../../../utils/errorUtils';
 import {
   AUTH_ERROR_MESSAGES,
   OTP_RESEND_COOLDOWN_SECONDS,
-} from '../constants/authConstants';
+} from '../constants/auth.constants';
 
 /**
  * Custom hook encapsulating the full business logic and state for OTP Verification.

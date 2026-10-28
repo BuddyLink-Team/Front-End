@@ -9,7 +9,7 @@ import { ChildAvatar } from '../../discovery/components/ChildAvatar';
 import { cn } from '../../../utils/cn';
 import { formatKm, LINK_CLASS } from '../../playdate/utils/suggestionFormatters';
 import { ToolCardFrame } from './ToolCardFrame';
-import { AI_CARD_TONES, AI_CARD_TYPES } from '../constants/aiAssistantConstants';
+import { AI_CARD_TONES, AI_CARD_TYPES } from '../constants/ai-assistant.constants';
 
 /**
  * Children who would be good playmates (Discovery, read only: nothing is swiped from here).

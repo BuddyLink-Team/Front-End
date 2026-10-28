@@ -1,5 +1,5 @@
 import { useCallback, useMemo, useState } from 'react';
-import { AI_CHOICE_STATUS, AI_OPTION_IDS } from '../constants/aiAssistantConstants';
+import { AI_CHOICE_STATUS, AI_OPTION_IDS } from '../constants/ai-assistant.constants';
 
 /**
  * UI state of one choice card: picked options (multiple selection) and the "other answer" form

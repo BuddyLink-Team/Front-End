@@ -5,7 +5,7 @@ import { Provider } from 'react-redux';
 import { configureStore } from '@reduxjs/toolkit';
 import { ReportModal } from '../../modules/safety/components/ReportModal';
 import safetyReducer from '../../modules/safety/redux/safetySlice';
-import { REPORT_CATEGORIES } from '../../modules/safety/constants/safetyConstants';
+import { REPORT_CATEGORIES } from '../../modules/safety/constants/safety.constants';
 
 const mockReportUser = vi.fn();
 

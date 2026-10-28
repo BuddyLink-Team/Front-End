@@ -83,7 +83,7 @@ export const AdminChildManagementPage = () => {
               GENDER_CHIP_CLASSES[row.gender] || 'bg-surface-muted text-text-muted'
             )}
           >
-            {GENDER_LABELS[row.gender] || GENDER_LABELS.other}
+            {GENDER_LABELS[row.gender] || '—'}
           </span>
         );
 
