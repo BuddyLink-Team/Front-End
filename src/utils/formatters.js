@@ -86,6 +86,29 @@ export const formatChildAge = (dateOfBirth, now = new Date()) => {
 };
 
 /**
+ * Format an age already computed in whole years (e.g. by the API) when the date of birth is not available.
+ *
+ * @param {number|null|undefined} age
+ * @returns {string} e.g. "5 tuổi", "Dưới 1 tuổi", or an empty string when unknown.
+ */
+export const formatAgeYears = (age) => {
+  if (typeof age !== 'number' || Number.isNaN(age) || age < 0) return '';
+  return age >= 1 ? `${age} tuổi` : 'Dưới 1 tuổi';
+};
+
+/**
+ * Format a count with Vietnamese digit grouping (1248 -> "1.248").
+ *
+ * @param {number|string} value
+ * @returns {string} Formatted count or '-' if invalid.
+ */
+export const formatCount = (value) => {
+  const number = Number(value);
+  if (value === null || value === undefined || value === '' || !Number.isFinite(number)) return '-';
+  return new Intl.NumberFormat('vi-VN').format(number);
+};
+
+/**
  * Format a ratio as a Vietnamese percentage (0.125 -> "12,5%").
  *
  * @param {number|string} value - Ratio between 0 and 1.
