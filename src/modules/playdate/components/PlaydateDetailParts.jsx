@@ -30,8 +30,9 @@ const RSVP_BADGES = {
 
 /**
  * One family of the playdate: parent, child and their answer
+ * @param {string} [badgeLabel] - Replaces the answer label (e.g. "Sẽ được mời" before the playdate exists)
  */
-export const ParticipantCard = ({ parent, childName, status }) => {
+export const ParticipantCard = ({ parent, childName, status, badgeLabel }) => {
   const badge = RSVP_BADGES[status] || RSVP_BADGES.pending;
   const BadgeIcon = badge.icon;
   return (
@@ -51,7 +52,7 @@ export const ParticipantCard = ({ parent, childName, status }) => {
           <span className="truncate">{childName || 'Bé'}</span>
         </p>
         <span className={`inline-flex items-center gap-1 text-label-sm font-semibold px-2 py-0.5 rounded-full border ${badge.className}`}>
-          <BadgeIcon className="w-3 h-3" /> {badge.label}
+          <BadgeIcon className="w-3 h-3" /> {badgeLabel || badge.label}
         </span>
       </div>
     </div>
@@ -62,6 +63,7 @@ ParticipantCard.propTypes = {
   parent: PropTypes.shape({ fullName: PropTypes.string, avatarUrl: PropTypes.string, isVerified: PropTypes.bool }),
   childName: PropTypes.string,
   status: PropTypes.string.isRequired,
+  badgeLabel: PropTypes.string,
 };
 
 const BANNER_CLASS = 'bg-tertiary-fixed/20 border border-tertiary-fixed/50 rounded-2xl p-5 shadow-2xs';
@@ -216,7 +218,7 @@ export const PlaydateBanners = ({
           )}
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 p-3.5 bg-surface-container-lowest/80 rounded-xl border border-hairline text-xs">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 p-3.5 bg-surface-container-lowest rounded-xl border border-hairline text-xs">
           <div className="flex items-center gap-2 text-text-primary">
             <CalendarIcon className="w-4 h-4 text-primary shrink-0" />
             <span>

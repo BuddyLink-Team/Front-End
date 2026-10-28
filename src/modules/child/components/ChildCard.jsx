@@ -16,7 +16,7 @@ export const ChildCard = ({ child, onEdit, onDelete }) => {
 
   return (
     <Card
-      className="p-6 rounded-3xl border border-hairline bg-white shadow-sm hover:shadow-md hover:border-primary/40 transition-all duration-200 flex flex-col justify-between space-y-5 relative overflow-hidden"
+      className="p-6 rounded-3xl border border-hairline-strong bg-white shadow-sm hover:shadow-md hover:border-primary/40 transition-all duration-200 flex flex-col justify-between space-y-5 relative overflow-hidden"
     >
       {/* Decorative Top Accent */}
       <div

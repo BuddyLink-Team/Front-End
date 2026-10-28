@@ -40,7 +40,7 @@ export const Dropdown = ({
               closeDropdown();
             }
           }}
-          className={`absolute ${alignmentClasses[align]} mt-2 w-56 sm:w-64 origin-top-right rounded-2xl bg-white p-1.5 shadow-xl shadow-surface-tint/10 border border-hairline ring-1 ring-black/5 focus:outline-none z-50 animate-in fade-in-0 zoom-in-95 duration-150 ${menuClassName}`}
+          className={`absolute ${alignmentClasses[align]} mt-2 w-56 sm:w-64 origin-top-right rounded-2xl bg-surface-container-lowest p-1.5 shadow-xl shadow-surface-tint/10 border border-hairline ring-1 ring-black/5 focus:outline-none z-50 animate-in fade-in-0 zoom-in-95 duration-150 ${menuClassName}`}
           role="menu"
           tabIndex="-1"
         >
@@ -124,7 +124,7 @@ DropdownDivider.propTypes = {
  * Dropdown Header / Section Label
  */
 export const DropdownHeader = ({ children, className = '' }) => (
-  <div className={`px-3.5 py-2 text-label-sm font-bold uppercase tracking-wider text-text-muted ${className}`}>
+  <div className={`px-3.5 py-2 text-label-sm font-semibold uppercase tracking-wider text-text-muted ${className}`}>
     {children}
   </div>
 );

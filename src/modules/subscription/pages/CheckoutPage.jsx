@@ -54,7 +54,7 @@ export const CheckoutPage = () => {
         <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-primary/10 text-primary animate-spin">
           <RefreshCw className="w-6 h-6" />
         </div>
-        <h2 className="text-xl font-bold text-on-surface">Đang khởi tạo phiên thanh toán PayOS...</h2>
+        <h2 className="text-xl font-semibold text-on-surface">Đang khởi tạo phiên thanh toán PayOS...</h2>
         <p className="text-sm text-on-surface-variant">Vui lòng chờ trong giây lát.</p>
       </div>
     );
@@ -67,7 +67,7 @@ export const CheckoutPage = () => {
           <AlertTriangle className="w-8 h-8" />
         </div>
         <div>
-          <h2 className="text-xl font-bold text-on-surface">Không thể tạo đơn thanh toán</h2>
+          <h2 className="text-xl font-semibold text-on-surface">Không thể tạo đơn thanh toán</h2>
           <p className="mt-2 text-sm text-on-surface-variant">{error}</p>
         </div>
         <div className="flex items-center justify-center gap-3">
@@ -88,7 +88,7 @@ export const CheckoutPage = () => {
     <div className="mx-auto pb-6 space-y-8">
       {/* Top navigation */}
       <div className="flex items-center justify-between">
-        <Button variant="ghost" size="sm" onClick={backToPlans} leftIcon={<ArrowLeft className="w-4 h-4" />}>
+        <Button variant="ghost" size="sm" className="bg-surface-container-lowest border border-hairline shadow-xs text-primary-dark hover:bg-primary-soft" onClick={backToPlans} leftIcon={<ArrowLeft className="w-4 h-4" />}>
           Quay lại bảng giá gói
         </Button>
         <div className="flex items-center gap-1.5 text-xs text-primary font-medium">
@@ -124,11 +124,11 @@ export const CheckoutPage = () => {
           <div className="rounded-2xl bg-surface-container-low border border-outline-variant/40 p-4 max-w-sm mx-auto text-xs space-y-2 text-left">
             <div className="flex justify-between">
               <span className="text-on-surface-variant">Mã đơn hàng:</span>
-              <span className="font-mono font-bold text-on-surface">#{orderData.orderCode}</span>
+              <span className="font-mono font-semibold text-on-surface">#{orderData.orderCode}</span>
             </div>
             <div className="flex justify-between">
               <span className="text-on-surface-variant">Số tiền:</span>
-              <span className="font-bold text-on-surface">{formattedAmount}</span>
+              <span className="font-semibold text-on-surface">{formattedAmount}</span>
             </div>
           </div>
         </CheckoutStatusCard>

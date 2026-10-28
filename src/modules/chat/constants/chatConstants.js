@@ -18,18 +18,12 @@ export const PLAYDATE_PARTICIPANT_STATUS = Object.freeze({
   DECLINED: 'declined',
 });
 
-// Playdate / participant status -> existing StatusChip variant (components/badges/StatusChip.jsx) + label.
+// Playdate status -> existing StatusChip variant (components/badges/StatusChip.jsx) + label.
 // StatusChip only styles pending/confirmed/cancelled/reported/completed, other statuses fall back to pending.
 export const PLAYDATE_STATUS_CHIPS = Object.freeze({
   upcoming: { variant: 'confirmed', label: 'Sắp diễn ra' },
   completed: { variant: 'completed', label: 'Đã hoàn thành' },
   cancelled: { variant: 'cancelled', label: 'Đã hủy' },
-});
-
-export const PARTICIPANT_STATUS_CHIPS = Object.freeze({
-  [PLAYDATE_PARTICIPANT_STATUS.PENDING]: { variant: 'pending', label: 'Chờ phản hồi' },
-  [PLAYDATE_PARTICIPANT_STATUS.ACCEPTED]: { variant: 'confirmed', label: 'Đã tham gia' },
-  [PLAYDATE_PARTICIPANT_STATUS.DECLINED]: { variant: 'cancelled', label: 'Đã từ chối' },
 });
 
 // Client-only delivery states of optimistic messages (persisted messages have no status)
@@ -72,10 +66,13 @@ export const COMPOSER_TEXTAREA_CLASS =
 
 export const MAX_IMAGE_SIZE_BYTES = 5 * 1024 * 1024;
 
-export const PLAYDATE_REPORT = Object.freeze({
-  REASON: 'Báo cáo vi phạm trong nhóm chat cuộc hẹn chơi',
-  DESCRIPTION: 'Báo cáo từ màn hình trò chuyện nhóm Playdate.',
+// Prompt shown in a playdate group chat when the parent blocked one of its members
+export const BLOCKED_MEMBER_PROMPT_STEPS = Object.freeze({
+  ASK_CONTINUE: 'ask_continue',
+  ASK_LEAVE: 'ask_leave',
 });
+
+export const BLOCKED_MEMBER_CANCEL_REASON = 'Người tổ chức hủy buổi hẹn vì đã chặn một thành viên trong nhóm';
 
 export const QUICK_EMOJIS = ['😊', '❤️', '👍', '🎉', '👶', '🧸', '🎨', '⚽', '🍦', '⭐', '🤗', '✨'];
 
@@ -107,12 +104,6 @@ export const CHAT_ERROR_MESSAGES = Object.freeze({
     'Chỉ chủ cuộc hẹn và phụ huynh đã chấp nhận lời mời mới được tham gia nhóm chat.',
   JOIN_REJECTED: 'Không thể mở cuộc trò chuyện. Vui lòng thử lại.',
   INTERNAL_ERROR: 'Không thể gửi tin nhắn. Vui lòng thử lại sau.',
-  // Image upload
+  // Image upload (file type / size / storage codes: COMMON_ERROR_MESSAGES)
   FILE_REQUIRED: 'Vui lòng chọn ảnh để gửi.',
-  INVALID_FILE_TYPE: 'Chỉ hỗ trợ ảnh JPG, PNG, WEBP hoặc GIF.',
-  FILE_TOO_LARGE: 'Kích thước ảnh không được vượt quá 5MB.',
-  FILE_UPLOAD_ERROR: 'Tệp tải lên không hợp lệ. Vui lòng chọn ảnh khác.',
-  UPLOAD_BUFFER_EMPTY: 'Tệp tải lên không hợp lệ hoặc bị lỗi.',
-  STORAGE_UPLOAD_ERROR: 'Tải ảnh lên thất bại. Vui lòng thử lại.',
-  STORAGE_NOT_CONFIGURED: 'Hệ thống lưu trữ ảnh đang gặp sự cố. Vui lòng thử lại sau.',
 });

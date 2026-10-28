@@ -16,7 +16,7 @@ import { getApiErrorMsg, getErrorCode } from '../../../utils/errorUtils';
 import {
   DEFAULT_PLAYDATE_DURATION,
   PLAYDATE_ERROR_CODES,
-  PLAYDATE_ERROR_MAP,
+  PLAYDATE_ERROR_MESSAGES,
   PLAYDATE_WARNING_CODES,
 } from '../constants/playdateConstants';
 
@@ -115,7 +115,7 @@ export const useCreatePlaydate = () => {
         const initialChildId = ids.includes(preferredChildId) ? preferredChildId : ids[0];
         if (initialChildId) setValue('hostChildId', initialChildId);
       })
-      .catch((err) => toast.error(getApiErrorMsg(PLAYDATE_ERROR_MAP, err, 'Không thể tải danh sách bé. Vui lòng thử lại sau.')))
+      .catch((err) => toast.error(getApiErrorMsg(PLAYDATE_ERROR_MESSAGES, err, 'Không thể tải danh sách bé. Vui lòng thử lại sau.')))
       .finally(() => isMounted && setIsLoadingInitialData(false));
     return () => {
       isMounted = false;
@@ -136,7 +136,7 @@ export const useCreatePlaydate = () => {
         const entry = [...(data?.matched || []), ...(data?.others || [])].find((e) => e.parent.id === invitedParentId);
         if (entry) setSelectedFriends([toSelection(entry)]);
       })
-      .catch((err) => isCurrent && toast.error(getApiErrorMsg(PLAYDATE_ERROR_MAP, err, 'Không thể tải danh sách bạn chơi.')))
+      .catch((err) => isCurrent && toast.error(getApiErrorMsg(PLAYDATE_ERROR_MESSAGES, err, 'Không thể tải danh sách bạn chơi.')))
       .finally(() => {
         if (!isCurrent) return;
         setIsLoadingPlaymates(false);
@@ -259,7 +259,7 @@ export const useCreatePlaydate = () => {
   const onSubmitForm = async (formData) => {
     // Known clash of the own child: no request, the field says why (the API would answer 409)
     if (scheduleCheck.ownConflicts.length > 0) {
-      setError('time', { message: PLAYDATE_ERROR_MAP[PLAYDATE_ERROR_CODES.SCHEDULE_CONFLICT] });
+      setError('time', { message: PLAYDATE_ERROR_MESSAGES[PLAYDATE_ERROR_CODES.SCHEDULE_CONFLICT] });
       return;
     }
     const payload = {
@@ -291,9 +291,9 @@ export const useCreatePlaydate = () => {
       // The global PaywallModal is opened by apiClient for quota errors
       if (code === PLAYDATE_ERROR_CODES.QUOTA_EXCEEDED) return;
       if (code === PLAYDATE_ERROR_CODES.SCHEDULE_CONFLICT) {
-        setError('time', { message: PLAYDATE_ERROR_MAP[code] });
+        setError('time', { message: PLAYDATE_ERROR_MESSAGES[code] });
       }
-      toast.error(getApiErrorMsg(PLAYDATE_ERROR_MAP, err, 'Có lỗi xảy ra khi tạo cuộc hẹn chơi. Vui lòng kiểm tra lại.'));
+      toast.error(getApiErrorMsg(PLAYDATE_ERROR_MESSAGES, err, 'Có lỗi xảy ra khi tạo cuộc hẹn chơi. Vui lòng kiểm tra lại.'));
     }
   };
 

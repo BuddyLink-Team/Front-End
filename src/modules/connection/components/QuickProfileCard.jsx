@@ -1,5 +1,5 @@
 import PropTypes from 'prop-types';
-import { MousePointerClick, CalendarPlus, MessageCircle, ShieldOff, Clock, MapPin, CalendarDays } from 'lucide-react';
+import { MousePointerClick, CalendarPlus, MessageCircle, ShieldOff, Flag, Clock, MapPin, CalendarDays } from 'lucide-react';
 import { Card } from '../../../components/cards/Card';
 import { EmptyState } from '../../../components/cards/EmptyState';
 import { Avatar } from '../../../components/ui/Avatar';
@@ -32,7 +32,7 @@ PreferenceRow.propTypes = {
 /**
  * Quick profile of the selected connection (right column of the connections page)
  */
-const QuickProfileCard = ({ connection, type, onAction, onMessage, onInvite }) => {
+const QuickProfileCard = ({ connection, type, onAction, onMessage, onInvite, onReport }) => {
   // Same empty box as the list next to it, so both columns match (it fills the column height)
   if (!connection) {
     return (
@@ -115,6 +115,14 @@ const QuickProfileCard = ({ connection, type, onAction, onMessage, onInvite }) =
         >
           Chặn người dùng
         </Button>
+        <Button
+          variant="ghost"
+          className="text-error"
+          leftIcon={<Flag className="w-4 h-4" strokeWidth={ICON_STROKE.THIN} />}
+          onClick={() => onReport(connection)}
+        >
+          Báo cáo người dùng
+        </Button>
       </div>
     </Card>
   );
@@ -139,6 +147,7 @@ QuickProfileCard.propTypes = {
   onAction: PropTypes.func.isRequired,
   onMessage: PropTypes.func.isRequired,
   onInvite: PropTypes.func.isRequired,
+  onReport: PropTypes.func.isRequired,
 };
 
 export default QuickProfileCard;

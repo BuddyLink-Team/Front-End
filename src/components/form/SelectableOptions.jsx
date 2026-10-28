@@ -3,7 +3,7 @@ import { Check } from 'lucide-react';
 import { cn } from '../../utils/cn';
 
 const IDLE_CLASS =
-  'bg-white border-hairline text-on-surface-variant hover:border-outline-variant/60 hover:bg-surface-container-low/60';
+  'bg-surface-container-lowest border-hairline-strong text-on-surface-variant hover:border-primary-border hover:bg-primary-bubble-soft';
 
 const VARIANTS = {
   // Card with a round check on the right (e.g. days of the week)
@@ -61,7 +61,7 @@ export const SelectableOptions = ({ options = [], selected = [], onToggle, varia
                 <span
                   className={cn(
                     'w-5 h-5 rounded-full flex items-center justify-center transition-all shrink-0',
-                    isSelected ? 'bg-primary text-white' : 'border border-hairline bg-surface-container-low'
+                    isSelected ? 'bg-primary text-white' : 'border-2 border-outline-variant bg-surface-container-lowest'
                   )}
                 >
                   {isSelected && <Check className="w-3 h-3 stroke-3" />}

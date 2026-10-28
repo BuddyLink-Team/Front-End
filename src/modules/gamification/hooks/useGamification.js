@@ -1,8 +1,9 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchAchievements } from '../redux/gamificationSlice';
-import { BADGE_FILTER_TYPES, STREAK_GOAL_WEEKS } from '../constants/gamification.constants';
+import { BADGE_FILTER_TYPES, GAMIFICATION_ERROR_MESSAGES, STREAK_GOAL_WEEKS } from '../constants/gamification.constants';
 import { formatDate } from '../../../utils/formatters';
+import { getApiErrorMsg } from '../../../utils/errorUtils';
 
 const toPercent = (value, total) => (total > 0 ? Math.round((Math.min(value, total) / total) * 100) : 0);
 
@@ -67,7 +68,7 @@ export function useGamification() {
   return {
     isLoaded,
     loading: isLoading,
-    error: error ? error.message || 'Không thể tải dữ liệu thành tích.' : '',
+    error: error ? getApiErrorMsg(GAMIFICATION_ERROR_MESSAGES, error, 'Không thể tải dữ liệu thành tích.') : '',
     streak: streakView,
     filter,
     filterOptions,

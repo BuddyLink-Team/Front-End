@@ -159,3 +159,10 @@ export const hasNotificationAction = (notification) => {
     (meta.opensDirectChat && notification?.data?.senderId) || meta.getActionPath(notification?.data)
   );
 };
+
+/**
+ * Backend error codes -> user-facing Vietnamese strings (getApiErrorMsg)
+ */
+export const NOTIFICATION_ERROR_MESSAGES = Object.freeze({
+  NOTIFICATION_NOT_FOUND: 'Thông báo này không còn tồn tại.',
+});
