@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '../../../hooks/useToast';
@@ -97,7 +97,9 @@ export const useDiscovery = ({ isKeyboardEnabled = true, onViewDetail } = {}) =>
     // Profile could not be loaded: use the standard defaults
     dispatch(initFiltersFromPreferences());
   }, [parentPreferences, isParentLoading, hasDefaultFilters, dispatch, toast]);
-  const { children: myChildren, listStatus: childListStatus } = useSelector((state) => state.child);
+  const { children: allChildren, listStatus: childListStatus } = useSelector((state) => state.child);
+  // Children locked by the Free plan (past its child limit) cannot be searched for
+  const myChildren = useMemo(() => allChildren.filter((c) => !c.isLocked), [allChildren]);
 
   // Load the parent's children once: the matches are computed for one selected child
   useEffect(() => {

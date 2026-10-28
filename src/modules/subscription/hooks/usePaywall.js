@@ -4,10 +4,10 @@ import { openPaywall, closePaywall } from '../redux/subscriptionSlice';
 import {
   QUOTA_FEATURES,
   QUOTA_MESSAGES,
-  PLAN_CODES,
   SUBSCRIPTION_ERROR_CODES,
 } from '../constants/subscriptionConstants';
 import { getErrorCode } from '../../../utils/errorUtils';
+import { isPremiumActive } from '../utils/premiumStatus';
 
 export const usePaywall = () => {
   const dispatch = useDispatch();
@@ -17,12 +17,7 @@ export const usePaywall = () => {
     (state) => state.subscription
   );
 
-  const isUserPremium =
-    Boolean(isPremium) ||
-    (subscription?.status === 'active' &&
-      subscription?.planCode &&
-      subscription?.planCode !== PLAN_CODES.FREE &&
-      (!subscription?.endDate || new Date(subscription.endDate) > new Date()));
+  const isUserPremium = isPremiumActive(subscription, isPremium);
 
   /**
    * Handle server 403 / QUOTA_EXCEEDED errors cleanly

@@ -1,6 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import { Calendar, Edit3, Trash2 } from 'lucide-react';
+import { Calendar, Edit3, Lock, Trash2 } from 'lucide-react';
 import { Card, Button, Avatar, InterestTag } from '../../../components';
 import { CHILD_GENDERS, GENDER_OPTIONS } from '../constants/childConstants';
 
@@ -46,6 +46,15 @@ export const ChildCard = ({ child, onEdit, onDelete }) => {
                 >
                   {genderLabel}
                 </span>
+                {child.isLocked && (
+                  <span
+                    title="Gói Miễn phí chỉ dùng được số hồ sơ bé trong hạn mức. Nâng cấp Premium để mở khóa."
+                    className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-label-sm font-semibold shrink-0 bg-surface-container-high text-on-surface border border-hairline-strong"
+                  >
+                    <Lock className="w-3 h-3" />
+                    Đã khóa
+                  </span>
+                )}
               </div>
 
               <div className="flex items-center gap-1.5 text-xs text-text-muted">
@@ -147,6 +156,13 @@ export const ChildCard = ({ child, onEdit, onDelete }) => {
               </div>
             );
           })()}
+
+        {child.isLocked && (
+          <p className="text-xs text-on-surface bg-surface-container rounded-xl px-3 py-2 border border-hairline-strong">
+            Hồ sơ vượt hạn mức gói Miễn phí: bé không xuất hiện trong Khám phá và không tham gia hẹn chơi được.
+            Nâng cấp Premium để mở khóa.
+          </p>
+        )}
       </div>
     </Card>
   );
@@ -161,6 +177,7 @@ ChildCard.propTypes = {
     age: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
     interests: PropTypes.arrayOf(PropTypes.string),
     personality: PropTypes.arrayOf(PropTypes.string),
+    isLocked: PropTypes.bool,
   }).isRequired,
   onEdit: PropTypes.func,
   onDelete: PropTypes.func,

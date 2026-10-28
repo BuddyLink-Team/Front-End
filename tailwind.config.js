@@ -229,6 +229,18 @@ export default {
         'pagination-item': '36px',
         'field-sm': '140px', // Table columns, compact selects
         'field-md': '200px',
+        'table-users': '1200px',
+        'table-children': '1050px',
+        'col-actions': '100px',
+        'col-actions-sm': '90px',
+        'col-xs': '80px',
+        'col-sm': '110px',
+        'col-md': '140px',
+        'col-lg': '160px',
+        'col-xl': '190px',
+        'col-2xl': '220px',
+        'col-plan': '150px',
+        'col-gender': '120px',
       },
       maxHeight: {
         modal: '90vh',

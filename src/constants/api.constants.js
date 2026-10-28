@@ -90,5 +90,7 @@ export const API_ENDPOINTS = {
   ADMIN: {
     DASHBOARD_STATS: '/stats',
     USERS: '/users',
+    CHILDREN: '/children',
+    PAYMENTS: '/payments',
   },
 };

@@ -42,7 +42,9 @@ export const useCreatePlaydate = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const toast = useToast();
-  const myChildren = useSelector((state) => state.child.children);
+  const allChildren = useSelector((state) => state.child.children);
+  // Children locked by the Free plan (past its child limit) cannot host a playdate
+  const myChildren = useMemo(() => allChildren.filter((c) => !c.isLocked), [allChildren]);
   const playmates = useSelector((state) => state.playdate.playmates);
   const isSubmitting = useSelector((state) => state.playdate.isActionLoading);
   const [searchParams] = useSearchParams();
