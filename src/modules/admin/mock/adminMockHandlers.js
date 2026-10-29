@@ -1,11 +1,42 @@
 import adminMockService from './adminMockService';
 import adminSubscriptionMockService from './adminSubscriptionMockService';
+import adminAnalyticsMockService from './adminAnalyticsMockService';
 
 /**
- * Route handler definitions for Admin Playdates & Connections oversight and Subscription plans & revenue.
+ * Route handler definitions for Admin Playdates & Connections oversight, Subscription plans & revenue,
+ * and Dashboard Analytics & Realtime Notifications.
  * Consumed by Central Mock Server Engine (src/mock/index.js).
  */
 export const adminMockHandlers = [
+  // Analytics
+  {
+    method: 'GET',
+    pattern: '/admin/analytics',
+    handler: ({ query }) => adminAnalyticsMockService.getAnalytics(query),
+  },
+
+  // Notifications (placed before /admin/notifications/:id)
+  {
+    method: 'GET',
+    pattern: '/admin/notifications/unread-count',
+    handler: () => adminAnalyticsMockService.getUnreadCount(),
+  },
+  {
+    method: 'PATCH',
+    pattern: '/admin/notifications/read-all',
+    handler: ({ body }) => adminAnalyticsMockService.markAllAsRead(body?.category),
+  },
+  {
+    method: 'PATCH',
+    pattern: '/admin/notifications/:id/read',
+    handler: ({ params }) => adminAnalyticsMockService.markAsRead(params.id),
+  },
+  {
+    method: 'GET',
+    pattern: '/admin/notifications',
+    handler: ({ query }) => adminAnalyticsMockService.getNotifications(query),
+  },
+
   // 1. Force-cancel playdate by admin (Must be placed before :id)
   {
     method: 'PATCH',
@@ -99,3 +130,4 @@ export const adminMockHandlers = [
 ];
 
 export default adminMockHandlers;
+

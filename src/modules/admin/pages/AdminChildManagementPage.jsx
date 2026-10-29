@@ -16,7 +16,12 @@ import {
   GENDER_FILTER_OPTIONS,
   GENDER_LABELS,
   AGE_RANGE_OPTIONS,
+  withStatusQuery,
 } from '../constants/admin.constants';
+import { useDispatch } from 'react-redux';
+import { useAdminExport } from '../hooks/useAdminExport';
+import { fetchAllPages } from '../utils/excelExport';
+import { fetchAdminChildren } from '../redux/adminSlice';
 import { formatAgeYears, formatDateTime } from '../../../utils/formatters';
 import { cn } from '../../../utils/cn';
 import { ICON_SIZE, ICON_STROKE } from '../../../constants/icon.constants';
@@ -55,6 +60,18 @@ export const AdminChildManagementPage = () => {
     closeChildDetail,
     openParentAccount,
   } = useAdminChildren();
+
+  const dispatch = useDispatch();
+  const { isExporting, handleExport } = useAdminExport('children', async () => {
+    const range = filters.ageRange ? AGE_RANGE_OPTIONS.find((opt) => opt.value === filters.ageRange) : null;
+    const query = {
+      ...withStatusQuery(CHILD_STATUS_CHIPS, { status: filters.status, gender: filters.gender }),
+      search: searchInput,
+      ...(range ? { minAge: range.minAge, maxAge: range.maxAge } : {}),
+    };
+    const allChildren = await fetchAllPages((p) => dispatch(fetchAdminChildren(p)).unwrap(), query);
+    return { children: allChildren, stats: stats.stats };
+  });
 
   const renderCell = (key, _val, row) => {
     switch (key) {
@@ -170,6 +187,8 @@ export const AdminChildManagementPage = () => {
           selected: filters.status ?? '',
           onChange: (val) => setFilter('status', val),
         }}
+        onExport={handleExport}
+        isExporting={isExporting}
         actions={
           hasActiveFilters && (
             <Button

@@ -18,6 +18,10 @@ import {
   CONNECTION_STATUS_DISPLAY,
   REMOVABLE_CONNECTION_STATUSES,
 } from '../constants/admin.constants';
+import { useDispatch } from 'react-redux';
+import { useAdminExport } from '../hooks/useAdminExport';
+import { fetchAllPages } from '../utils/excelExport';
+import { fetchAdminConnections } from '../redux/adminSlice';
 import { ICON_SIZE } from '../../../constants/icon.constants';
 
 export const AdminConnectionManagementPage = () => {
@@ -43,6 +47,18 @@ export const AdminConnectionManagementPage = () => {
     confirmAction: confirmRemove,
     isActionLoading,
   } = useAdminConnections();
+
+  const dispatch = useDispatch();
+  const { isExporting, handleExport } = useAdminExport('connections', async () => {
+    const allConnections = await fetchAllPages(
+      (params) => dispatch(fetchAdminConnections(params)).unwrap(),
+      {
+        search: searchInput,
+        status: filters.status || undefined,
+      }
+    );
+    return { connections: allConnections, stats: stats.stats };
+  });
 
   const columns = [
     { key: 'requester', label: 'Phụ huynh gửi yêu cầu' },
@@ -207,6 +223,8 @@ export const AdminConnectionManagementPage = () => {
           selected: filters.status || '',
           onChange: (val) => setFilter('status', val || undefined),
         }}
+        onExport={handleExport}
+        isExporting={isExporting}
       />
 
       {/* Data Table */}

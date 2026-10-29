@@ -19,6 +19,10 @@ import {
   SUBSCRIPTION_PLAN_NAMES,
   PROFILE_HIDDEN_CHIP,
 } from '../constants/admin.constants';
+import { useDispatch } from 'react-redux';
+import { useAdminExport } from '../hooks/useAdminExport';
+import { fetchAllPages } from '../utils/excelExport';
+import { fetchAdminUsers } from '../redux/adminSlice';
 import { formatDate, formatDateTime } from '../../../utils/formatters';
 import { cn } from '../../../utils/cn';
 import { ICON_SIZE, ICON_STROKE } from '../../../constants/icon.constants';
@@ -62,6 +66,16 @@ export const AdminUserManagementPage = () => {
     confirmLockToggle,
     openChildProfile,
   } = useAdminUsers();
+
+  const dispatch = useDispatch();
+  const { isExporting, handleExport } = useAdminExport('users', async () => {
+    const allUsers = await fetchAllPages((p) => dispatch(fetchAdminUsers(p)).unwrap(), {
+      search: searchInput,
+      isActive: filters.isActive,
+      isVerified: filters.isVerified,
+    });
+    return { users: allUsers, stats: stats.stats };
+  });
 
   const isLockAction = Boolean(lockTargetUser?.isActive);
 
@@ -216,6 +230,8 @@ export const AdminUserManagementPage = () => {
           selected: filters.status ?? '',
           onChange: (val) => setFilter('status', val),
         }}
+        onExport={handleExport}
+        isExporting={isExporting}
         actions={
           hasActiveFilters && (
             <Button

@@ -5,7 +5,7 @@ import {
   ACTIVITY_GROUPS,
   getActivityCategory,
 } from '../../constants/activity.constants';
-import { CHILD_ACTIVITIES } from '../../../../Back-End/src/modules/child/child.constants.js';
+import { CHILD_ACTIVITIES } from '../../../../BE/src/modules/child/child.constants.js';
 
 describe('activity constants (single source of kids activities)', () => {
   it('has unique values and playdate titles, each in a known category', () => {

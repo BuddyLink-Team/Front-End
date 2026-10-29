@@ -149,37 +149,4 @@ export const buildRevenueReportSheets = ({ summary, plans, subscriptions, transa
   ];
 };
 
-/**
- * .xlsx file of the report sheets (exceljs is loaded only when a report is exported)
- * @param {Array} sheets - buildRevenueReportSheets result
- * @returns {Promise<Blob>}
- */
-export const createRevenueWorkbookBlob = async (sheets) => {
-  const { default: ExcelJS } = await import('exceljs');
-  const workbook = new ExcelJS.Workbook();
-  workbook.creator = 'BuddyLink Admin';
-
-  sheets.forEach(({ name, columns, rows }) => {
-    const sheet = workbook.addWorksheet(name, { views: [{ state: 'frozen', ySplit: 1 }] });
-    sheet.columns = columns.map(({ header, key, width, numFmt }) => ({ header, key, width, style: numFmt ? { numFmt } : {} }));
-    sheet.getRow(1).font = { bold: true };
-    rows.forEach(({ numFmt, isTotal, ...values }) => {
-      const row = sheet.addRow(values);
-      // Per-row format (overview sheet: money and percentage values share one column)
-      if (numFmt) row.getCell('value').numFmt = numFmt;
-      if (isTotal) row.font = { bold: true };
-    });
-  });
-
-  const buffer = await workbook.xlsx.writeBuffer();
-  return new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
-};
-
-export const downloadBlob = (blob, fileName) => {
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement('a');
-  link.href = url;
-  link.download = fileName;
-  link.click();
-  URL.revokeObjectURL(url);
-};
+export { createWorkbookBlob as createRevenueWorkbookBlob, downloadBlob } from './excelExport';

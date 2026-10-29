@@ -86,6 +86,27 @@ export const fetchAdminRevenueSummary = createApiThunk('admin/fetchRevenueSummar
   adminApi.getRevenueSummary(params)
 );
 
+// Analytics & Notifications
+export const fetchAdminAnalytics = createApiThunk('admin/fetchAnalytics', (params) =>
+  adminApi.getAnalytics(params)
+);
+
+export const fetchAdminNotifications = createApiThunk('admin/fetchNotifications', (params) =>
+  adminApi.getNotifications(params)
+);
+
+export const fetchAdminUnreadNotificationCount = createApiThunk('admin/fetchUnreadNotificationCount', () =>
+  adminApi.getUnreadNotificationCount()
+);
+
+export const markAdminNotificationAsRead = createApiThunk('admin/markNotificationAsRead', (id) =>
+  adminApi.markNotificationAsRead(id)
+);
+
+export const markAllAdminNotificationsAsRead = createApiThunk('admin/markAllNotificationsAsRead', (category) =>
+  adminApi.markAllNotificationsAsRead(category)
+);
+
 const emptyDetail = { data: null, isLoading: false, error: null, requestId: null };
 
 const initialState = {

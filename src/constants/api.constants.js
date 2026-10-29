@@ -104,5 +104,10 @@ export const API_ENDPOINTS = {
     TRANSACTIONS: '/transactions',
     TRANSACTION_BY_ID: (id) => `/transactions/${id}`,
     REVENUE_SUMMARY: '/revenue/summary',
+    ANALYTICS: '/analytics',
+    NOTIFICATIONS: '/notifications',
+    NOTIFICATIONS_UNREAD_COUNT: '/notifications/unread-count',
+    NOTIFICATIONS_READ: (id) => `/notifications/${id}/read`,
+    NOTIFICATIONS_READ_ALL: '/notifications/read-all',
   },
 };
