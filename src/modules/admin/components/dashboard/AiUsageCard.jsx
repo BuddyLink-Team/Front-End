@@ -12,6 +12,12 @@ import { Bot } from 'lucide-react';
 import { Skeleton } from '../../../../components/feedback/Skeleton';
 import { EmptyState } from '../../../../components/cards/EmptyState';
 import { formatCount, formatDate, maskEmail } from '../../../../utils/formatters';
+import { CHART_COLOR_VARS, CHART_SIZE } from '../../../../constants/chart.constants';
+
+const getCssColor = (name) =>
+  typeof document !== 'undefined'
+    ? getComputedStyle(document.documentElement).getPropertyValue(name).trim() || undefined
+    : undefined;
 
 const CustomTooltip = ({ active, payload, label }) => {
   if (!active || !payload?.length) return null;
@@ -34,6 +40,9 @@ export const AiUsageCard = ({ aiUsage = {}, isLoading = false }) => {
   }));
   const topUsers = aiUsage.topParents || aiUsage.topUsers || [];
   const hasData = timeline.some((d) => d.requests > 0) || topUsers.length > 0;
+  const lineColor = getCssColor(CHART_COLOR_VARS.SECONDARY);
+  const gridColor = getCssColor(CHART_COLOR_VARS.GRID);
+  const tick = { fontSize: CHART_SIZE.TICK_FONT, fill: getCssColor(CHART_COLOR_VARS.TICK) };
 
   return (
     <div className="bg-white rounded-2xl border border-hairline p-5 shadow-xs">
@@ -56,29 +65,33 @@ export const AiUsageCard = ({ aiUsage = {}, isLoading = false }) => {
           {/* Timeline Chart */}
           <div className="w-full h-44">
             <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={timeline} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E5E7EB" />
+              <LineChart
+                data={timeline}
+                margin={{ top: CHART_SIZE.MARGIN_TOP, right: CHART_SIZE.MARGIN_RIGHT, left: 0, bottom: 0 }}
+              >
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={gridColor} />
                 <XAxis
                   dataKey="period"
                   tickFormatter={(val) => formatDate(val)}
-                  tick={{ fontSize: 11, fill: '#6B7280' }}
+                  tick={tick}
                   axisLine={false}
                   tickLine={false}
                 />
                 <YAxis
-                  tick={{ fontSize: 11, fill: '#6B7280' }}
+                  tick={tick}
                   axisLine={false}
                   tickLine={false}
                   allowDecimals={false}
+                  width={CHART_SIZE.Y_AXIS_WIDTH_COMPACT}
                 />
                 <Tooltip content={<CustomTooltip />} />
                 <Line
                   type="monotone"
                   dataKey="requests"
-                  stroke="#E29578"
-                  strokeWidth={2.5}
-                  dot={{ r: 3, fill: '#E29578' }}
-                  activeDot={{ r: 5 }}
+                  stroke={lineColor}
+                  strokeWidth={CHART_SIZE.LINE_STROKE}
+                  dot={{ r: CHART_SIZE.DOT_RADIUS, fill: lineColor }}
+                  activeDot={{ r: CHART_SIZE.ACTIVE_DOT_RADIUS }}
                 />
               </LineChart>
             </ResponsiveContainer>
@@ -103,7 +116,7 @@ export const AiUsageCard = ({ aiUsage = {}, isLoading = false }) => {
                   <tbody className="divide-y divide-hairline/40">
                     {topUsers.map((user, idx) => (
                       <tr key={user.parentId || user.userId || idx} className="hover:bg-surface-muted/50">
-                        <td className="py-1.5 font-medium text-text-primary truncate max-w-[140px]">
+                        <td className="py-1.5 font-medium text-text-primary truncate max-w-truncate-xs">
                           {user.fullName || user.name || 'Phụ huynh'}
                         </td>
                         <td className="py-1.5 text-text-muted">{maskEmail(user.email)}</td>

@@ -1,5 +1,7 @@
 import { useState, useCallback } from 'react';
 import { useToast } from '../../../hooks/useToast';
+import { getApiErrorMsg } from '../../../utils/errorUtils';
+import { ADMIN_ERROR_MESSAGES } from '../constants/admin.constants';
 import {
   createWorkbookBlob,
   downloadBlob,
@@ -59,7 +61,8 @@ export const useAdminExport = (type, fetchExportData) => {
     try {
       const data = await fetchExportData();
       if (!data) {
-        throw new Error('Không có dữ liệu để xuất.');
+        toastError('Không có dữ liệu để xuất.');
+        return;
       }
 
       const sheets = config.builder(data);
@@ -67,7 +70,7 @@ export const useAdminExport = (type, fetchExportData) => {
       downloadBlob(blob, getExportFileName(config.fileName));
       success(config.successMsg);
     } catch (err) {
-      toastError(err?.message || 'Có lỗi xảy ra khi xuất file Excel.');
+      toastError(getApiErrorMsg(ADMIN_ERROR_MESSAGES, err, 'Có lỗi xảy ra khi xuất file Excel.'));
     } finally {
       setIsExporting(false);
     }

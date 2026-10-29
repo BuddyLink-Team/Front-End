@@ -12,6 +12,12 @@ import { DollarSign } from 'lucide-react';
 import { Skeleton } from '../../../../components/feedback/Skeleton';
 import { EmptyState } from '../../../../components/cards/EmptyState';
 import { formatCurrency, formatCompactNumber, formatDate } from '../../../../utils/formatters';
+import { CHART_COLOR_VARS, CHART_SIZE } from '../../../../constants/chart.constants';
+
+const getCssColor = (name) =>
+  typeof document !== 'undefined'
+    ? getComputedStyle(document.documentElement).getPropertyValue(name).trim() || undefined
+    : undefined;
 
 const CustomTooltip = ({ active, payload, label }) => {
   if (!active || !payload?.length) return null;
@@ -34,6 +40,9 @@ export const RevenueBarChart = ({ data = [], isLoading = false }) => {
   }));
 
   const hasData = chartData.length > 0 && chartData.some((d) => d.revenue > 0);
+  const barColor = getCssColor(CHART_COLOR_VARS.BAR);
+  const gridColor = getCssColor(CHART_COLOR_VARS.GRID);
+  const tick = { fontSize: CHART_SIZE.TICK_FONT, fill: getCssColor(CHART_COLOR_VARS.TICK) };
 
   return (
     <div className="bg-white rounded-2xl border border-hairline p-5 shadow-xs">
@@ -54,28 +63,31 @@ export const RevenueBarChart = ({ data = [], isLoading = false }) => {
       ) : (
         <div className="w-full h-64">
           <ResponsiveContainer width="100%" height="100%">
-            <RechartsBarChart data={chartData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
-              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E5E7EB" />
+            <RechartsBarChart
+              data={chartData}
+              margin={{ top: CHART_SIZE.MARGIN_TOP, right: CHART_SIZE.MARGIN_RIGHT, left: 0, bottom: 0 }}
+            >
+              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={gridColor} />
               <XAxis
                 dataKey="period"
                 tickFormatter={(val) => formatDate(val)}
-                tick={{ fontSize: 11, fill: '#6B7280' }}
+                tick={tick}
                 axisLine={false}
                 tickLine={false}
               />
               <YAxis
                 tickFormatter={(val) => formatCompactNumber(val)}
-                tick={{ fontSize: 11, fill: '#6B7280' }}
+                tick={tick}
                 axisLine={false}
                 tickLine={false}
-                width={65}
+                width={CHART_SIZE.Y_AXIS_WIDTH}
               />
               <Tooltip content={<CustomTooltip />} />
               <Bar
                 dataKey="revenue"
-                fill="#4A7C59"
-                radius={[6, 6, 0, 0]}
-                maxBarSize={40}
+                fill={barColor}
+                radius={[CHART_SIZE.BAR_RADIUS_SM, CHART_SIZE.BAR_RADIUS_SM, 0, 0]}
+                maxBarSize={CHART_SIZE.BAR_MAX}
               />
             </RechartsBarChart>
           </ResponsiveContainer>

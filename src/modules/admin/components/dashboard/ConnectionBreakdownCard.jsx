@@ -5,13 +5,13 @@ import { EmptyState } from '../../../../components/cards/EmptyState';
 import { formatCount, formatPercent } from '../../../../utils/formatters';
 
 const STATUS_LABELS = {
-  accepted: { label: 'Đã chấp nhận (ghép nối thành công)', color: 'bg-emerald-500' },
-  pending: { label: 'Đang chờ phản hồi', color: 'bg-amber-500' },
-  declined: { label: 'Đã từ chối', color: 'bg-rose-400' },
-  rejected: { label: 'Đã từ chối', color: 'bg-rose-400' },
-  cancelled: { label: 'Đã thu hồi', color: 'bg-gray-400' },
-  removed: { label: 'Đã hủy kết nối', color: 'bg-gray-500' },
-  disconnected: { label: 'Đã hủy kết nối', color: 'bg-gray-500' },
+  accepted: { label: 'Đã chấp nhận (ghép nối thành công)', color: 'bg-primary' },
+  pending: { label: 'Đang chờ phản hồi', color: 'bg-tertiary' },
+  declined: { label: 'Đã từ chối', color: 'bg-error' },
+  rejected: { label: 'Đã từ chối', color: 'bg-error' },
+  cancelled: { label: 'Đã thu hồi', color: 'bg-text-muted' },
+  removed: { label: 'Đã hủy kết nối', color: 'bg-text-muted' },
+  disconnected: { label: 'Đã hủy kết nối', color: 'bg-text-muted' },
 };
 
 export const ConnectionBreakdownCard = ({ connections = {}, acceptanceRate = 0, isLoading = false }) => {
@@ -63,7 +63,7 @@ export const ConnectionBreakdownCard = ({ connections = {}, acceptanceRate = 0, 
       ) : (
         <div className="space-y-3 py-1">
           {byStatus.map((item) => {
-            const cfg = STATUS_LABELS[item.status] || { label: item.status, color: 'bg-gray-400' };
+            const cfg = STATUS_LABELS[item.status] || { label: item.status, color: 'bg-text-muted' };
             const pct = total > 0 ? Math.round((item.count / total) * 100) : 0;
 
             return (

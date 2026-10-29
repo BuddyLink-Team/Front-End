@@ -10,13 +10,19 @@ import { Crown } from 'lucide-react';
 import { Skeleton } from '../../../../components/feedback/Skeleton';
 import { EmptyState } from '../../../../components/cards/EmptyState';
 import { formatCount } from '../../../../utils/formatters';
+import { CHART_COLOR_VARS, CHART_SIZE } from '../../../../constants/chart.constants';
+
+const getCssColor = (name) =>
+  typeof document !== 'undefined'
+    ? getComputedStyle(document.documentElement).getPropertyValue(name).trim() || undefined
+    : undefined;
 
 const PLAN_CONFIG = {
-  free: { label: 'Gói Miễn phí', color: '#9CA3AF' },
-  premium_monthly: { label: 'Premium Tháng', color: '#4A7C59' },
-  premium_yearly: { label: 'Premium Năm', color: '#D97706' },
-  premiumMonthly: { label: 'Premium Tháng', color: '#4A7C59' },
-  premiumYearly: { label: 'Premium Năm', color: '#D97706' },
+  free: { label: 'Gói Miễn phí', colorVar: CHART_COLOR_VARS.MUTED, dotClass: 'bg-text-muted' },
+  premium_monthly: { label: 'Premium Tháng', colorVar: CHART_COLOR_VARS.PRIMARY, dotClass: 'bg-primary' },
+  premium_yearly: { label: 'Premium Năm', colorVar: CHART_COLOR_VARS.TERTIARY, dotClass: 'bg-tertiary' },
+  premiumMonthly: { label: 'Premium Tháng', colorVar: CHART_COLOR_VARS.PRIMARY, dotClass: 'bg-primary' },
+  premiumYearly: { label: 'Premium Năm', colorVar: CHART_COLOR_VARS.TERTIARY, dotClass: 'bg-tertiary' },
 };
 
 const CustomTooltip = ({ active, payload }) => {
@@ -53,6 +59,7 @@ export const SubscriptionBreakdownCard = ({ subscriptions = {}, isLoading = fals
 
   const total = byPlan.reduce((sum, item) => sum + (item.count || 0), 0);
   const hasData = total > 0;
+  const fallbackColor = getCssColor(CHART_COLOR_VARS.MUTED);
 
   return (
     <div className="bg-white rounded-2xl border border-hairline p-5 shadow-xs">
@@ -81,34 +88,37 @@ export const SubscriptionBreakdownCard = ({ subscriptions = {}, isLoading = fals
                   nameKey="plan"
                   cx="50%"
                   cy="50%"
-                  innerRadius={50}
-                  outerRadius={75}
-                  paddingAngle={3}
+                  innerRadius={CHART_SIZE.PIE_INNER_RADIUS}
+                  outerRadius={CHART_SIZE.PIE_OUTER_RADIUS}
+                  paddingAngle={CHART_SIZE.PIE_PADDING_ANGLE}
                 >
-                  {byPlan.map((entry) => (
-                    <Cell
-                      key={entry.plan}
-                      fill={PLAN_CONFIG[entry.plan]?.color || '#9CA3AF'}
-                    />
-                  ))}
+                  {byPlan.map((entry) => {
+                    const colorVar = PLAN_CONFIG[entry.plan]?.colorVar;
+                    return (
+                      <Cell
+                        key={entry.plan}
+                        fill={(colorVar && getCssColor(colorVar)) || fallbackColor}
+                      />
+                    );
+                  })}
                 </Pie>
                 <Tooltip content={<CustomTooltip />} />
               </PieChart>
             </ResponsiveContainer>
             <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
               <span className="text-xl font-bold text-text-primary">{formatCount(total)}</span>
-              <span className="text-[11px] text-text-muted">Tài khoản</span>
+              <span className="text-label-sm text-text-muted">Tài khoản</span>
             </div>
           </div>
 
           <div className="space-y-2 text-xs">
             {byPlan.map((item) => {
-              const cfg = PLAN_CONFIG[item.plan] || { label: item.plan, color: '#9CA3AF' };
+              const cfg = PLAN_CONFIG[item.plan] || { label: item.plan, dotClass: 'bg-text-muted' };
               const pct = total > 0 ? Math.round((item.count / total) * 100) : 0;
               return (
                 <div key={item.plan} className="flex items-center justify-between py-1 border-b border-hairline/40">
                   <div className="flex items-center gap-2">
-                    <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: cfg.color }} />
+                    <span className={`w-2.5 h-2.5 rounded-full ${cfg.dotClass}`} />
                     <span className="font-medium text-text-primary">{cfg.label}</span>
                   </div>
                   <div className="flex items-center gap-2">

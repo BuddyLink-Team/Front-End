@@ -64,8 +64,8 @@ export const ConversionFunnelChart = ({ data = [], isLoading = false }) => {
 
                 {/* Drop rate chip between steps */}
                 {index < data.length - 1 && dropRate !== null && dropRate !== undefined && (
-                  <div className="flex items-center justify-end gap-1 text-[11px] text-rose-600 font-medium pt-0.5 pr-1">
-                    <ArrowDown className="w-3 h-3 stroke-[2.5]" />
+                  <div className="flex items-center justify-end gap-1 text-label-sm text-error font-medium pt-0.5 pr-1">
+                    <ArrowDown className="w-3 h-3 stroke-2.5" />
                     <span>Tỷ lệ rớt: {formatPercent(dropRate / 100, 1)}</span>
                   </div>
                 )}

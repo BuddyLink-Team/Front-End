@@ -1,6 +1,14 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
+import { useDispatch } from 'react-redux';
 import adminSocketService from '../services/adminSocket';
-import { adminApi } from '../api/adminApi';
+import {
+  fetchAdminNotifications,
+  fetchAdminUnreadNotificationCount,
+  markAdminNotificationAsRead,
+  markAllAdminNotificationsAsRead,
+} from '../redux/adminSlice';
+import { ADMIN_ERROR_MESSAGES } from '../constants/admin.constants';
+import { getApiErrorMsg } from '../../../utils/errorUtils';
 import { useToast } from '../../../hooks/useToast';
 
 const DEFAULT_UNREAD = {
@@ -17,9 +25,10 @@ const DEFAULT_UNREAD = {
 
 /**
  * Hook to manage admin realtime notifications via Socket.io /admin namespace
- * and REST APIs.
+ * and Redux thunks.
  */
 export const useAdminNotificationSocket = ({ autoFetch = true } = {}) => {
+  const dispatch = useDispatch();
   const [notifications, setNotifications] = useState([]);
   const [pagination, setPagination] = useState({ page: 1, limit: 20, total: 0, totalPages: 1 });
   const [unreadCount, setUnreadCount] = useState(DEFAULT_UNREAD);
@@ -31,14 +40,14 @@ export const useAdminNotificationSocket = ({ autoFetch = true } = {}) => {
   // Fetch unread count
   const loadUnreadCount = useCallback(async () => {
     try {
-      const res = await adminApi.getUnreadNotificationCount();
-      if (res?.data) {
-        setUnreadCount(res.data);
+      const data = await dispatch(fetchAdminUnreadNotificationCount()).unwrap();
+      if (data) {
+        setUnreadCount(data);
       }
     } catch {
       // Non-blocking
     }
-  }, []);
+  }, [dispatch]);
 
   // Fetch paginated notifications list
   const loadNotifications = useCallback(
@@ -51,71 +60,79 @@ export const useAdminNotificationSocket = ({ autoFetch = true } = {}) => {
         if (severity && severity !== 'all') params.severity = severity;
         if (typeof isRead === 'boolean') params.isRead = isRead;
 
-        const res = await adminApi.getNotifications(params);
-        if (res?.data) {
-          setNotifications(res.data.items || []);
-          if (res.data.pagination) setPagination(res.data.pagination);
+        const data = await dispatch(fetchAdminNotifications(params)).unwrap();
+        if (data) {
+          setNotifications(data.items || []);
+          if (data.pagination) setPagination(data.pagination);
         }
       } catch (err) {
-        toastError(err?.message || 'Không tải được danh sách thông báo.');
+        toastError(getApiErrorMsg(ADMIN_ERROR_MESSAGES, err, 'Không tải được danh sách thông báo.'));
       } finally {
         setIsLoading(false);
       }
     },
-    [toastError]
+    [dispatch, toastError]
   );
 
   // Mark single item as read
-  const markAsRead = useCallback(async (id) => {
-    try {
-      await adminApi.markNotificationAsRead(id);
-      setNotifications((prev) =>
-        prev.map((item) => (item._id === id ? { ...item, isRead: true } : item))
-      );
-      setUnreadCount((prev) => {
-        const item = notifications.find((n) => n._id === id);
-        const cat = item?.category;
-        const newCatCount = cat && prev.byCategory[cat] ? Math.max(0, prev.byCategory[cat] - 1) : 0;
-        return {
-          total: Math.max(0, prev.total - 1),
-          byCategory: {
-            ...prev.byCategory,
-            ...(cat ? { [cat]: newCatCount } : {}),
-          },
-        };
-      });
-    } catch {
-      // Silent error
-    }
-  }, [notifications]);
+  const markAsRead = useCallback(
+    async (id) => {
+      try {
+        await dispatch(markAdminNotificationAsRead(id)).unwrap();
+        setNotifications((prev) =>
+          prev.map((item) => (item._id === id ? { ...item, isRead: true } : item))
+        );
+        setUnreadCount((prev) => {
+          const item = notifications.find((n) => n._id === id);
+          const cat = item?.category;
+          const newCatCount = cat && prev.byCategory[cat] ? Math.max(0, prev.byCategory[cat] - 1) : 0;
+          return {
+            total: Math.max(0, prev.total - 1),
+            byCategory: {
+              ...prev.byCategory,
+              ...(cat ? { [cat]: newCatCount } : {}),
+            },
+          };
+        });
+      } catch {
+        // Silent error
+      }
+    },
+    [dispatch, notifications]
+  );
 
   // Mark all as read
-  const markAllAsRead = useCallback(async (category) => {
-    try {
-      await adminApi.markAllNotificationsAsRead(category && category !== 'all' ? category : undefined);
-      setNotifications((prev) =>
-        prev.map((item) => {
-          if (!category || category === 'all' || item.category === category) {
-            return { ...item, isRead: true };
-          }
-          return item;
-        })
-      );
-      if (!category || category === 'all') {
-        setUnreadCount(DEFAULT_UNREAD);
-      } else {
-        setUnreadCount((prev) => ({
-          total: Math.max(0, prev.total - (prev.byCategory[category] || 0)),
-          byCategory: {
-            ...prev.byCategory,
-            [category]: 0,
-          },
-        }));
+  const markAllAsRead = useCallback(
+    async (category) => {
+      try {
+        await dispatch(
+          markAllAdminNotificationsAsRead(category && category !== 'all' ? category : undefined)
+        ).unwrap();
+        setNotifications((prev) =>
+          prev.map((item) => {
+            if (!category || category === 'all' || item.category === category) {
+              return { ...item, isRead: true };
+            }
+            return item;
+          })
+        );
+        if (!category || category === 'all') {
+          setUnreadCount(DEFAULT_UNREAD);
+        } else {
+          setUnreadCount((prev) => ({
+            total: Math.max(0, prev.total - (prev.byCategory[category] || 0)),
+            byCategory: {
+              ...prev.byCategory,
+              [category]: 0,
+            },
+          }));
+        }
+      } catch {
+        // Silent error
       }
-    } catch {
-      // Silent error
-    }
-  }, []);
+    },
+    [dispatch]
+  );
 
   // Socket initialization
   useEffect(() => {

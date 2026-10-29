@@ -76,7 +76,7 @@ export const AdminHeader = ({ isSidebarCollapsed, onToggleSidebar, onOpenMenu })
         >
           <Bell className="w-5 h-5 stroke-1.75" />
           {Boolean(unreadCount?.total && unreadCount.total > 0) && (
-            <span className="absolute top-1 right-1 flex items-center justify-center min-w-[18px] h-[18px] px-1 text-[10px] font-bold text-white bg-error rounded-full ring-2 ring-white animate-pulse">
+            <span className="absolute top-1 right-1 flex items-center justify-center min-w-badge h-badge px-1 text-label-xs font-bold text-white bg-error rounded-full ring-2 ring-white animate-pulse">
               {unreadCount.total > 99 ? '99+' : unreadCount.total}
             </span>
           )}

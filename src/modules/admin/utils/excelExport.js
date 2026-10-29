@@ -316,16 +316,24 @@ export const buildUsersReportSheets = ({ users = [], stats = {}, exportedAt = ne
         { header: 'Số lượng trẻ', key: 'childrenCount', width: 14 },
         { header: 'Ngày đăng ký', key: 'createdAt', width: 20 },
       ],
-      rows: users.map((u) => ({
-        fullName: u.profile?.fullName || u.fullName || 'N/A',
-        email: u.email || 'N/A',
-        phone: u.phone || 'Chưa cập nhật',
-        status: u.isActive ? 'Hoạt động' : 'Đã khóa',
-        isVerified: u.profile?.verification?.isVerifiedParent ? 'Đã xác minh' : 'Chưa xác minh',
-        plan: planName(u.subscription?.planCode),
-        childrenCount: u.activeChildrenCount || 0,
-        createdAt: formatDateTime(u.createdAt),
-      })),
+      rows: users.map((u) => {
+        const isVerified =
+          u.isVerifiedParent ??
+          u.profile?.verification?.isVerifiedParent ??
+          u.verification?.isVerifiedParent ??
+          false;
+        const userPlanCode = u.currentPlan?.planCode || u.subscription?.planCode;
+        return {
+          fullName: u.fullName || u.profile?.fullName || 'N/A',
+          email: u.email || 'N/A',
+          phone: u.phone || 'Chưa cập nhật',
+          status: u.isActive ? 'Hoạt động' : 'Đã khóa',
+          isVerified: isVerified ? 'Đã xác minh' : 'Chưa xác minh',
+          plan: planName(userPlanCode),
+          childrenCount: u.childrenCount ?? u.activeChildrenCount ?? 0,
+          createdAt: formatDateTime(u.createdAt),
+        };
+      }),
     },
   ];
 };
@@ -364,17 +372,20 @@ export const buildChildrenReportSheets = ({ children = [], stats = {}, exportedA
         { header: 'Khóa do gói', key: 'isPlanLocked', width: 16 },
         { header: 'Ngày tạo', key: 'createdAt', width: 20 },
       ],
-      rows: children.map((c) => ({
-        displayName: c.displayName || 'N/A',
-        parentName: c.parent?.fullName || 'N/A',
-        gender: genderMap[c.gender] || c.gender || 'N/A',
-        dateOfBirth: c.dateOfBirth ? formatDate(c.dateOfBirth) : 'N/A',
-        interests: Array.isArray(c.interests) ? c.interests.join(', ') : '',
-        favoriteActivities: Array.isArray(c.favoriteActivities) ? c.favoriteActivities.join(', ') : '',
-        status: c.isArchived ? 'Đã lưu trữ' : 'Đang hoạt động',
-        isPlanLocked: c.isPlanLocked ? 'Bị khóa' : 'Mở',
-        createdAt: formatDateTime(c.createdAt),
-      })),
+      rows: children.map((c) => {
+        const isPlanLocked = c.isPlanLocked ?? c.visibility === 'plan_locked';
+        return {
+          displayName: c.displayName || 'N/A',
+          parentName: c.parentName || c.parent?.fullName || 'N/A',
+          gender: genderMap[c.gender] || c.gender || 'N/A',
+          dateOfBirth: c.dateOfBirth ? formatDate(c.dateOfBirth) : 'N/A',
+          interests: Array.isArray(c.interests) ? c.interests.join(', ') : '',
+          favoriteActivities: Array.isArray(c.favoriteActivities) ? c.favoriteActivities.join(', ') : '',
+          status: c.isArchived ? 'Đã lưu trữ' : 'Đang hoạt động',
+          isPlanLocked: isPlanLocked ? 'Bị khóa' : 'Mở',
+          createdAt: formatDateTime(c.createdAt),
+        };
+      }),
     },
   ];
 };
@@ -416,16 +427,21 @@ export const buildPlaydatesReportSheets = ({ playdates = [], stats = {}, exporte
         { header: 'Số người tham gia', key: 'participantsCount', width: 18 },
         { header: 'Ngày tạo', key: 'createdAt', width: 20 },
       ],
-      rows: playdates.map((p) => ({
-        activity: p.activity || p.title || 'N/A',
-        hostName: p.hostParent?.fullName || 'N/A',
-        hostChild: p.hostChild?.displayName || 'N/A',
-        location: p.location?.name || p.location?.address || 'N/A',
-        scheduledDate: p.scheduledDate ? `${formatDate(p.scheduledDate)} ${p.startTime || ''}`.trim() : 'N/A',
-        status: statusMap[p.status] || p.status || 'N/A',
-        participantsCount: Array.isArray(p.participants) ? p.participants.length : 0,
-        createdAt: formatDateTime(p.createdAt),
-      })),
+      rows: playdates.map((p) => {
+        const startTimeStr = p.time || p.startTime || '';
+        return {
+          activity: p.activity || p.title || 'N/A',
+          hostName: p.host?.parent?.fullName || p.hostParent?.fullName || p.creator?.fullName || 'N/A',
+          hostChild: p.host?.child?.displayName || p.hostChild?.displayName || 'N/A',
+          location: p.location?.name || p.location?.address || 'N/A',
+          scheduledDate: p.scheduledDate ? `${formatDate(p.scheduledDate)} ${startTimeStr}`.trim() : 'N/A',
+          status: statusMap[p.status] || p.status || 'N/A',
+          participantsCount:
+            p.numberOfParticipants ??
+            (Array.isArray(p.participants) ? p.participants.length : 0),
+          createdAt: formatDateTime(p.createdAt),
+        };
+      }),
     },
   ];
 };

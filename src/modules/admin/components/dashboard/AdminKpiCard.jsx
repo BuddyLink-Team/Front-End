@@ -23,23 +23,23 @@ export const AdminKpiCard = ({
 
   const variantStyles = {
     primary: {
-      iconBg: 'bg-primary/10 text-primary-dark',
+      iconBg: 'bg-primary-soft text-primary-dark',
       border: 'border-hairline',
     },
     secondary: {
-      iconBg: 'bg-secondary/20 text-secondary-dark',
+      iconBg: 'bg-secondary-soft text-secondary-dark',
       border: 'border-hairline',
     },
     accent: {
-      iconBg: 'bg-accent/15 text-accent',
+      iconBg: 'bg-tertiary-soft text-tertiary-dark',
       border: 'border-hairline',
     },
     warning: {
-      iconBg: 'bg-amber-50 text-amber-600',
+      iconBg: 'bg-tertiary-soft text-tertiary-dark',
       border: 'border-hairline',
     },
     info: {
-      iconBg: 'bg-blue-50 text-blue-600',
+      iconBg: 'bg-primary-soft text-primary-dark',
       border: 'border-hairline',
     },
   };
@@ -58,8 +58,8 @@ export const AdminKpiCard = ({
 
     if (changePercent > 0) {
       return (
-        <span className="inline-flex items-center gap-1 text-xs font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full">
-          <TrendingUp className="w-3 h-3 stroke-[2.5]" />
+        <span className="inline-flex items-center gap-1 text-xs font-semibold text-primary-dark bg-primary-soft px-2 py-0.5 rounded-full">
+          <TrendingUp className="w-3 h-3 stroke-2.5" />
           <span>+{changePercent}%</span>
         </span>
       );
@@ -67,8 +67,8 @@ export const AdminKpiCard = ({
 
     if (changePercent < 0) {
       return (
-        <span className="inline-flex items-center gap-1 text-xs font-semibold text-rose-700 bg-rose-50 px-2 py-0.5 rounded-full">
-          <TrendingDown className="w-3 h-3 stroke-[2.5]" />
+        <span className="inline-flex items-center gap-1 text-xs font-semibold text-error bg-error-container px-2 py-0.5 rounded-full">
+          <TrendingDown className="w-3 h-3 stroke-2.5" />
           <span>{changePercent}%</span>
         </span>
       );

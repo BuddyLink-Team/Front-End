@@ -38,17 +38,17 @@ const SEVERITY_OPTIONS = [
 
 const SEVERITY_CONFIG = {
   critical: {
-    badgeClass: 'bg-error-soft text-error-dark border-error/20',
+    badgeClass: 'bg-error-container text-error border-error/20',
     icon: ShieldAlert,
     label: 'Khẩn cấp',
   },
   warning: {
-    badgeClass: 'bg-amber-50 text-amber-700 border-amber-200',
+    badgeClass: 'bg-tertiary-soft text-tertiary-dark border-tertiary/20',
     icon: AlertTriangle,
     label: 'Cảnh báo',
   },
   info: {
-    badgeClass: 'bg-blue-50 text-blue-700 border-blue-200',
+    badgeClass: 'bg-primary-soft text-primary-dark border-primary/20',
     icon: Info,
     label: 'Thông tin',
   },
@@ -82,7 +82,7 @@ export const AdminNotificationBoard = ({
       onMarkAsRead(item._id);
     }
 
-    switch (item.entityType) {
+    switch (String(item.entityType || '').toLowerCase()) {
       case 'user':
         navigate(ADMIN_ROUTES.USERS);
         break;
@@ -121,12 +121,12 @@ export const AdminNotificationBoard = ({
               <span
                 className={cn(
                   'w-2.5 h-2.5 rounded-full inline-block',
-                  isConnected ? 'bg-success animate-pulse' : 'bg-text-muted'
+                  isConnected ? 'bg-primary animate-pulse' : 'bg-text-muted'
                 )}
                 title={isConnected ? 'Kết nối realtime ổn định' : 'Mất kết nối realtime'}
               />
             </div>
-            <p className="text-caption text-text-muted">
+            <p className="text-label-md text-text-muted">
               Cập nhật tức thì các biến động về người dùng, thanh toán, bảo mật và sự cố hệ thống
             </p>
           </div>
@@ -181,7 +181,7 @@ export const AdminNotificationBoard = ({
                 {count > 0 && (
                   <span
                     className={cn(
-                      'px-1.5 py-0.2 rounded-full text-[10px] font-bold',
+                      'px-1.5 py-0.5 rounded-full text-label-xs font-bold',
                       isSelected ? 'bg-white text-text-primary' : 'bg-primary-soft text-primary-dark'
                     )}
                   >
@@ -207,7 +207,7 @@ export const AdminNotificationBoard = ({
       </div>
 
       {/* Notification List */}
-      <div className="space-y-2.5 max-h-[480px] overflow-y-auto pr-1">
+      <div className="space-y-2.5 max-h-notification-list overflow-y-auto pr-1">
         {isLoading && notifications.length === 0 ? (
           Array.from({ length: 4 }).map((_, i) => (
             <div key={i} className="p-3.5 rounded-xl bg-surface-muted space-y-2 border border-hairline">
@@ -222,7 +222,7 @@ export const AdminNotificationBoard = ({
           <div className="text-center py-10 space-y-2">
             <Bell className="w-8 h-8 text-text-muted/40 mx-auto" />
             <p className="text-body-md font-medium text-text-primary">Không có thông báo nào</p>
-            <p className="text-caption text-text-muted">
+            <p className="text-label-md text-text-muted">
               {selectedCategory !== 'all' || selectedSeverity !== 'all'
                 ? 'Không có thông báo phù hợp với bộ lọc đã chọn.'
                 : 'Mọi hoạt động trên hệ thống đang diễn ra bình thường.'}
@@ -258,7 +258,7 @@ export const AdminNotificationBoard = ({
                     <div className="flex flex-wrap items-center gap-2">
                       <p
                         className={cn(
-                          'text-body-sm font-semibold truncate',
+                          'text-body-md font-semibold truncate',
                           item.isRead ? 'text-text-primary' : 'text-primary-dark'
                         )}
                       >
@@ -268,10 +268,10 @@ export const AdminNotificationBoard = ({
                         <span className="w-2 h-2 rounded-full bg-primary shrink-0" />
                       )}
                     </div>
-                    <p className="text-caption text-text-muted line-clamp-2">
+                    <p className="text-label-md text-text-muted line-clamp-2">
                       {item.message}
                     </p>
-                    <div className="flex items-center gap-3 pt-0.5 text-[11px] text-text-muted">
+                    <div className="flex items-center gap-3 pt-0.5 text-label-sm text-text-muted">
                       <span>{formatDateTime(item.createdAt)}</span>
                       {item.entityType && (
                         <span className="capitalize font-medium text-text-primary">
@@ -290,7 +290,7 @@ export const AdminNotificationBoard = ({
                         e.stopPropagation();
                         onMarkAsRead(item._id);
                       }}
-                      className="p-1.5 rounded-md text-text-muted hover:text-success hover:bg-success-soft transition-colors"
+                      className="p-1.5 rounded-md text-text-muted hover:text-primary-dark hover:bg-primary-soft transition-colors"
                       title="Đánh dấu đã đọc"
                     >
                       <Check className="w-4 h-4" />
