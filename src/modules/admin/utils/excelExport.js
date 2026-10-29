@@ -114,14 +114,45 @@ const planName = (planCode, fallback) => SUBSCRIPTION_PLAN_NAMES[planCode] || fa
  * Build Excel sheets for Dashboard
  */
 export const buildDashboardReportSheets = ({ analytics = {}, exportedAt = new Date() }) => {
-  const { summary = {}, charts = {}, filter = {} } = analytics || {};
-  const period = `${formatDate(filter.fromDate)} - ${formatDate(filter.toDate)}`;
+  const overview = analytics.overview || analytics.summary || {};
+  const filter = analytics.filter || {};
+  const period =
+    filter.fromDate && filter.toDate
+      ? `${formatDate(filter.fromDate)} - ${formatDate(filter.toDate)}`
+      : 'Toàn thời gian';
 
   const formatKpiChange = (kpi) => {
     if (!kpi) return '';
     if (kpi.changePercent === null || kpi.changePercent === undefined) return '—';
     return `${kpi.changePercent > 0 ? '+' : ''}${kpi.changePercent}%`;
   };
+
+  const getKpiVal = (kpi, fallback = 0) => kpi?.value ?? kpi?.current ?? fallback;
+  const getKpiPrev = (kpi, fallback = 0) => kpi?.previousValue ?? kpi?.previous ?? fallback;
+
+  const totalParents = overview.totalParents || overview.parents;
+  const newParents = overview.newParents || overview.parents;
+  const activeUsers = overview.activeUsers;
+  const totalChildren = overview.totalChildProfiles || overview.children;
+  const totalPlaydates = overview.totalPlaydates || overview.playdates;
+  const connections = overview.acceptedConnections || overview.connections;
+  const subscriptions = overview.activePremiumSubscriptions || overview.subscriptions;
+  const revenue = overview.totalRevenue || overview.revenue;
+  const aiUsage = overview.aiUsage;
+
+  const userGrowthRows = analytics.userGrowth?.timeline || analytics.charts?.userGrowth || [];
+  const revenueTimelineRows = analytics.revenue?.timeline || analytics.charts?.revenue || [];
+  const revenueMap = new Map(
+    revenueTimelineRows.map((r) => [r.period || r.date, r])
+  );
+
+  const conversionRows = analytics.conversion?.funnel || analytics.charts?.conversionFunnel || [];
+  const topUsersRows =
+    analytics.aiUsage?.topParents ||
+    analytics.aiUsage?.topUsers ||
+    analytics.charts?.aiUsage?.topUsers ||
+    [];
+  const ageGroupRows = analytics.children?.byAgeGroup || analytics.charts?.childAgeGroups || [];
 
   return [
     {
@@ -135,15 +166,61 @@ export const buildDashboardReportSheets = ({ analytics = {}, exportedAt = new Da
       rows: [
         { label: 'Thời gian xuất file', value: formatDateTime(exportedAt) },
         { label: 'Khoảng thời gian chọn', value: period },
-        { label: 'Tổng phụ huynh', value: summary.parents?.total || 0, previousValue: summary.parents?.previous || 0, change: formatKpiChange(summary.parents) },
-        { label: 'Phụ huynh mới', value: summary.parents?.current || 0, previousValue: summary.parents?.previous || 0, change: formatKpiChange(summary.parents) },
-        { label: 'Người dùng hoạt động', value: summary.activeUsers?.current || 0, previousValue: summary.activeUsers?.previous || 0, change: formatKpiChange(summary.activeUsers) },
-        { label: 'Tổng hồ sơ trẻ', value: summary.children?.total || 0, previousValue: summary.children?.previous || 0, change: formatKpiChange(summary.children) },
-        { label: 'Buổi hẹn chơi (Playdates)', value: summary.playdates?.total || 0, previousValue: summary.playdates?.previous || 0, change: formatKpiChange(summary.playdates) },
-        { label: 'Kết nối thành công', value: summary.connections?.accepted || 0, previousValue: summary.connections?.previousAccepted || 0, change: formatKpiChange(summary.connections) },
-        { label: 'Thuê bao Premium hiệu lực', value: summary.subscriptions?.active || 0, previousValue: summary.subscriptions?.previous || 0, change: formatKpiChange(summary.subscriptions) },
-        { label: 'Doanh thu', value: summary.revenue?.current || 0, previousValue: summary.revenue?.previous || 0, change: formatKpiChange(summary.revenue), numFmt: MONEY_FORMAT },
-        { label: 'Lượt tương tác AI Assistant', value: summary.aiUsage?.currentRequests || 0, previousValue: summary.aiUsage?.previousRequests || 0, change: formatKpiChange(summary.aiUsage) },
+        {
+          label: 'Tổng phụ huynh',
+          value: getKpiVal(totalParents, overview.parents?.total || 0),
+          previousValue: getKpiPrev(totalParents, overview.parents?.previous || 0),
+          change: formatKpiChange(totalParents),
+        },
+        {
+          label: 'Phụ huynh mới',
+          value: getKpiVal(newParents),
+          previousValue: getKpiPrev(newParents),
+          change: formatKpiChange(newParents),
+        },
+        {
+          label: 'Người dùng hoạt động',
+          value: getKpiVal(activeUsers),
+          previousValue: getKpiPrev(activeUsers),
+          change: formatKpiChange(activeUsers),
+        },
+        {
+          label: 'Tổng hồ sơ trẻ',
+          value: getKpiVal(totalChildren, overview.children?.total || 0),
+          previousValue: getKpiPrev(totalChildren, overview.children?.previous || 0),
+          change: formatKpiChange(totalChildren),
+        },
+        {
+          label: 'Buổi hẹn chơi (Playdates)',
+          value: getKpiVal(totalPlaydates, overview.playdates?.total || 0),
+          previousValue: getKpiPrev(totalPlaydates, overview.playdates?.previous || 0),
+          change: formatKpiChange(totalPlaydates),
+        },
+        {
+          label: 'Kết nối thành công',
+          value: getKpiVal(connections, overview.connections?.accepted || 0),
+          previousValue: getKpiPrev(connections, overview.connections?.previousAccepted || 0),
+          change: formatKpiChange(connections),
+        },
+        {
+          label: 'Thuê bao Premium hiệu lực',
+          value: getKpiVal(subscriptions, overview.subscriptions?.active || 0),
+          previousValue: getKpiPrev(subscriptions, overview.subscriptions?.previous || 0),
+          change: formatKpiChange(subscriptions),
+        },
+        {
+          label: 'Doanh thu',
+          value: getKpiVal(revenue),
+          previousValue: getKpiPrev(revenue),
+          change: formatKpiChange(revenue),
+          numFmt: MONEY_FORMAT,
+        },
+        {
+          label: 'Lượt tương tác AI Assistant',
+          value: getKpiVal(aiUsage, overview.aiUsage?.currentRequests || 0),
+          previousValue: getKpiPrev(aiUsage, overview.aiUsage?.previousRequests || 0),
+          change: formatKpiChange(aiUsage),
+        },
       ],
     },
     {
@@ -154,11 +231,12 @@ export const buildDashboardReportSheets = ({ analytics = {}, exportedAt = new Da
         { header: 'Người dùng hoạt động', key: 'activeUsers', width: 22 },
         { header: 'Doanh thu', key: 'revenue', width: 20, numFmt: MONEY_FORMAT },
       ],
-      rows: (charts.userGrowth || []).map((growthRow, idx) => {
-        const revRow = charts.revenue?.[idx];
+      rows: userGrowthRows.map((growthRow) => {
+        const periodKey = growthRow.period || growthRow.date;
+        const revRow = revenueMap.get(periodKey);
         return {
-          period: growthRow.date,
-          newParents: growthRow.newParents || 0,
+          period: formatDate(periodKey),
+          newParents: growthRow.newParents ?? growthRow.count ?? 0,
           activeUsers: growthRow.activeUsers || 0,
           revenue: revRow?.revenue || 0,
         };
@@ -171,10 +249,11 @@ export const buildDashboardReportSheets = ({ analytics = {}, exportedAt = new Da
         { header: 'Số lượng phụ huynh', key: 'count', width: 24 },
         { header: 'Tỷ lệ rời bỏ (%)', key: 'dropRate', width: 20 },
       ],
-      rows: (charts.conversionFunnel || []).map((step) => ({
-        label: step.step,
+      rows: conversionRows.map((step) => ({
+        label: step.label || step.step,
         count: step.count,
-        dropRate: step.dropRate !== null ? `${step.dropRate}%` : '—',
+        dropRate:
+          step.dropRate !== null && step.dropRate !== undefined ? `${step.dropRate}%` : '—',
       })),
     },
     {
@@ -185,10 +264,10 @@ export const buildDashboardReportSheets = ({ analytics = {}, exportedAt = new Da
         { header: 'Số lượt yêu cầu', key: 'requestCount', width: 18 },
         { header: 'Tokens tiêu thụ', key: 'tokens', width: 18 },
       ],
-      rows: (charts.aiUsage?.topUsers || []).map((p) => ({
-        fullName: p.name || 'N/A',
+      rows: topUsersRows.map((p) => ({
+        fullName: p.fullName || p.name || 'Phụ huynh',
         email: p.email || 'N/A',
-        requestCount: p.requests || 0,
+        requestCount: p.requestCount ?? p.requests ?? 0,
         tokens: p.tokens || 0,
       })),
     },
@@ -198,7 +277,7 @@ export const buildDashboardReportSheets = ({ analytics = {}, exportedAt = new Da
         { header: 'Nhóm tuổi', key: 'group', width: 22 },
         { header: 'Số lượng bé', key: 'count', width: 18 },
       ],
-      rows: (charts.childAgeGroups || []).map((g) => ({
+      rows: ageGroupRows.map((g) => ({
         group: g.group,
         count: g.count,
       })),

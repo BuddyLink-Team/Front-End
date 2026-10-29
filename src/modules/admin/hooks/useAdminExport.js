@@ -73,7 +73,7 @@ export const useAdminExport = (type, fetchExportData) => {
     }
   }, [type, fetchExportData, success, toastError]);
 
-  return { isExporting, handleExport };
+  return { isExporting, handleExport, exportReport: handleExport };
 };
 
 export default useAdminExport;

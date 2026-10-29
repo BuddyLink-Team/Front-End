@@ -28,6 +28,41 @@ describe('Admin Dashboard Excel Export & Mock Service', () => {
     expect(kpiSheet.columns.map((c) => c.key)).toEqual(['label', 'value', 'previousValue', 'change']);
   });
 
+  it('buildDashboardReportSheets supports real backend analytics schema with overview and timelines', () => {
+    const realBackendAnalytics = {
+      overview: {
+        totalParents: { value: 52, previousValue: 50, changePercent: 4 },
+        newParents: { value: 2, previousValue: 12, changePercent: -83.3 },
+        activeUsers: { value: 51, previousValue: 49, changePercent: 4.1 },
+        totalChildProfiles: { value: 60, previousValue: 58, changePercent: 3.4 },
+        totalPlaydates: { value: 18, previousValue: 5, changePercent: 260 },
+        acceptedConnections: { value: 12, previousValue: 10, changePercent: 20 },
+        activePremiumSubscriptions: { value: 8, previousValue: 8, changePercent: 0 },
+        totalRevenue: { value: 495000, previousValue: 297000, changePercent: 66.7 },
+        aiUsage: { value: 30, previousValue: 0, changePercent: null },
+      },
+      userGrowth: { timeline: [{ period: '2026-10-01', count: 5 }] },
+      revenue: { timeline: [{ period: '2026-10-01', revenue: 100000 }] },
+      conversion: { funnel: [{ step: 'registered', label: 'Đăng ký', count: 52 }] },
+      children: { byAgeGroup: [{ group: '0-2 tuổi', count: 10 }] },
+      aiUsage: { topParents: [{ fullName: 'Test Parent', email: 'test@buddylink.vn', requestCount: 10, tokens: 500 }] },
+      filter: { fromDate: '2026-10-01', toDate: '2026-10-29' },
+    };
+
+    const sheets = buildDashboardReportSheets({ analytics: realBackendAnalytics });
+    expect(sheets).toHaveLength(5);
+    const kpiRows = sheets[0].rows;
+    const totalParentsRow = kpiRows.find((r) => r.label === 'Tổng phụ huynh');
+    expect(totalParentsRow.value).toBe(52);
+    expect(totalParentsRow.previousValue).toBe(50);
+    expect(totalParentsRow.change).toBe('+4%');
+
+    const growthSheet = sheets[1];
+    expect(growthSheet.rows).toHaveLength(1);
+    expect(growthSheet.rows[0].newParents).toBe(5);
+    expect(growthSheet.rows[0].revenue).toBe(100000);
+  });
+
   it('buildUsersReportSheets generates user oversight sheets', () => {
     const sheets = buildUsersReportSheets({
       users: [
