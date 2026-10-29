@@ -37,7 +37,13 @@ export const UserGrowthChart = ({ data = [], isLoading = false }) => {
     return <Skeleton className="w-full h-80 rounded-2xl" />;
   }
 
-  const hasData = Array.isArray(data) && data.length > 0 && data.some((d) => d.newParents > 0 || d.activeUsers > 0);
+  const chartData = (data || []).map((d) => ({
+    period: d.period || d.date,
+    newParents: d.newParents ?? d.count ?? 0,
+    activeUsers: d.activeUsers ?? 0,
+  }));
+
+  const hasData = chartData.length > 0 && chartData.some((d) => d.newParents > 0 || d.activeUsers > 0);
 
   return (
     <div className="bg-white rounded-2xl border border-hairline p-5 shadow-xs">
@@ -58,7 +64,7 @@ export const UserGrowthChart = ({ data = [], isLoading = false }) => {
       ) : (
         <div className="w-full h-64">
           <ResponsiveContainer width="100%" height="100%">
-            <AreaChart data={data} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+            <AreaChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
               <defs>
                 <linearGradient id="colorNewParents" x1="0" y1="0" x2="0" y2="1">
                   <stop offset="5%" stopColor="#4A7C59" stopOpacity={0.3} />
@@ -71,7 +77,7 @@ export const UserGrowthChart = ({ data = [], isLoading = false }) => {
               </defs>
               <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E5E7EB" />
               <XAxis
-                dataKey="date"
+                dataKey="period"
                 tickFormatter={(val) => formatDate(val)}
                 tick={{ fontSize: 11, fill: '#6B7280' }}
                 axisLine={false}

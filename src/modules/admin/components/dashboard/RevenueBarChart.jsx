@@ -28,7 +28,12 @@ export const RevenueBarChart = ({ data = [], isLoading = false }) => {
     return <Skeleton className="w-full h-80 rounded-2xl" />;
   }
 
-  const hasData = Array.isArray(data) && data.length > 0 && data.some((d) => d.revenue > 0);
+  const chartData = (data || []).map((d) => ({
+    period: d.period || d.date,
+    revenue: d.revenue || 0,
+  }));
+
+  const hasData = chartData.length > 0 && chartData.some((d) => d.revenue > 0);
 
   return (
     <div className="bg-white rounded-2xl border border-hairline p-5 shadow-xs">
@@ -49,10 +54,10 @@ export const RevenueBarChart = ({ data = [], isLoading = false }) => {
       ) : (
         <div className="w-full h-64">
           <ResponsiveContainer width="100%" height="100%">
-            <RechartsBarChart data={data} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+            <RechartsBarChart data={chartData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
               <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E5E7EB" />
               <XAxis
-                dataKey="date"
+                dataKey="period"
                 tickFormatter={(val) => formatDate(val)}
                 tick={{ fontSize: 11, fill: '#6B7280' }}
                 axisLine={false}

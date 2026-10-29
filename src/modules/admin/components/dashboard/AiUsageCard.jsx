@@ -28,8 +28,11 @@ export const AiUsageCard = ({ aiUsage = {}, isLoading = false }) => {
     return <Skeleton className="w-full h-80 rounded-2xl" />;
   }
 
-  const timeline = aiUsage.timeline || [];
-  const topUsers = aiUsage.topUsers || [];
+  const timeline = (aiUsage.timeline || []).map((d) => ({
+    period: d.period || d.date,
+    requests: d.requests ?? d.count ?? 0,
+  }));
+  const topUsers = aiUsage.topParents || aiUsage.topUsers || [];
   const hasData = timeline.some((d) => d.requests > 0) || topUsers.length > 0;
 
   return (
@@ -56,7 +59,7 @@ export const AiUsageCard = ({ aiUsage = {}, isLoading = false }) => {
               <LineChart data={timeline} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E5E7EB" />
                 <XAxis
-                  dataKey="date"
+                  dataKey="period"
                   tickFormatter={(val) => formatDate(val)}
                   tick={{ fontSize: 11, fill: '#6B7280' }}
                   axisLine={false}
@@ -99,16 +102,16 @@ export const AiUsageCard = ({ aiUsage = {}, isLoading = false }) => {
                   </thead>
                   <tbody className="divide-y divide-hairline/40">
                     {topUsers.map((user, idx) => (
-                      <tr key={user.userId || idx} className="hover:bg-surface-muted/50">
+                      <tr key={user.parentId || user.userId || idx} className="hover:bg-surface-muted/50">
                         <td className="py-1.5 font-medium text-text-primary truncate max-w-[140px]">
-                          {user.name || 'Phụ huynh'}
+                          {user.fullName || user.name || 'Phụ huynh'}
                         </td>
                         <td className="py-1.5 text-text-muted">{maskEmail(user.email)}</td>
                         <td className="py-1.5 text-right font-bold text-text-primary">
-                          {formatCount(user.requests)}
+                          {formatCount(user.requestCount ?? user.requests ?? 0)}
                         </td>
                         <td className="py-1.5 text-right text-text-muted">
-                          {formatCount(user.tokens)}
+                          {user.tokens ? formatCount(user.tokens) : '—'}
                         </td>
                       </tr>
                     ))}

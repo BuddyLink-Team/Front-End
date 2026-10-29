@@ -62,8 +62,15 @@ export const AdminDashboardPage = () => {
     }
   }, [location.hash]);
 
-  const summary = analytics?.summary || {};
-  const charts = analytics?.charts || {};
+  const overview = analytics?.overview || analytics?.summary || {};
+  const userGrowth = analytics?.userGrowth || {};
+  const revenue = analytics?.revenue || {};
+  const conversion = analytics?.conversion || {};
+  const playdates = analytics?.playdates || {};
+  const connections = analytics?.connections || {};
+  const subscriptions = analytics?.subscriptions || {};
+  const aiUsage = analytics?.aiUsage || {};
+  const children = analytics?.children || {};
 
   return (
     <div className="space-y-6 pb-12">
@@ -177,9 +184,9 @@ export const AdminDashboardPage = () => {
         {/* 1. Total Parents */}
         <AdminKpiCard
           title="Tổng số phụ huynh"
-          value={formatCount(summary.parents?.total ?? 0)}
-          subtitle={`${formatCount(summary.parents?.current ?? 0)} trong kỳ`}
-          changePercent={summary.parents?.changePercent}
+          value={formatCount(overview.totalParents?.value ?? overview.parents?.total ?? 0)}
+          subtitle={`${formatCount(overview.newParents?.value ?? overview.parents?.current ?? 0)} trong kỳ`}
+          changePercent={overview.totalParents?.changePercent ?? overview.parents?.changePercent}
           icon={Users}
           variant="primary"
           isLoading={isLoading}
@@ -188,9 +195,9 @@ export const AdminDashboardPage = () => {
         {/* 2. New Parents */}
         <AdminKpiCard
           title="Phụ huynh mới"
-          value={formatCount(summary.parents?.current ?? 0)}
+          value={formatCount(overview.newParents?.value ?? overview.parents?.current ?? 0)}
           subtitle="Đăng ký tài khoản"
-          changePercent={summary.parents?.changePercent}
+          changePercent={overview.newParents?.changePercent ?? overview.parents?.changePercent}
           icon={UserPlus}
           variant="primary"
           isLoading={isLoading}
@@ -199,9 +206,9 @@ export const AdminDashboardPage = () => {
         {/* 3. Active Users */}
         <AdminKpiCard
           title="Người dùng hoạt động"
-          value={formatCount(summary.activeUsers?.current ?? 0)}
+          value={formatCount(overview.activeUsers?.value ?? overview.activeUsers?.current ?? 0)}
           subtitle="Tương tác trong kỳ"
-          changePercent={summary.activeUsers?.changePercent}
+          changePercent={overview.activeUsers?.changePercent}
           icon={Activity}
           variant="secondary"
           isLoading={isLoading}
@@ -210,9 +217,9 @@ export const AdminDashboardPage = () => {
         {/* 4. Child Profiles */}
         <AdminKpiCard
           title="Tổng hồ sơ trẻ"
-          value={formatCount(summary.children?.total ?? 0)}
-          subtitle={`+${formatCount(summary.children?.current ?? 0)} mới`}
-          changePercent={summary.children?.changePercent}
+          value={formatCount(overview.totalChildProfiles?.value ?? overview.children?.total ?? 0)}
+          subtitle={`+${formatCount(children.total ?? overview.totalChildProfiles?.value ?? 0)} hồ sơ`}
+          changePercent={overview.totalChildProfiles?.changePercent ?? overview.children?.changePercent}
           icon={Baby}
           variant="accent"
           isLoading={isLoading}
@@ -221,9 +228,9 @@ export const AdminDashboardPage = () => {
         {/* 5. Playdates */}
         <AdminKpiCard
           title="Buổi Playdate"
-          value={formatCount(summary.playdates?.total ?? 0)}
-          subtitle={`${formatCount(summary.playdates?.current ?? 0)} trong kỳ`}
-          changePercent={summary.playdates?.changePercent}
+          value={formatCount(overview.totalPlaydates?.value ?? overview.playdates?.total ?? 0)}
+          subtitle={`${formatCount(overview.totalPlaydates?.value ?? overview.playdates?.current ?? 0)} trong kỳ`}
+          changePercent={overview.totalPlaydates?.changePercent ?? overview.playdates?.changePercent}
           icon={Calendar}
           variant="info"
           isLoading={isLoading}
@@ -232,9 +239,9 @@ export const AdminDashboardPage = () => {
         {/* 6. Accepted Connections */}
         <AdminKpiCard
           title="Kết nối đã ghép đôi"
-          value={formatCount(summary.connections?.accepted ?? 0)}
-          subtitle={`Tỷ lệ chấp thuận ${summary.connections?.acceptanceRate ?? 0}%`}
-          changePercent={summary.connections?.changePercent}
+          value={formatCount(overview.acceptedConnections?.value ?? overview.connections?.accepted ?? 0)}
+          subtitle={`Tỷ lệ chấp thuận ${connections.acceptanceRate ?? overview.connections?.acceptanceRate ?? 0}%`}
+          changePercent={overview.acceptedConnections?.changePercent ?? overview.connections?.changePercent}
           icon={UserCheck}
           variant="primary"
           isLoading={isLoading}
@@ -243,9 +250,9 @@ export const AdminDashboardPage = () => {
         {/* 7. Active Subscriptions */}
         <AdminKpiCard
           title="Gói Premium hoạt động"
-          value={formatCount(summary.subscriptions?.active ?? 0)}
-          subtitle={`${formatCount(summary.subscriptions?.current ?? 0)} mới trong kỳ`}
-          changePercent={summary.subscriptions?.changePercent}
+          value={formatCount(overview.activePremiumSubscriptions?.value ?? overview.subscriptions?.active ?? 0)}
+          subtitle={`${formatCount(subscriptions.activePremium ?? overview.activePremiumSubscriptions?.value ?? 0)} tài khoản`}
+          changePercent={overview.activePremiumSubscriptions?.changePercent ?? overview.subscriptions?.changePercent}
           icon={Crown}
           variant="warning"
           isLoading={isLoading}
@@ -254,9 +261,9 @@ export const AdminDashboardPage = () => {
         {/* 8. Total Revenue */}
         <AdminKpiCard
           title="Tổng doanh thu"
-          value={formatCurrency(summary.revenue?.current ?? 0)}
-          subtitle={summary.revenue?.currency || 'VND'}
-          changePercent={summary.revenue?.changePercent}
+          value={formatCurrency(overview.totalRevenue?.value ?? overview.revenue?.current ?? 0)}
+          subtitle="VND"
+          changePercent={overview.totalRevenue?.changePercent ?? overview.revenue?.changePercent}
           icon={DollarSign}
           variant="primary"
           isLoading={isLoading}
@@ -265,9 +272,9 @@ export const AdminDashboardPage = () => {
         {/* 9. AI Usage */}
         <AdminKpiCard
           title="Lượt hỏi AI Assistant"
-          value={formatCount(summary.aiUsage?.currentRequests ?? 0)}
-          subtitle={`${formatCount(summary.aiUsage?.totalTokens ?? 0)} tokens`}
-          changePercent={summary.aiUsage?.changePercent}
+          value={formatCount(overview.aiUsage?.value ?? overview.aiUsage?.currentRequests ?? 0)}
+          subtitle={`${formatCount(aiUsage.totalMessagesInPeriod ?? overview.aiUsage?.value ?? 0)} tin nhắn`}
+          changePercent={overview.aiUsage?.changePercent}
           icon={Bot}
           variant="secondary"
           isLoading={isLoading}
@@ -276,30 +283,30 @@ export const AdminDashboardPage = () => {
 
       {/* Row 1: User Growth & Revenue */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <UserGrowthChart data={charts.userGrowth} isLoading={isLoading} />
-        <RevenueBarChart data={charts.revenue} isLoading={isLoading} />
+        <UserGrowthChart data={userGrowth.timeline || analytics?.charts?.userGrowth} isLoading={isLoading} />
+        <RevenueBarChart data={revenue.timeline || analytics?.charts?.revenue} isLoading={isLoading} />
       </div>
 
       {/* Row 2: Conversion Funnel & Child Age Groups */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <ConversionFunnelChart data={charts.conversionFunnel} isLoading={isLoading} />
-        <ChildAgeGroupsCard data={charts.childAgeGroups} isLoading={isLoading} />
+        <ConversionFunnelChart data={conversion.funnel || analytics?.charts?.conversionFunnel} isLoading={isLoading} />
+        <ChildAgeGroupsCard data={children.byAgeGroup || analytics?.charts?.childAgeGroups} isLoading={isLoading} />
       </div>
 
       {/* Row 3: Playdates & Connections Breakdown */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <PlaydateBreakdownCard playdates={charts.playdates} isLoading={isLoading} />
+        <PlaydateBreakdownCard playdates={playdates} isLoading={isLoading} />
         <ConnectionBreakdownCard
-          connections={charts.connections}
-          acceptanceRate={summary.connections?.acceptanceRate ?? 0}
+          connections={connections}
+          acceptanceRate={connections.acceptanceRate ?? overview.connections?.acceptanceRate ?? 0}
           isLoading={isLoading}
         />
       </div>
 
       {/* Row 4: Subscriptions & AI Usage */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <SubscriptionBreakdownCard subscriptions={charts.subscriptions} isLoading={isLoading} />
-        <AiUsageCard aiUsage={charts.aiUsage} isLoading={isLoading} />
+        <SubscriptionBreakdownCard subscriptions={subscriptions} isLoading={isLoading} />
+        <AiUsageCard aiUsage={aiUsage} isLoading={isLoading} />
       </div>
 
       {/* Realtime Notification Board */}
