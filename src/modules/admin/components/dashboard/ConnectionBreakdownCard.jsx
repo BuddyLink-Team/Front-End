@@ -7,8 +7,10 @@ import { formatCount, formatPercent } from '../../../../utils/formatters';
 const STATUS_LABELS = {
   accepted: { label: 'Đã chấp nhận (ghép nối thành công)', color: 'bg-emerald-500' },
   pending: { label: 'Đang chờ phản hồi', color: 'bg-amber-500' },
+  declined: { label: 'Đã từ chối', color: 'bg-rose-400' },
   rejected: { label: 'Đã từ chối', color: 'bg-rose-400' },
   cancelled: { label: 'Đã thu hồi', color: 'bg-gray-400' },
+  removed: { label: 'Đã hủy kết nối', color: 'bg-gray-500' },
   disconnected: { label: 'Đã hủy kết nối', color: 'bg-gray-500' },
 };
 
@@ -17,7 +19,22 @@ export const ConnectionBreakdownCard = ({ connections = {}, acceptanceRate = 0, 
     return <Skeleton className="w-full h-80 rounded-2xl" />;
   }
 
-  const byStatus = connections.byStatus || [];
+  const rawByStatus = connections?.byStatus;
+  let byStatus = [];
+  if (Array.isArray(rawByStatus)) {
+    byStatus = rawByStatus.map((item) => ({
+      status: item.status,
+      count: Number(item.count || 0),
+    }));
+  } else if (connections && typeof connections === 'object') {
+    byStatus = [
+      { status: 'accepted', count: Number(connections.accepted || 0) },
+      { status: 'pending', count: Number(connections.pending || 0) },
+      { status: 'declined', count: Number(connections.declined ?? connections.rejected ?? 0) },
+      { status: 'removed', count: Number(connections.removed ?? connections.disconnected ?? 0) },
+    ];
+  }
+
   const total = byStatus.reduce((sum, item) => sum + (item.count || 0), 0);
   const hasData = total > 0;
 

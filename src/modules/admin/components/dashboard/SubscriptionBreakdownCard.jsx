@@ -15,6 +15,8 @@ const PLAN_CONFIG = {
   free: { label: 'Gói Miễn phí', color: '#9CA3AF' },
   premium_monthly: { label: 'Premium Tháng', color: '#4A7C59' },
   premium_yearly: { label: 'Premium Năm', color: '#D97706' },
+  premiumMonthly: { label: 'Premium Tháng', color: '#4A7C59' },
+  premiumYearly: { label: 'Premium Năm', color: '#D97706' },
 };
 
 const CustomTooltip = ({ active, payload }) => {
@@ -34,7 +36,21 @@ export const SubscriptionBreakdownCard = ({ subscriptions = {}, isLoading = fals
     return <Skeleton className="w-full h-80 rounded-2xl" />;
   }
 
-  const byPlan = subscriptions.byPlan || [];
+  const rawByPlan = subscriptions?.byPlan;
+  let byPlan = [];
+  if (Array.isArray(rawByPlan)) {
+    byPlan = rawByPlan.map((item) => ({
+      plan: item.plan,
+      count: Number(item.count || 0),
+    }));
+  } else if (rawByPlan && typeof rawByPlan === 'object') {
+    byPlan = [
+      { plan: 'free', count: Number(rawByPlan.free || 0) },
+      { plan: 'premium_monthly', count: Number(rawByPlan.premiumMonthly ?? rawByPlan.premium_monthly ?? 0) },
+      { plan: 'premium_yearly', count: Number(rawByPlan.premiumYearly ?? rawByPlan.premium_yearly ?? 0) },
+    ];
+  }
+
   const total = byPlan.reduce((sum, item) => sum + (item.count || 0), 0);
   const hasData = total > 0;
 

@@ -13,6 +13,7 @@ import { formatCount } from '../../../../utils/formatters';
 
 const STATUS_CONFIG = {
   scheduled: { label: 'Đã lên lịch', color: '#3B82F6' },
+  upcoming: { label: 'Sắp diễn ra', color: '#3B82F6' },
   in_progress: { label: 'Đang diễn ra', color: '#F59E0B' },
   completed: { label: 'Đã hoàn thành', color: '#4A7C59' },
   cancelled: { label: 'Đã hủy', color: '#EF4444' },
@@ -35,9 +36,23 @@ export const PlaydateBreakdownCard = ({ playdates = {}, isLoading = false }) => 
     return <Skeleton className="w-full h-80 rounded-2xl" />;
   }
 
-  const byStatus = playdates.byStatus || [];
-  const hasData = Array.isArray(byStatus) && byStatus.some((d) => d.count > 0);
+  const rawByStatus = playdates?.byStatus;
+  let byStatus = [];
+  if (Array.isArray(rawByStatus)) {
+    byStatus = rawByStatus.map((d) => ({
+      status: d.status,
+      count: Number(d.count || 0),
+    }));
+  } else if (rawByStatus && typeof rawByStatus === 'object') {
+    byStatus = [
+      { status: 'upcoming', count: Number(rawByStatus.upcoming || 0) },
+      { status: 'completed', count: Number(rawByStatus.completed || 0) },
+      { status: 'cancelled', count: Number(rawByStatus.cancelled || 0) },
+    ];
+  }
+
   const total = byStatus.reduce((sum, item) => sum + (item.count || 0), 0);
+  const hasData = total > 0;
 
   return (
     <div className="bg-white rounded-2xl border border-hairline p-5 shadow-xs">

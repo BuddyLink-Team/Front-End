@@ -17,8 +17,9 @@ export const ConversionFunnelChart = ({ data = [], isLoading = false }) => {
     return <Skeleton className="w-full h-80 rounded-2xl" />;
   }
 
-  const hasData = Array.isArray(data) && data.length > 0 && data[0]?.count > 0;
-  const topCount = data[0]?.count || 1;
+  const funnelData = Array.isArray(data) ? data : [];
+  const hasData = funnelData.length > 0 && funnelData.some((d) => (d.count || 0) > 0);
+  const topCount = funnelData[0]?.count || 1;
 
   return (
     <div className="bg-white rounded-2xl border border-hairline p-5 shadow-xs">
@@ -38,7 +39,7 @@ export const ConversionFunnelChart = ({ data = [], isLoading = false }) => {
         />
       ) : (
         <div className="space-y-3 py-1">
-          {data.map((item, index) => {
+          {funnelData.map((item, index) => {
             const stepLabel = STEP_LABELS[item.step] || item.step;
             const pctOfTop = Math.round((item.count / topCount) * 100);
             const dropRate = item.dropRate;
