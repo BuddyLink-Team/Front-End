@@ -17,6 +17,7 @@ import { Skeleton } from '../../../components/feedback/Skeleton';
 import { ADMIN_ROUTES } from '../../../constants/navigation.constants';
 import { formatDateTime } from '../../../utils/formatters';
 import { cn } from '../../../utils/cn';
+import { AdminFilterDropdown } from './AdminFilterDropdown';
 
 const CATEGORY_TABS = [
   { id: 'all', label: 'Tất cả' },
@@ -193,19 +194,15 @@ export const AdminNotificationBoard = ({
         </div>
 
         {/* Severity filter */}
-        <div className="flex items-center gap-1.5 shrink-0">
-          <Filter className="w-3.5 h-3.5 text-text-muted" />
-          <select
+        <div className="shrink-0">
+          <AdminFilterDropdown
+            icon={Filter}
+            header="MỨC ĐỘ THÔNG BÁO"
+            options={SEVERITY_OPTIONS}
             value={selectedSeverity}
-            onChange={(e) => setSelectedSeverity(e.target.value)}
-            className="text-label-sm bg-surface-muted border-none rounded-lg px-2.5 py-1 text-text-primary focus:ring-1 focus:ring-primary cursor-pointer"
-          >
-            {SEVERITY_OPTIONS.map((opt) => (
-              <option key={opt.value} value={opt.value}>
-                {opt.label}
-              </option>
-            ))}
-          </select>
+            onChange={(val) => setSelectedSeverity(val || 'all')}
+            align="right"
+          />
         </div>
       </div>
 

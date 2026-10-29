@@ -30,6 +30,13 @@ import { ConnectionBreakdownCard } from '../components/dashboard/ConnectionBreak
 import { SubscriptionBreakdownCard } from '../components/dashboard/SubscriptionBreakdownCard';
 import { AiUsageCard } from '../components/dashboard/AiUsageCard';
 import { AdminNotificationBoard } from '../components/AdminNotificationBoard';
+import { AdminFilterDropdown } from '../components/AdminFilterDropdown';
+
+const GROUP_BY_OPTIONS = [
+  { label: 'Theo Ngày', value: 'day' },
+  { label: 'Theo Tuần', value: 'week' },
+  { label: 'Theo Tháng', value: 'month' },
+];
 
 export const AdminDashboardPage = () => {
   const location = useLocation();
@@ -156,17 +163,15 @@ export const AdminDashboardPage = () => {
             />
           </div>
 
-          <div className="flex items-center gap-1.5 pl-2 border-l border-hairline">
-            <span className="text-text-muted font-medium">Chu kỳ:</span>
-            <select
+          <div className="flex items-center pl-2 border-l border-hairline">
+            <AdminFilterDropdown
+              header="CHU KỲ THỐNG KÊ"
+              labelPrefix="Chu kỳ:"
+              options={GROUP_BY_OPTIONS}
               value={groupBy}
-              onChange={(e) => setGroupBy(e.target.value)}
-              className="px-2.5 py-1.5 bg-surface-muted border border-hairline rounded-lg text-text-primary focus:outline-none focus:ring-1 focus:ring-primary font-medium"
-            >
-              <option value="day">Theo Ngày</option>
-              <option value="week">Theo Tuần</option>
-              <option value="month">Theo Tháng</option>
-            </select>
+              onChange={(val) => setGroupBy(val || 'day')}
+              align="right"
+            />
           </div>
         </div>
       </div>
