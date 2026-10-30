@@ -6,6 +6,8 @@ import { getApiErrorMsg } from '../../../utils/errorUtils';
 import { ADMIN_ROUTES } from '../../../constants/navigation.constants';
 import { fetchAdminChildren, fetchAdminChildStats } from '../redux/adminSlice';
 import { useAdminStats } from './useAdminStats';
+import { useAdminExport } from './useAdminExport';
+import { fetchAllPages } from '../utils/excelExport';
 import {
   ADMIN_ERROR_MESSAGES,
   AGE_RANGE_OPTIONS,
@@ -26,7 +28,7 @@ const toChildrenQuery = ({ ageRange, ...params }) => {
 };
 
 /**
- * Child profiles screen (read-only): server-side list and detail drawer.
+ * Child profiles screen (read-only): server-side list, detail drawer and export.
  * Another admin screen can open a child's drawer with `navigate(ADMIN_ROUTES.CHILDREN, { state: { openChildId } })`.
  */
 export const useAdminChildren = () => {
@@ -58,6 +60,17 @@ export const useAdminChildren = () => {
     [navigate]
   );
 
+  const { isExporting, handleExport } = useAdminExport('children', async () => {
+    const range = filters.ageRange ? AGE_RANGE_OPTIONS.find((opt) => opt.value === filters.ageRange) : null;
+    const query = {
+      ...withStatusQuery(CHILD_STATUS_CHIPS, { status: filters.status, gender: filters.gender }),
+      search: searchInput,
+      ...(range ? { minAge: range.minAge, maxAge: range.maxAge } : {}),
+    };
+    const allChildren = await fetchAllPages((p) => dispatch(fetchAdminChildren(p)).unwrap(), query);
+    return { children: allChildren, stats: stats.stats };
+  });
+
   return {
     ...table,
     listErrorMessage: error
@@ -70,6 +83,8 @@ export const useAdminChildren = () => {
     openChildDetail: setSelectedChildId,
     closeChildDetail: () => setSelectedChildId(null),
     openParentAccount,
+    isExporting,
+    handleExport,
   };
 };
 

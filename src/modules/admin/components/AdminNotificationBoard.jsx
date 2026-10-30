@@ -108,9 +108,9 @@ export const AdminNotificationBoard = ({
   };
 
   return (
-    <Card className={cn('p-5 space-y-4 rounded-2xl border border-hairline shadow-xs', className)}>
+    <Card className={cn('p-5 space-y-4 rounded-2xl border border-hairline shadow-xs flex flex-col', className)}>
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-2 border-b border-hairline">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-2 border-b border-hairline shrink-0">
         <div className="flex items-center gap-2.5">
           <div className="p-2 rounded-xl bg-primary-soft text-primary-dark shrink-0">
             <Bell className="w-5 h-5 stroke-1.75" />
@@ -159,7 +159,7 @@ export const AdminNotificationBoard = ({
       </div>
 
       {/* Filters: Category Tabs + Severity Selector */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 shrink-0">
         {/* Category Tabs */}
         <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-1">
           {CATEGORY_TABS.map((tab) => {
@@ -207,7 +207,7 @@ export const AdminNotificationBoard = ({
       </div>
 
       {/* Notification List */}
-      <div className="space-y-2.5 max-h-notification-list overflow-y-auto pr-1">
+      <div className="space-y-2.5 flex-1 overflow-y-auto pr-1 min-h-[300px]">
         {isLoading && notifications.length === 0 ? (
           Array.from({ length: 4 }).map((_, i) => (
             <div key={i} className="p-3.5 rounded-xl bg-surface-muted space-y-2 border border-hairline">

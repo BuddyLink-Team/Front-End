@@ -94,11 +94,11 @@ export const useAdminNotificationSocket = ({ autoFetch = true } = {}) => {
             },
           };
         });
-      } catch {
-        // Silent error
+      } catch (err) {
+        toastError(getApiErrorMsg(ADMIN_ERROR_MESSAGES, err, 'Không thể cập nhật trạng thái thông báo.'));
       }
     },
-    [dispatch, notifications]
+    [dispatch, notifications, toastError]
   );
 
   // Mark all as read
@@ -127,11 +127,11 @@ export const useAdminNotificationSocket = ({ autoFetch = true } = {}) => {
             },
           }));
         }
-      } catch {
-        // Silent error
+      } catch (err) {
+        toastError(getApiErrorMsg(ADMIN_ERROR_MESSAGES, err, 'Không thể đánh dấu đã đọc tất cả thông báo.'));
       }
     },
-    [dispatch]
+    [dispatch, toastError]
   );
 
   // Socket initialization

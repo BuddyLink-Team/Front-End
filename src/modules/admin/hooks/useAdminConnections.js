@@ -1,4 +1,7 @@
+import { useDispatch } from 'react-redux';
 import { useAdminOversight } from './useAdminOversight';
+import { useAdminExport } from './useAdminExport';
+import { fetchAllPages } from '../utils/excelExport';
 import {
   fetchAdminConnections,
   fetchAdminConnectionStats,
@@ -15,10 +18,10 @@ const MESSAGES = Object.freeze({
 });
 
 /**
- * Connections oversight screen: list across the platform, detail modal and soft-remove with an optional reason.
+ * Connections oversight screen: list across the platform, detail modal, soft-remove and export.
  */
-export const useAdminConnections = () =>
-  useAdminOversight({
+export const useAdminConnections = () => {
+  const oversight = useAdminOversight({
     fetchList: fetchAdminConnections,
     fetchStats: fetchAdminConnectionStats,
     fetchDetail: fetchAdminConnectionDetail,
@@ -27,5 +30,24 @@ export const useAdminConnections = () =>
     runAction: removeAdminConnection,
     messages: MESSAGES,
   });
+
+  const dispatch = useDispatch();
+  const { isExporting, handleExport } = useAdminExport('connections', async () => {
+    const allConnections = await fetchAllPages(
+      (params) => dispatch(fetchAdminConnections(params)).unwrap(),
+      {
+        search: oversight.searchInput,
+        status: oversight.filters?.status || undefined,
+      }
+    );
+    return { connections: allConnections, stats: oversight.stats?.stats };
+  });
+
+  return {
+    ...oversight,
+    isExporting,
+    handleExport,
+  };
+};
 
 export default useAdminConnections;

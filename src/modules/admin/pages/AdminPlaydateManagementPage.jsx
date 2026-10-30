@@ -24,10 +24,6 @@ import {
   PLAYDATE_STAT_CARDS,
   CANCELLABLE_PLAYDATE_STATUSES,
 } from '../constants/admin.constants';
-import { useDispatch } from 'react-redux';
-import { useAdminExport } from '../hooks/useAdminExport';
-import { fetchAllPages } from '../utils/excelExport';
-import { fetchAdminPlaydates } from '../redux/adminSlice';
 import { ICON_SIZE } from '../../../constants/icon.constants';
 
 export const AdminPlaydateManagementPage = () => {
@@ -53,21 +49,9 @@ export const AdminPlaydateManagementPage = () => {
     closeAction: cancelCancel,
     confirmAction: confirmCancel,
     isActionLoading,
+    isExporting,
+    handleExport,
   } = useAdminPlaydates();
-
-  const dispatch = useDispatch();
-  const { isExporting, handleExport } = useAdminExport('playdates', async () => {
-    const allPlaydates = await fetchAllPages(
-      (params) => dispatch(fetchAdminPlaydates(params)).unwrap(),
-      {
-        search: searchInput,
-        status: filters.status || undefined,
-        fromDate: filters.fromDate || undefined,
-        toDate: filters.toDate || undefined,
-      }
-    );
-    return { playdates: allPlaydates, stats: stats.stats };
-  });
 
   const columns = [
     { key: 'activity', label: 'Hoạt động & Thời gian' },

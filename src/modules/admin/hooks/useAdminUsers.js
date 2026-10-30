@@ -7,10 +7,12 @@ import { getApiErrorMsg } from '../../../utils/errorUtils';
 import { ADMIN_ROUTES } from '../../../constants/navigation.constants';
 import { fetchAdminUsers, fetchAdminUserStats, updateAdminUserStatus } from '../redux/adminSlice';
 import { useAdminStats } from './useAdminStats';
+import { useAdminExport } from './useAdminExport';
+import { fetchAllPages } from '../utils/excelExport';
 import { ADMIN_ERROR_MESSAGES, USER_STATUS_CHIPS, withStatusQuery } from '../constants/admin.constants';
 
 /**
- * Parent accounts screen: server-side list, detail drawer and lock / unlock.
+ * Parent accounts screen: server-side list, detail drawer, lock / unlock and export.
  * Another admin screen can open a parent's drawer with `navigate(ADMIN_ROUTES.USERS, { state: { openUserId } })`.
  */
 export const useAdminUsers = () => {
@@ -71,6 +73,15 @@ export const useAdminUsers = () => {
     [navigate]
   );
 
+  const { isExporting, handleExport } = useAdminExport('users', async () => {
+    const allUsers = await fetchAllPages((p) => dispatch(fetchAdminUsers(p)).unwrap(), {
+      search: searchInput,
+      isActive: filters.isActive,
+      isVerified: filters.isVerified,
+    });
+    return { users: allUsers, stats: stats.stats };
+  });
+
   return {
     ...table,
     listErrorMessage: error
@@ -89,6 +100,8 @@ export const useAdminUsers = () => {
     isUpdatingStatus,
     confirmLockToggle,
     openChildProfile,
+    isExporting,
+    handleExport,
   };
 };
 
