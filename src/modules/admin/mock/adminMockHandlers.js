@@ -24,7 +24,7 @@ export const adminMockHandlers = [
   {
     method: 'PATCH',
     pattern: '/admin/notifications/read-all',
-    handler: ({ body }) => adminAnalyticsMockService.markAllAsRead(body?.category),
+    handler: ({ query }) => adminAnalyticsMockService.markAllAsRead(query?.category),
   },
   {
     method: 'PATCH',

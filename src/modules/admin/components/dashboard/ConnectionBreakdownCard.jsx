@@ -1,92 +1,52 @@
 import React from 'react';
 import { UserCheck } from 'lucide-react';
-import { Skeleton } from '../../../../components/feedback/Skeleton';
-import { EmptyState } from '../../../../components/cards/EmptyState';
-import { formatCount, formatPercent } from '../../../../utils/formatters';
+import { formatCount } from '../../../../utils/formatters';
+import { CONNECTION_STATUS_ROWS } from '../../constants/dashboard.constants';
+import { DashboardCard } from './DashboardCard';
 
-const STATUS_LABELS = {
-  accepted: { label: 'Đã chấp nhận (ghép nối thành công)', color: 'bg-primary' },
-  pending: { label: 'Đang chờ phản hồi', color: 'bg-tertiary' },
-  declined: { label: 'Đã từ chối', color: 'bg-error' },
-  rejected: { label: 'Đã từ chối', color: 'bg-error' },
-  cancelled: { label: 'Đã thu hồi', color: 'bg-text-muted' },
-  removed: { label: 'Đã hủy kết nối', color: 'bg-text-muted' },
-  disconnected: { label: 'Đã hủy kết nối', color: 'bg-text-muted' },
-};
-
-export const ConnectionBreakdownCard = ({ connections = {}, acceptanceRate = 0, isLoading = false }) => {
-  if (isLoading) {
-    return <Skeleton className="w-full h-80 rounded-2xl" />;
-  }
-
-  const rawByStatus = connections?.byStatus;
-  let byStatus = [];
-  if (Array.isArray(rawByStatus)) {
-    byStatus = rawByStatus.map((item) => ({
-      status: item.status,
-      count: Number(item.count || 0),
-    }));
-  } else if (connections && typeof connections === 'object') {
-    byStatus = [
-      { status: 'accepted', count: Number(connections.accepted || 0) },
-      { status: 'pending', count: Number(connections.pending || 0) },
-      { status: 'declined', count: Number(connections.declined ?? connections.rejected ?? 0) },
-      { status: 'removed', count: Number(connections.removed ?? connections.disconnected ?? 0) },
-    ];
-  }
-
-  const total = byStatus.reduce((sum, item) => sum + (item.count || 0), 0);
-  const hasData = total > 0;
+export const ConnectionBreakdownCard = ({ connections, isLoading }) => {
+  const sent = connections?.sent || 0;
 
   return (
-    <div className="bg-white rounded-2xl border border-hairline p-5 shadow-xs">
-      <div className="flex items-center justify-between mb-4">
-        <div>
-          <h2 className="text-base font-bold text-text-primary">Tương tác ghép đôi & kết nối</h2>
-          <p className="text-xs text-text-muted mt-0.5">Tỷ lệ phụ huynh đồng ý kết nối và phân bổ trạng thái lời mời</p>
+    <DashboardCard
+      title="Kết nối"
+      description="Yêu cầu kết nối gửi trong khoảng thời gian này và trạng thái hiện tại."
+      isLoading={isLoading}
+      isEmpty={sent === 0}
+      emptyIcon={<UserCheck className="w-6 h-6" />}
+      emptyTitle="Chưa có yêu cầu kết nối"
+      emptyDescription="Chưa có yêu cầu kết nối nào trong khoảng thời gian này."
+      aside={
+        <div className="text-right shrink-0">
+          <p className="text-title-md font-semibold text-primary-dark">{connections?.acceptanceRate}%</p>
+          <p className="text-label-sm text-text-muted">Tỷ lệ chấp nhận</p>
         </div>
-        <div className="text-right">
-          <span className="text-xs text-text-muted block font-medium">Tỷ lệ chấp thuận</span>
-          <span className="text-base font-bold text-primary-dark">
-            {formatPercent(acceptanceRate / 100, 1)}
-          </span>
-        </div>
-      </div>
-
-      {!hasData ? (
-        <EmptyState
-          icon={<UserCheck className="w-6 h-6" />}
-          title="Chưa có lời mời kết nối"
-          description="Chưa có lượt kết nối nào được tạo trong hệ thống."
-          className="h-64"
-        />
-      ) : (
-        <div className="space-y-3 py-1">
-          {byStatus.map((item) => {
-            const cfg = STATUS_LABELS[item.status] || { label: item.status, color: 'bg-text-muted' };
-            const pct = total > 0 ? Math.round((item.count / total) * 100) : 0;
-
-            return (
-              <div key={item.status} className="space-y-1">
-                <div className="flex items-center justify-between text-xs">
-                  <span className="font-medium text-text-primary">{cfg.label}</span>
-                  <div className="flex items-center gap-2">
-                    <span className="font-bold text-text-primary">{formatCount(item.count)}</span>
-                    <span className="text-text-muted font-medium w-8 text-right">{pct}%</span>
-                  </div>
-                </div>
-                <div className="w-full h-2.5 bg-surface-muted rounded-full overflow-hidden">
-                  <div
-                    className={`h-full rounded-full transition-all duration-300 ${cfg.color}`}
-                    style={{ width: `${Math.max(item.count > 0 ? 3 : 0, pct)}%` }}
-                  />
-                </div>
+      }
+    >
+      <div className="space-y-3">
+        <p className="text-label-md text-text-muted">
+          Đã gửi: <span className="font-semibold text-text-primary">{formatCount(sent)}</span>
+        </p>
+        {CONNECTION_STATUS_ROWS.map(({ key, label, barClass }) => {
+          const count = connections?.[key] || 0;
+          const percent = Math.round((count / sent) * 100);
+          return (
+            <div key={key} className="space-y-1">
+              <div className="flex items-center justify-between text-label-md">
+                <span className="text-text-primary">{label}</span>
+                <span className="flex items-center gap-3">
+                  <span className="font-semibold text-text-primary">{formatCount(count)}</span>
+                  <span className="text-text-muted w-10 text-right">{percent}%</span>
+                </span>
               </div>
-            );
-          })}
-        </div>
-      )}
-    </div>
+              <div className="w-full h-2.5 bg-surface-muted rounded-full overflow-hidden">
+                <div className={`h-full rounded-full ${barClass}`} style={{ width: `${percent}%` }} />
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </DashboardCard>
   );
 };
 

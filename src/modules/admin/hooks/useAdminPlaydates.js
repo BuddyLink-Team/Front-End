@@ -1,7 +1,7 @@
 import { useDispatch } from 'react-redux';
 import { useAdminOversight } from './useAdminOversight';
 import { useAdminExport } from './useAdminExport';
-import { fetchAllPages } from '../utils/excelExport';
+import { buildPlaydatesReportSheets, fetchAllPages } from '../utils/excelExport';
 import {
   fetchAdminPlaydates,
   fetchAdminPlaydateStats,
@@ -29,20 +29,23 @@ export const useAdminPlaydates = () => {
     detailKey: 'playdateDetail',
     runAction: cancelAdminPlaydate,
     messages: MESSAGES,
+    openStateKey: 'openPlaydateId',
   });
 
   const dispatch = useDispatch();
-  const { isExporting, handleExport } = useAdminExport('playdates', async () => {
-    const allPlaydates = await fetchAllPages(
-      (params) => dispatch(fetchAdminPlaydates(params)).unwrap(),
-      {
+  const { isExporting, handleExport } = useAdminExport({
+    page: 'playdates',
+    buildSheets: buildPlaydatesReportSheets,
+    fetchData: async () => ({
+      playdates: await fetchAllPages((params) => dispatch(fetchAdminPlaydates(params)).unwrap(), {
         search: oversight.searchInput,
-        status: oversight.filters?.status || undefined,
-        fromDate: oversight.filters?.fromDate || undefined,
-        toDate: oversight.filters?.toDate || undefined,
-      }
-    );
-    return { playdates: allPlaydates, stats: oversight.stats?.stats };
+        status: oversight.filters?.status,
+        fromDate: oversight.filters?.fromDate,
+        toDate: oversight.filters?.toDate,
+      }),
+      stats: oversight.stats?.stats,
+    }),
+    successMessage: 'Đã xuất danh sách buổi hẹn chơi ra file Excel.',
   });
 
   return {

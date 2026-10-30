@@ -8,7 +8,7 @@ import { ADMIN_ROUTES } from '../../../constants/navigation.constants';
 import { fetchAdminUsers, fetchAdminUserStats, updateAdminUserStatus } from '../redux/adminSlice';
 import { useAdminStats } from './useAdminStats';
 import { useAdminExport } from './useAdminExport';
-import { fetchAllPages } from '../utils/excelExport';
+import { buildUsersReportSheets, fetchAllPages } from '../utils/excelExport';
 import { ADMIN_ERROR_MESSAGES, USER_STATUS_CHIPS, withStatusQuery } from '../constants/admin.constants';
 
 /**
@@ -73,13 +73,15 @@ export const useAdminUsers = () => {
     [navigate]
   );
 
-  const { isExporting, handleExport } = useAdminExport('users', async () => {
-    const allUsers = await fetchAllPages((p) => dispatch(fetchAdminUsers(p)).unwrap(), {
-      search: searchInput,
-      isActive: filters.isActive,
-      isVerified: filters.isVerified,
-    });
-    return { users: allUsers, stats: stats.stats };
+  // Same query as the list: the status chip is turned into its API filter
+  const { isExporting, handleExport } = useAdminExport({
+    page: 'users',
+    buildSheets: buildUsersReportSheets,
+    fetchData: async () => ({
+      users: await fetchAllPages(fetchUsers, { search: searchInput, status: filters.status, isVerified: filters.isVerified }),
+      stats: stats.stats,
+    }),
+    successMessage: 'Đã xuất danh sách phụ huynh ra file Excel.',
   });
 
   return {

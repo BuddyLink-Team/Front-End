@@ -1,8 +1,9 @@
 import React from 'react';
-import { Download, Loader2 } from 'lucide-react';
+import { Download } from 'lucide-react';
 import { SearchBar } from '../../../components/search/SearchBar';
 import { FilterChips } from '../../../components/search/FilterChips';
 import { DateRangeFilter } from '../../../components/search/DateRangeFilter';
+import { Button } from '../../../components/ui/Button';
 import { cn } from '../../../utils/cn';
 
 /**
@@ -51,20 +52,16 @@ export const AdminListToolbar = ({
         <div className="flex items-center gap-2 md:ml-auto">
           {actions}
           {onExport && (
-            <button
+            <Button
               type="button"
+              variant="outline"
               onClick={onExport}
-              disabled={isExporting}
-              className="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-medium rounded-lg border border-border-default bg-surface hover:bg-surface-muted text-text-primary transition-colors disabled:opacity-60 disabled:cursor-not-allowed shadow-subtle"
+              isLoading={isExporting}
+              leftIcon={<Download className="w-4 h-4" />}
               title="Xuất dữ liệu ra file Excel"
             >
-              {isExporting ? (
-                <Loader2 className="w-4 h-4 animate-spin text-primary" />
-              ) : (
-                <Download className="w-4 h-4 text-text-muted" />
-              )}
-              <span>{exportLabel}</span>
-            </button>
+              {exportLabel}
+            </Button>
           )}
         </div>
       )}

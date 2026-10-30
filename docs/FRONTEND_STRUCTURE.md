@@ -69,6 +69,7 @@ src/
 
 - **`apiClient.js`**: Axios instance with automatic JWT header attachment, token refresh interceptors, and unified error handling. Its base URL is `VITE_API_URL`, so in the admin build `/auth/*` and `/user/*` calls go to the admin API (`/api/v1/admin`).
 - **`socket.js`**: Socket.io client connection management for realtime chat & instant notifications.
+- **`adminSocket.js`**: Socket.io client of the admin portal (`/admin` namespace on the admin API; simulated in mock mode).
 
 ### `constants/` & `utils/`
 

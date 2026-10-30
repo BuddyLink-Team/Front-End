@@ -1,12 +1,16 @@
 import React from 'react';
+import { useSelector } from 'react-redux';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Menu, PanelLeftClose, PanelLeftOpen, Bell } from 'lucide-react';
-import { ADMIN_NAV_LINKS } from '../../../constants/navigation.constants';
-import { useAdminNotificationSocket } from '../hooks/useAdminNotificationSocket';
+import { Button } from '../../../components/ui/Button';
+import { ADMIN_NAV_LINKS, ADMIN_ROUTES } from '../../../constants/navigation.constants';
+import { ADMIN_NOTIFICATION_BOARD_HASH } from '../constants/dashboard.constants';
 import { cn } from '../../../utils/cn';
 
 const TOGGLE_BUTTON_CLASS =
   'p-2 -ml-2 rounded-md text-on-surface-variant hover:bg-surface-muted hover:text-on-surface transition-colors';
+
+const MAX_BADGE_COUNT = 99;
 
 /**
  * Top bar of the admin console.
@@ -21,21 +25,10 @@ const TOGGLE_BUTTON_CLASS =
 export const AdminHeader = ({ isSidebarCollapsed, onToggleSidebar, onOpenMenu }) => {
   const { pathname } = useLocation();
   const navigate = useNavigate();
-  const { unreadCount } = useAdminNotificationSocket({ autoFetch: false });
+  const unreadTotal = useSelector((state) => state.admin.notifications.unreadCount.total);
 
   const pageTitle = ADMIN_NAV_LINKS.find(({ href }) => pathname.startsWith(href))?.name || 'Quản trị';
   const ToggleIcon = isSidebarCollapsed ? PanelLeftOpen : PanelLeftClose;
-
-  const handleBellClick = () => {
-    if (pathname === '/admin/dashboard') {
-      const el = document.getElementById('admin-notification-board');
-      if (el) {
-        el.scrollIntoView({ behavior: 'smooth' });
-      }
-    } else {
-      navigate('/admin/dashboard#admin-notification-board');
-    }
-  };
 
   return (
     <header
@@ -67,20 +60,21 @@ export const AdminHeader = ({ isSidebarCollapsed, onToggleSidebar, onOpenMenu })
       </div>
 
       <div className="flex items-center gap-space-sm">
-        <button
-          type="button"
-          onClick={handleBellClick}
-          className="relative p-2 rounded-md text-on-surface-variant hover:bg-surface-muted hover:text-on-surface transition-colors"
-          aria-label={`Thông báo hệ thống (${unreadCount?.total || 0} chưa đọc)`}
+        {/* Same bell as the parent app (NotificationDropdown) */}
+        <Button
+          variant="ghost"
+          onClick={() => navigate(`${ADMIN_ROUTES.DASHBOARD}${ADMIN_NOTIFICATION_BOARD_HASH}`)}
+          aria-label={`Thông báo hệ thống (${unreadTotal} chưa đọc)`}
           title="Thông báo hệ thống"
+          className="relative p-1 rounded-md active:scale-100 text-on-surface-variant hover:bg-surface-muted hover:text-on-surface focus:ring-0 focus:ring-offset-0 focus-visible:ring-2 focus-visible:ring-primary"
         >
-          <Bell className="w-5 h-5 stroke-1.75" />
-          {Boolean(unreadCount?.total && unreadCount.total > 0) && (
-            <span className="absolute top-1 right-1 flex items-center justify-center min-w-badge h-badge px-1 text-label-xs font-bold text-white bg-error rounded-full ring-2 ring-white animate-pulse">
-              {unreadCount.total > 99 ? '99+' : unreadCount.total}
+          <Bell className="w-6 h-6 stroke-1.75" />
+          {unreadTotal > 0 && (
+            <span className="absolute -top-1 -right-1 ring-2 ring-white min-w-5 h-5 px-1 rounded-full bg-error text-white text-label-xs font-semibold flex items-center justify-center">
+              {unreadTotal > MAX_BADGE_COUNT ? `${MAX_BADGE_COUNT}+` : unreadTotal}
             </span>
           )}
-        </button>
+        </Button>
       </div>
     </header>
   );

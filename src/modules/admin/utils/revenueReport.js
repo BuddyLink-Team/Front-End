@@ -8,27 +8,7 @@ import {
   SUBSCRIPTION_STATUS_DISPLAY,
   UNLIMITED_LIMIT,
 } from '../constants/admin.constants';
-
-export const REPORT_PAGE_LIMIT = 100;
-// Safety cap of pages read for one list (REPORT_PAGE_LIMIT rows each)
-const REPORT_MAX_PAGES = 100;
-const MONEY_FORMAT = '#,##0 "₫"';
-const PERCENT_FORMAT = '0.0"%"';
-
-/**
- * Every row of a paged admin list.
- * @param {(params: Object) => Promise<{ items: Array, pagination: { totalPages: number } }>} fetchPage
- * @param {Object} [params]
- */
-export const fetchAllPages = async (fetchPage, params = {}) => {
-  const rows = [];
-  for (let page = 1; page <= REPORT_MAX_PAGES; page += 1) {
-    const { items = [], pagination } = await fetchPage({ ...params, page, limit: REPORT_PAGE_LIMIT });
-    rows.push(...items);
-    if (!pagination || page >= pagination.totalPages) break;
-  }
-  return rows;
-};
+import { MONEY_FORMAT, PERCENT_FORMAT } from './excelExport';
 
 const planName = (planCode, fallback) => SUBSCRIPTION_PLAN_NAMES[planCode] || fallback || planCode || '';
 const limitText = (value) => (value === UNLIMITED_LIMIT ? 'Không giới hạn' : value);
@@ -149,4 +129,3 @@ export const buildRevenueReportSheets = ({ summary, plans, subscriptions, transa
   ];
 };
 
-export { createWorkbookBlob as createRevenueWorkbookBlob, downloadBlob } from './excelExport';

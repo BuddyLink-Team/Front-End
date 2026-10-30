@@ -7,7 +7,7 @@ import { ADMIN_ROUTES } from '../../../constants/navigation.constants';
 import { fetchAdminChildren, fetchAdminChildStats } from '../redux/adminSlice';
 import { useAdminStats } from './useAdminStats';
 import { useAdminExport } from './useAdminExport';
-import { fetchAllPages } from '../utils/excelExport';
+import { buildChildrenReportSheets, fetchAllPages } from '../utils/excelExport';
 import {
   ADMIN_ERROR_MESSAGES,
   AGE_RANGE_OPTIONS,
@@ -60,15 +60,22 @@ export const useAdminChildren = () => {
     [navigate]
   );
 
-  const { isExporting, handleExport } = useAdminExport('children', async () => {
-    const range = filters.ageRange ? AGE_RANGE_OPTIONS.find((opt) => opt.value === filters.ageRange) : null;
-    const query = {
-      ...withStatusQuery(CHILD_STATUS_CHIPS, { status: filters.status, gender: filters.gender }),
-      search: searchInput,
-      ...(range ? { minAge: range.minAge, maxAge: range.maxAge } : {}),
-    };
-    const allChildren = await fetchAllPages((p) => dispatch(fetchAdminChildren(p)).unwrap(), query);
-    return { children: allChildren, stats: stats.stats };
+  const { isExporting, handleExport } = useAdminExport({
+    page: 'children',
+    buildSheets: buildChildrenReportSheets,
+    fetchData: async () => {
+      const range = filters.ageRange ? AGE_RANGE_OPTIONS.find((opt) => opt.value === filters.ageRange) : null;
+      const query = {
+        ...withStatusQuery(CHILD_STATUS_CHIPS, { status: filters.status, gender: filters.gender }),
+        search: searchInput,
+        ...(range ? { minAge: range.minAge, maxAge: range.maxAge } : {}),
+      };
+      return {
+        children: await fetchAllPages((params) => dispatch(fetchAdminChildren(params)).unwrap(), query),
+        stats: stats.stats,
+      };
+    },
+    successMessage: 'Đã xuất danh sách hồ sơ trẻ ra file Excel.',
   });
 
   return {

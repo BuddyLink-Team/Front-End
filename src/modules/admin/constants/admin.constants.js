@@ -304,12 +304,4 @@ export const ADMIN_ERROR_MESSAGES = Object.freeze({
   SUBSCRIPTION_NOT_FOUND: 'Không tìm thấy thuê bao này.',
   PAYMENT_NOT_FOUND: 'Không tìm thấy giao dịch này.',
   NOTIFICATION_NOT_FOUND: 'Không tìm thấy thông báo này.',
-  ADMIN_PORTAL_REQUIRED: 'Tài khoản quản trị viên phải đăng nhập qua cổng quản trị.',
-  INVALID_CREDENTIALS: 'Email hoặc mật khẩu không chính xác.',
-  USER_NOT_FOUND: 'Không tìm thấy thông tin tài khoản người dùng.',
-  ACCOUNT_DISABLED: 'Tài khoản hiện đang bị khóa.',
-  FORBIDDEN: 'Bạn không có quyền quản trị viên.',
-  CANNOT_CANCEL_COMPLETED: 'Không thể hủy cuộc hẹn chơi đã hoàn thành.',
-  REPORT_NOT_FOUND: 'Không tìm thấy báo cáo vi phạm này.',
-  INVALID_DATE_RANGE: 'Khoảng thời gian thống kê không hợp lệ (tối đa 12 tháng).',
 });

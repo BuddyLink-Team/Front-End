@@ -211,7 +211,6 @@ export default {
         'chat-frame': 'calc(100dvh - 8rem)', // Full viewport fit: fills screen neatly without footer peeking up, footer visible on scroll
         chart: '280px', // Dashboard charts (BarChart)
         'place-modal': 'min(640px, 85vh)', // Place search modal: fixed, does not resize while loading
-        badge: '18px', // Notification counter badge
       },
       minHeight: {
         page: '70vh', // Centered page-level loading / empty states
@@ -243,13 +242,11 @@ export default {
         'col-2xl': '220px',
         'col-plan': '150px',
         'col-gender': '120px',
-        badge: '18px',
       },
       maxHeight: {
         modal: '90vh',
         'modal-mobile': '85vh',
         composer: '10rem', // Auto-growing chat input
-        'notification-list': '480px', // Admin notification popover list
       },
       gridTemplateColumns: {
         navbar: '1fr auto 1fr', // Equal side columns keep the center nav truly centered

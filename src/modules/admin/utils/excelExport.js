@@ -1,41 +1,47 @@
 import dayjs from 'dayjs';
-import { formatDate, formatDateTime } from '../../../utils/formatters';
+import { formatDateTime } from '../../../utils/formatters';
+import { SUBSCRIPTION_PLAN_NAMES } from '../constants/admin.constants';
 import {
-  SUBSCRIPTION_PLAN_NAMES,
-} from '../constants/admin.constants';
+  CONNECTION_STATUS_ROWS,
+  DASHBOARD_KPI_CARDS,
+  PLAYDATE_STATUS_SEGMENTS,
+  SUBSCRIPTION_PLAN_SEGMENTS,
+} from '../constants/dashboard.constants';
 
 export const REPORT_PAGE_LIMIT = 100;
+// Safety cap of pages read for one list (REPORT_PAGE_LIMIT rows each)
 const REPORT_MAX_PAGES = 100;
 export const MONEY_FORMAT = '#,##0 "₫"';
 export const PERCENT_FORMAT = '0.0"%"';
 
+const HEADER_TEXT_COLOR = 'FFFFFFFF';
+const HEADER_FILL_COLOR = 'FF1E293B';
+const TOTAL_FILL_COLOR = 'FFF1F5F9';
+
+// Columns a row-level numFmt applies to
+const MONEY_ROW_COLUMNS = ['value', 'previousValue'];
+
+const isEmptyParam = (value) => value === undefined || value === null || value === '';
+
 /**
- * Fetch all pages of a paginated API endpoint up to safety limit
- * @param {(params: Object) => Promise<{ items?: Array, users?: Array, children?: Array, playdates?: Array, connections?: Array, subscriptions?: Array, transactions?: Array, pagination?: { totalPages: number } }>} fetchPage
+ * Every row of a paged admin list. Empty filters are left out, as on the list itself:
+ * the API validates a query value even when it is empty.
+ * @param {(params: Object) => Promise<{ items: Array, pagination: { totalPages: number } }>} fetchPage
  * @param {Object} [params]
- * @returns {Promise<Array>}
  */
 export const fetchAllPages = async (fetchPage, params = {}) => {
+  const query = Object.fromEntries(Object.entries(params).filter(([, value]) => !isEmptyParam(value)));
   const rows = [];
   for (let page = 1; page <= REPORT_MAX_PAGES; page += 1) {
-    const res = await fetchPage({ ...params, page, limit: REPORT_PAGE_LIMIT });
-    const items =
-      res?.items ||
-      res?.users ||
-      res?.children ||
-      res?.playdates ||
-      res?.connections ||
-      res?.subscriptions ||
-      res?.transactions ||
-      [];
+    const { items = [], pagination } = await fetchPage({ ...query, page, limit: REPORT_PAGE_LIMIT });
     rows.push(...items);
-    if (!res?.pagination || page >= res.pagination.totalPages) break;
+    if (!pagination || page >= pagination.totalPages) break;
   }
   return rows;
 };
 
 /**
- * Dynamically import exceljs and create an .xlsx file Blob from sheets config
+ * .xlsx file of the given sheets. exceljs is imported on demand: it stays out of the main bundle.
  * @param {Array<{ name: string, columns: Array<{ header: string, key: string, width?: number, numFmt?: string }>, rows: Array<Object> }>} sheets
  * @returns {Promise<Blob>}
  */
@@ -46,8 +52,7 @@ export const createWorkbookBlob = async (sheets) => {
 
   sheets.forEach(({ name, columns, rows }) => {
     // Worksheet name cannot exceed 31 chars
-    const safeName = name.slice(0, 31);
-    const sheet = workbook.addWorksheet(safeName, { views: [{ state: 'frozen', ySplit: 1 }] });
+    const sheet = workbook.addWorksheet(name.slice(0, 31), { views: [{ state: 'frozen', ySplit: 1 }] });
     sheet.columns = columns.map(({ header, key, width = 20, numFmt }) => ({
       header,
       key,
@@ -55,29 +60,22 @@ export const createWorkbookBlob = async (sheets) => {
       style: numFmt ? { numFmt } : {},
     }));
 
-    // Header styling
     const headerRow = sheet.getRow(1);
-    headerRow.font = { bold: true, color: { argb: 'FFFFFFFF' } };
-    headerRow.fill = {
-      type: 'pattern',
-      pattern: 'solid',
-      fgColor: { argb: 'FF1E293B' }, // Slate 800
-    };
+    headerRow.font = { bold: true, color: { argb: HEADER_TEXT_COLOR } };
+    headerRow.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: HEADER_FILL_COLOR } };
     headerRow.alignment = { vertical: 'middle', horizontal: 'center' };
     headerRow.height = 24;
 
     rows.forEach(({ numFmt, isTotal, ...values }) => {
       const row = sheet.addRow(values);
-      if (numFmt && values.value !== undefined) {
-        row.getCell('value').numFmt = numFmt;
+      if (numFmt) {
+        MONEY_ROW_COLUMNS.filter((key) => values[key] !== undefined).forEach((key) => {
+          row.getCell(key).numFmt = numFmt;
+        });
       }
       if (isTotal) {
         row.font = { bold: true };
-        row.fill = {
-          type: 'pattern',
-          pattern: 'solid',
-          fgColor: { argb: 'FFF1F5F9' }, // Slate 100
-        };
+        row.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: TOTAL_FILL_COLOR } };
       }
     });
   });
@@ -102,324 +100,220 @@ export const downloadBlob = (blob, fileName) => {
   URL.revokeObjectURL(url);
 };
 
-export const getExportFileName = (section) =>
-  `buddylink-${section}-${dayjs().format('YYYYMMDD-HHmm')}.xlsx`;
+export const getExportFileName = (page) => `buddylink-${page}-${dayjs().format('YYYYMMDD-HHmm')}.xlsx`;
 
-const planName = (planCode, fallback) => SUBSCRIPTION_PLAN_NAMES[planCode] || fallback || planCode || 'Gói Miễn phí';
-// -------------------------------------------------------------
-// Sheet Builders
-// -------------------------------------------------------------
+const planName = (planCode) => SUBSCRIPTION_PLAN_NAMES[planCode] || planCode || 'Gói Miễn phí';
+
+const statsSheet = (rows, exportedAt) => ({
+  name: 'Thống kê',
+  columns: [
+    { header: 'Chỉ số', key: 'label', width: 32 },
+    { header: 'Số lượng', key: 'value', width: 20 },
+  ],
+  rows: [{ label: 'Thời gian xuất file', value: formatDateTime(exportedAt) }, ...rows],
+});
 
 /**
- * Build Excel sheets for Dashboard
+ * Sheets of the dashboard, from the /admin/analytics response
  */
-export const buildDashboardReportSheets = ({ analytics = {}, exportedAt = new Date() }) => {
-  const overview = analytics.overview || analytics.summary || {};
-  const filter = analytics.filter || {};
-  const period =
-    filter.fromDate && filter.toDate
-      ? `${formatDate(filter.fromDate)} - ${formatDate(filter.toDate)}`
-      : 'Toàn thời gian';
+export const buildDashboardReportSheets = ({ analytics, exportedAt = new Date() }) => {
+  const { overview, userGrowth, revenue, conversion, playdates, subscriptions, aiUsage, filter } = analytics;
 
-  const formatKpiChange = (kpi) => {
-    if (!kpi) return '';
-    if (kpi.changePercent === null || kpi.changePercent === undefined) return '—';
-    return `${kpi.changePercent > 0 ? '+' : ''}${kpi.changePercent}%`;
+  const formatChange = ({ changePercent }) => {
+    if (changePercent === null) return '—';
+    return `${changePercent > 0 ? '+' : ''}${changePercent}%`;
   };
-
-  const getKpiVal = (kpi, fallback = 0) => kpi?.value ?? kpi?.current ?? fallback;
-  const getKpiPrev = (kpi, fallback = 0) => kpi?.previousValue ?? kpi?.previous ?? fallback;
-
-  const totalParents = overview.totalParents || overview.parents;
-  const newParents = overview.newParents || overview.parents;
-  const activeUsers = overview.activeUsers;
-  const totalChildren = overview.totalChildProfiles || overview.children;
-  const totalPlaydates = overview.totalPlaydates || overview.playdates;
-  const connections = overview.acceptedConnections || overview.connections;
-  const subscriptions = overview.activePremiumSubscriptions || overview.subscriptions;
-  const revenue = overview.totalRevenue || overview.revenue;
-  const aiUsage = overview.aiUsage;
-
-  const userGrowthRows = analytics.userGrowth?.timeline || analytics.charts?.userGrowth || [];
-  const revenueTimelineRows = analytics.revenue?.timeline || analytics.charts?.revenue || [];
-  const revenueMap = new Map(
-    revenueTimelineRows.map((r) => [r.period || r.date, r])
-  );
-
-  const conversionRows = analytics.conversion?.funnel || analytics.charts?.conversionFunnel || [];
-  const topUsersRows =
-    analytics.aiUsage?.topParents ||
-    analytics.aiUsage?.topUsers ||
-    analytics.charts?.aiUsage?.topUsers ||
-    [];
-  const ageGroupRows = analytics.children?.byAgeGroup || analytics.charts?.childAgeGroups || [];
 
   return [
     {
-      name: 'Tổng quan KPIs',
+      name: 'Tổng quan KPI',
       columns: [
         { header: 'Chỉ số', key: 'label', width: 34 },
         { header: 'Kỳ này', key: 'value', width: 22 },
         { header: 'Kỳ trước', key: 'previousValue', width: 22 },
-        { header: 'Tăng trưởng (%)', key: 'change', width: 20 },
+        { header: 'Thay đổi', key: 'change', width: 14 },
       ],
       rows: [
         { label: 'Thời gian xuất file', value: formatDateTime(exportedAt) },
-        { label: 'Khoảng thời gian chọn', value: period },
-        {
-          label: 'Tổng phụ huynh',
-          value: getKpiVal(totalParents, overview.parents?.total || 0),
-          previousValue: getKpiPrev(totalParents, overview.parents?.previous || 0),
-          change: formatKpiChange(totalParents),
-        },
-        {
-          label: 'Phụ huynh mới',
-          value: getKpiVal(newParents),
-          previousValue: getKpiPrev(newParents),
-          change: formatKpiChange(newParents),
-        },
-        {
-          label: 'Người dùng hoạt động',
-          value: getKpiVal(activeUsers),
-          previousValue: getKpiPrev(activeUsers),
-          change: formatKpiChange(activeUsers),
-        },
-        {
-          label: 'Tổng hồ sơ trẻ',
-          value: getKpiVal(totalChildren, overview.children?.total || 0),
-          previousValue: getKpiPrev(totalChildren, overview.children?.previous || 0),
-          change: formatKpiChange(totalChildren),
-        },
-        {
-          label: 'Buổi hẹn chơi (Playdates)',
-          value: getKpiVal(totalPlaydates, overview.playdates?.total || 0),
-          previousValue: getKpiPrev(totalPlaydates, overview.playdates?.previous || 0),
-          change: formatKpiChange(totalPlaydates),
-        },
-        {
-          label: 'Kết nối thành công',
-          value: getKpiVal(connections, overview.connections?.accepted || 0),
-          previousValue: getKpiPrev(connections, overview.connections?.previousAccepted || 0),
-          change: formatKpiChange(connections),
-        },
-        {
-          label: 'Thuê bao Premium hiệu lực',
-          value: getKpiVal(subscriptions, overview.subscriptions?.active || 0),
-          previousValue: getKpiPrev(subscriptions, overview.subscriptions?.previous || 0),
-          change: formatKpiChange(subscriptions),
-        },
-        {
-          label: 'Doanh thu',
-          value: getKpiVal(revenue),
-          previousValue: getKpiPrev(revenue),
-          change: formatKpiChange(revenue),
-          numFmt: MONEY_FORMAT,
-        },
-        {
-          label: 'Lượt tương tác AI Assistant',
-          value: getKpiVal(aiUsage, overview.aiUsage?.currentRequests || 0),
-          previousValue: getKpiPrev(aiUsage, overview.aiUsage?.previousRequests || 0),
-          change: formatKpiChange(aiUsage),
-        },
+        { label: 'Từ', value: formatDateTime(filter.fromDate) },
+        { label: 'Đến', value: formatDateTime(filter.toDate) },
+        ...DASHBOARD_KPI_CARDS.map(({ key, label, format }) => ({
+          label,
+          value: overview[key].value,
+          previousValue: overview[key].previousValue,
+          change: formatChange(overview[key]),
+          ...(format ? { numFmt: MONEY_FORMAT } : {}),
+        })),
       ],
     },
     {
-      name: 'Tăng trưởng & Doanh thu',
+      name: 'Tăng trưởng người dùng',
       columns: [
-        { header: 'Kỳ / Thời gian', key: 'period', width: 18 },
+        { header: 'Kỳ', key: 'label', width: 18 },
         { header: 'Phụ huynh mới', key: 'newParents', width: 18 },
-        { header: 'Người dùng hoạt động', key: 'activeUsers', width: 22 },
-        { header: 'Doanh thu', key: 'revenue', width: 20, numFmt: MONEY_FORMAT },
       ],
-      rows: userGrowthRows.map((growthRow) => {
-        const periodKey = growthRow.period || growthRow.date;
-        const revRow = revenueMap.get(periodKey);
-        return {
-          period: formatDate(periodKey),
-          newParents: growthRow.newParents ?? growthRow.count ?? 0,
-          activeUsers: growthRow.activeUsers || 0,
-          revenue: revRow?.revenue || 0,
-        };
-      }),
+      rows: userGrowth.timeline.map(({ label, count }) => ({ label, newParents: count })),
+    },
+    {
+      name: 'Doanh thu',
+      columns: [
+        { header: 'Kỳ', key: 'label', width: 18 },
+        { header: 'Doanh thu', key: 'revenue', width: 20, numFmt: MONEY_FORMAT },
+        { header: 'Số giao dịch', key: 'transactionCount', width: 16 },
+      ],
+      rows: revenue.timeline.map(({ label, revenue: amount, transactionCount }) => ({
+        label,
+        revenue: amount,
+        transactionCount,
+      })),
     },
     {
       name: 'Phễu chuyển đổi',
       columns: [
-        { header: 'Bước trong phễu', key: 'label', width: 30 },
-        { header: 'Số lượng phụ huynh', key: 'count', width: 24 },
-        { header: 'Tỷ lệ rời bỏ (%)', key: 'dropRate', width: 20 },
+        { header: 'Bước', key: 'label', width: 30 },
+        { header: 'Số phụ huynh', key: 'value', width: 18 },
       ],
-      rows: conversionRows.map((step) => ({
-        label: step.label || step.step,
-        count: step.count,
-        dropRate:
-          step.dropRate !== null && step.dropRate !== undefined ? `${step.dropRate}%` : '—',
-      })),
+      rows: [
+        ...conversion.funnel.map(({ label, count }) => ({ label, value: count })),
+        { label: 'Tỷ lệ chuyển đổi', value: `${conversion.conversionRate}%` },
+        { label: 'Tỷ lệ rời bỏ', value: `${conversion.churnRate}%` },
+      ],
     },
     {
-      name: 'Top phụ huynh dùng AI',
+      name: 'Hẹn chơi',
       columns: [
-        { header: 'Họ và tên', key: 'fullName', width: 26 },
-        { header: 'Email', key: 'email', width: 30 },
-        { header: 'Số lượt yêu cầu', key: 'requestCount', width: 18 },
-        { header: 'Tokens tiêu thụ', key: 'tokens', width: 18 },
+        { header: 'Trạng thái / Kỳ', key: 'label', width: 24 },
+        { header: 'Số buổi', key: 'value', width: 14 },
       ],
-      rows: topUsersRows.map((p) => ({
-        fullName: p.fullName || p.name || 'Phụ huynh',
-        email: p.email || 'N/A',
-        requestCount: p.requestCount ?? p.requests ?? 0,
-        tokens: p.tokens || 0,
-      })),
+      rows: [
+        ...PLAYDATE_STATUS_SEGMENTS.map(({ key, label }) => ({ label, value: playdates.byStatus[key] })),
+        ...playdates.timeline.map(({ label, count }) => ({ label, value: count })),
+      ],
     },
     {
-      name: 'Độ tuổi trẻ em',
+      name: 'Thuê bao',
       columns: [
-        { header: 'Nhóm tuổi', key: 'group', width: 22 },
-        { header: 'Số lượng bé', key: 'count', width: 18 },
+        { header: 'Gói', key: 'label', width: 24 },
+        { header: 'Số tài khoản', key: 'value', width: 16 },
       ],
-      rows: ageGroupRows.map((g) => ({
-        group: g.group,
-        count: g.count,
-      })),
+      rows: SUBSCRIPTION_PLAN_SEGMENTS.map(({ key, label }) => ({ label, value: subscriptions.byPlan[key] })),
+    },
+    {
+      name: 'Sử dụng AI',
+      columns: [
+        { header: 'Kỳ / Phụ huynh', key: 'label', width: 28 },
+        { header: 'Lượt hỏi', key: 'value', width: 14 },
+        { header: 'Email', key: 'email', width: 32 },
+      ],
+      rows: [
+        ...aiUsage.timeline.map(({ label, count }) => ({ label, value: count })),
+        ...aiUsage.topParents.map(({ fullName, requestCount, email }) => ({
+          label: fullName,
+          value: requestCount,
+          email: email || '',
+        })),
+      ],
     },
   ];
 };
 
 /**
- * Build Excel sheets for Users Page
+ * Sheets of the parents page, from AdminUserListItemDTO rows
  */
-export const buildUsersReportSheets = ({ users = [], stats = {}, exportedAt = new Date() }) => {
-  return [
-    {
-      name: 'Tổng quan',
-      columns: [
-        { header: 'Chỉ số', key: 'label', width: 32 },
-        { header: 'Số lượng', key: 'value', width: 20 },
-      ],
-      rows: [
-        { label: 'Thời gian xuất file', value: formatDateTime(exportedAt) },
-        { label: 'Tổng số tài khoản phụ huynh', value: stats.total || users.length },
-        { label: 'Tài khoản đang hoạt động', value: stats.active || 0 },
-        { label: 'Tài khoản đang bị khóa', value: stats.locked || 0 },
-        { label: 'Tài khoản Premium', value: stats.premium || 0 },
-      ],
-    },
-    {
-      name: 'Danh sách phụ huynh',
-      columns: [
-        { header: 'Họ và tên', key: 'fullName', width: 26 },
-        { header: 'Email', key: 'email', width: 30 },
-        { header: 'Số điện thoại', key: 'phone', width: 18 },
-        { header: 'Trạng thái', key: 'status', width: 16 },
-        { header: 'Xác minh', key: 'isVerified', width: 16 },
-        { header: 'Gói thành viên', key: 'plan', width: 22 },
-        { header: 'Số lượng trẻ', key: 'childrenCount', width: 14 },
-        { header: 'Ngày đăng ký', key: 'createdAt', width: 20 },
-      ],
-      rows: users.map((u) => {
-        const isVerified =
-          u.isVerifiedParent ??
-          u.profile?.verification?.isVerifiedParent ??
-          u.verification?.isVerifiedParent ??
-          false;
-        const userPlanCode = u.currentPlan?.planCode || u.subscription?.planCode;
-        return {
-          fullName: u.fullName || u.profile?.fullName || 'N/A',
-          email: u.email || 'N/A',
-          phone: u.phone || 'Chưa cập nhật',
-          status: u.isActive ? 'Hoạt động' : 'Đã khóa',
-          isVerified: isVerified ? 'Đã xác minh' : 'Chưa xác minh',
-          plan: planName(userPlanCode),
-          childrenCount: u.childrenCount ?? u.activeChildrenCount ?? 0,
-          createdAt: formatDateTime(u.createdAt),
-        };
-      }),
-    },
-  ];
-};
+export const buildUsersReportSheets = ({ users, stats, exportedAt = new Date() }) => [
+  statsSheet(
+    [
+      { label: 'Tổng số tài khoản phụ huynh', value: stats?.total },
+      { label: 'Đang hoạt động', value: stats?.active },
+      { label: 'Đã khóa', value: stats?.locked },
+      { label: 'Premium đang hiệu lực', value: stats?.premium },
+    ],
+    exportedAt
+  ),
+  {
+    name: 'Danh sách phụ huynh',
+    columns: [
+      { header: 'Họ và tên', key: 'fullName', width: 26 },
+      { header: 'Email', key: 'email', width: 30 },
+      { header: 'Số điện thoại', key: 'phone', width: 18 },
+      { header: 'Trạng thái', key: 'status', width: 16 },
+      { header: 'Xác minh', key: 'isVerified', width: 16 },
+      { header: 'Gói thành viên', key: 'plan', width: 22 },
+      { header: 'Số lượng trẻ', key: 'childrenCount', width: 14 },
+      { header: 'Ngày đăng ký', key: 'createdAt', width: 20 },
+    ],
+    rows: users.map((user) => ({
+      fullName: user.fullName,
+      email: user.email,
+      phone: user.phone,
+      status: user.isActive ? 'Hoạt động' : 'Đã khóa',
+      isVerified: user.isVerifiedParent ? 'Đã xác minh' : 'Chưa xác minh',
+      plan: planName(user.currentPlan?.planCode),
+      childrenCount: user.childrenCount,
+      createdAt: formatDateTime(user.createdAt),
+    })),
+  },
+];
 
 /**
- * Build Excel sheets for Children Page
+ * Sheets of the child profiles page, from AdminChildListItemDTO rows
  */
-export const buildChildrenReportSheets = ({ children = [], stats = {}, exportedAt = new Date() }) => {
-  const genderMap = { boy: 'Bé trai', girl: 'Bé gái', other: 'Khác' };
+export const buildChildrenReportSheets = ({ children, stats, exportedAt = new Date() }) => {
+  const genderLabels = { boy: 'Bé trai', girl: 'Bé gái' };
 
   return [
-    {
-      name: 'Tổng quan',
-      columns: [
-        { header: 'Chỉ số', key: 'label', width: 32 },
-        { header: 'Số lượng', key: 'value', width: 20 },
+    statsSheet(
+      [
+        { label: 'Tổng số hồ sơ trẻ', value: stats?.total },
+        { label: 'Chưa xóa', value: stats?.active },
+        { label: 'Đã xóa', value: stats?.archived },
+        { label: 'Khóa do gói Free', value: stats?.planLocked },
       ],
-      rows: [
-        { label: 'Thời gian xuất file', value: formatDateTime(exportedAt) },
-        { label: 'Tổng số hồ sơ trẻ', value: stats.total || children.length },
-        { label: 'Hồ sơ đang hoạt động', value: stats.active || 0 },
-        { label: 'Hồ sơ đã lưu trữ', value: stats.archived || 0 },
-        { label: 'Hồ sơ bị khóa do gói', value: stats.planLocked || 0 },
-      ],
-    },
+      exportedAt
+    ),
     {
       name: 'Danh sách hồ sơ trẻ',
       columns: [
         { header: 'Tên bé', key: 'displayName', width: 22 },
         { header: 'Phụ huynh', key: 'parentName', width: 24 },
         { header: 'Giới tính', key: 'gender', width: 14 },
-        { header: 'Ngày sinh', key: 'dateOfBirth', width: 16 },
-        { header: 'Sở thích', key: 'interests', width: 30 },
-        { header: 'Hoạt động yêu thích', key: 'favoriteActivities', width: 30 },
+        { header: 'Tuổi', key: 'age', width: 10 },
         { header: 'Trạng thái', key: 'status', width: 16 },
         { header: 'Khóa do gói', key: 'isPlanLocked', width: 16 },
         { header: 'Ngày tạo', key: 'createdAt', width: 20 },
       ],
-      rows: children.map((c) => {
-        const isPlanLocked = c.isPlanLocked ?? c.visibility === 'plan_locked';
-        return {
-          displayName: c.displayName || 'N/A',
-          parentName: c.parentName || c.parent?.fullName || 'N/A',
-          gender: genderMap[c.gender] || c.gender || 'N/A',
-          dateOfBirth: c.dateOfBirth ? formatDate(c.dateOfBirth) : 'N/A',
-          interests: Array.isArray(c.interests) ? c.interests.join(', ') : '',
-          favoriteActivities: Array.isArray(c.favoriteActivities) ? c.favoriteActivities.join(', ') : '',
-          status: c.isArchived ? 'Đã lưu trữ' : 'Đang hoạt động',
-          isPlanLocked: isPlanLocked ? 'Bị khóa' : 'Mở',
-          createdAt: formatDateTime(c.createdAt),
-        };
-      }),
+      rows: children.map((child) => ({
+        displayName: child.displayName,
+        parentName: child.parentName,
+        gender: genderLabels[child.gender] || child.gender,
+        age: child.age,
+        status: child.isArchived ? 'Đã xóa' : 'Chưa xóa',
+        isPlanLocked: child.visibility === 'plan_locked' ? 'Bị khóa' : 'Không',
+        createdAt: formatDateTime(child.createdAt),
+      })),
     },
   ];
 };
 
 /**
- * Build Excel sheets for Playdates Page
+ * Sheets of the playdates page, from AdminPlaydateDTO rows
  */
-export const buildPlaydatesReportSheets = ({ playdates = [], stats = {}, exportedAt = new Date() }) => {
-  const statusMap = {
-    upcoming: 'Sắp diễn ra',
-    completed: 'Đã hoàn thành',
-    cancelled: 'Đã hủy',
-  };
+export const buildPlaydatesReportSheets = ({ playdates, stats, exportedAt = new Date() }) => {
+  const statusLabels = Object.fromEntries(PLAYDATE_STATUS_SEGMENTS.map(({ key, label }) => [key, label]));
 
   return [
-    {
-      name: 'Tổng quan',
-      columns: [
-        { header: 'Chỉ số', key: 'label', width: 32 },
-        { header: 'Số lượng', key: 'value', width: 20 },
+    statsSheet(
+      [
+        { label: 'Tổng số buổi hẹn', value: stats?.total },
+        ...PLAYDATE_STATUS_SEGMENTS.map(({ key, label }) => ({ label, value: stats?.[key] })),
       ],
-      rows: [
-        { label: 'Thời gian xuất file', value: formatDateTime(exportedAt) },
-        { label: 'Tổng số buổi hẹn', value: stats.total || playdates.length },
-        { label: 'Sắp diễn ra', value: stats.upcoming || 0 },
-        { label: 'Đã hoàn thành', value: stats.completed || 0 },
-        { label: 'Đã hủy', value: stats.cancelled || 0 },
-      ],
-    },
+      exportedAt
+    ),
     {
-      name: 'Danh sách buổi hẹn chơi',
+      name: 'Danh sách buổi hẹn',
       columns: [
         { header: 'Hoạt động', key: 'activity', width: 30 },
-        { header: 'Người tổ chức (Host)', key: 'hostName', width: 24 },
+        { header: 'Người tổ chức', key: 'hostName', width: 24 },
         { header: 'Bé chủ trì', key: 'hostChild', width: 20 },
         { header: 'Địa điểm', key: 'location', width: 32 },
         { header: 'Thời gian bắt đầu', key: 'scheduledDate', width: 20 },
@@ -427,52 +321,34 @@ export const buildPlaydatesReportSheets = ({ playdates = [], stats = {}, exporte
         { header: 'Số người tham gia', key: 'participantsCount', width: 18 },
         { header: 'Ngày tạo', key: 'createdAt', width: 20 },
       ],
-      rows: playdates.map((p) => {
-        const startTimeStr = p.time || p.startTime || '';
-        return {
-          activity: p.activity || p.title || 'N/A',
-          hostName: p.host?.parent?.fullName || p.hostParent?.fullName || p.creator?.fullName || 'N/A',
-          hostChild: p.host?.child?.displayName || p.hostChild?.displayName || 'N/A',
-          location: p.location?.name || p.location?.address || 'N/A',
-          scheduledDate: p.scheduledDate ? `${formatDate(p.scheduledDate)} ${startTimeStr}`.trim() : 'N/A',
-          status: statusMap[p.status] || p.status || 'N/A',
-          participantsCount:
-            p.numberOfParticipants ??
-            (Array.isArray(p.participants) ? p.participants.length : 0),
-          createdAt: formatDateTime(p.createdAt),
-        };
-      }),
+      rows: playdates.map((playdate) => ({
+        activity: playdate.activity,
+        hostName: playdate.host?.parent?.fullName || '',
+        hostChild: playdate.host?.child?.displayName || '',
+        location: playdate.locationName,
+        scheduledDate: `${dayjs(playdate.scheduledDate).format('DD/MM/YYYY')} ${playdate.time}`.trim(),
+        status: statusLabels[playdate.status] || playdate.status,
+        participantsCount: playdate.numberOfParticipants,
+        createdAt: formatDateTime(playdate.createdAt),
+      })),
     },
   ];
 };
 
 /**
- * Build Excel sheets for Connections Page
+ * Sheets of the connections page, from AdminConnectionDTO rows
  */
-export const buildConnectionsReportSheets = ({ connections = [], stats = {}, exportedAt = new Date() }) => {
-  const statusMap = {
-    pending: 'Chờ phản hồi',
-    accepted: 'Đã kết nối',
-    declined: 'Đã từ chối',
-    removed: 'Đã hủy kết nối',
-  };
+export const buildConnectionsReportSheets = ({ connections, stats, exportedAt = new Date() }) => {
+  const statusLabels = Object.fromEntries(CONNECTION_STATUS_ROWS.map(({ key, label }) => [key, label]));
 
   return [
-    {
-      name: 'Tổng quan',
-      columns: [
-        { header: 'Chỉ số', key: 'label', width: 32 },
-        { header: 'Số lượng', key: 'value', width: 20 },
+    statsSheet(
+      [
+        { label: 'Tổng số yêu cầu kết nối', value: stats?.total },
+        ...CONNECTION_STATUS_ROWS.map(({ key, label }) => ({ label, value: stats?.[key] })),
       ],
-      rows: [
-        { label: 'Thời gian xuất file', value: formatDateTime(exportedAt) },
-        { label: 'Tổng số yêu cầu kết nối', value: stats.total || connections.length },
-        { label: 'Đã kết nối thành công', value: stats.accepted || 0 },
-        { label: 'Đang chờ xử lý', value: stats.pending || 0 },
-        { label: 'Đã từ chối', value: stats.declined || 0 },
-        { label: 'Đã hủy kết nối', value: stats.removed || 0 },
-      ],
-    },
+      exportedAt
+    ),
     {
       name: 'Danh sách kết nối',
       columns: [
@@ -482,12 +358,12 @@ export const buildConnectionsReportSheets = ({ connections = [], stats = {}, exp
         { header: 'Ngày gửi yêu cầu', key: 'createdAt', width: 20 },
         { header: 'Ngày kết nối', key: 'connectedAt', width: 20 },
       ],
-      rows: connections.map((c) => ({
-        requesterName: c.requester?.fullName || 'N/A',
-        recipientName: c.recipient?.fullName || 'N/A',
-        status: statusMap[c.status] || c.status || 'N/A',
-        createdAt: formatDateTime(c.createdAt),
-        connectedAt: c.connectedAt ? formatDateTime(c.connectedAt) : '—',
+      rows: connections.map((connection) => ({
+        requesterName: connection.requester?.fullName || '',
+        recipientName: connection.recipient?.fullName || '',
+        status: statusLabels[connection.status] || connection.status,
+        createdAt: formatDateTime(connection.createdAt),
+        connectedAt: connection.connectedAt ? formatDateTime(connection.connectedAt) : '',
       })),
     },
   ];

@@ -1,280 +1,206 @@
 import dayjs from 'dayjs';
+import isoWeek from 'dayjs/plugin/isoWeek';
+import {
+  buildInitialMockNotifications,
+  MOCK_ANALYTICS_AGE_GROUPS,
+  MOCK_ANALYTICS_TOP_PARENTS,
+  MOCK_REALTIME_NOTIFICATIONS,
+} from './adminAnalyticsMockData';
 
-let mockNotifications = [
-  {
-    _id: 'notif-001',
-    category: 'safety',
-    severity: 'critical',
-    title: 'Báo cáo vi phạm nghiêm trọng',
-    message: 'Phụ huynh Nguyễn Văn A báo cáo hành vi quấy rối tại Playdate Công viên Tao Đàn.',
-    entityType: 'report',
-    entityId: 'rep-001',
-    isRead: false,
-    createdAt: dayjs().subtract(15, 'minute').toISOString(),
-  },
-  {
-    _id: 'notif-002',
-    category: 'payments',
-    severity: 'warning',
-    title: 'Giao dịch thanh toán thất bại',
-    message: 'Giao dịch nâng cấp Premium 499.000đ của Trần Thị B không thành công qua VNPay.',
-    entityType: 'payment',
-    entityId: 'pay-002',
-    isRead: false,
-    createdAt: dayjs().subtract(1, 'hour').toISOString(),
-  },
-  {
-    _id: 'notif-003',
-    category: 'safety',
-    severity: 'critical',
-    title: 'Phát hiện nội dung nhạy cảm',
-    message: 'Hệ thống tự động gắn cờ ảnh đại diện của hồ sơ bé Hoàng Long (vi phạm quy chuẩn).',
-    entityType: 'child',
-    entityId: 'child-003',
-    isRead: false,
-    createdAt: dayjs().subtract(2, 'hour').toISOString(),
-  },
-  {
-    _id: 'notif-004',
-    category: 'users',
-    severity: 'info',
-    title: 'Phụ huynh xác minh danh tính',
-    message: 'Phụ huynh Lê Minh C vừa hoàn tất xác minh eKYC tài khoản thành công.',
-    entityType: 'user',
-    entityId: 'user-004',
-    isRead: false,
-    createdAt: dayjs().subtract(3, 'hour').toISOString(),
-  },
-  {
-    _id: 'notif-005',
-    category: 'playdates',
-    severity: 'info',
-    title: 'Buổi Playdate hoàn thành tốt đẹp',
-    message: 'Buổi giao lưu cờ vua tại Thảo Cầm Viên đã hoàn thành với đánh giá 5 sao.',
-    entityType: 'playdate',
-    entityId: 'pd-005',
-    isRead: true,
-    createdAt: dayjs().subtract(5, 'hour').toISOString(),
-  },
-  {
-    _id: 'notif-006',
-    category: 'system',
-    severity: 'info',
-    title: 'Sao lưu dữ liệu định kỳ',
-    message: 'Hệ thống đã hoàn tất bản sao lưu cơ sở dữ liệu tự động hằng ngày.',
-    entityType: 'system',
-    entityId: null,
-    isRead: true,
-    createdAt: dayjs().subtract(1, 'day').toISOString(),
-  },
-];
+dayjs.extend(isoWeek);
+
+const NOTIFICATION_STORAGE_KEY = 'buddylink_mock_admin_notifications_v1';
+const CATEGORIES = ['users', 'payments', 'playdates', 'connections', 'safety', 'system'];
+
+const delay = (ms = 120) => new Promise((resolve) => setTimeout(resolve, ms));
+
+const ok = (data, message = 'OK') => ({ success: true, message, data, error: null });
+
+const fail = (status, code, message) => {
+  const error = new Error(message);
+  error.response = { status, data: { success: false, message, data: null, error: { code, details: [] } } };
+  return Promise.reject(error);
+};
+
+const loadNotifications = () => {
+  try {
+    const stored = localStorage.getItem(NOTIFICATION_STORAGE_KEY);
+    if (stored) return JSON.parse(stored);
+  } catch {
+    // Unreadable data: start again from the seed
+  }
+  const seed = buildInitialMockNotifications();
+  localStorage.setItem(NOTIFICATION_STORAGE_KEY, JSON.stringify(seed));
+  return seed;
+};
+
+const saveNotifications = (items) => {
+  localStorage.setItem(NOTIFICATION_STORAGE_KEY, JSON.stringify(items));
+};
+
+const countUnread = (items) => {
+  const byCategory = Object.fromEntries(CATEGORIES.map((category) => [category, 0]));
+  const unread = items.filter((item) => !item.isRead);
+  unread.forEach((item) => {
+    byCategory[item.category] += 1;
+  });
+  return { total: unread.length, byCategory };
+};
+
+const toKpi = (value, previousValue) => ({
+  value,
+  previousValue,
+  changePercent: previousValue === 0 ? null : Number((((value - previousValue) / previousValue) * 100).toFixed(1)),
+});
+
+// Same periods and labels as the API, with figures that only depend on the position in the range
+const listPeriods = (from, to, groupBy) => {
+  const periods = new Map();
+  for (let day = dayjs(from); !day.isAfter(dayjs(to), 'day'); day = day.add(1, 'day')) {
+    let period = { period: day.format('YYYY-MM-DD'), label: day.format('DD/MM') };
+    if (groupBy === 'week') {
+      period = {
+        period: `${day.isoWeekYear()}-W${String(day.isoWeek()).padStart(2, '0')}`,
+        label: `Tuần ${day.isoWeek()}/${day.isoWeekYear()}`,
+      };
+    }
+    if (groupBy === 'month') {
+      period = { period: day.format('YYYY-MM'), label: `T${day.month() + 1}/${day.year()}` };
+    }
+    if (!periods.has(period.period)) periods.set(period.period, period);
+  }
+  return [...periods.values()];
+};
 
 export const adminAnalyticsMockService = {
-  getAnalytics({ fromDate, toDate, groupBy = 'day' } = {}) {
+  async getAnalytics({ fromDate, toDate, groupBy = 'day' } = {}) {
+    await delay();
     const from = fromDate || dayjs().subtract(29, 'day').format('YYYY-MM-DD');
     const to = toDate || dayjs().format('YYYY-MM-DD');
+    const periods = listPeriods(from, to, groupBy);
+    const byPeriod = (row) => periods.map((period, index) => ({ ...period, ...row(index) }));
 
-    // Generate timeline data
-    const daysCount = Math.max(7, Math.min(30, dayjs(to).diff(dayjs(from), 'day') + 1));
-    const userGrowth = [];
-    const revenue = [];
-    const playdateTimeline = [];
-    const aiTimeline = [];
+    const userGrowth = byPeriod((index) => ({ count: 2 + (index % 7) }));
 
-    for (let i = daysCount - 1; i >= 0; i--) {
-      const d = dayjs(to).subtract(i, 'day').format('YYYY-MM-DD');
-      userGrowth.push({
-        date: d,
-        newParents: Math.floor(Math.random() * 8) + 2,
-        activeUsers: Math.floor(Math.random() * 35) + 15,
-      });
-      revenue.push({
-        date: d,
-        revenue: (Math.floor(Math.random() * 5) + 1) * 299000,
-      });
-      playdateTimeline.push({
-        date: d,
-        count: Math.floor(Math.random() * 6) + 1,
-      });
-      aiTimeline.push({
-        date: d,
-        requests: Math.floor(Math.random() * 40) + 10,
-      });
-    }
-
-    return {
-      filter: { fromDate: from, toDate: to, groupBy },
-      summary: {
-        parents: {
-          total: 1248,
-          current: 85,
-          previous: 76,
-          changePercent: 11.8,
-        },
-        activeUsers: {
-          current: 512,
-          previous: 480,
-          changePercent: 6.7,
-        },
-        children: {
-          total: 1420,
-          current: 92,
-          previous: 80,
-          changePercent: 15.0,
-        },
-        playdates: {
-          total: 3450,
-          current: 230,
-          previous: 210,
-          changePercent: 9.5,
-        },
-        connections: {
-          accepted: 890,
-          currentAccepted: 72,
-          previousAccepted: 65,
-          changePercent: 10.8,
-          acceptanceRate: 85.2,
-        },
-        subscriptions: {
-          active: 310,
-          current: 45,
-          previous: 38,
-          changePercent: 18.4,
-          byPlan: {
-            free: 938,
-            premiumMonthly: 210,
-            premiumYearly: 100,
-          },
-        },
-        revenue: {
-          current: 36750000,
-          previous: 32500000,
-          changePercent: 13.1,
-          currency: 'VND',
-        },
-        aiUsage: {
-          currentRequests: 1840,
-          previousRequests: 1620,
-          changePercent: 13.6,
-          totalTokens: 482000,
-        },
+    return ok({
+      overview: {
+        totalParents: toKpi(1248, 1163),
+        newParents: toKpi(85, 76),
+        totalChildProfiles: toKpi(1420, 1328),
+        totalPlaydates: toKpi(230, 210),
+        acceptedConnections: toKpi(72, 80),
+        activePremiumSubscriptions: toKpi(310, 0),
+        totalRevenue: toKpi(36750000, 32500000),
+        successfulTransactions: toKpi(123, 110),
+        aiUsage: toKpi(1840, 1620),
       },
-      charts: {
-        userGrowth,
-        revenue,
-        conversionFunnel: [
-          { step: 'registered', count: 1248, dropRate: null },
-          { step: 'withChildProfile', count: 1080, dropRate: 13.5 },
-          { step: 'firstConnection', count: 890, dropRate: 17.6 },
-          { step: 'firstPlaydate', count: 650, dropRate: 27.0 },
-          { step: 'paid', count: 310, dropRate: 52.3 },
+      userGrowth: { totalParents: 1248, newParentsInPeriod: 85, timeline: userGrowth },
+      revenue: {
+        totalRevenue: 36750000,
+        successfulTransactions: 123,
+        payingParentsCount: 96,
+        timeline: byPeriod((index) => ({ revenue: (1 + (index % 5)) * 299000, transactionCount: 1 + (index % 5) })),
+      },
+      conversion: {
+        funnel: [
+          { step: 'registered', label: 'Đăng ký tài khoản', count: 1248 },
+          { step: 'withChildProfile', label: 'Tạo hồ sơ bé', count: 1080 },
+          { step: 'firstConnection', label: 'Có kết nối', count: 890 },
+          { step: 'firstPlaydate', label: 'Tham gia playdate', count: 650 },
+          { step: 'paid', label: 'Nâng cấp Premium', count: 310 },
         ],
-        playdates: {
-          byStatus: [
-            { status: 'completed', count: 3200 },
-            { status: 'scheduled', count: 120 },
-            { status: 'in_progress', count: 15 },
-            { status: 'cancelled', count: 115 },
-          ],
-          timeline: playdateTimeline,
-        },
-        connections: {
-          byStatus: [
-            { status: 'accepted', count: 890 },
-            { status: 'pending', count: 65 },
-            { status: 'rejected', count: 42 },
-            { status: 'cancelled', count: 28 },
-            { status: 'disconnected', count: 19 },
-          ],
-        },
-        subscriptions: {
-          byPlan: [
-            { plan: 'free', count: 938 },
-            { plan: 'premium_monthly', count: 210 },
-            { plan: 'premium_yearly', count: 100 },
-          ],
-        },
-        aiUsage: {
-          timeline: aiTimeline,
-          topUsers: [
-            { userId: 'u1', name: 'Nguyễn Thị Hương', email: 'huong.nguyen@example.com', requests: 142, tokens: 41200 },
-            { userId: 'u2', name: 'Trần Văn Long', email: 'long.tran@example.com', requests: 98, tokens: 28500 },
-            { userId: 'u3', name: 'Phạm Minh Tuấn', email: 'tuan.pham@example.com', requests: 85, tokens: 24100 },
-            { userId: 'u4', name: 'Đỗ Thúy Vy', email: 'vy.do@example.com', requests: 64, tokens: 18900 },
-            { userId: 'u5', name: 'Vũ Đức Nam', email: 'nam.vu@example.com', requests: 52, tokens: 15400 },
-          ],
-        },
-        childAgeGroups: [
-          { group: '0-2 tuổi', count: 310 },
-          { group: '3-5 tuổi', count: 540 },
-          { group: '6-10 tuổi', count: 450 },
-          { group: '11+ tuổi', count: 120 },
-        ],
+        conversionRate: 24.8,
+        churnRate: 6.2,
       },
-    };
-  },
-
-  getNotifications({ category, severity, isRead, page = 1, limit = 20 } = {}) {
-    let items = [...mockNotifications];
-    if (category && category !== 'all') {
-      items = items.filter((n) => n.category === category);
-    }
-    if (severity && severity !== 'all') {
-      items = items.filter((n) => n.severity === severity);
-    }
-    if (typeof isRead === 'boolean') {
-      items = items.filter((n) => n.isRead === isRead);
-    }
-
-    const total = items.length;
-    const offset = (Number(page) - 1) * Number(limit);
-    const paged = items.slice(offset, offset + Number(limit));
-
-    return {
-      items: paged,
-      pagination: {
-        page: Number(page),
-        limit: Number(limit),
-        total,
-        totalPages: Math.ceil(total / Number(limit)) || 1,
+      playdates: {
+        byStatus: { total: 230, upcoming: 40, completed: 170, cancelled: 20 },
+        timeline: byPeriod((index) => ({ count: 1 + (index % 6) })),
       },
-    };
-  },
-
-  getUnreadCount() {
-    const unreadItems = mockNotifications.filter((n) => !n.isRead);
-    const byCategory = {
-      users: 0,
-      payments: 0,
-      playdates: 0,
-      connections: 0,
-      safety: 0,
-      system: 0,
-    };
-    for (const item of unreadItems) {
-      if (byCategory[item.category] !== undefined) {
-        byCategory[item.category]++;
-      }
-    }
-    return {
-      total: unreadItems.length,
-      byCategory,
-    };
-  },
-
-  markAsRead(id) {
-    mockNotifications = mockNotifications.map((n) => (n._id === id ? { ...n, isRead: true } : n));
-    return { success: true };
-  },
-
-  markAllAsRead(category) {
-    mockNotifications = mockNotifications.map((n) => {
-      if (!category || category === 'all' || n.category === category) {
-        return { ...n, isRead: true };
-      }
-      return n;
+      connections: { sent: 110, accepted: 72, declined: 15, pending: 18, removed: 5, acceptanceRate: 65.5 },
+      subscriptions: {
+        byPlan: { free: 938, premiumMonthly: 210, premiumYearly: 100 },
+        activePremium: 310,
+        churnedParents: 19,
+      },
+      aiUsage: {
+        totalMessagesInPeriod: 1840,
+        timeline: byPeriod((index) => ({ count: 10 + (index % 8) * 5 })),
+        topParents: MOCK_ANALYTICS_TOP_PARENTS,
+      },
+      children: { total: 1420, byAgeGroup: MOCK_ANALYTICS_AGE_GROUPS },
+      filter: {
+        fromDate: dayjs(from).startOf('day').toISOString(),
+        toDate: dayjs(to).endOf('day').toISOString(),
+        groupBy,
+      },
     });
-    return { success: true };
+  },
+
+  async getNotifications({ category, severity, isRead, page = 1, limit = 20 } = {}) {
+    await delay();
+    const pageNum = Number(page);
+    const limitNum = Number(limit);
+    const items = loadNotifications()
+      .filter((item) => !category || category === 'all' || item.category === category)
+      .filter((item) => !severity || severity === 'all' || item.severity === severity)
+      .filter((item) => isRead === undefined || String(item.isRead) === String(isRead));
+
+    return ok({
+      items: items.slice((pageNum - 1) * limitNum, pageNum * limitNum),
+      pagination: {
+        page: pageNum,
+        limit: limitNum,
+        total: items.length,
+        totalPages: Math.ceil(items.length / limitNum) || 1,
+      },
+    });
+  },
+
+  async getUnreadCount() {
+    await delay();
+    return ok(countUnread(loadNotifications()));
+  },
+
+  async markAsRead(id) {
+    await delay();
+    const items = loadNotifications();
+    const item = items.find((notification) => notification.id === id);
+    if (!item) return fail(404, 'NOTIFICATION_NOT_FOUND', 'Notification not found');
+    item.isRead = true;
+    saveNotifications(items);
+    return ok(item);
+  },
+
+  async markAllAsRead(category) {
+    await delay();
+    const items = loadNotifications();
+    let modifiedCount = 0;
+    items.forEach((item) => {
+      if (!item.isRead && (!category || category === 'all' || item.category === category)) {
+        item.isRead = true;
+        modifiedCount += 1;
+      }
+    });
+    saveNotifications(items);
+    return ok({ modifiedCount });
+  },
+
+  /**
+   * New notification for the simulated socket (adminMockSocket)
+   * @param {number} sequence - Picks the next sample
+   * @returns {{ notification: Object, counts: { total: number, byCategory: Object } }}
+   */
+  pushRealtimeNotification(sequence) {
+    const sample = MOCK_REALTIME_NOTIFICATIONS[sequence % MOCK_REALTIME_NOTIFICATIONS.length];
+    const notification = {
+      ...sample,
+      id: `notif-live-${Date.now()}-${sequence}`,
+      isRead: false,
+      createdAt: new Date().toISOString(),
+    };
+    const items = [notification, ...loadNotifications()];
+    saveNotifications(items);
+    return { notification, counts: countUnread(items) };
   },
 };
 

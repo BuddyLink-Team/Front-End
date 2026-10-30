@@ -1,7 +1,7 @@
 import { useDispatch } from 'react-redux';
 import { useAdminOversight } from './useAdminOversight';
 import { useAdminExport } from './useAdminExport';
-import { fetchAllPages } from '../utils/excelExport';
+import { buildConnectionsReportSheets, fetchAllPages } from '../utils/excelExport';
 import {
   fetchAdminConnections,
   fetchAdminConnectionStats,
@@ -29,18 +29,21 @@ export const useAdminConnections = () => {
     detailKey: 'connectionDetail',
     runAction: removeAdminConnection,
     messages: MESSAGES,
+    openStateKey: 'openConnectionId',
   });
 
   const dispatch = useDispatch();
-  const { isExporting, handleExport } = useAdminExport('connections', async () => {
-    const allConnections = await fetchAllPages(
-      (params) => dispatch(fetchAdminConnections(params)).unwrap(),
-      {
+  const { isExporting, handleExport } = useAdminExport({
+    page: 'connections',
+    buildSheets: buildConnectionsReportSheets,
+    fetchData: async () => ({
+      connections: await fetchAllPages((params) => dispatch(fetchAdminConnections(params)).unwrap(), {
         search: oversight.searchInput,
-        status: oversight.filters?.status || undefined,
-      }
-    );
-    return { connections: allConnections, stats: oversight.stats?.stats };
+        status: oversight.filters?.status,
+      }),
+      stats: oversight.stats?.stats,
+    }),
+    successMessage: 'Đã xuất danh sách kết nối ra file Excel.',
   });
 
   return {

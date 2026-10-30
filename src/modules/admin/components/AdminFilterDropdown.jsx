@@ -72,7 +72,7 @@ export const AdminFilterDropdown = ({
           <DropdownItem
             key={opt.value || 'all'}
             onClick={() => onChange(opt.value)}
-            className={cn(isSelected && 'text-primary font-semibold bg-primary-soft/40')}
+            className={cn(isSelected && 'text-primary-dark font-semibold bg-primary-soft')}
           >
             {opt.label}
           </DropdownItem>
