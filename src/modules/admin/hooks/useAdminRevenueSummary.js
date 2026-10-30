@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useDispatch } from 'react-redux';
-import dayjs from 'dayjs';
 import { useToast } from '../../../hooks/useToast';
 import { getApiErrorMsg } from '../../../utils/errorUtils';
 import {
@@ -10,12 +9,8 @@ import {
   fetchAdminTransactions,
 } from '../redux/adminSlice';
 import { ADMIN_ERROR_MESSAGES } from '../constants/admin.constants';
-import {
-  buildRevenueReportSheets,
-  createRevenueWorkbookBlob,
-  downloadBlob,
-  fetchAllPages,
-} from '../utils/revenueReport';
+import { createWorkbookBlob, downloadBlob, fetchAllPages, getExportFileName } from '../utils/excelExport';
+import { buildRevenueReportSheets } from '../utils/revenueReport';
 
 /**
  * Revenue overview tab: KPIs and monthly revenue over a date range, and its Excel report
@@ -62,10 +57,10 @@ export const useAdminRevenueSummary = (initialRange = { from: '', to: '' }) => {
         fetchAllPages(fetchPage(fetchAdminSubscriptions)),
         fetchAllPages(fetchPage(fetchAdminTransactions), period),
       ]);
-      const blob = await createRevenueWorkbookBlob(
+      const blob = await createWorkbookBlob(
         buildRevenueReportSheets({ summary, plans: plansData?.plans || [], subscriptions, transactions })
       );
-      downloadBlob(blob, `buddylink-bao-cao-doanh-thu-${dayjs().format('YYYYMMDD-HHmm')}.xlsx`);
+      downloadBlob(blob, getExportFileName('revenue'));
       success('Đã xuất báo cáo doanh thu.');
     } catch (err) {
       toastError(getApiErrorMsg(ADMIN_ERROR_MESSAGES, err, 'Không xuất được báo cáo doanh thu.'));

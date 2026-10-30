@@ -16,6 +16,8 @@
   --color-hairline: theme('colors.hairline');
   --color-text-primary: theme('colors.text-primary');
   --color-text-muted: theme('colors.text-muted');
+  --color-tertiary-dark: theme('colors.tertiary.dark');
+  --color-error: theme('colors.error.DEFAULT');
 }
 
 /* DESIGN.md: thin Lucide icons. Only icons left at Lucide's default stroke (2); zero specificity,

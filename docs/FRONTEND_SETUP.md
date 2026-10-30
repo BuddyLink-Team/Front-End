@@ -73,6 +73,8 @@ VITE_APP_TARGET=admin
 VITE_API_URL=http://localhost:5001/api/v1/admin
 ```
 
+The admin socket uses the origin of `VITE_API_URL` (`VITE_SOCKET_URL` is not read by the admin portal).
+
 To run the admin portal on mock data (no backend), `--mode admin.mock` reads `.env.admin.mock` instead:
 
 ```bash

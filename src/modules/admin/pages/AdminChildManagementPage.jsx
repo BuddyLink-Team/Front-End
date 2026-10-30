@@ -54,6 +54,8 @@ export const AdminChildManagementPage = () => {
     openChildDetail,
     closeChildDetail,
     openParentAccount,
+    isExporting,
+    handleExport,
   } = useAdminChildren();
 
   const renderCell = (key, _val, row) => {
@@ -170,6 +172,8 @@ export const AdminChildManagementPage = () => {
           selected: filters.status ?? '',
           onChange: (val) => setFilter('status', val),
         }}
+        onExport={handleExport}
+        isExporting={isExporting}
         actions={
           hasActiveFilters && (
             <Button

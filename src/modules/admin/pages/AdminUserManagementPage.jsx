@@ -61,6 +61,8 @@ export const AdminUserManagementPage = () => {
     isUpdatingStatus,
     confirmLockToggle,
     openChildProfile,
+    isExporting,
+    handleExport,
   } = useAdminUsers();
 
   const isLockAction = Boolean(lockTargetUser?.isActive);
@@ -216,6 +218,8 @@ export const AdminUserManagementPage = () => {
           selected: filters.status ?? '',
           onChange: (val) => setFilter('status', val),
         }}
+        onExport={handleExport}
+        isExporting={isExporting}
         actions={
           hasActiveFilters && (
             <Button
