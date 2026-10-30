@@ -6,18 +6,20 @@ import { cn } from '../../../utils/cn';
 import { ICON_SIZE, ICON_STROKE } from '../../../constants/icon.constants';
 
 /**
- * AdminFilterDropdown - single-choice filter button for AdminListToolbar (verification, gender, age...).
+ * AdminFilterDropdown - single-choice filter button for AdminListToolbar (severity, category, target type...).
  * The first option with an empty value means "no filter".
  *
- * @param {React.ElementType} icon - Lucide icon shown before the label
- * @param {string} header - Menu title
+ * @param {React.ElementType} [icon] - Optional Lucide icon shown before the label
+ * @param {string} [header] - Menu title (falls back to label)
+ * @param {string} [label] - Button text when no icon provided (also used as header fallback)
  * @param {Array<{ label: string, value: string }>} options
  * @param {string} [value] - Selected value ('' or undefined = no filter)
  * @param {Function} onChange - Receives the chosen value
  */
-export const AdminFilterDropdown = ({ icon: Icon, header, options, value = '', onChange }) => {
+export const AdminFilterDropdown = ({ icon: Icon, header, label, options, value = '', onChange }) => {
   const selected = options.find((opt) => opt.value === value) || options[0];
   const isActive = Boolean(value);
+  const menuHeader = header || label || 'Bộ lọc';
 
   return (
     <Dropdown
@@ -33,11 +35,13 @@ export const AdminFilterDropdown = ({ icon: Icon, header, options, value = '', o
               : 'bg-surface-container-lowest border-hairline hover:border-hairline-strong'
           )}
           leftIcon={
-            <Icon
-              size={ICON_SIZE.SM}
-              strokeWidth={ICON_STROKE.DEFAULT}
-              className={isActive ? 'text-primary' : 'text-text-muted'}
-            />
+            Icon ? (
+              <Icon
+                size={ICON_SIZE.SM}
+                strokeWidth={ICON_STROKE.DEFAULT}
+                className={isActive ? 'text-primary' : 'text-text-muted'}
+              />
+            ) : undefined
           }
           rightIcon={<ChevronDown size={ICON_SIZE.XS} className="text-text-muted" />}
         >
@@ -45,7 +49,7 @@ export const AdminFilterDropdown = ({ icon: Icon, header, options, value = '', o
         </Button>
       }
     >
-      <DropdownHeader>{header}</DropdownHeader>
+      <DropdownHeader>{menuHeader}</DropdownHeader>
       {options.map((opt) => (
         <DropdownItem
           key={opt.value || 'all'}

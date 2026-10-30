@@ -8,6 +8,7 @@ import AdminUserManagementPage from '../modules/admin/pages/AdminUserManagementP
 import AdminChildManagementPage from '../modules/admin/pages/AdminChildManagementPage';
 import { AdminConnectionManagementPage } from '../modules/admin/pages/AdminConnectionManagementPage';
 import { AdminPlaydateManagementPage } from '../modules/admin/pages/AdminPlaydateManagementPage';
+import AdminReportsPage from '../modules/admin/pages/AdminReportsPage';
 
 // Title on the admin type scale (semi-bold), matching the AdminHeader section label
 const AdminPlaceholder = (props) => (
@@ -50,7 +51,7 @@ export const AdminRoutes = () => (
     {/* Safety & Moderation */}
     <Route
       path="reports"
-      element={<AdminPlaceholder title="Kiểm duyệt báo cáo vi phạm" description="Danh sách báo cáo tài khoản hoặc tin nhắn nghi vấn, xử lý khóa người dùng." />}
+      element={<AdminReportsPage />}
     />
   </Route>
 );

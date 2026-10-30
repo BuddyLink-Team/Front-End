@@ -5,6 +5,7 @@ const { USERS, CHILDREN, PAYMENTS } = API_ENDPOINTS.ADMIN;
 
 /**
  * Admin portal API callers (users, children, payments, playdate & connection oversight, plans & revenue).
+ * Admin portal API callers (users, children, payments, playdate & connection oversight, plans & revenue, safety & moderation).
  * The baseURL is configured via VITE_API_URL (e.g. http://localhost:5001/api/v1/admin).
  */
 export const adminApi = {
@@ -87,6 +88,24 @@ export const adminApi = {
   getTransactionDetail: (id) => apiClient.get(API_ENDPOINTS.ADMIN.TRANSACTION_BY_ID(id)),
   /** @param {{ fromDate?: string, toDate?: string }} [params] */
   getRevenueSummary: (params) => apiClient.get(API_ENDPOINTS.ADMIN.REVENUE_SUMMARY, { params }),
+
+  // Safety & Reports Moderation
+  /** Paginated reports list. @param {Object} [params] */
+  getReports: (params) => apiClient.get(API_ENDPOINTS.ADMIN.REPORTS, { params }),
+  /** Queue stats and SLA averages */
+  getReportStats: (params) => apiClient.get(API_ENDPOINTS.ADMIN.REPORT_STATS, { params }),
+  /** Full investigation report detail */
+  getReportDetail: (id) => apiClient.get(API_ENDPOINTS.ADMIN.REPORT_BY_ID(id)),
+  /** Claim or takeover report. @param {{ action: 'claim' | 'takeover' }} payload */
+  reviewReport: (id, payload) => apiClient.patch(API_ENDPOINTS.ADMIN.REPORT_REVIEW(id), payload),
+  /** Update severity during review. @param {{ severity: string, note?: string }} payload */
+  updateReportSeverity: (id, payload) => apiClient.patch(API_ENDPOINTS.ADMIN.REPORT_SEVERITY(id), payload),
+  /** Apply disciplinary action. @param {{ type: string, durationDays?: number, note?: string }} payload */
+  applyReportAction: (id, payload) => apiClient.post(API_ENDPOINTS.ADMIN.REPORT_ACTION(id), payload),
+  /** Resolve or dismiss report. @param {{ status: string, resolution: string, adminNotes: string, applyToRelatedReportIds?: string[] }} payload */
+  resolveReport: (id, payload) => apiClient.patch(API_ENDPOINTS.ADMIN.REPORT_RESOLVE(id), payload),
+  /** Reopen closed report. @param {{ note: string }} payload */
+  reopenReport: (id, payload) => apiClient.patch(API_ENDPOINTS.ADMIN.REPORT_REOPEN(id), payload),
 };
 
 export default adminApi;

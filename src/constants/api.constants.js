@@ -104,5 +104,14 @@ export const API_ENDPOINTS = {
     TRANSACTIONS: '/transactions',
     TRANSACTION_BY_ID: (id) => `/transactions/${id}`,
     REVENUE_SUMMARY: '/revenue/summary',
+    // Safety & Moderation
+    REPORTS: '/reports',
+    REPORT_STATS: '/reports/stats',
+    REPORT_BY_ID: (id) => `/reports/${id}`,
+    REPORT_REVIEW: (id) => `/reports/${id}/review`,
+    REPORT_SEVERITY: (id) => `/reports/${id}/severity`,
+    REPORT_ACTION: (id) => `/reports/${id}/action`,
+    REPORT_RESOLVE: (id) => `/reports/${id}/resolve`,
+    REPORT_REOPEN: (id) => `/reports/${id}/reopen`,
   },
 };

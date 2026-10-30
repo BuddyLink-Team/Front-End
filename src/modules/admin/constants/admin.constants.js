@@ -304,3 +304,88 @@ export const ADMIN_ERROR_MESSAGES = Object.freeze({
   SUBSCRIPTION_NOT_FOUND: 'Không tìm thấy thuê bao này.',
   PAYMENT_NOT_FOUND: 'Không tìm thấy giao dịch này.',
 });
+
+
+// ==========================================
+// SAFETY & REPORTS MODERATION CONSTANTS
+// ==========================================
+
+export const REPORT_STAT_CARDS = [
+  { key: 'pending', label: 'Chờ tiếp nhận', icon: Clock, variant: 'secondary' },
+  { key: 'reviewing', label: 'Đang xem xét', icon: UserCheck, variant: 'primary' },
+  { key: 'overdue', label: 'Quá hạn SLA', icon: Lock, variant: 'error' },
+  { key: 'resolvedThisWeek', label: 'Đã giải quyết tuần này', icon: CheckCircle2, variant: 'tertiary' },
+];
+
+export const REPORT_STATUS_CHIPS = [
+  { id: '', label: 'Tất cả', value: '', query: {} },
+  { id: 'pending', label: 'Chờ xử lý', value: 'pending', query: { status: 'pending' } },
+  { id: 'reviewing', label: 'Đang xem xét', value: 'reviewing', query: { status: 'reviewing' } },
+  { id: 'resolved', label: 'Đã giải quyết', value: 'resolved', query: { status: 'resolved' } },
+  { id: 'dismissed', label: 'Bác bỏ', value: 'dismissed', query: { status: 'dismissed' } },
+];
+
+export const REPORT_SEVERITY_CONFIG = Object.freeze({
+  critical: { label: 'Khẩn cấp', variant: 'error', tone: 'error', badgeClass: 'bg-error-soft text-error-dark border border-error' },
+  high: { label: 'Cao', variant: 'warning', tone: 'warning', badgeClass: 'bg-amber-100 text-amber-800 border border-amber-300' },
+  medium: { label: 'Trung bình', variant: 'tertiary', tone: 'tertiary', badgeClass: 'bg-blue-50 text-blue-700 border border-blue-200' },
+  low: { label: 'Thấp', variant: 'neutral', tone: 'neutral', badgeClass: 'bg-slate-100 text-slate-700 border border-slate-200' },
+});
+
+export const REPORT_SEVERITY_OPTIONS = [
+  { label: 'Tất cả mức độ', value: '' },
+  { label: 'Khẩn cấp (Critical)', value: 'critical' },
+  { label: 'Cao (High)', value: 'high' },
+  { label: 'Trung bình (Medium)', value: 'medium' },
+  { label: 'Thấp (Low)', value: 'low' },
+];
+
+export const REPORT_CATEGORY_LABELS = Object.freeze({
+  child_safety: 'An toàn trẻ em',
+  harassment: 'Quấy rối / Đe dọa',
+  inappropriate_content: 'Nội dung phản cảm',
+  fake_profile: 'Hồ sơ giả mạo',
+  no_show: 'Bùng hẹn Playdate',
+  spam: 'Tin rác / Spam',
+  other: 'Vi phạm khác',
+});
+
+export const REPORT_CATEGORY_OPTIONS = [
+  { label: 'Tất cả danh mục', value: '' },
+  { label: 'An toàn trẻ em', value: 'child_safety' },
+  { label: 'Quấy rối / Đe dọa', value: 'harassment' },
+  { label: 'Nội dung phản cảm', value: 'inappropriate_content' },
+  { label: 'Hồ sơ giả mạo', value: 'fake_profile' },
+  { label: 'Bùng hẹn Playdate', value: 'no_show' },
+  { label: 'Tin rác / Spam', value: 'spam' },
+  { label: 'Vi phạm khác', value: 'other' },
+];
+
+export const REPORT_TARGET_TYPE_LABELS = Object.freeze({
+  user: 'Tài khoản',
+  message: 'Tin nhắn',
+  playdate: 'Cuộc hẹn',
+});
+
+export const REPORT_TARGET_TYPE_OPTIONS = [
+  { label: 'Tất cả đối tượng', value: '' },
+  { label: 'Tài khoản', value: 'user' },
+  { label: 'Tin nhắn', value: 'message' },
+  { label: 'Cuộc hẹn Playdate', value: 'playdate' },
+];
+
+export const REPORT_ACTION_LABELS = Object.freeze({
+  warn: 'Cảnh cáo tài khoản',
+  delete_message: 'Xóa tin nhắn vi phạm',
+  cancel_playdate: 'Hủy cuộc hẹn Playdate',
+  suspend: 'Tạm đình chỉ có thời hạn',
+  ban: 'Khóa tài khoản vĩnh viễn',
+  dismiss: 'Bác bỏ báo cáo',
+  no_action: 'Không kỷ luật',
+});
+
+export const REPORT_RESOLUTION_LABELS = Object.freeze({
+  action_taken: 'Đã áp dụng chế tài kỷ luật',
+  no_action: 'Không kỷ luật (Không vi phạm / Đã giải quyết hòa giải)',
+  dismissed: 'Bác bỏ (Báo cáo sai / Không đủ bằng chứng)',
+});
