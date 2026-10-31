@@ -113,5 +113,10 @@ export const API_ENDPOINTS = {
     REPORT_ACTION: (id) => `/reports/${id}/action`,
     REPORT_RESOLVE: (id) => `/reports/${id}/resolve`,
     REPORT_REOPEN: (id) => `/reports/${id}/reopen`,
+    ANALYTICS: '/analytics',
+    NOTIFICATIONS: '/notifications',
+    NOTIFICATIONS_UNREAD_COUNT: '/notifications/unread-count',
+    NOTIFICATIONS_READ: (id) => `/notifications/${id}/read`,
+    NOTIFICATIONS_READ_ALL: '/notifications/read-all',
   },
 };

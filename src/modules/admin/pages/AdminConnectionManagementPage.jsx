@@ -42,6 +42,8 @@ export const AdminConnectionManagementPage = () => {
     closeAction: cancelRemove,
     confirmAction: confirmRemove,
     isActionLoading,
+    isExporting,
+    handleExport,
   } = useAdminConnections();
 
   const columns = [
@@ -207,6 +209,8 @@ export const AdminConnectionManagementPage = () => {
           selected: filters.status || '',
           onChange: (val) => setFilter('status', val || undefined),
         }}
+        onExport={handleExport}
+        isExporting={isExporting}
       />
 
       {/* Data Table */}

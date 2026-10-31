@@ -210,7 +210,7 @@ src/components/
 
 #### 📊 `StatCard.jsx`
 - **Mục đích**: Hiển thị thẻ chỉ số trên màn hình Dashboard Quản trị & Doanh thu (Tổng phụ huynh, Lịch hẹn thành công, Doanh thu PayOS).
-- **Props**: `title`, `value`, `changePercentage`, `icon`, `trend` (`up` | `down`).
+- **Props**: `title`, `value`, `icon`, `variant`, `change` (`'+12%'` / `'-5%'` hiện icon tăng/giảm; `'—'` khi không có kỳ trước để so sánh), `changeSuffix`, `isLoading` (Skeleton thay cho số liệu).
 
 #### 📭 `EmptyState.jsx`
 - **Mục đích**: Hiển thị khi không tìm thấy bạn chơi lân cận, hòm thư chat trống, hoặc chưa có lịch hẹn nào.
@@ -237,7 +237,7 @@ src/components/
 
 #### 📈 `BarChart.jsx` (`components/charts/`)
 - **Mục đích**: Biểu đồ cột 1 chuỗi số liệu (doanh thu theo tháng ở màn Doanh thu Admin).
-- **Props**: `data`, `xKey`, `yKey`, `valueFormatter` (tooltip + trục y, vd. `formatCurrency`), `axisValueFormatter` (nhãn trục y ngắn gọn), `labelFormatter` (trục x), `isLoading`, `emptyTitle`, `emptyMessage`, `className`.
+- **Props**: `data`, `xKey`, `yKey`, `valueFormatter` (tooltip + trục y, vd. `formatCurrency`), `axisValueFormatter` (nhãn trục y ngắn gọn), `labelFormatter` (trục x), `colorVar` (biến CSS của cột, mặc định màu primary), `valueClassName` (giá trị trong tooltip), `isLoading`, `emptyTitle`, `emptyMessage`, `className`.
 - **Quy chuẩn**: Cao `h-chart`; màu đọc từ biến CSS `--color-primary`, `--color-hairline`, `--color-text-muted` (sinh từ `tailwind.config.js`), kích thước lấy từ `CHART_SIZE` (`constants/chart.constants.js`). `recharts` được tách thành chunk `vendor-charts` (`vite.config.js`) nên chỉ trang có biểu đồ mới tải.
 
 #### 💭 `ChatBubble.jsx` (`components/chat/`)

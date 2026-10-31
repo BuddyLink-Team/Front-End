@@ -12,18 +12,15 @@ import { BarChart3 } from 'lucide-react';
 import { Skeleton } from '../feedback/Skeleton';
 import { EmptyState } from '../cards/EmptyState';
 import { cn } from '../../utils/cn';
+import { getCssColor } from '../../utils/chartUtils';
 import { CHART_COLOR_VARS, CHART_SIZE } from '../../constants/chart.constants';
 
-// SVG attributes need real colors: read the palette variables that styles/index.css fills from tailwind.config.js
-const getCssColor = (name) =>
-  getComputedStyle(document.documentElement).getPropertyValue(name).trim() || undefined;
-
-const ChartTooltip = ({ active, payload, label, valueFormatter, labelFormatter }) => {
+const ChartTooltip = ({ active, payload, label, valueFormatter, labelFormatter, valueClassName }) => {
   if (!active || !payload?.length) return null;
   return (
     <div className="rounded-xl border border-hairline bg-white px-3 py-2 shadow-popover text-xs">
       <p className="font-semibold text-text-primary mb-0.5">{labelFormatter(label)}</p>
-      <p className="text-text-muted">{valueFormatter(payload[0].value)}</p>
+      <p className={valueClassName}>{valueFormatter(payload[0].value)}</p>
     </div>
   );
 };
@@ -37,6 +34,8 @@ const ChartTooltip = ({ active, payload, label, valueFormatter, labelFormatter }
  * @param {Function} [valueFormatter=String] - Formats values in the tooltip and on the y axis (e.g. formatCurrency)
  * @param {Function} [axisValueFormatter] - Shorter y axis labels; defaults to `valueFormatter`
  * @param {Function} [labelFormatter=String] - Formats the x axis categories
+ * @param {string} [colorVar] - CSS variable of the bars (CHART_COLOR_VARS); defaults to the primary color
+ * @param {string} [valueClassName='text-text-muted'] - Value in the tooltip
  * @param {boolean} [isLoading=false]
  * @param {string} [emptyTitle='Chưa có dữ liệu']
  * @param {string} [emptyMessage='Không có số liệu trong khoảng thời gian này.']
@@ -49,6 +48,8 @@ export const BarChart = ({
   valueFormatter = String,
   axisValueFormatter,
   labelFormatter = String,
+  colorVar = CHART_COLOR_VARS.BAR,
+  valueClassName = 'text-text-muted',
   isLoading = false,
   emptyTitle = 'Chưa có dữ liệu',
   emptyMessage = 'Không có số liệu trong khoảng thời gian này.',
@@ -69,7 +70,7 @@ export const BarChart = ({
     );
   }
 
-  const barColor = getCssColor(CHART_COLOR_VARS.BAR);
+  const barColor = getCssColor(colorVar);
   const gridColor = getCssColor(CHART_COLOR_VARS.GRID);
   const tick = { fill: getCssColor(CHART_COLOR_VARS.TICK), fontSize: CHART_SIZE.TICK_FONT };
 
@@ -97,7 +98,9 @@ export const BarChart = ({
           />
           <Tooltip
             cursor={{ fill: gridColor }}
-            content={<ChartTooltip valueFormatter={valueFormatter} labelFormatter={labelFormatter} />}
+            content={
+              <ChartTooltip valueFormatter={valueFormatter} labelFormatter={labelFormatter} valueClassName={valueClassName} />
+            }
           />
           <Bar
             dataKey={yKey}

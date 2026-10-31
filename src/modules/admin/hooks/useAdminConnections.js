@@ -1,4 +1,7 @@
+import { useDispatch } from 'react-redux';
 import { useAdminOversight } from './useAdminOversight';
+import { useAdminExport } from './useAdminExport';
+import { buildConnectionsReportSheets, fetchAllPages } from '../utils/excelExport';
 import {
   fetchAdminConnections,
   fetchAdminConnectionStats,
@@ -15,10 +18,10 @@ const MESSAGES = Object.freeze({
 });
 
 /**
- * Connections oversight screen: list across the platform, detail modal and soft-remove with an optional reason.
+ * Connections oversight screen: list across the platform, detail modal, soft-remove and export.
  */
-export const useAdminConnections = () =>
-  useAdminOversight({
+export const useAdminConnections = () => {
+  const oversight = useAdminOversight({
     fetchList: fetchAdminConnections,
     fetchStats: fetchAdminConnectionStats,
     fetchDetail: fetchAdminConnectionDetail,
@@ -26,6 +29,28 @@ export const useAdminConnections = () =>
     detailKey: 'connectionDetail',
     runAction: removeAdminConnection,
     messages: MESSAGES,
+    openStateKey: 'openConnectionId',
   });
+
+  const dispatch = useDispatch();
+  const { isExporting, handleExport } = useAdminExport({
+    page: 'connections',
+    buildSheets: buildConnectionsReportSheets,
+    fetchData: async () => ({
+      connections: await fetchAllPages((params) => dispatch(fetchAdminConnections(params)).unwrap(), {
+        search: oversight.searchInput,
+        status: oversight.filters?.status,
+      }),
+      stats: oversight.stats?.stats,
+    }),
+    successMessage: 'Đã xuất danh sách kết nối ra file Excel.',
+  });
+
+  return {
+    ...oversight,
+    isExporting,
+    handleExport,
+  };
+};
 
 export default useAdminConnections;

@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
+import { useLocation } from 'react-router-dom';
 import { useServerTable } from '../../../hooks/useServerTable';
 import { useToast } from '../../../hooks/useToast';
 import { getApiErrorMsg } from '../../../utils/errorUtils';
@@ -18,9 +19,20 @@ import { useAdminStats } from './useAdminStats';
  * @param {'playdateDetail'|'connectionDetail'} config.detailKey - Detail slot in the admin slice
  * @param {Function} config.runAction - Action thunk ({ id, reason })
  * @param {{ listError: string, detailError: string, actionSuccess: string, actionError: string }} config.messages
+ * @param {string} [config.openStateKey] - Router state that opens a detail, e.g. navigate(route, { state: { openPlaydateId } })
  */
-export const useAdminOversight = ({ fetchList, fetchStats, fetchDetail, clearDetail, detailKey, runAction, messages }) => {
+export const useAdminOversight = ({
+  fetchList,
+  fetchStats,
+  fetchDetail,
+  clearDetail,
+  detailKey,
+  runAction,
+  messages,
+  openStateKey,
+}) => {
   const dispatch = useDispatch();
+  const location = useLocation();
   const { success, error: toastError } = useToast();
   const detail = useSelector((state) => state.admin[detailKey]);
   const isActionLoading = useSelector((state) => state.admin.isOversightActionLoading);
@@ -31,7 +43,7 @@ export const useAdminOversight = ({ fetchList, fetchStats, fetchDetail, clearDet
   const stats = useAdminStats(fetchStats);
   const reloadStats = stats.reload;
 
-  const [selectedId, setSelectedId] = useState(null);
+  const [selectedId, setSelectedId] = useState(() => location.state?.[openStateKey] || null);
   const [actionTarget, setActionTarget] = useState(null);
 
   const loadDetail = useCallback(

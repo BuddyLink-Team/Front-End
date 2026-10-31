@@ -7,25 +7,6 @@ import {
   REPORT_RESOLUTION_LABELS,
 } from '../constants/admin.constants';
 
-export const REPORT_PAGE_LIMIT = 100;
-// Safety cap to avoid memory exhaustion while preventing silent truncation
-const REPORT_MAX_PAGES = 500;
-
-/**
- * Fetch all pages for moderation export
- * @param {(params: Object) => Promise<{ items: Array, pagination: { totalPages: number } }>} fetchPage
- * @param {Object} [params]
- */
-export const fetchAllReportPages = async (fetchPage, params = {}) => {
-  const rows = [];
-  for (let page = 1; page <= REPORT_MAX_PAGES; page += 1) {
-    const { items = [], pagination } = await fetchPage({ ...params, page, limit: REPORT_PAGE_LIMIT });
-    rows.push(...items);
-    if (!pagination || page >= pagination.totalPages) break;
-  }
-  return rows;
-};
-
 const statusLabel = (status) => {
   switch (status) {
     case 'pending':
@@ -177,39 +158,5 @@ export const buildModerationReportSheets = ({ stats = {}, reports = [], filter =
   };
 
   return [summarySheet, reportsSheet, actionsSheet, mostReportedSheet];
-};
-
-/**
- * .xlsx file of moderation sheets
- * @param {Array} sheets
- * @returns {Promise<Blob>}
- */
-export const createModerationWorkbookBlob = async (sheets) => {
-  const { default: ExcelJS } = await import('exceljs');
-  const workbook = new ExcelJS.Workbook();
-  workbook.creator = 'BuddyLink Admin';
-
-  sheets.forEach(({ name, columns, rows }) => {
-    const sheet = workbook.addWorksheet(name, { views: [{ state: 'frozen', ySplit: 1 }] });
-    sheet.columns = columns.map(({ header, key, width }) => ({ header, key, width }));
-    sheet.getRow(1).font = { bold: true };
-    rows.forEach((rowValues) => {
-      sheet.addRow(rowValues);
-    });
-  });
-
-  const buffer = await workbook.xlsx.writeBuffer();
-  return new Blob([buffer], {
-    type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-  });
-};
-
-export const downloadReportBlob = (blob, fileName) => {
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement('a');
-  link.href = url;
-  link.download = fileName;
-  link.click();
-  URL.revokeObjectURL(url);
 };
 

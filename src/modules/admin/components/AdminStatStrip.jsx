@@ -15,8 +15,9 @@ export const AdminStatStrip = ({ cards, stats, isLoading, hasError }) => (
           key={key}
           icon={<Icon size={ICON_SIZE.LG} strokeWidth={ICON_STROKE.DEFAULT} />}
           title={label}
-          value={isLoading && !stats ? '…' : format(stats?.[key])}
+          value={stats ? format(stats[key]) : undefined}
           variant={variant}
+          isLoading={isLoading && !stats}
           className="p-4 gap-3"
         />
       ))}

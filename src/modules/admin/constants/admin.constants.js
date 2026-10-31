@@ -303,6 +303,7 @@ export const ADMIN_ERROR_MESSAGES = Object.freeze({
   INVALID_PRICE: 'Giá gói Premium phải lớn hơn 0.',
   SUBSCRIPTION_NOT_FOUND: 'Không tìm thấy thuê bao này.',
   PAYMENT_NOT_FOUND: 'Không tìm thấy giao dịch này.',
+  NOTIFICATION_NOT_FOUND: 'Không tìm thấy thông báo này.',
 });
 
 

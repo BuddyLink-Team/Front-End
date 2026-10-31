@@ -3,6 +3,7 @@ import { Outlet, useLocation } from 'react-router-dom';
 import { Sidebar } from '../components/navigation/Sidebar';
 import AdminHeader from '../modules/admin/components/AdminHeader';
 import AdminSidebarUser from '../modules/admin/components/AdminSidebarUser';
+import { useAdminNotificationSocket } from '../modules/admin/hooks/useAdminNotificationSocket';
 import { ADMIN_NAV_LINKS } from '../constants/navigation.constants';
 import { useAuth } from '../modules/auth/hooks/useAuth';
 import { useSidebar } from '../hooks/useSidebar';
@@ -28,6 +29,7 @@ export const AdminLayout = () => {
   // Desktop collapse (persisted); the mobile drawer always opens expanded
   const { collapsed, toggle } = useSidebar();
   const isCollapsed = collapsed && !isMenuOpen;
+  useAdminNotificationSocket();
 
   // Close the mobile drawer after navigating
   useEffect(() => {

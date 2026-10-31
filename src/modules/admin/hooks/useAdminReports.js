@@ -4,12 +4,9 @@ import { useServerTable } from '../../../hooks/useServerTable';
 import { useToast } from '../../../hooks/useToast';
 import { getApiErrorMsg } from '../../../utils/errorUtils';
 import adminApi from '../api/adminApi';
-import {
-  fetchAllReportPages,
-  buildModerationReportSheets,
-  createModerationWorkbookBlob,
-  downloadReportBlob,
-} from '../utils/moderationReport';
+import { useAdminExport } from './useAdminExport';
+import { fetchAllPages } from '../utils/excelExport';
+import { buildModerationReportSheets } from '../utils/moderationReport';
 
 export const useAdminReports = () => {
   const { success, error: toastError } = useToast();
@@ -232,52 +229,19 @@ export const useAdminReports = () => {
   }, [refetchTable, reloadStats, success, toastError]);
 
   // Excel Export
-  const [isExporting, setIsExporting] = useState(false);
-
-  const handleExportExcel = useCallback(async () => {
-    setIsExporting(true);
-
-    try {
-      const allReports = await fetchAllReportPages(async (pageParams) => {
-        const res = await adminApi.getReports({
-          ...params,
-          ...pageParams,
-        });
-
+  const { isExporting, handleExport: handleExportExcel } = useAdminExport({
+    page: 'bao-cao-vi-pham',
+    buildSheets: buildModerationReportSheets,
+    fetchData: async () => ({
+      stats: stats || {},
+      reports: await fetchAllPages(async (pageParams) => {
+        const res = await adminApi.getReports(pageParams);
         return res.data?.data || res.data;
-      });
-
-      const sheets = buildModerationReportSheets({
-        stats: stats || {},
-        reports: allReports,
-        filter: params,
-        exportedAt: new Date(),
-      });
-
-      const blob = await createModerationWorkbookBlob(sheets);
-
-      const dateStr = new Date()
-        .toISOString()
-        .slice(0, 10)
-        .replace(/-/g, '');
-
-      const timeStr = new Date()
-        .toTimeString()
-        .slice(0, 5)
-        .replace(/:/g, '');
-
-      downloadReportBlob(
-        blob,
-        `buddylink-bao-cao-vi-pham-${dateStr}-${timeStr}.xlsx`
-      );
-
-      success('Xuất file báo cáo Excel thành công');
-    } catch (err) {
-      toastError(getApiErrorMsg(err, 'Không thể xuất báo cáo Excel'));
-    } finally {
-      setIsExporting(false);
-    }
-  }, [params, stats, success, toastError]);
+      }, params),
+      filter: params,
+    }),
+    successMessage: 'Xuất file báo cáo Excel thành công',
+  });
 
   const hasActiveFilters = Boolean(
     searchInput ||

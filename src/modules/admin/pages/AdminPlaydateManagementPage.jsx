@@ -49,6 +49,8 @@ export const AdminPlaydateManagementPage = () => {
     closeAction: cancelCancel,
     confirmAction: confirmCancel,
     isActionLoading,
+    isExporting,
+    handleExport,
   } = useAdminPlaydates();
 
   const columns = [
@@ -222,6 +224,8 @@ export const AdminPlaydateManagementPage = () => {
               toDate: to || undefined,
             }),
         }}
+        onExport={handleExport}
+        isExporting={isExporting}
       />
 
       {/* Data Table */}

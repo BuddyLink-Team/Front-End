@@ -2,6 +2,7 @@ import React from 'react';
 import { Route, Navigate } from 'react-router-dom';
 import { AdminLayout } from '../layouts/AdminLayout';
 import PlaceholderPage from '../components/feedback/PlaceholderPage';
+import AdminDashboardPage from '../modules/admin/pages/AdminDashboardPage';
 import AdminSubscriptionManagementPage from '../modules/admin/pages/AdminSubscriptionManagementPage';
 
 import AdminUserManagementPage from '../modules/admin/pages/AdminUserManagementPage';
@@ -25,7 +26,7 @@ export const AdminRoutes = () => (
     {/* Admin Dashboard */}
     <Route
       path="dashboard"
-      element={<AdminPlaceholder title="Tổng quan hệ thống" description="Tổng quan phân tích số liệu hệ thống, thành viên và doanh thu." />}
+      element={<AdminDashboardPage />}
     />
 
     {/* User & Children Management */}

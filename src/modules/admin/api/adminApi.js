@@ -106,6 +106,18 @@ export const adminApi = {
   resolveReport: (id, payload) => apiClient.patch(API_ENDPOINTS.ADMIN.REPORT_RESOLVE(id), payload),
   /** Reopen closed report. @param {{ note: string }} payload */
   reopenReport: (id, payload) => apiClient.patch(API_ENDPOINTS.ADMIN.REPORT_REOPEN(id), payload),
+
+  // System Analytics & Dashboard
+  /** @param {{ fromDate?: string, toDate?: string, groupBy?: string }} [params] */
+  getAnalytics: (params) => apiClient.get(API_ENDPOINTS.ADMIN.ANALYTICS, { params }),
+
+  // Admin Notifications
+  /** @param {{ category?: string, severity?: string, isRead?: boolean, page?: number, limit?: number }} [params] */
+  getNotifications: (params) => apiClient.get(API_ENDPOINTS.ADMIN.NOTIFICATIONS, { params }),
+  getUnreadNotificationCount: () => apiClient.get(API_ENDPOINTS.ADMIN.NOTIFICATIONS_UNREAD_COUNT),
+  markNotificationAsRead: (id) => apiClient.patch(API_ENDPOINTS.ADMIN.NOTIFICATIONS_READ(id)),
+  markAllNotificationsAsRead: (category) =>
+    apiClient.patch(API_ENDPOINTS.ADMIN.NOTIFICATIONS_READ_ALL, null, { params: category ? { category } : {} }),
 };
 
 export default adminApi;

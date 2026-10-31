@@ -5,12 +5,8 @@ import { adminApi } from '../../modules/admin/api/adminApi';
 import adminSubscriptionMockService from '../../modules/admin/mock/adminSubscriptionMockService';
 import { getPlanFormSchema } from '../../modules/admin/validation/planValidation';
 import ExcelJS from 'exceljs';
-import {
-  buildRevenueReportSheets,
-  createRevenueWorkbookBlob,
-  fetchAllPages,
-  REPORT_PAGE_LIMIT,
-} from '../../modules/admin/utils/revenueReport';
+import { buildRevenueReportSheets } from '../../modules/admin/utils/revenueReport';
+import { createWorkbookBlob, fetchAllPages, REPORT_PAGE_LIMIT } from '../../modules/admin/utils/excelExport';
 import {
   INITIAL_MOCK_ADMIN_PLANS,
   INITIAL_MOCK_ADMIN_SUBSCRIPTIONS,
@@ -93,7 +89,7 @@ describe('revenue report', () => {
   });
 
   it('writes an .xlsx file whose Vietnamese text reads back as is', async () => {
-    const blob = await createRevenueWorkbookBlob([
+    const blob = await createWorkbookBlob([
       {
         name: 'Giao dịch',
         columns: [

@@ -1,6 +1,7 @@
 import { createSlice } from '@reduxjs/toolkit';
 import { createApiThunk } from '../../../utils/reduxUtils';
 import { adminApi } from '../api/adminApi';
+import { ADMIN_NOTIFICATION_FILTER_ALL, ADMIN_NOTIFICATION_PAGE_LIMIT } from '../constants/dashboard.constants';
 
 // ---- Thunks ----
 
@@ -86,9 +87,52 @@ export const fetchAdminRevenueSummary = createApiThunk('admin/fetchRevenueSummar
   adminApi.getRevenueSummary(params)
 );
 
+// Analytics & Notifications
+export const fetchAdminAnalytics = createApiThunk('admin/fetchAnalytics', (params) =>
+  adminApi.getAnalytics(params)
+);
+
+// 'all' is a choice of the filters, not a value to send
+const isNotificationFilterSet = (value) => value && value !== ADMIN_NOTIFICATION_FILTER_ALL;
+
+export const fetchAdminNotifications = createApiThunk(
+  'admin/fetchNotifications',
+  ({ category, severity, page, limit }) =>
+    adminApi.getNotifications({
+      ...(isNotificationFilterSet(category) ? { category } : {}),
+      ...(isNotificationFilterSet(severity) ? { severity } : {}),
+      page,
+      limit,
+    })
+);
+
+export const fetchAdminUnreadNotificationCount = createApiThunk('admin/fetchUnreadNotificationCount', () =>
+  adminApi.getUnreadNotificationCount()
+);
+
+export const markAdminNotificationAsRead = createApiThunk('admin/markNotificationAsRead', (id) =>
+  adminApi.markNotificationAsRead(id)
+);
+
+export const markAllAdminNotificationsAsRead = createApiThunk('admin/markAllNotificationsAsRead', (category) =>
+  adminApi.markAllNotificationsAsRead(category)
+);
+
 const emptyDetail = { data: null, isLoading: false, error: null, requestId: null };
 
+const initialNotifications = {
+  items: [],
+  pagination: null,
+  filters: { category: ADMIN_NOTIFICATION_FILTER_ALL, severity: ADMIN_NOTIFICATION_FILTER_ALL },
+  isLoading: false,
+  isLoadingMore: false,
+  requestId: null,
+  unreadCount: { total: 0, byCategory: {} },
+  isSocketConnected: false,
+};
+
 const initialState = {
+  notifications: initialNotifications,
   userDetail: { ...emptyDetail },
   payments: { items: [], total: 0, isLoading: false, requestId: null },
   childDetail: { ...emptyDetail },
@@ -154,9 +198,78 @@ export const adminSlice = createSlice({
     clearConnectionDetail: (state) => {
       state.connectionDetail = { ...emptyDetail };
     },
+    // Newest first, when it belongs to the filtered list
+    adminNotificationReceived: (state, action) => {
+      const notification = action.payload;
+      const { items, filters, pagination } = state.notifications;
+      const matchesCategory = !isNotificationFilterSet(filters.category) || notification.category === filters.category;
+      const matchesSeverity = !isNotificationFilterSet(filters.severity) || notification.severity === filters.severity;
+      if (!matchesCategory || !matchesSeverity || items.some((item) => item.id === notification.id)) return;
+      items.unshift(notification);
+      if (pagination) pagination.total += 1;
+    },
+    adminUnreadCountReceived: (state, action) => {
+      state.notifications.unreadCount = action.payload;
+    },
+    adminNotificationSocketStatusChanged: (state, action) => {
+      state.notifications.isSocketConnected = action.payload;
+    },
+    resetAdminNotifications: (state) => {
+      state.notifications = initialNotifications;
+    },
   },
   extraReducers: (builder) => {
     builder
+      // Notification list: only the latest request counts (the filters may have changed since)
+      .addCase(fetchAdminNotifications.pending, (state, action) => {
+        const { category, severity, page } = action.meta.arg;
+        const slot = state.notifications;
+        slot.requestId = action.meta.requestId;
+        if (page === 1) {
+          slot.isLoading = true;
+          slot.isLoadingMore = false;
+          slot.filters = {
+            category: category || ADMIN_NOTIFICATION_FILTER_ALL,
+            severity: severity || ADMIN_NOTIFICATION_FILTER_ALL,
+          };
+        } else {
+          slot.isLoadingMore = true;
+        }
+      })
+      .addCase(fetchAdminNotifications.fulfilled, (state, action) => {
+        const slot = state.notifications;
+        if (slot.requestId !== action.meta.requestId) return;
+        const { items, pagination } = action.payload;
+        if (action.meta.arg.page === 1) {
+          slot.items = items;
+        } else {
+          // A notification received in the meantime shifts the pages: skip what is already there
+          const knownIds = new Set(slot.items.map((item) => item.id));
+          slot.items.push(...items.filter((item) => !knownIds.has(item.id)));
+        }
+        slot.pagination = pagination;
+        slot.isLoading = false;
+        slot.isLoadingMore = false;
+      })
+      .addCase(fetchAdminNotifications.rejected, (state, action) => {
+        const slot = state.notifications;
+        if (slot.requestId !== action.meta.requestId) return;
+        slot.isLoading = false;
+        slot.isLoadingMore = false;
+      })
+      .addCase(fetchAdminUnreadNotificationCount.fulfilled, (state, action) => {
+        state.notifications.unreadCount = action.payload;
+      })
+      .addCase(markAdminNotificationAsRead.fulfilled, (state, action) => {
+        const item = state.notifications.items.find((notification) => notification.id === action.meta.arg);
+        if (item) item.isRead = true;
+      })
+      .addCase(markAllAdminNotificationsAsRead.fulfilled, (state, action) => {
+        const category = action.meta.arg;
+        state.notifications.items.forEach((item) => {
+          if (!category || item.category === category) item.isRead = true;
+        });
+      })
       // User detail: keep the account on screen while it reloads, clear it when another one is opened
       .addCase(fetchAdminUserDetail.pending, (state, action) => {
         const isSameUser = state.userDetail.data?.id === action.meta.arg;
@@ -232,6 +345,19 @@ export const adminSlice = createSlice({
   },
 });
 
-export const { clearUserDetail, clearChildDetail, clearPlaydateDetail, clearConnectionDetail } = adminSlice.actions;
+export const {
+  adminNotificationReceived,
+  adminUnreadCountReceived,
+  adminNotificationSocketStatusChanged,
+  resetAdminNotifications, clearUserDetail, clearChildDetail, clearPlaydateDetail, clearConnectionDetail } = adminSlice.actions;
+
+/**
+ * Page 1 of the list with its current filters, and the unread counts (after a reconnection or on demand)
+ */
+export const refreshAdminNotifications = () => (dispatch, getState) => {
+  const { category, severity } = getState().admin.notifications.filters;
+  dispatch(fetchAdminNotifications({ category, severity, page: 1, limit: ADMIN_NOTIFICATION_PAGE_LIMIT }));
+  dispatch(fetchAdminUnreadNotificationCount());
+};
 
 export default adminSlice.reducer;
