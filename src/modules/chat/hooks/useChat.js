@@ -28,6 +28,7 @@ import {
   markConversationReadRest,
   uploadChatImage,
   conversationUpdated,
+  messageDeleted,
   messageReceived,
   optimisticMessageAdded,
   messageStatusChanged,
@@ -288,12 +289,20 @@ export const useChat = ({ initialConversationId = null, initialPlaydateId = null
     [dispatch],
   );
 
+  const handleMessageDeleted = useCallback(
+    (data) => {
+      dispatch(messageDeleted(data));
+    },
+    [dispatch],
+  );
+
   const { isConnected, emitSendMessage, emitTyping, emitReadStatus } = useChatSocket({
     conversationId: activeConversationId,
     onMessageReceived: handleMessageReceived,
     onUserTyping: handleUserTyping,
     onMessageRead: handleMessageRead,
     onConversationUpdated: handleConversationUpdated,
+    onMessageDeleted: handleMessageDeleted,
   });
 
   useEffect(() => {

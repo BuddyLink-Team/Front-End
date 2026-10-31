@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 import { ChevronDown, Check } from 'lucide-react';
 import { useClickOutside } from '../../hooks/useClickOutside';
 import { cn } from '../../utils/cn';
+import { RequiredMark } from '../form/RequiredMark';
 
 // Case and accent insensitive ("lego" finds "Xếp hình Lego", "ve tranh" finds "Vẽ tranh")
 const normalize = (text = '') =>
@@ -22,6 +23,7 @@ const normalize = (text = '') =>
  * @param {Array<{ value: string, label: string, description?: string, icon?: React.ComponentType, group?: string }>} options
  *   Options of the same `group` are listed under its header, in the given order
  * @param {string} [label]
+ * @param {boolean} [required] - Shows a red star after the label
  * @param {string} [placeholder]
  * @param {string} [error]
  * @param {string} [emptyText] - Shown when no option matches the typed text
@@ -32,6 +34,7 @@ export const Combobox = ({
   onBlur,
   options = [],
   label,
+  required,
   placeholder,
   error,
   id,
@@ -90,10 +93,12 @@ export const Combobox = ({
       {label && (
         <label htmlFor={inputId} className="block text-sm font-medium text-text-primary">
           {label}
+          {required && <RequiredMark />}
         </label>
       )}
       <div className="relative rounded-xl shadow-sm">
         <input
+          aria-required={required || undefined}
           ref={inputRef}
           id={inputId}
           name={name}
@@ -197,6 +202,7 @@ Combobox.propTypes = {
     })
   ),
   label: PropTypes.string,
+  required: PropTypes.bool,
   placeholder: PropTypes.string,
   error: PropTypes.string,
   id: PropTypes.string,

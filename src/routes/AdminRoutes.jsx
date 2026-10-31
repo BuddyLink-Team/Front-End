@@ -1,7 +1,6 @@
 import React from 'react';
 import { Route, Navigate } from 'react-router-dom';
 import { AdminLayout } from '../layouts/AdminLayout';
-import PlaceholderPage from '../components/feedback/PlaceholderPage';
 import AdminDashboardPage from '../modules/admin/pages/AdminDashboardPage';
 import AdminSubscriptionManagementPage from '../modules/admin/pages/AdminSubscriptionManagementPage';
 
@@ -9,11 +8,7 @@ import AdminUserManagementPage from '../modules/admin/pages/AdminUserManagementP
 import AdminChildManagementPage from '../modules/admin/pages/AdminChildManagementPage';
 import { AdminConnectionManagementPage } from '../modules/admin/pages/AdminConnectionManagementPage';
 import { AdminPlaydateManagementPage } from '../modules/admin/pages/AdminPlaydateManagementPage';
-
-// Title on the admin type scale (semi-bold), matching the AdminHeader section label
-const AdminPlaceholder = (props) => (
-  <PlaceholderPage titleClassName="text-headline-md font-semibold text-on-surface" {...props} />
-);
+import AdminReportsPage from '../modules/admin/pages/AdminReportsPage';
 
 /**
  * Full route definitions for Admin features, in the same order as ADMIN_NAV_LINKS.
@@ -51,7 +46,7 @@ export const AdminRoutes = () => (
     {/* Safety & Moderation */}
     <Route
       path="reports"
-      element={<AdminPlaceholder title="Kiểm duyệt báo cáo vi phạm" description="Danh sách báo cáo tài khoản hoặc tin nhắn nghi vấn, xử lý khóa người dùng." />}
+      element={<AdminReportsPage />}
     />
   </Route>
 );

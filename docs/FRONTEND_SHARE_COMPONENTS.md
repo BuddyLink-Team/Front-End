@@ -84,7 +84,7 @@ src/components/
 | Phân loại | Component | Đường dẫn | Trạng thái | Ghi chú |
 | :--- | :--- | :--- | :--- | :--- |
 | **UI** | `Button` | `components/ui/Button.jsx` | ✅ Đã code | 5 variants, loading spinner, icons |
-| **UI** | `Input` | `components/ui/Input.jsx` | ✅ Đã code | Label, helperText, error, icons |
+| **UI** | `Input` | `components/ui/Input.jsx` | ✅ Đã code | Label, helperText, error, icons; `required` hiện dấu * đỏ sau label (dùng chung cho `Textarea`, `Select`, `PasswordInput`, `Combobox`; label tự viết thì dùng `RequiredMark`) |
 | **UI** | `PasswordInput` | `components/ui/PasswordInput.jsx` | ✅ Đã code | Tích hợp toggle hiển thị mật khẩu |
 | **UI** | `Textarea` | `components/ui/Textarea.jsx` | ✅ Đã code | Multi-line text, auto resize ring |
 | **UI** | `Checkbox` | `components/ui/Checkbox.jsx` | ✅ Đã code | Bo góc, hiệu ứng checkmark matcha |
@@ -103,6 +103,7 @@ src/components/
 | **Charts** | `BarChart` | `components/charts/BarChart.jsx` | ✅ Đã code | Biểu đồ cột màu matcha, loading skeleton, empty state |
 | **Chat** | `ChatBubble` | `components/chat/ChatBubble.jsx` | ✅ Đã code | Bố cục tin nhắn dùng chung cho Messenger (`MessageItem`) và Trợ lý AI |
 | **Feedback** | `Modal` | `components/feedback/Modal.jsx` | ✅ Đã code | Backdrop blur, React portal; `placement` = `center` / `sheet` / `right` (drawer) |
+| **Feedback** | `ImageGalleryLightbox` | `components/feedback/ImageGalleryLightbox.jsx` | ✅ Đã code | Xem ảnh toàn màn hình trên nền tối: back/next (nút hoặc phím mũi tên), số x/y dưới ảnh |
 | **Feedback** | `ConfirmDialog` | `components/feedback/ConfirmDialog.jsx` | ✅ Đã code | Warning/danger/info actions; ô nhập lý do qua `reason` |
 | **Feedback** | `TypingIndicator` | `components/feedback/TypingIndicator.jsx` | ✅ Đã code | Bong bóng "đang soạn" (chat, AI) |
 | **Feedback** | `<Toaster />` | `react-hot-toast` (cấu hình tại `App.jsx`) | ✅ Sẵn sàng | Định kiểu sẵn theo theme matcha, dùng qua hook `useToast` |
@@ -110,7 +111,7 @@ src/components/
 | **Feedback** | `Spinner` | `components/feedback/Spinner.jsx` | ✅ Đã code | Vòng quay tải trang |
 | **Feedback** | `LoadingOverlay` | `components/feedback/LoadingOverlay.jsx` | ✅ Đã code | Lớp phủ chờ thao tác |
 | **Feedback** | `AppErrorBoundary` | `components/feedback/AppErrorBoundary.jsx` | ✅ Đã code | Bắt lỗi ứng dụng dự phòng |
-| **Feedback** | `PlaceholderPage` | `components/feedback/PlaceholderPage.jsx` | ✅ Đã code | Trang giữ chỗ (`title`, `description`); `titleClassName` để đổi style tiêu đề (admin dùng `text-headline-md font-semibold` qua `AdminPlaceholder` trong `AdminRoutes.jsx`) |
+| **Feedback** | `PlaceholderPage` | `components/feedback/PlaceholderPage.jsx` | ✅ Đã code | Trang giữ chỗ (`title`, `description`); `titleClassName` để đổi style tiêu đề |
 | **Navigation** | `Navbar` | `components/navigation/Navbar.jsx` | ✅ Đã code | Header sticky với pill navigation |
 | **Navigation** | `Sidebar` | `components/navigation/Sidebar.jsx` | ✅ Đã code | Collapsible sidebar cho Admin/Settings |
 | **Navigation** | `Tabs` | `components/navigation/Tabs.jsx` | ✅ Đã code | Hỗ trợ kiểu Pill và Line tab |
@@ -318,4 +319,4 @@ src/components/
 | `useSearch` | Bộ lọc tìm kiếm client-side nhanh theo từ khóa | ✅ Đã code |
 | `useServerTable` | State danh sách phân trang ở server: page, limit, search (debounce), filter, sort đồng bộ URL; đổi filter/sort về trang 1; `syncWithUrl: false` cho trang nhiều tab | ✅ Đã code |
 
-> Đi cặp với `useServerTable` ở các màn Admin là `modules/admin/components/AdminListToolbar.jsx` (SearchBar + FilterChips trạng thái + DateRangeFilter + slot `actions`).
+> Đi cặp với `useServerTable` ở các màn Admin là `modules/admin/components/AdminListToolbar.jsx` (SearchBar + FilterChips trạng thái + DateRangeFilter + slot `filters` cho hàng bộ lọc riêng + slot `actions`).

@@ -16,6 +16,7 @@ vi.mock('../../modules/playdate/api/playdateApi', () => ({
     getBusyTimes: vi.fn(),
     getFriends: vi.fn(),
     inviteParticipants: vi.fn(),
+    leavePlaydate: vi.fn(),
   },
 }));
 
@@ -76,6 +77,7 @@ const mockParticipantPlaydate = {
   isHost: false,
   myParticipantStatus: 'pending',
   myChildId: 'child-guest-1',
+  myChildIds: ['child-guest-1'],
 };
 
 describe('PlaydateDetailPage Component', () => {
@@ -139,6 +141,87 @@ describe('PlaydateDetailPage Component', () => {
     // Pending again: the status chip and the new invitee's card
     await waitFor(() => expect(screen.queryByText('Chưa có bạn tham gia')).not.toBeInTheDocument());
     expect(screen.getAllByText('Chờ phản hồi').length).toBeGreaterThanOrEqual(1);
+  });
+
+  it('lets the host invite several children of the same family', async () => {
+    const declinedPlaydate = {
+      ...mockHostPlaydate,
+      hostChildId: 'child-host',
+      scheduledDate: '2030-11-02T00:00:00',
+      displayStatus: 'awaiting_playmates',
+      participants: [],
+    };
+    playdateApi.getPlaydateById.mockResolvedValue({ data: declinedPlaydate });
+    const entry = (childId, childName) => ({
+      parent: { id: 'parent-guest-2', fullName: 'Mẹ Hoa', avatarUrl: '' },
+      child: { id: childId, displayName: childName, age: 5 },
+      matchScore: 70,
+      warnings: [],
+    });
+    playdateApi.getFriends.mockResolvedValue({
+      data: { matched: [], others: [entry('child-a', 'Bé Thư'), entry('child-b', 'Bé Tôm')] },
+    });
+    playdateApi.inviteParticipants.mockResolvedValue({ data: { ...declinedPlaydate, warnings: [] } });
+
+    renderWithProviders(<PlaydateDetailPage />);
+
+    fireEvent.click(await screen.findByRole('button', { name: 'Mời thêm bạn' }));
+    fireEvent.click(await screen.findByRole('button', { name: /Bé Thư/ }));
+    fireEvent.click(screen.getByRole('button', { name: /Bé Tôm/ }));
+    fireEvent.click(screen.getByRole('button', { name: 'Gửi lời mời (2)' }));
+
+    await waitFor(() =>
+      expect(playdateApi.inviteParticipants).toHaveBeenCalledWith('playdate-test-123', [
+        { parentId: 'parent-guest-2', childId: 'child-a' },
+        { parentId: 'parent-guest-2', childId: 'child-b' },
+      ])
+    );
+  });
+
+  it('checks every invited child of the family before the parent can accept', async () => {
+    playdateApi.getPlaydateById.mockResolvedValue({
+      data: { ...mockParticipantPlaydate, scheduledDate: '2030-11-02T00:00:00', myChildIds: ['child-guest-1', 'child-guest-2'] },
+    });
+
+    renderWithProviders(<PlaydateDetailPage />);
+
+    await waitFor(() =>
+      expect(playdateApi.getBusyTimes).toHaveBeenCalledWith({
+        childId: 'child-guest-1',
+        participantChildIds: 'child-guest-2',
+        date: '2030-11-02',
+        excludePlaydateId: 'playdate-test-123',
+      })
+    );
+  });
+
+  it('shows "Rời buổi hẹn" only when the API allows it, and leaves after confirming', async () => {
+    const joined = { ...mockParticipantPlaydate, myParticipantStatus: 'accepted', canLeave: true };
+    playdateApi.getPlaydateById.mockResolvedValue({ data: joined });
+    playdateApi.leavePlaydate.mockResolvedValue({ data: { ...joined, myParticipantStatus: 'declined', canLeave: false } });
+
+    renderWithProviders(<PlaydateDetailPage />);
+
+    fireEvent.click(await screen.findByRole('button', { name: 'Rời buổi hẹn' }));
+    expect(await screen.findByText('Rời buổi hẹn này?')).toBeInTheDocument();
+    expect(playdateApi.leavePlaydate).not.toHaveBeenCalled();
+
+    const dialogButtons = screen.getAllByRole('button', { name: 'Rời buổi hẹn' });
+    fireEvent.click(dialogButtons[dialogButtons.length - 1]);
+
+    await waitFor(() => expect(playdateApi.leavePlaydate).toHaveBeenCalledWith('playdate-test-123'));
+    await waitFor(() => expect(screen.queryByRole('button', { name: 'Rời buổi hẹn' })).not.toBeInTheDocument());
+  });
+
+  it('does NOT show "Rời buổi hẹn" without a block', async () => {
+    playdateApi.getPlaydateById.mockResolvedValue({
+      data: { ...mockParticipantPlaydate, myParticipantStatus: 'accepted', canLeave: false },
+    });
+
+    renderWithProviders(<PlaydateDetailPage />);
+
+    await screen.findByRole('heading', { level: 1, name: 'Buổi chơi Lego & Công viên' });
+    expect(screen.queryByRole('button', { name: 'Rời buổi hẹn' })).not.toBeInTheDocument();
   });
 
   it('tells an invited parent their child is busy at that time and does not let them accept', async () => {

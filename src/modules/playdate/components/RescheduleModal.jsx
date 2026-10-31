@@ -58,7 +58,8 @@ export const RescheduleModal = ({ isOpen, onClose, playdate, onSuccess }) => {
 
           <form id="reschedule-form" onSubmit={handleSubmit} className="space-y-4" noValidate>
             <Input
-              label="Ngày mới đề xuất *"
+              label="Ngày mới đề xuất"
+              required
               type="date"
               id="newDate"
               name="newDate"
@@ -71,7 +72,8 @@ export const RescheduleModal = ({ isOpen, onClose, playdate, onSuccess }) => {
 
             <div className="space-y-1.5">
               <Input
-                label="Giờ hẹn mới *"
+                label="Giờ hẹn mới"
+                required
                 type="time"
                 id="newStartTime"
                 name="newStartTime"

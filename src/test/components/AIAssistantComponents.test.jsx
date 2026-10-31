@@ -137,8 +137,8 @@ describe('ChoiceCard', () => {
     const onChoose = vi.fn();
     renderWithProviders(<ChoiceCard card={card({ durationMinutes: 90 })} onChoose={onChoose} />);
     fireEvent.click(screen.getByRole('button', { name: 'Chọn giờ khác' }));
-    fireEvent.change(screen.getByLabelText('Ngày'), { target: { value: '2099-01-03' } });
-    fireEvent.change(screen.getByLabelText('Giờ'), { target: { value: '10:30' } });
+    fireEvent.change(screen.getByLabelText(/^Ngày/), { target: { value: '2099-01-03' } });
+    fireEvent.change(screen.getByLabelText(/^Giờ/), { target: { value: '10:30' } });
     fireEvent.click(screen.getByRole('button', { name: 'Gửi' }));
     await waitFor(() =>
       expect(onChoose).toHaveBeenCalledWith({
@@ -221,7 +221,7 @@ describe('ChoiceCard', () => {
       />,
     );
     fireEvent.click(screen.getByRole('button', { name: 'Tìm bạn khác' }));
-    fireEvent.change(screen.getByLabelText('Tên các bạn muốn mời'), { target: { value: 'Bống, Mít' } });
+    fireEvent.change(screen.getByLabelText(/^Tên các bạn muốn mời/), { target: { value: 'Bống, Mít' } });
     fireEvent.click(screen.getByRole('button', { name: 'Gửi' }));
     await waitFor(() => expect(onChoose).toHaveBeenCalledWith({ custom: { text: 'Bống, Mít' }, label: 'Mời: Bống, Mít' }));
   });
@@ -260,13 +260,13 @@ describe('ChoiceCard', () => {
       />,
     );
     fireEvent.click(screen.getByRole('button', { name: 'Sửa tiêu chí' }));
-    fireEvent.change(screen.getByLabelText('Đến tuổi'), { target: { value: '2' } });
-    fireEvent.change(screen.getByLabelText('Trong (km)'), { target: { value: '' } });
+    fireEvent.change(screen.getByLabelText(/^Đến tuổi/), { target: { value: '2' } });
+    fireEvent.change(screen.getByLabelText(/^Trong \(km\)/), { target: { value: '' } });
     fireEvent.click(screen.getByRole('button', { name: 'Gửi' }));
     expect(await screen.findByText('Khoảng cách từ 1 đến 50 km.')).toBeInTheDocument();
 
     // The age order is checked once every field is valid
-    fireEvent.change(screen.getByLabelText('Trong (km)'), { target: { value: '10' } });
+    fireEvent.change(screen.getByLabelText(/^Trong \(km\)/), { target: { value: '10' } });
     fireEvent.click(screen.getByRole('button', { name: 'Gửi' }));
     expect(await screen.findByText('Tuổi lớn nhất không nhỏ hơn tuổi nhỏ nhất.')).toBeInTheDocument();
     expect(onChoose).not.toHaveBeenCalled();

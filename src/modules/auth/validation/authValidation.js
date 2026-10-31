@@ -1,6 +1,13 @@
 import { z } from 'zod';
 import { AUTH_VALIDATION_MESSAGES } from '../constants/auth.constants';
 
+export const phoneSchema = z
+  .string()
+  .trim()
+  .min(1, AUTH_VALIDATION_MESSAGES.PHONE_REQUIRED)
+  // Vietnamese mobile: 0 or +84 / 84, then a 3|5|7|8|9 carrier prefix and 8 digits
+  .regex(/^(?:\+?84|0)[35789][0-9]{8}$/, AUTH_VALIDATION_MESSAGES.PHONE_INVALID);
+
 export const loginSchema = z.object({
   email: z
     .string()
@@ -19,12 +26,7 @@ export const registerSchema = z
       .trim()
       .min(2, AUTH_VALIDATION_MESSAGES.FULL_NAME_MIN)
       .max(100, 'Họ và tên tối đa 100 ký tự'),
-    phone: z
-      .string()
-      .trim()
-      .min(1, AUTH_VALIDATION_MESSAGES.PHONE_REQUIRED)
-      // Vietnamese mobile: 0 or +84 / 84, then a 3|5|7|8|9 carrier prefix and 8 digits
-      .regex(/^(?:\+?84|0)[35789][0-9]{8}$/, AUTH_VALIDATION_MESSAGES.PHONE_INVALID),
+    phone: phoneSchema,
     email: z
       .string()
       .trim()

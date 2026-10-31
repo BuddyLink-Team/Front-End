@@ -6,11 +6,12 @@ import { cn } from '../../../utils/cn';
 import { ICON_SIZE, ICON_STROKE } from '../../../constants/icon.constants';
 
 /**
- * AdminFilterDropdown - single-choice filter button for AdminListToolbar (verification, gender, age...).
+ * AdminFilterDropdown - single-choice filter button for AdminListToolbar (severity, category, target type...).
  * The first option with an empty value means "no filter".
  *
- * @param {React.ElementType} icon - Lucide icon shown before the label
- * @param {string} header - Menu title
+ * @param {React.ElementType} [icon] - Optional Lucide icon shown before the label
+ * @param {string} [header] - Menu title (falls back to label)
+ * @param {string} [label] - Menu title when header is not given
  * @param {Array<{ label: string, value: string }>} options
  * @param {string} [value] - Selected value ('' or undefined = no filter)
  * @param {Function} onChange - Receives the chosen value
@@ -22,6 +23,7 @@ import { ICON_SIZE, ICON_STROKE } from '../../../constants/icon.constants';
 export const AdminFilterDropdown = ({
   icon: Icon,
   header,
+  label,
   options = [],
   value = '',
   onChange,
@@ -33,6 +35,7 @@ export const AdminFilterDropdown = ({
   const selected = options.find((opt) => opt.value === value) || options[0];
   const isDefaultOption = !value || value === 'all' || value === options[0]?.value;
   const isActive = !isDefaultOption;
+  const menuHeader = header || label;
 
   return (
     <Dropdown
@@ -64,7 +67,7 @@ export const AdminFilterDropdown = ({
         </Button>
       }
     >
-      {header && <DropdownHeader>{header}</DropdownHeader>}
+      {menuHeader && <DropdownHeader>{menuHeader}</DropdownHeader>}
       {options.map((opt) => {
         const isSelected =
           opt.value === value || (!value && !opt.value) || (value === 'all' && opt.value === 'all');

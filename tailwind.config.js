@@ -104,6 +104,9 @@ export default {
           'on-container': '#93000a',
           'on-error-container': '#93000a',
           'container-hover': '#ffb4ab',
+          // Critical severity and reported content
+          soft: '#ffdad6',
+          dark: '#93000a',
         },
 
         // --- Neutrals & Backgrounds ---
@@ -231,6 +234,7 @@ export default {
         'field-sm': '140px', // Table columns, compact selects
         'field-md': '200px',
         'table-users': '1200px',
+        'table-reports': '1050px',
         'table-children': '1050px',
         'col-actions': '100px',
         'col-actions-sm': '90px',

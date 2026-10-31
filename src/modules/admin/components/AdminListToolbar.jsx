@@ -17,6 +17,7 @@ import { cn } from '../../../utils/cn';
  * @param {{ options: Array<object>, selected: string|null, onChange: Function }} [statusChips] - FilterChips props
  * @param {{ from: string, to: string, onChange: Function }} [dateRange] - DateRangeFilter props
  * @param {React.ReactNode} [children] - Extra filters (e.g. a Select), shown after the search bar
+ * @param {React.ReactNode} [filters] - Extra filters on their own row, below the search bar
  * @param {React.ReactNode} [actions] - Right-aligned buttons (e.g. export)
  * @param {Function} [onExport] - Callback to trigger Excel export
  * @param {boolean} [isExporting=false] - Loading state for Excel export button
@@ -30,6 +31,7 @@ export const AdminListToolbar = ({
   statusChips,
   dateRange,
   children,
+  filters,
   actions,
   onExport,
   isExporting = false,
@@ -66,6 +68,8 @@ export const AdminListToolbar = ({
         </div>
       )}
     </div>
+
+    {filters && <div className="flex flex-wrap items-center gap-2">{filters}</div>}
 
     {(statusChips || dateRange) && (
       <div className="flex flex-col gap-2 lg:flex-row lg:items-start lg:justify-between">

@@ -304,4 +304,160 @@ export const ADMIN_ERROR_MESSAGES = Object.freeze({
   SUBSCRIPTION_NOT_FOUND: 'Không tìm thấy thuê bao này.',
   PAYMENT_NOT_FOUND: 'Không tìm thấy giao dịch này.',
   NOTIFICATION_NOT_FOUND: 'Không tìm thấy thông báo này.',
+  REPORT_NOT_FOUND: 'Không tìm thấy báo cáo này.',
+  REPORT_ALREADY_CLOSED: 'Báo cáo này đã đóng. Hãy mở lại nếu cần xử lý tiếp.',
+  REPORTED_USER_NOT_FOUND: 'Không tìm thấy phụ huynh bị báo cáo.',
+  INVALID_STATUS_TRANSITION: 'Trạng thái hiện tại của báo cáo không cho phép thao tác này.',
+  INVALID_RESOLUTION: 'Kết luận không khớp với trạng thái đóng báo cáo.',
+  INVALID_ACTION_TYPE: 'Chế tài này không áp dụng được cho đối tượng của báo cáo.',
+  ACTION_ALREADY_APPLIED: 'Chế tài này đã được áp dụng trước đó.',
+  ACTIONS_REQUIRED_FOR_RESOLVE: 'Cần thi hành ít nhất 1 chế tài trước khi đánh dấu đã xử lý.',
+  RELATED_REPORTS_REQUIRE_SANCTION: 'Chỉ đóng gộp báo cáo liên quan được khi đã đình chỉ hoặc khóa tài khoản.',
+  DURATION_DAYS_REQUIRED: 'Vui lòng chọn thời hạn đình chỉ.',
+  TARGET_NOT_FOUND: 'Đối tượng bị báo cáo không còn tồn tại.',
+});
+
+
+// ==========================================
+// SAFETY & REPORTS MODERATION CONSTANTS
+// ==========================================
+
+export const REPORT_STAT_CARDS = [
+  { key: 'pending', label: 'Chờ tiếp nhận', icon: Clock, variant: 'secondary' },
+  { key: 'reviewing', label: 'Đang xem xét', icon: UserCheck, variant: 'primary' },
+  { key: 'overdue', label: 'Quá hạn SLA', icon: Lock, variant: 'error' },
+  { key: 'resolvedThisWeek', label: 'Đã giải quyết tuần này', icon: CheckCircle2, variant: 'tertiary' },
+];
+
+export const REPORT_STATUS_DISPLAY = Object.freeze({
+  pending: { tone: 'warning', label: 'Chờ xử lý' },
+  reviewing: { tone: 'info', label: 'Đang xem xét' },
+  resolved: { tone: 'success', label: 'Đã giải quyết' },
+  dismissed: { tone: 'neutral', label: 'Bác bỏ' },
+});
+
+export const PLAYDATE_STATUS_DISPLAY = Object.freeze({
+  upcoming: { tone: 'success', label: 'Sắp diễn ra' },
+  completed: { tone: 'info', label: 'Đã hoàn thành' },
+  cancelled: { tone: 'neutral', label: 'Đã hủy' },
+});
+
+export const REPORT_NOTES_MIN_LENGTH = 10;
+export const REPORT_SUSPEND_DURATIONS = Object.freeze([3, 7, 30]);
+// Sanctions on the whole account: related reports can be closed together with them
+export const REPORT_ACCOUNT_SANCTIONS = Object.freeze(['suspend', 'ban']);
+// Most images a report can have (REPORT_LIMITS.MAX_EVIDENCE_URLS on the backend)
+export const REPORT_EVIDENCE_MAX_LINKS = 5;
+
+/**
+ * What the confirmation of a sanction says will happen
+ * @param {string} type
+ * @param {number|null} [durationDays]
+ */
+export const getReportSanctionConfirm = (type, durationDays) =>
+  ({
+    warn: {
+      title: 'Xác nhận cảnh cáo phụ huynh',
+      description: 'Phụ huynh nhận thông báo cảnh cáo và số lần cảnh cáo của tài khoản tăng thêm 1.',
+      variant: 'warning',
+    },
+    delete_message: {
+      title: 'Xác nhận xóa tin nhắn vi phạm',
+      description: 'Tin nhắn được thay bằng thông báo gỡ bỏ trong cuộc trò chuyện, ngay lập tức với mọi người tham gia.',
+      variant: 'danger',
+    },
+    cancel_playdate: {
+      title: 'Xác nhận hủy cuộc hẹn',
+      description: 'Cuộc hẹn bị hủy ngay lập tức, các gia đình tham gia được hoàn lượt và nhận thông báo.',
+      variant: 'danger',
+    },
+    suspend: {
+      title: `Xác nhận tạm đình chỉ tài khoản ${durationDays} ngày`,
+      description: `Tài khoản không đăng nhập được, bị đăng xuất và ngắt kết nối ngay trong ${durationDays} ngày, sau đó tự động mở lại.`,
+      variant: 'danger',
+    },
+    ban: {
+      title: 'Xác nhận khóa tài khoản vĩnh viễn',
+      description: 'Tài khoản không đăng nhập được nữa, bị đăng xuất và ngắt kết nối ngay lập tức.',
+      variant: 'danger',
+    },
+  })[type];
+
+export const REPORT_STATUS_CHIPS = [
+  { id: '', label: 'Tất cả', value: '', query: {} },
+  { id: 'pending', label: 'Chờ xử lý', value: 'pending', query: { status: 'pending' } },
+  { id: 'reviewing', label: 'Đang xem xét', value: 'reviewing', query: { status: 'reviewing' } },
+  { id: 'resolved', label: 'Đã giải quyết', value: 'resolved', query: { status: 'resolved' } },
+  { id: 'dismissed', label: 'Bác bỏ', value: 'dismissed', query: { status: 'dismissed' } },
+];
+
+export const REPORT_SEVERITY_CONFIG = Object.freeze({
+  critical: { label: 'Khẩn cấp', tone: 'danger', className: 'bg-error-soft text-error-dark border-error-dark' },
+  high: { label: 'Cao', tone: 'warning' },
+  medium: { label: 'Trung bình', tone: 'info' },
+  low: { label: 'Thấp', tone: 'neutral' },
+});
+
+export const REPORT_SEVERITY_OPTIONS = [
+  { label: 'Tất cả mức độ', value: '' },
+  { label: 'Khẩn cấp (Critical)', value: 'critical' },
+  { label: 'Cao (High)', value: 'high' },
+  { label: 'Trung bình (Medium)', value: 'medium' },
+  { label: 'Thấp (Low)', value: 'low' },
+];
+
+export const REPORT_CATEGORY_LABELS = Object.freeze({
+  child_safety: 'An toàn trẻ em',
+  harassment: 'Quấy rối / Đe dọa',
+  inappropriate_content: 'Nội dung phản cảm',
+  fake_profile: 'Hồ sơ giả mạo',
+  no_show: 'Bùng hẹn Playdate',
+  spam: 'Tin rác / Spam',
+  other: 'Vi phạm khác',
+});
+
+// Shown when a report has no severity or category
+export const REPORT_UNCLASSIFIED_LABEL = 'Chưa phân loại';
+
+export const getReportCategoryLabel = (category) =>
+  REPORT_CATEGORY_LABELS[category] || category || REPORT_UNCLASSIFIED_LABEL;
+
+export const REPORT_CATEGORY_OPTIONS = [
+  { label: 'Tất cả danh mục', value: '' },
+  { label: 'An toàn trẻ em', value: 'child_safety' },
+  { label: 'Quấy rối / Đe dọa', value: 'harassment' },
+  { label: 'Nội dung phản cảm', value: 'inappropriate_content' },
+  { label: 'Hồ sơ giả mạo', value: 'fake_profile' },
+  { label: 'Bùng hẹn Playdate', value: 'no_show' },
+  { label: 'Tin rác / Spam', value: 'spam' },
+  { label: 'Vi phạm khác', value: 'other' },
+];
+
+export const REPORT_TARGET_TYPE_LABELS = Object.freeze({
+  user: 'Tài khoản',
+  message: 'Tin nhắn',
+  playdate: 'Cuộc hẹn',
+});
+
+export const REPORT_TARGET_TYPE_OPTIONS = [
+  { label: 'Tất cả đối tượng', value: '' },
+  { label: 'Tài khoản', value: 'user' },
+  { label: 'Tin nhắn', value: 'message' },
+  { label: 'Cuộc hẹn Playdate', value: 'playdate' },
+];
+
+export const REPORT_ACTION_LABELS = Object.freeze({
+  warn: 'Cảnh cáo tài khoản',
+  delete_message: 'Xóa tin nhắn vi phạm',
+  cancel_playdate: 'Hủy cuộc hẹn Playdate',
+  suspend: 'Tạm đình chỉ có thời hạn',
+  ban: 'Khóa tài khoản vĩnh viễn',
+  dismiss: 'Bác bỏ báo cáo',
+  no_action: 'Không kỷ luật',
+});
+
+export const REPORT_RESOLUTION_LABELS = Object.freeze({
+  action_taken: 'Đã áp dụng chế tài kỷ luật',
+  no_action: 'Không kỷ luật (Không vi phạm / Đã giải quyết hòa giải)',
+  dismissed: 'Bác bỏ (Báo cáo sai / Không đủ bằng chứng)',
 });

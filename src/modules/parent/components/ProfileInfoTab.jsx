@@ -1,5 +1,5 @@
 import React from 'react';
-import { User, MapPin, Save, Info } from 'lucide-react';
+import { User, Phone, MapPin, Save, Info } from 'lucide-react';
 import { Input, Textarea, Button, Card } from '../../../components';
 import { useProfileInfo } from '../hooks/useParentTabHooks';
 
@@ -32,6 +32,19 @@ export const ProfileInfoTab = ({ profile, onUpdate, isUpdating }) => {
           error={errors.fullName?.message}
           required
           {...register('fullName')}
+        />
+
+        {/* Phone Field */}
+        <Input
+          id="profile-phone"
+          type="tel"
+          label="Số điện thoại"
+          placeholder="VD: 0901234567"
+          leftIcon={<Phone className="w-4 h-4 text-text-muted" />}
+          helperText="Đổi số điện thoại sẽ cần xác thực lại bằng mã OTP"
+          error={errors.phone?.message}
+          required
+          {...register('phone')}
         />
 
         {/* Bio Field */}

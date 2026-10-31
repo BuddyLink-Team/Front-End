@@ -105,6 +105,7 @@ export const ForgotPasswordPage = () => {
           <Input
             id="forgot-email"
             label="Địa chỉ Email đăng ký"
+            required
             placeholder="phuhuynh@buddylink.vn"
             type="email"
             autoComplete="email"

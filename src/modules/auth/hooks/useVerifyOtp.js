@@ -1,7 +1,9 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { useAuth } from './useAuth';
+import { fetchMyChildren } from '../../child/redux/childSlice';
+import { clearParentState } from '../../parent/redux/parentSlice';
 import { getRoleHomePath } from '../../../constants/role.constants';
 import {
   isFirebaseConfigured,
@@ -21,6 +23,7 @@ import {
  */
 export const useVerifyOtp = () => {
   const navigate = useNavigate();
+  const dispatch = useDispatch();
   const { user, parent } = useSelector((state) => state.auth);
   const {
     isSubmitting,
@@ -212,6 +215,15 @@ export const useVerifyOtp = () => {
     }
   };
 
+  // Parents re-verifying after a phone change already have children: only new accounts need onboarding.
+  // The cached profile is dropped so the profile screen reloads the verified number and status.
+  const leaveVerification = async () => {
+    dispatch(clearParentState());
+    const result = await dispatch(fetchMyChildren());
+    const hasChildren = fetchMyChildren.fulfilled.match(result) && result.payload?.length > 0;
+    navigate(hasChildren ? getRoleHomePath(user?.role) : '/onboarding-child', { replace: true });
+  };
+
   // Submit OTP Verification
   const handleVerifySubmit = async (e) => {
     e?.preventDefault();
@@ -249,7 +261,7 @@ export const useVerifyOtp = () => {
 
       if (verifySuccess) {
         if (isEmailVerified) {
-          navigate('/onboarding-child', { replace: true });
+          await leaveVerification();
         } else {
           setActiveStep('EMAIL');
           setOtpDigits(['', '', '', '', '', '']);
@@ -261,7 +273,7 @@ export const useVerifyOtp = () => {
     } else {
       const res = await handleVerifyEmailOtp(otpCode);
       if (res.success) {
-        navigate('/onboarding-child', { replace: true });
+        await leaveVerification();
       }
     }
   };

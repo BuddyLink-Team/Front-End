@@ -31,6 +31,33 @@ export const fetchAdminChildDetail = createApiThunk('admin/fetchChildDetail', (c
   adminApi.getChildDetail(childId)
 );
 
+// Safety & reports moderation
+export const fetchAdminReports = createApiThunk('admin/fetchReports', (params) => adminApi.getReports(params));
+
+export const fetchAdminReportStats = createApiThunk('admin/fetchReportStats', () => adminApi.getReportStats());
+
+export const fetchAdminReportDetail = createApiThunk('admin/fetchReportDetail', (id) => adminApi.getReportDetail(id));
+
+export const reviewAdminReport = createApiThunk('admin/reviewReport', ({ id, action }) =>
+  adminApi.reviewReport(id, { action })
+);
+
+export const updateAdminReportSeverity = createApiThunk('admin/updateReportSeverity', ({ id, severity }) =>
+  adminApi.updateReportSeverity(id, { severity })
+);
+
+export const applyAdminReportAction = createApiThunk('admin/applyReportAction', ({ id, payload }) =>
+  adminApi.applyReportAction(id, payload)
+);
+
+export const resolveAdminReport = createApiThunk('admin/resolveReport', ({ id, payload }) =>
+  adminApi.resolveReport(id, payload)
+);
+
+export const reopenAdminReport = createApiThunk('admin/reopenReport', ({ id, note }) =>
+  adminApi.reopenReport(id, { note })
+);
+
 // Playdates & connections oversight: list, detail, and the admin action on one of them
 export const fetchAdminPlaydates = createApiThunk('admin/fetchPlaydates', (params) => adminApi.getPlaydates(params));
 
@@ -139,6 +166,7 @@ const initialState = {
   isUpdatingStatus: false,
   playdateDetail: { ...emptyDetail },
   connectionDetail: { ...emptyDetail },
+  reportDetail: { ...emptyDetail },
   isOversightActionLoading: false,
 };
 
@@ -197,6 +225,9 @@ export const adminSlice = createSlice({
     },
     clearConnectionDetail: (state) => {
       state.connectionDetail = { ...emptyDetail };
+    },
+    clearReportDetail: (state) => {
+      state.reportDetail = { ...emptyDetail };
     },
     // Newest first, when it belongs to the filtered list
     adminNotificationReceived: (state, action) => {
@@ -340,6 +371,10 @@ export const adminSlice = createSlice({
 
     addOversightDetailCases(builder, fetchAdminPlaydateDetail, 'playdateDetail');
     addOversightDetailCases(builder, fetchAdminConnectionDetail, 'connectionDetail');
+    addOversightDetailCases(builder, fetchAdminReportDetail, 'reportDetail');
+    [reviewAdminReport, updateAdminReportSeverity, applyAdminReportAction, resolveAdminReport, reopenAdminReport].forEach(
+      (thunk) => addOversightActionCases(builder, thunk)
+    );
     addOversightActionCases(builder, cancelAdminPlaydate);
     addOversightActionCases(builder, removeAdminConnection);
   },
@@ -349,7 +384,7 @@ export const {
   adminNotificationReceived,
   adminUnreadCountReceived,
   adminNotificationSocketStatusChanged,
-  resetAdminNotifications, clearUserDetail, clearChildDetail, clearPlaydateDetail, clearConnectionDetail } = adminSlice.actions;
+  resetAdminNotifications, clearUserDetail, clearChildDetail, clearPlaydateDetail, clearConnectionDetail, clearReportDetail } = adminSlice.actions;
 
 /**
  * Page 1 of the list with its current filters, and the unread counts (after a reconnection or on demand)

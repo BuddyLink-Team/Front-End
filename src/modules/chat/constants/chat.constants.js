@@ -53,6 +53,8 @@ export const SOCKET_EVENTS = Object.freeze({
   READ_STATUS: 'read_status',
   MESSAGE_READ: 'message_read',
   CONVERSATION_UPDATED: 'conversation_updated',
+  MESSAGE_DELETED: 'message_deleted',
+  ACCOUNT_LOCKED: 'account_locked',
 });
 
 // Must match the image types accepted by the backend upload middleware

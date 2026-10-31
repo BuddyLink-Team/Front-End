@@ -20,6 +20,7 @@ import {
   StickyNote,
   UserPlus,
   Flag,
+  LogOut,
 } from 'lucide-react';
 import { Button } from '../../../components/ui/Button';
 import { Input } from '../../../components/ui/Input';
@@ -247,9 +248,10 @@ const CreatePlaydateForm = () => {
       return (
         <>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <Input label="Tên địa điểm" placeholder="Ví dụ: Công viên Biển Đông" {...register('locationName')} />
+            <Input label="Tên địa điểm" required placeholder="Ví dụ: Công viên Biển Đông" {...register('locationName')} />
             <Input
               label="Địa chỉ cụ thể"
+              required
               placeholder="Ví dụ: Võ Nguyên Giáp, Phường Phước Mỹ, Đà Nẵng"
               {...register('locationAddress')}
             />
@@ -361,6 +363,7 @@ const CreatePlaydateForm = () => {
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <Input
             label="Ngày"
+            required
             type="date"
             min={todayStr}
             {...register('scheduledDate')}
@@ -370,6 +373,7 @@ const CreatePlaydateForm = () => {
           <div className="space-y-2">
             <Input
               label="Giờ bắt đầu"
+              required
               type="time"
               {...register('time')}
               error={errors.time?.message}
@@ -498,7 +502,7 @@ const CreatePlaydateForm = () => {
           {submitButton}
           <p className="text-xs text-text-muted flex items-start gap-2">
             <MessageCircle className="w-3.5 h-3.5 shrink-0 mt-0.5" />
-            Nhóm chat sẽ được tạo tự động cho tất cả phụ huynh được mời.
+            Nhóm chat được tạo tự động, phụ huynh được mời sẽ vào nhóm khi nhận lời.
           </p>
         </>
       }
@@ -553,17 +557,21 @@ const PlaydateDetails = () => {
     canReschedule,
     canComplete,
     canInvite,
+    canLeave,
     myPendingVote,
     showCancelModal,
     showRescheduleModal,
     showInviteModal,
+    showLeaveModal,
     setShowCancelModal,
     setShowRescheduleModal,
     setShowInviteModal,
+    setShowLeaveModal,
     handleComplete,
     handleCancel,
     handleRespond,
     handleInvite,
+    handleLeave,
     handleVoteReschedule,
     handleRescheduleSuccess,
     navigate,
@@ -584,7 +592,8 @@ const PlaydateDetails = () => {
   if (!playdate) return null;
 
   const participants = playdate.participants || [];
-  const acceptedCount = participants.filter((p) => p.status === 'accepted').length;
+  // A family with several children has one entry per child
+  const acceptedFamilies = new Set(participants.filter((p) => p.status === 'accepted').map((p) => p.parentId)).size;
   const canCancel = isHost && isUpcoming;
   const isAwaitingPlaymates = playdate.displayStatus === PLAYDATE_STATUS_KEYS.AWAITING_PLAYMATES;
   const inviteButton = canInvite && (
@@ -614,7 +623,7 @@ const PlaydateDetails = () => {
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <ParticipantCard parent={playdate.hostParent} childName={playdate.hostChild?.displayName} status="host" />
           {participants.map((p) => (
-            <ParticipantCard key={p.parentId} parent={p.parent} childName={p.child?.displayName} status={p.status} />
+            <ParticipantCard key={`${p.parentId}-${p.childId}`} parent={p.parent} childName={p.child?.displayName} status={p.status} />
           ))}
         </div>
         {participants.length === 0 && isHost && (
@@ -670,7 +679,7 @@ const PlaydateDetails = () => {
     ),
   };
 
-  const hasActions = canOpenGroupChat || canReschedule || canComplete || canCancel || canReport;
+  const hasActions = canOpenGroupChat || canReschedule || canComplete || canCancel || canLeave || canReport;
   const actions = hasActions ? (
     <>
       {canComplete && (
@@ -722,6 +731,18 @@ const PlaydateDetails = () => {
           Hủy hẹn
         </Button>
       )}
+      {canLeave && (
+        <Button
+          type="button"
+          variant="ghost"
+          size="md"
+          onClick={() => setShowLeaveModal(true)}
+          leftIcon={<LogOut className="w-4 h-4" />}
+          className="w-full rounded-xl text-error hover:bg-error/10"
+        >
+          Rời buổi hẹn
+        </Button>
+      )}
       {canReport && (
         <Button
           type="button"
@@ -766,7 +787,7 @@ const PlaydateDetails = () => {
       steps={steps}
       stepProps={{
         family: {
-          aside: <span className="font-semibold text-primary-dark">{acceptedCount + 1} gia đình tham gia</span>,
+          aside: <span className="font-semibold text-primary-dark">{acceptedFamilies + 1} gia đình tham gia</span>,
         },
       }}
       after={playdate.status === 'completed' && <PlaydateRatingsSection playdate={playdate} />}
@@ -810,6 +831,17 @@ const PlaydateDetails = () => {
         isLoading={isActionLoading}
         onConfirm={handleCancel}
         onCancel={() => setShowCancelModal(false)}
+      />
+      <ConfirmDialog
+        open={showLeaveModal}
+        title="Rời buổi hẹn này?"
+        description="Gia đình bạn sẽ không còn trong buổi hẹn và nhóm chat của buổi hẹn. Lượt tham gia đã dùng trong tháng không được hoàn lại."
+        confirmLabel="Rời buổi hẹn"
+        cancelLabel="Ở lại"
+        variant="danger"
+        isLoading={isActionLoading}
+        onConfirm={handleLeave}
+        onCancel={() => setShowLeaveModal(false)}
       />
       <ReportModal isOpen={Boolean(reportTarget)} onClose={closeReport} target={reportTarget} />
     </PlaydateFormLayout>
