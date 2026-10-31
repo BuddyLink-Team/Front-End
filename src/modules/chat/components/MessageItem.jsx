@@ -80,7 +80,7 @@ export const MessageItem = ({
               )}
             </>
           ) : (
-            onReportMessage && (
+            onReportMessage && !message.isDeleted && (
               <>
                 <span>•</span>
                 <button
@@ -112,7 +112,7 @@ export const MessageItem = ({
 
       {/* Text Content (if not just default placeholder for image) */}
       {message.content && message.content !== '[Hình ảnh]' && (
-        <p className="whitespace-pre-wrap">{message.content}</p>
+        <p className={message.isDeleted ? 'italic' : 'whitespace-pre-wrap'}>{message.content}</p>
       )}
     </ChatBubble>
   );

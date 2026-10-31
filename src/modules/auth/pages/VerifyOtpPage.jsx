@@ -18,6 +18,7 @@ export const VerifyOtpPage = () => {
   const {
     user,
     isPhoneVerified,
+    isEmailVerified,
     activeStep,
     phoneNumber,
     isEditingPhone,
@@ -43,6 +44,8 @@ export const VerifyOtpPage = () => {
   } = useVerifyOtp();
 
   const isAwaitingPhoneSend = activeStep === 'PHONE' && !isPhoneOtpSent;
+  // Email already verified (phone changed, or Google sign-up): the SMS code is the only step left
+  const isPhoneOnly = activeStep === 'PHONE' && isEmailVerified;
 
   return (
     <div className="w-full flex items-center justify-center py-6 sm:py-12 relative selection:bg-primary-container selection:text-on-primary-container">
@@ -62,28 +65,32 @@ export const VerifyOtpPage = () => {
           <div className="flex items-center gap-2 bg-surface-container-low px-3.5 py-1.5 rounded-full border border-hairline/80">
             <span className="w-2 h-2 rounded-full bg-primary animate-pulse" />
             <span className="text-xs text-on-surface-variant uppercase tracking-wider font-semibold">
-              {activeStep === 'PHONE'
-                ? 'Bước 1/2: Xác thực SĐT'
-                : 'Bước 2/2: Xác thực Email'}
+              {isPhoneOnly
+                ? 'Chỉ cần xác thực SMS'
+                : activeStep === 'PHONE'
+                  ? 'Bước 1/2: Xác thực SĐT'
+                  : 'Bước 2/2: Xác thực Email'}
             </span>
           </div>
 
-          <div className="flex items-center gap-2">
-            <div
-              className={`w-8 h-1.5 rounded-full transition-all duration-300 ${
-                activeStep === 'PHONE' || isPhoneVerified
-                  ? 'bg-primary'
-                  : 'bg-surface-container-highest'
-              }`}
-            />
-            <div
-              className={`w-8 h-1.5 rounded-full transition-all duration-300 ${
-                activeStep === 'EMAIL'
-                  ? 'bg-primary'
-                  : 'bg-surface-container-highest'
-              }`}
-            />
-          </div>
+          {!isPhoneOnly && (
+            <div className="flex items-center gap-2">
+              <div
+                className={`w-8 h-1.5 rounded-full transition-all duration-300 ${
+                  activeStep === 'PHONE' || isPhoneVerified
+                    ? 'bg-primary'
+                    : 'bg-surface-container-highest'
+                }`}
+              />
+              <div
+                className={`w-8 h-1.5 rounded-full transition-all duration-300 ${
+                  activeStep === 'EMAIL'
+                    ? 'bg-primary'
+                    : 'bg-surface-container-highest'
+                }`}
+              />
+            </div>
+          )}
         </div>
 
         {/* Center Illustration Icon & Title */}
@@ -134,11 +141,15 @@ export const VerifyOtpPage = () => {
           </div>
 
           <p className="text-sm text-on-surface-variant max-w-otp-text leading-relaxed">
-            {isAwaitingPhoneSend
-              ? 'Bấm "Gửi mã OTP" để BuddyLink gửi mã bảo mật 6 chữ số đến số điện thoại của bạn nhằm xác thực thành viên và bảo vệ an toàn mạng lưới kết nối phụ huynh.'
-              : activeStep === 'PHONE'
-                ? 'BuddyLink đã gửi mã bảo mật 6 chữ số đến thiết bị của bạn nhằm xác thực thành viên và bảo vệ an toàn mạng lưới kết nối phụ huynh.'
-                : 'BuddyLink đã gửi mã bảo mật 6 chữ số đến hộp thư của bạn nhằm hoàn tất chứng nhận tài khoản an toàn.'}
+            {isPhoneOnly
+              ? isAwaitingPhoneSend
+                ? 'Email của bạn đã được xác thực. Bấm "Gửi mã OTP" rồi nhập mã 6 chữ số nhận qua SMS là hoàn tất.'
+                : 'Email của bạn đã được xác thực. Chỉ cần nhập mã 6 chữ số vừa gửi qua SMS là hoàn tất.'
+              : isAwaitingPhoneSend
+                ? 'Bấm "Gửi mã OTP" để BuddyLink gửi mã bảo mật 6 chữ số đến số điện thoại của bạn nhằm xác thực thành viên và bảo vệ an toàn mạng lưới kết nối phụ huynh.'
+                : activeStep === 'PHONE'
+                  ? 'BuddyLink đã gửi mã bảo mật 6 chữ số đến thiết bị của bạn nhằm xác thực thành viên và bảo vệ an toàn mạng lưới kết nối phụ huynh.'
+                  : 'BuddyLink đã gửi mã bảo mật 6 chữ số đến hộp thư của bạn nhằm hoàn tất chứng nhận tài khoản an toàn.'}
           </p>
         </div>
 
@@ -233,6 +244,7 @@ export const VerifyOtpPage = () => {
             <Input
               id="new-phone"
               label="Nhập số điện thoại mới"
+              required
               placeholder="VD: 0912345678"
               value={newPhoneInput}
               onChange={(e) => setNewPhoneInput(e.target.value)}
@@ -257,91 +269,93 @@ export const VerifyOtpPage = () => {
         ) : null}
 
         {/* Parent Profile Step Progress Box matching Stitch */}
-        <div className="bg-surface-container-low/60 rounded-2xl p-4 sm:p-5 mb-8 border border-hairline/80">
-          <div className="flex items-center justify-between mb-3 text-xs">
-            <span className="uppercase tracking-wider text-text-muted font-semibold">
-              Tiến trình hồ sơ phụ huynh
-            </span>
-            <span className="text-primary font-semibold">
-              {activeStep === 'PHONE' ? '50% hoàn tất' : '75% hoàn tất'}
-            </span>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
-            {/* Step 1: General Info */}
-            <div className="flex items-center gap-2.5 bg-white p-2.5 rounded-xl shadow-sm border border-hairline/60">
-              <div className="w-6 h-6 rounded-full bg-primary/20 text-primary flex items-center justify-center shrink-0">
-                <Check className="w-3.5 h-3.5 stroke-2.5" />
-              </div>
-              <div className="flex flex-col min-w-0">
-                <span className="text-xs text-on-surface font-semibold truncate">
-                  1. Thông tin chung
-                </span>
-                <span className="text-label-xs text-primary leading-tight font-medium">
-                  Đã ghi nhận
-                </span>
-              </div>
+        {!isPhoneOnly && (
+          <div className="bg-surface-container-low/60 rounded-2xl p-4 sm:p-5 mb-8 border border-hairline/80">
+            <div className="flex items-center justify-between mb-3 text-xs">
+              <span className="uppercase tracking-wider text-text-muted font-semibold">
+                Tiến trình hồ sơ phụ huynh
+              </span>
+              <span className="text-primary font-semibold">
+                {activeStep === 'PHONE' ? '50% hoàn tất' : '75% hoàn tất'}
+              </span>
             </div>
 
-            {/* Step 2: Phone Verification */}
-            <div
-              className={`flex items-center gap-2.5 bg-white p-2.5 rounded-xl shadow-sm border border-hairline/60 ${
-                activeStep === 'PHONE' ? 'ring-2 ring-primary/30' : ''
-              }`}
-            >
-              <div
-                className={`w-6 h-6 rounded-full flex items-center justify-center shrink-0 text-white ${
-                  isPhoneVerified || activeStep === 'EMAIL'
-                    ? 'bg-primary'
-                    : 'bg-primary'
-                }`}
-              >
-                {isPhoneVerified || activeStep === 'EMAIL' ? (
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+              {/* Step 1: General Info */}
+              <div className="flex items-center gap-2.5 bg-white p-2.5 rounded-xl shadow-sm border border-hairline/60">
+                <div className="w-6 h-6 rounded-full bg-primary/20 text-primary flex items-center justify-center shrink-0">
                   <Check className="w-3.5 h-3.5 stroke-2.5" />
-                ) : (
-                  <Smartphone className="w-3.5 h-3.5" />
-                )}
+                </div>
+                <div className="flex flex-col min-w-0">
+                  <span className="text-xs text-on-surface font-semibold truncate">
+                    1. Thông tin chung
+                  </span>
+                  <span className="text-label-xs text-primary leading-tight font-medium">
+                    Đã ghi nhận
+                  </span>
+                </div>
               </div>
-              <div className="flex flex-col min-w-0">
-                <span className="text-xs text-on-surface font-semibold truncate">
-                  2. Xác thực SĐT
-                </span>
-                <span className="text-label-xs text-primary leading-tight font-medium">
-                  {isPhoneVerified || activeStep === 'EMAIL'
-                    ? 'Đã xác thực'
-                    : 'Đang nhập mã OTP'}
-                </span>
-              </div>
-            </div>
 
-            {/* Step 3: Email Verification */}
-            <div
-              className={`flex items-center gap-2.5 bg-white p-2.5 rounded-xl shadow-sm border border-hairline/60 ${
-                activeStep === 'EMAIL'
-                  ? 'ring-2 ring-primary/30'
-                  : 'opacity-75 bg-surface-container-low/50'
-              }`}
-            >
+              {/* Step 2: Phone Verification */}
               <div
-                className={`w-6 h-6 rounded-full flex items-center justify-center shrink-0 ${
-                  activeStep === 'EMAIL'
-                    ? 'bg-primary text-white'
-                    : 'bg-surface-container-highest text-text-muted'
+                className={`flex items-center gap-2.5 bg-white p-2.5 rounded-xl shadow-sm border border-hairline/60 ${
+                  activeStep === 'PHONE' ? 'ring-2 ring-primary/30' : ''
                 }`}
               >
-                <Mail className="w-3.5 h-3.5" />
+                <div
+                  className={`w-6 h-6 rounded-full flex items-center justify-center shrink-0 text-white ${
+                    isPhoneVerified || activeStep === 'EMAIL'
+                      ? 'bg-primary'
+                      : 'bg-primary'
+                  }`}
+                >
+                  {isPhoneVerified || activeStep === 'EMAIL' ? (
+                    <Check className="w-3.5 h-3.5 stroke-2.5" />
+                  ) : (
+                    <Smartphone className="w-3.5 h-3.5" />
+                  )}
+                </div>
+                <div className="flex flex-col min-w-0">
+                  <span className="text-xs text-on-surface font-semibold truncate">
+                    2. Xác thực SĐT
+                  </span>
+                  <span className="text-label-xs text-primary leading-tight font-medium">
+                    {isPhoneVerified || activeStep === 'EMAIL'
+                      ? 'Đã xác thực'
+                      : 'Đang nhập mã OTP'}
+                  </span>
+                </div>
               </div>
-              <div className="flex flex-col min-w-0">
-                <span className="text-xs text-on-surface-variant font-medium truncate">
-                  3. Xác thực Email
-                </span>
-                <span className="text-label-xs text-text-muted leading-tight">
-                  {activeStep === 'EMAIL' ? 'Đang thực hiện' : 'Bước kế tiếp'}
-                </span>
+
+              {/* Step 3: Email Verification */}
+              <div
+                className={`flex items-center gap-2.5 bg-white p-2.5 rounded-xl shadow-sm border border-hairline/60 ${
+                  activeStep === 'EMAIL'
+                    ? 'ring-2 ring-primary/30'
+                    : 'opacity-75 bg-surface-container-low/50'
+                }`}
+              >
+                <div
+                  className={`w-6 h-6 rounded-full flex items-center justify-center shrink-0 ${
+                    activeStep === 'EMAIL'
+                      ? 'bg-primary text-white'
+                      : 'bg-surface-container-highest text-text-muted'
+                  }`}
+                >
+                  <Mail className="w-3.5 h-3.5" />
+                </div>
+                <div className="flex flex-col min-w-0">
+                  <span className="text-xs text-on-surface-variant font-medium truncate">
+                    3. Xác thực Email
+                  </span>
+                  <span className="text-label-xs text-text-muted leading-tight">
+                    {activeStep === 'EMAIL' ? 'Đang thực hiện' : 'Bước kế tiếp'}
+                  </span>
+                </div>
               </div>
             </div>
           </div>
-        </div>
+        )}
 
         {/* Action Buttons */}
         <div className="flex flex-col gap-3.5 w-full">
@@ -353,9 +367,11 @@ export const VerifyOtpPage = () => {
             disabled={!isFormComplete || isSubmitting}
             rightIcon={<ArrowRight className="w-4 h-4" />}
           >
-            {activeStep === 'PHONE'
-              ? 'Xác nhận & Tiếp tục xác thực Email'
-              : 'Xác nhận & Hoàn tất bảo mật'}
+            {isPhoneOnly
+              ? 'Xác nhận & Hoàn tất'
+              : activeStep === 'PHONE'
+                ? 'Xác nhận & Tiếp tục xác thực Email'
+                : 'Xác nhận & Hoàn tất bảo mật'}
           </Button>
 
           {activeStep === 'PHONE' && !isEditingPhone && (

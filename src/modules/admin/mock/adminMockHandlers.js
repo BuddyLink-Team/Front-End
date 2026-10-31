@@ -1,13 +1,56 @@
 import adminMockService from './adminMockService';
 import adminSubscriptionMockService from './adminSubscriptionMockService';
 import adminAnalyticsMockService from './adminAnalyticsMockService';
+import adminReportMockService from './adminReportMockService';
 
 /**
  * Route handler definitions for Admin Playdates & Connections oversight, Subscription plans & revenue,
- * and Dashboard Analytics & Realtime Notifications.
+ * Dashboard Analytics & Realtime Notifications, and Safety & Reports Moderation.
  * Consumed by Central Mock Server Engine (src/mock/index.js).
  */
 export const adminMockHandlers = [
+  // Safety & Reports Moderation (/stats placed before :id)
+  {
+    method: 'GET',
+    pattern: '/admin/reports/stats',
+    handler: () => adminReportMockService.getReportStats(),
+  },
+  {
+    method: 'PATCH',
+    pattern: '/admin/reports/:id/review',
+    handler: ({ params, body }) => adminReportMockService.reviewReport(params.id, body),
+  },
+  {
+    method: 'PATCH',
+    pattern: '/admin/reports/:id/severity',
+    handler: ({ params, body }) => adminReportMockService.updateReportSeverity(params.id, body),
+  },
+  {
+    method: 'POST',
+    pattern: '/admin/reports/:id/action',
+    handler: ({ params, body }) => adminReportMockService.applyReportAction(params.id, body),
+  },
+  {
+    method: 'PATCH',
+    pattern: '/admin/reports/:id/resolve',
+    handler: ({ params, body }) => adminReportMockService.resolveReport(params.id, body),
+  },
+  {
+    method: 'PATCH',
+    pattern: '/admin/reports/:id/reopen',
+    handler: ({ params, body }) => adminReportMockService.reopenReport(params.id, body),
+  },
+  {
+    method: 'GET',
+    pattern: '/admin/reports/:id',
+    handler: ({ params }) => adminReportMockService.getReportDetail(params.id),
+  },
+  {
+    method: 'GET',
+    pattern: '/admin/reports',
+    handler: ({ query }) => adminReportMockService.getReports(query),
+  },
+
   // Analytics
   {
     method: 'GET',

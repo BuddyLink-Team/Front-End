@@ -14,7 +14,7 @@ const normalize = (text) => removeAccents(text).toLowerCase().trim();
  * Host invites more friends' children to an upcoming playdate (e.g. once every invitee declined).
  * Lists the children of connected families ranked for the host child, without the families still invited or joined
  * (a family who declined or left can be invited again);
- * one child per family, as at creation.
+ * several children of a family can be picked, as at creation.
  *
  * @param {boolean} isOpen
  * @param {Function} onClose
@@ -61,12 +61,11 @@ export const InvitePlaymatesModal = ({ isOpen, onClose, playdate, onInvite, isSu
     return { matched: lists.matched.filter(matches), others: lists.others.filter(matches) };
   }, [lists, query]);
 
-  // One child per family: picking another child of the same family replaces it
   const toggle = (entry) =>
     setSelected((prev) =>
       prev.some((p) => p.childId === entry.child.id)
         ? prev.filter((p) => p.childId !== entry.child.id)
-        : [...prev.filter((p) => p.parentId !== entry.parent.id), { parentId: entry.parent.id, childId: entry.child.id }]
+        : [...prev, { parentId: entry.parent.id, childId: entry.child.id }]
     );
 
   const submit = async () => {

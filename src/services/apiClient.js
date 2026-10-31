@@ -43,7 +43,7 @@ const refreshAccessToken = async () => {
 /**
  * Drop the local session (cached profile + tokens) and go to the login page.
  */
-const endSession = () => {
+export const endSession = () => {
   tokenStore.clear();
   socketService.disconnect();
   localStorage.removeItem(STORAGE_KEYS.USER_INFO);

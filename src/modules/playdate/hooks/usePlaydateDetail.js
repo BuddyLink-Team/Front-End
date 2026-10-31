@@ -10,6 +10,7 @@ import {
   cancelPlaydate,
   respondToPlaydate,
   inviteParticipants,
+  leavePlaydate,
   voteRescheduleRequest,
 } from '../redux/playdateSlice';
 import { PLAYDATE_ERROR_MESSAGES, PLAYDATE_WARNING_CODES, RESCHEDULE_STATUS } from '../constants/playdate.constants';
@@ -38,6 +39,7 @@ export const usePlaydateDetail = () => {
   const [cancelReason, setCancelReason] = useState('');
   const [showRescheduleModal, setShowRescheduleModal] = useState(false);
   const [showInviteModal, setShowInviteModal] = useState(false);
+  const [showLeaveModal, setShowLeaveModal] = useState(false);
   const [hasLoadFailed, setHasLoadFailed] = useState(false);
 
   const fetchDetail = useCallback(async () => {
@@ -69,6 +71,8 @@ export const usePlaydateDetail = () => {
   const canComplete = isHost && isUpcoming && hasStarted;
   // More friends can be invited until the playdate starts (e.g. once every invitee declined)
   const canInvite = isHost && isUpcoming && !hasStarted;
+  // A family who joined and blocked another member can leave (decided by the API)
+  const canLeave = Boolean(currentPlaydate?.canLeave);
   const pendingReschedule = rescheduleReq?.status === RESCHEDULE_STATUS.PENDING ? rescheduleReq : null;
   const myPendingVote = pendingReschedule?.myVote === 'pending';
   // Latest decided request (accepted / declined), shown so the host learns the outcome
@@ -129,7 +133,7 @@ export const usePlaydateDetail = () => {
   const handleInvite = async (participants) => {
     const result = await runAction(
       inviteParticipants({ id, participants }),
-      participants.length > 1 ? `Đã gửi lời mời tới ${participants.length} gia đình.` : 'Đã gửi lời mời.',
+      participants.length > 1 ? `Đã gửi lời mời cho ${participants.length} bé.` : 'Đã gửi lời mời.',
       'Không thể gửi lời mời.',
     );
     // Busy children are still invited: they are checked again when their parent accepts
@@ -137,6 +141,14 @@ export const usePlaydateDetail = () => {
       toast.toast('Có bé đã có lịch hẹn khác trùng giờ này. Phụ huynh của bé có thể chưa nhận lời được.', { icon: '⚠️' });
     }
     return Boolean(result);
+  };
+
+  const handleLeave = async () => {
+    const result = await runAction(leavePlaydate(id), 'Bạn đã rời buổi hẹn.', 'Không thể rời buổi hẹn.');
+    if (result) {
+      setShowLeaveModal(false);
+      dispatch(fetchRescheduleRequest(id));
+    }
   };
 
   const handleVoteReschedule = (voteStatus) => {
@@ -167,20 +179,24 @@ export const usePlaydateDetail = () => {
     canReschedule,
     canComplete,
     canInvite,
+    canLeave,
     canOpenGroupChat,
     myPendingVote,
     showCancelModal,
     cancelReason,
     showRescheduleModal,
     showInviteModal,
+    showLeaveModal,
     setShowCancelModal,
     setCancelReason,
     setShowRescheduleModal,
     setShowInviteModal,
+    setShowLeaveModal,
     handleComplete,
     handleCancel,
     handleRespond,
     handleInvite,
+    handleLeave,
     handleVoteReschedule,
     handleRescheduleSuccess,
     navigate,

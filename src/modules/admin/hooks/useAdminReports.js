@@ -1,296 +1,183 @@
-
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 import { useServerTable } from '../../../hooks/useServerTable';
 import { useToast } from '../../../hooks/useToast';
 import { getApiErrorMsg } from '../../../utils/errorUtils';
-import adminApi from '../api/adminApi';
-import { useAdminExport } from './useAdminExport';
+import { ADMIN_ERROR_MESSAGES, REPORT_STATUS_CHIPS } from '../constants/admin.constants';
+import {
+  applyAdminReportAction,
+  clearReportDetail,
+  fetchAdminReportDetail,
+  fetchAdminReports,
+  fetchAdminReportStats,
+  reopenAdminReport,
+  resolveAdminReport,
+  reviewAdminReport,
+  updateAdminReportSeverity,
+} from '../redux/adminSlice';
 import { fetchAllPages } from '../utils/excelExport';
 import { buildModerationReportSheets } from '../utils/moderationReport';
+import { useAdminExport } from './useAdminExport';
+import { useAdminStats } from './useAdminStats';
 
+const EXPORT_SUCCESS_MESSAGE = 'Xuất file báo cáo Excel thành công';
+
+/**
+ * Moderation queue: server-side list kept in the URL, stat strip, Excel export and the investigation
+ * drawer. The report is fetched again every time the drawer opens; each action shows a toast, then the
+ * drawer, the list and the counts refresh.
+ */
 export const useAdminReports = () => {
+  const dispatch = useDispatch();
   const { success, error: toastError } = useToast();
+  const detail = useSelector((state) => state.admin.reportDetail);
+  const isActionLoading = useSelector((state) => state.admin.isOversightActionLoading);
 
-  const fetchReports = useCallback(async (params) => {
-    const response = await adminApi.getReports(params);
-    return response.data;
-  }, []);
+  const fetcher = useCallback((params) => dispatch(fetchAdminReports(params)).unwrap(), [dispatch]);
+  const table = useServerTable({ fetcher, defaultParams: { limit: 10 } });
+  const { params, filters, searchInput, setSearch, setFilters, refetch } = table;
 
-  const table = useServerTable({
-    fetcher: fetchReports,
-    defaultParams: {
-      limit: 10,
-      status: '',
-      severity: '',
-      category: '',
-      targetType: '',
-      assignedTo: '',
-    },
-  });
+  const { stats, isLoading: isStatsLoading, hasError: hasStatsError, reload: reloadStats } = useAdminStats(fetchAdminReportStats);
 
-  const {
-    rows,
-    pagination,
-    isLoading: isTableLoading,
-    error: tableError,
-    params,
-    searchInput,
-    setSearch,
-    setFilter,
-    setFilters,
-    setPage,
-    refetch: refetchTable,
-  } = table;
-
-  // Stats
-  const [stats, setStats] = useState(null);
-  const [isStatsLoading, setIsStatsLoading] = useState(true);
-
-  const reloadStats = useCallback(async () => {
-    setIsStatsLoading(true);
-    try {
-      const response = await adminApi.getReportStats();
-      setStats(response.data?.data || response.data || null);
-    } catch (_err) {
-      // Ignore stats error
-    } finally {
-      setIsStatsLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    reloadStats();
-  }, [reloadStats]);
-
-  // Drawer detail state
   const [selectedReportId, setSelectedReportId] = useState(null);
-  const [drawerReport, setDrawerReport] = useState(null);
-  const [isDrawerLoading, setIsDrawerLoading] = useState(false);
 
-  const fetchDrawerDetail = useCallback(async (id) => {
-    if (!id) {
-      setDrawerReport(null);
-      return;
-    }
-
-    setIsDrawerLoading(true);
-    try {
-      const response = await adminApi.getReportDetail(id);
-      setDrawerReport(response.data?.data || response.data);
-    } catch (err) {
-      toastError(getApiErrorMsg(err, 'Không thể tải chi tiết báo cáo'));
-      setDrawerReport(null);
-    } finally {
-      setIsDrawerLoading(false);
-    }
-  }, [toastError]);
-
-  const openReportDetail = useCallback((id) => {
-    setSelectedReportId(id);
-    fetchDrawerDetail(id);
-  }, [fetchDrawerDetail]);
-
-  const closeReportDetail = useCallback(() => {
-    setSelectedReportId(null);
-    setDrawerReport(null);
-  }, []);
-
-  // Actions execution
-  const [isActionLoading, setIsActionLoading] = useState(false);
-
-  const handleClaim = useCallback(async (reportId) => {
-    setIsActionLoading(true);
-    try {
-      const response = await adminApi.reviewReport(reportId, {
-        action: 'claim',
-      });
-
-      setDrawerReport(response.data?.data || response.data);
-      success('Tiếp nhận xử lý báo cáo thành công');
-      refetchTable();
-      reloadStats();
-    } catch (err) {
-      toastError(getApiErrorMsg(err, 'Không thể tiếp nhận báo cáo'));
-    } finally {
-      setIsActionLoading(false);
-    }
-  }, [refetchTable, reloadStats, success, toastError]);
-
-  const handleTakeover = useCallback(async (reportId) => {
-    setIsActionLoading(true);
-    try {
-      const response = await adminApi.reviewReport(reportId, {
-        action: 'takeover',
-      });
-
-      setDrawerReport(response.data?.data || response.data);
-      success('Tiếp quản xử lý báo cáo thành công');
-      refetchTable();
-      reloadStats();
-    } catch (err) {
-      toastError(getApiErrorMsg(err, 'Không thể tiếp quản báo cáo'));
-    } finally {
-      setIsActionLoading(false);
-    }
-  }, [refetchTable, reloadStats, success, toastError]);
-
-  const handleUpdateSeverity = useCallback(
-    async (reportId, severity, note) => {
-      setIsActionLoading(true);
-      try {
-        const response = await adminApi.updateReportSeverity(reportId, {
-          severity,
-          note,
-        });
-
-        setDrawerReport(response.data?.data || response.data);
-        success('Cập nhật mức độ nghiêm trọng thành công');
-        refetchTable();
-        reloadStats();
-      } catch (err) {
-        toastError(getApiErrorMsg(err, 'Không thể cập nhật mức độ'));
-      } finally {
-        setIsActionLoading(false);
-      }
-    },
-    [refetchTable, reloadStats, success, toastError]
+  const loadDetail = useCallback(
+    (id) =>
+      dispatch(fetchAdminReportDetail(id))
+        .unwrap()
+        .catch((err) => {
+          toastError(getApiErrorMsg(ADMIN_ERROR_MESSAGES, err, 'Không thể tải chi tiết báo cáo.'));
+          setSelectedReportId(null);
+        }),
+    [dispatch, toastError]
   );
 
-  const handleApplyAction = useCallback(
-    async (reportId, { type, durationDays, note }) => {
-      setIsActionLoading(true);
-      try {
-        const response = await adminApi.applyReportAction(reportId, {
-          type,
-          durationDays,
-          note,
-        });
+  useEffect(() => {
+    if (selectedReportId) {
+      loadDetail(selectedReportId);
+    } else {
+      dispatch(clearReportDetail());
+    }
+  }, [dispatch, loadDetail, selectedReportId]);
 
-        setDrawerReport(response.data?.data || response.data);
-        success('Thi hành chế tài kỷ luật thành công');
-        refetchTable();
+  const openReportDetail = useCallback((id) => setSelectedReportId(id), []);
+  const closeReportDetail = useCallback(() => setSelectedReportId(null), []);
+
+  const runAction = useCallback(
+    async (thunkAction, successMessage, errorMessage) => {
+      try {
+        await dispatch(thunkAction).unwrap();
+        success(successMessage);
+        if (selectedReportId) loadDetail(selectedReportId);
+        refetch();
         reloadStats();
         return true;
       } catch (err) {
-        toastError(getApiErrorMsg(err, 'Không thể thi hành chế tài'));
+        toastError(getApiErrorMsg(ADMIN_ERROR_MESSAGES, err, errorMessage));
         return false;
-      } finally {
-        setIsActionLoading(false);
       }
     },
-    [refetchTable, reloadStats, success, toastError]
+    [dispatch, success, toastError, selectedReportId, loadDetail, refetch, reloadStats]
   );
 
-  const handleResolve = useCallback(async (reportId, payload) => {
-    setIsActionLoading(true);
-    try {
-      await adminApi.resolveReport(reportId, payload);
+  const handleClaim = useCallback(
+    (id) =>
+      runAction(reviewAdminReport({ id, action: 'claim' }), 'Đã tiếp nhận xử lý báo cáo.', 'Không thể tiếp nhận báo cáo.'),
+    [runAction]
+  );
 
-      success(
-        payload.status === 'resolved'
-          ? 'Đã giải quyết báo cáo thành công'
-          : 'Đã bác bỏ báo cáo'
-      );
+  const handleTakeover = useCallback(
+    (id) =>
+      runAction(reviewAdminReport({ id, action: 'takeover' }), 'Đã tiếp quản xử lý báo cáo.', 'Không thể tiếp quản báo cáo.'),
+    [runAction]
+  );
 
-      closeReportDetail();
-      refetchTable();
-      reloadStats();
-      return true;
-    } catch (err) {
-      toastError(getApiErrorMsg(err, 'Không thể đóng báo cáo'));
-      return false;
-    } finally {
-      setIsActionLoading(false);
-    }
-  }, [
-    closeReportDetail,
-    refetchTable,
-    reloadStats,
-    success,
-    toastError,
-  ]);
+  const handleUpdateSeverity = useCallback(
+    (id, severity) =>
+      runAction(updateAdminReportSeverity({ id, severity }), 'Đã cập nhật mức độ nghiêm trọng.', 'Không thể cập nhật mức độ.'),
+    [runAction]
+  );
 
-  const handleReopen = useCallback(async (reportId, note) => {
-    setIsActionLoading(true);
-    try {
-      const response = await adminApi.reopenReport(reportId, { note });
+  const handleApplyAction = useCallback(
+    (id, payload) =>
+      runAction(applyAdminReportAction({ id, payload }), 'Đã thi hành chế tài.', 'Không thể thi hành chế tài.'),
+    [runAction]
+  );
 
-      setDrawerReport(response.data?.data || response.data);
-      success('Mở lại hồ sơ điều tra thành công');
-      refetchTable();
-      reloadStats();
-      return true;
-    } catch (err) {
-      toastError(getApiErrorMsg(err, 'Không thể mở lại báo cáo'));
-      return false;
-    } finally {
-      setIsActionLoading(false);
-    }
-  }, [refetchTable, reloadStats, success, toastError]);
+  const handleResolve = useCallback(
+    (id, payload) =>
+      runAction(
+        resolveAdminReport({ id, payload }),
+        payload.status === 'resolved' ? 'Đã đóng báo cáo: đã xử lý.' : 'Đã bác bỏ báo cáo.',
+        'Không thể đóng báo cáo.'
+      ),
+    [runAction]
+  );
 
-  // Excel Export
-  const { isExporting, handleExport: handleExportExcel } = useAdminExport({
+  const handleReopen = useCallback(
+    (id, note) =>
+      runAction(reopenAdminReport({ id, note }), 'Đã mở lại báo cáo.', 'Không thể mở lại báo cáo.'),
+    [runAction]
+  );
+
+  // Same query as the list: every page, with the current filters and date range
+  const { isExporting, handleExport } = useAdminExport({
     page: 'bao-cao-vi-pham',
     buildSheets: buildModerationReportSheets,
     fetchData: async () => ({
-      stats: stats || {},
-      reports: await fetchAllPages(async (pageParams) => {
-        const res = await adminApi.getReports(pageParams);
-        return res.data?.data || res.data;
-      }, params),
-      filter: params,
+      reports: await fetchAllPages(fetcher, { ...filters, search: searchInput }),
+      filter: filters,
     }),
-    successMessage: 'Xuất file báo cáo Excel thành công',
+    successMessage: EXPORT_SUCCESS_MESSAGE,
   });
+
+  const statusChips = useMemo(
+    () =>
+      REPORT_STATUS_CHIPS.map((chip) => ({
+        ...chip,
+        ...(stats ? { count: chip.value ? stats[chip.value] : stats.total } : {}),
+      })),
+    [stats]
+  );
 
   const hasActiveFilters = Boolean(
     searchInput ||
-    params.severity ||
-    params.category ||
-    params.targetType ||
-    params.assignedTo ||
-    params.fromDate ||
-    params.toDate
+      params.severity ||
+      params.category ||
+      params.targetType ||
+      params.fromDate ||
+      params.toDate
   );
 
   const resetFilters = useCallback(() => {
     setSearch('');
-
     setFilters({
-      status: params.status || '',
-      severity: '',
-      category: '',
-      targetType: '',
-      assignedTo: '',
-      fromDate: '',
-      toDate: '',
+      severity: undefined,
+      category: undefined,
+      targetType: undefined,
+      fromDate: undefined,
+      toDate: undefined,
     });
-  }, [params.status, setSearch, setFilters]);
+  }, [setSearch, setFilters]);
 
   return {
-    rows,
-    pagination,
-    isLoading: isTableLoading,
-    tableError,
-    params,
-    searchInput,
-    setSearch,
-    setFilter,
-    setFilters,
-    setPage,
-    refetchTable,
+    ...table,
+    listErrorMessage: table.error
+      ? getApiErrorMsg(ADMIN_ERROR_MESSAGES, table.error, 'Không tải được danh sách báo cáo. Vui lòng thử lại.')
+      : null,
     stats,
     isStatsLoading,
+    hasStatsError,
+    statusChips,
     hasActiveFilters,
     resetFilters,
 
     // Drawer
     selectedReportId,
-    drawerReport,
-    isDrawerLoading,
+    drawerReport: detail.data,
+    isDrawerLoading: detail.isLoading && !detail.data,
     openReportDetail,
     closeReportDetail,
-    refetchDrawer: () => fetchDrawerDetail(selectedReportId),
 
     // Actions
     isActionLoading,
@@ -303,7 +190,7 @@ export const useAdminReports = () => {
 
     // Export
     isExporting,
-    handleExportExcel,
+    handleExport,
   };
 };
 

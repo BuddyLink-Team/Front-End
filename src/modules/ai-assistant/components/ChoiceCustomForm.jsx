@@ -86,8 +86,8 @@ export const ChoiceCustomForm = ({ card, onSubmit, onCancel }) => {
     <form className="space-y-3 rounded-xl border border-hairline-strong shadow-sm bg-surface-container-low p-3" onSubmit={submit} noValidate>
       {card.stepId === AI_STEPS.TIME && (
         <div className="grid grid-cols-2 gap-2">
-          <Input id={`${fieldId}-date`} type="date" label="Ngày" min={getLocalDateString()} error={errorOf('date')} {...register('date')} />
-          <Input id={`${fieldId}-time`} type="time" label="Giờ" error={errorOf('time')} {...register('time')} />
+          <Input id={`${fieldId}-date`} type="date" label="Ngày" required min={getLocalDateString()} error={errorOf('date')} {...register('date')} />
+          <Input id={`${fieldId}-time`} type="time" label="Giờ" required error={errorOf('time')} {...register('time')} />
         </div>
       )}
       {hasPlaymateSearch && (
@@ -102,6 +102,7 @@ export const ChoiceCustomForm = ({ card, onSubmit, onCancel }) => {
         <Input
           id={`${fieldId}-text`}
           label={card.stepId === AI_STEPS.CHILD ? 'Tên bé' : 'Tên các bạn muốn mời'}
+          required
           placeholder={card.stepId === AI_STEPS.CHILD ? 'Ví dụ: Bống' : 'Ví dụ: Bin, Mít'}
           helperText={card.stepId === AI_STEPS.PLAYMATES ? 'Chỉ mời được bé nhà bạn bè đã kết nối' : undefined}
           error={errorOf('text')}
@@ -112,6 +113,7 @@ export const ChoiceCustomForm = ({ card, onSubmit, onCancel }) => {
         <Textarea
           id={`${fieldId}-request`}
           label="Yêu cầu thêm"
+          required
           rows={3}
           placeholder="Ví dụ: Nhắc các bé mang theo nón và nước uống"
           error={errorOf('request')}
@@ -126,6 +128,7 @@ export const ChoiceCustomForm = ({ card, onSubmit, onCancel }) => {
             <Combobox
               id={`${fieldId}-title`}
               label="Hoạt động"
+              required
               placeholder="Tìm trong danh sách hoặc tự nhập"
               options={ACTIVITY_OPTIONS}
               value={field.value || ''}
@@ -143,6 +146,7 @@ export const ChoiceCustomForm = ({ card, onSubmit, onCancel }) => {
               id={`${fieldId}-age-min`}
               type="number"
               label="Từ tuổi"
+              required
               min={MATCH_CRITERIA_LIMITS.AGE_MIN}
               max={MATCH_CRITERIA_LIMITS.AGE_MAX}
               error={errorOf('ageMin')}
@@ -152,6 +156,7 @@ export const ChoiceCustomForm = ({ card, onSubmit, onCancel }) => {
               id={`${fieldId}-age-max`}
               type="number"
               label="Đến tuổi"
+              required
               min={MATCH_CRITERIA_LIMITS.AGE_MIN}
               max={MATCH_CRITERIA_LIMITS.AGE_MAX}
               error={errorOf('ageMax')}
@@ -161,6 +166,7 @@ export const ChoiceCustomForm = ({ card, onSubmit, onCancel }) => {
               id={`${fieldId}-distance`}
               type="number"
               label="Trong (km)"
+              required
               min={MATCH_CRITERIA_LIMITS.DISTANCE_MIN_KM}
               max={MATCH_CRITERIA_LIMITS.DISTANCE_MAX_KM}
               error={errorOf('maxDistanceKm')}

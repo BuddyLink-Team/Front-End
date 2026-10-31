@@ -6,6 +6,7 @@ import { ConfirmDialog } from '../../../../components/feedback/ConfirmDialog';
 import { Skeleton } from '../../../../components/feedback/Skeleton';
 import { Button } from '../../../../components/ui/Button';
 import { Input } from '../../../../components/ui/Input';
+import { RequiredMark } from '../../../../components/form/RequiredMark';
 import { Switch } from '../../../../components/ui/Switch';
 import { useEditPlanForm } from '../../hooks/useEditPlanForm';
 import { PLAN_BILLING_CYCLE_LABELS, PLAN_FEATURE_FIELDS } from '../../constants/admin.constants';
@@ -94,6 +95,7 @@ export const EditPlanModal = ({ plan: listPlan, isOpen, onClose, onSave, isUpdat
             <div>
               <label htmlFor="plan-name" className={LABEL_CLASS}>
                 Tên gói dịch vụ
+                <RequiredMark />
               </label>
               <Input id="plan-name" error={errorOf('name')} disabled={isUpdating} {...register('name')} />
             </div>
@@ -102,6 +104,7 @@ export const EditPlanModal = ({ plan: listPlan, isOpen, onClose, onSave, isUpdat
               <div>
                 <label htmlFor="plan-price" className={LABEL_CLASS}>
                   Giá tiền (VNĐ)
+                  {!isFree && <RequiredMark />}
                 </label>
                 <Input
                   id="plan-price"
@@ -140,6 +143,7 @@ export const EditPlanModal = ({ plan: listPlan, isOpen, onClose, onSave, isUpdat
                   >
                     <label htmlFor={`plan-feature-${key}`} className="text-xs font-medium text-on-surface flex-1">
                       {label}
+                      {!isUnlimited(key) && <RequiredMark />}
                     </label>
                     <div className="flex items-center gap-2">
                       <span className="flex items-center gap-1.5 text-xs text-on-surface-variant">

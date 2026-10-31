@@ -68,7 +68,7 @@ ParticipantCard.propTypes = {
 
 const BANNER_CLASS = 'bg-tertiary-fixed/20 border border-tertiary-fixed/50 rounded-2xl p-5 shadow-2xs';
 
-// "Bé Na đã có hẹn khác 09:00–11:00, …": why the own child cannot accept that time
+// "Bé Na đã có hẹn khác 09:00–11:00, …": why the own children cannot accept that time
 const ConflictNote = ({ conflicts }) =>
   conflicts.length > 0 ? (
     <p className="flex items-center gap-1.5 text-xs text-error">
@@ -97,9 +97,11 @@ export const PlaydateBanners = ({
   onVote,
 }) => {
   const duration = playdate.durationMinutes ?? DEFAULT_PLAYDATE_DURATION;
-  // The own child must be free to accept the invitation (this playdate itself does not count)
+  const [myChildId, ...mySiblingIds] = playdate.myChildIds || [];
+  // The own children must be free to accept the invitation (this playdate itself does not count)
   const invitationCheck = useScheduleCheck({
-    childId: isInvitationPending ? playdate.myChildId : null,
+    childId: isInvitationPending ? myChildId : null,
+    participantChildIds: mySiblingIds,
     date: getLocalDateString(playdate.scheduledDate),
     time: playdate.time,
     durationMinutes: duration,
@@ -107,7 +109,8 @@ export const PlaydateBanners = ({
   });
   // …and free at the proposed new time to agree to it
   const voteCheck = useScheduleCheck({
-    childId: myPendingVote ? playdate.myChildId : null,
+    childId: myPendingVote ? myChildId : null,
+    participantChildIds: mySiblingIds,
     date: rescheduleReq?.newDate ? getLocalDateString(rescheduleReq.newDate) : null,
     time: rescheduleReq?.newStartTime,
     durationMinutes: rescheduleReq?.newDurationMinutes ?? duration,

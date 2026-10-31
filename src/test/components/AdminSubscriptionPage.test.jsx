@@ -82,7 +82,7 @@ describe('AdminSubscriptionManagementPage', () => {
     expect(within(card).getAllByText('Không giới hạn')).toHaveLength(6);
 
     fireEvent.click(within(card).getByRole('button', { name: 'Chỉnh sửa gói' }));
-    fireEvent.change(await screen.findByLabelText('Giá tiền (VNĐ)'), { target: { value: '89000' } });
+    fireEvent.change(await screen.findByLabelText(/^Giá tiền \(VNĐ\)/), { target: { value: '89000' } });
     // Turn "Vô cực" off for the child profiles: the field comes back with its default limit
     fireEvent.click(screen.getByRole('switch', { name: 'Hồ sơ trẻ tối đa: vô cực' }));
     fireEvent.click(screen.getByRole('button', { name: 'Lưu thay đổi' }));
@@ -102,12 +102,12 @@ describe('AdminSubscriptionManagementPage', () => {
     const freeCard = screen.getByText(free.name).closest('div.rounded-2xl');
 
     fireEvent.click(within(freeCard).getByRole('button', { name: 'Chỉnh sửa cấu hình' }));
-    const field = await screen.findByLabelText('Lượt quẹt hồ sơ / ngày');
+    const field = await screen.findByLabelText(/^Lượt quẹt hồ sơ \/ ngày \*$/);
     fireEvent.change(field, { target: { value: '42' } });
     fireEvent.click(screen.getByRole('button', { name: 'Hủy' }));
 
     fireEvent.click(within(freeCard).getByRole('button', { name: 'Chỉnh sửa cấu hình' }));
-    expect(await screen.findByLabelText('Lượt quẹt hồ sơ / ngày')).toHaveValue(5);
+    expect(await screen.findByLabelText(/^Lượt quẹt hồ sơ \/ ngày \*$/)).toHaveValue(5);
     expect(adminApi.getPlanDetail).toHaveBeenCalledTimes(2);
   });
 });

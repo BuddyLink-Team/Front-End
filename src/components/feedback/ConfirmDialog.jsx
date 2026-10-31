@@ -89,7 +89,8 @@ export const ConfirmDialog = ({
       {reason && (
         <Textarea
           id="confirm-dialog-reason"
-          label={`${reason.label || 'Lý do'}${reason.required ? ' *' : ''}`}
+          label={reason.label || 'Lý do'}
+          required={Boolean(reason.required)}
           placeholder={reason.placeholder || 'Nhập lý do...'}
           maxLength={reason.maxLength ?? 500}
           rows={3}

@@ -62,6 +62,7 @@ src/
 - **`appRoutes.jsx`** (parent app, `npm run dev` / `build`):
   - Root path `/`: Renders **`LandingPage`** for unauthenticated guests; automatically redirects authenticated parents to `/discovery`.
 - **`AdminAppRoutes.jsx`** (admin portal, `npm run dev:admin` / `build:admin`): `/login` → `AdminLoginPage`, `/admin/*` → `AdminRoutes.jsx` behind `ProtectedRoute` + `RoleRoute(admin)`.
+- `MainLayout` and `AdminLayout` render pages through `PageOutlet` (`components/navigation/`), so a lazy page only shows a spinner in the content area; the full-page fallback in the route tree is for pages outside a layout.
 - Role-based route guards: `PublicRoute.jsx`, `ProtectedRoute.jsx`, `RoleRoute.jsx`.
 - Sub-route definitions: `ParentRoutes.jsx`, `AdminRoutes.jsx`.
 

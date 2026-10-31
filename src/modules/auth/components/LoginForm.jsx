@@ -1,4 +1,5 @@
 import React from 'react';
+import { RequiredMark } from '../../../components/form/RequiredMark';
 import { Link } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -37,6 +38,7 @@ export const LoginForm = ({ onSubmit, isLoading }) => {
       <Input
         id="login-email"
         label="Địa chỉ Email"
+        required
         placeholder="phuhuynh@buddylink.vn"
         type="email"
         autoComplete="email"
@@ -53,6 +55,7 @@ export const LoginForm = ({ onSubmit, isLoading }) => {
             className="block text-sm font-medium text-text-primary"
           >
             Mật khẩu
+            <RequiredMark />
           </label>
           <Link
             to="/forgot-password"

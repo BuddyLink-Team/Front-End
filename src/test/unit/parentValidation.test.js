@@ -5,6 +5,7 @@ describe('parentInfoSchema validation', () => {
   it('should validate valid parent info', () => {
     const validData = {
       fullName: 'Nguyen Van A',
+      phone: '0901234567',
       bio: 'Phụ huynh yêu thích các hoạt động ngoài trời',
       city: 'TP. Hồ Chí Minh',
       area: 'Quận 1',
@@ -25,6 +26,29 @@ describe('parentInfoSchema validation', () => {
     const result = parentInfoSchema.safeParse(invalidData);
     expect(result.success).toBe(false);
     expect(result.error?.issues[0].message).toContain('tối thiểu 2 ký tự');
+  });
+
+  it.each([[''], ['   '], [null], [undefined], ['123']])('should fail when phone is %j', (phone) => {
+    const result = parentInfoSchema.safeParse({
+      fullName: 'Nguyen Van A',
+      phone,
+      city: 'Hà Nội',
+      area: 'Cầu Giấy',
+    });
+
+    expect(result.success).toBe(false);
+    expect(result.error?.issues[0].path).toEqual(['phone']);
+  });
+
+  it('should accept the +84 format the backend stores', () => {
+    const result = parentInfoSchema.safeParse({
+      fullName: 'Nguyen Van A',
+      phone: '+84901234567',
+      city: 'Hà Nội',
+      area: 'Cầu Giấy',
+    });
+
+    expect(result.success).toBe(true);
   });
 
   it('should fail when city or area is empty', () => {

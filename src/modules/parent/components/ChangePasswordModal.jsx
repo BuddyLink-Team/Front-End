@@ -40,6 +40,7 @@ export const ChangePasswordModal = ({
           <PasswordInput
             id="modal-currentPassword"
             label="Mật khẩu hiện tại"
+            required
             placeholder="Nhập mật khẩu đang dùng"
             error={errors.currentPassword?.message}
             {...register('currentPassword')}
@@ -48,6 +49,7 @@ export const ChangePasswordModal = ({
           <PasswordInput
             id="modal-newPassword"
             label="Mật khẩu mới"
+            required
             placeholder="Tối thiểu 6 ký tự"
             error={errors.newPassword?.message}
             {...register('newPassword')}
@@ -56,6 +58,7 @@ export const ChangePasswordModal = ({
           <PasswordInput
             id="modal-confirmNewPassword"
             label="Xác nhận mật khẩu mới"
+            required
             placeholder="Nhập lại mật khẩu mới"
             error={errors.confirmNewPassword?.message}
             {...register('confirmNewPassword')}

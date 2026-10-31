@@ -1,5 +1,6 @@
 import React from 'react';
 import { cn } from '../../utils/cn';
+import { RequiredMark } from '../form/RequiredMark';
 
 export const Input = React.forwardRef(
   (
@@ -11,6 +12,7 @@ export const Input = React.forwardRef(
       rightIcon,
       className,
       disabled,
+      required,
       id,
       ...props
     },
@@ -26,6 +28,7 @@ export const Input = React.forwardRef(
             className="block text-sm font-medium text-text-primary"
           >
             {label}
+            {required && <RequiredMark />}
           </label>
         )}
         <div className="relative rounded-xl shadow-sm">
@@ -38,6 +41,7 @@ export const Input = React.forwardRef(
             ref={ref}
             id={inputId}
             disabled={disabled}
+            aria-required={required || undefined}
             className={cn(
               'w-full bg-surface-container-low border border-hairline-strong text-text-primary rounded-xl focus:bg-surface-container-lowest px-4 py-2.5 text-sm transition-all duration-150 placeholder:text-text-muted/60 focus:outline-none focus:ring-2 focus:ring-primary/25 focus:border-primary disabled:bg-gray-50 disabled:cursor-not-allowed',
               leftIcon && 'pl-10',

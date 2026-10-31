@@ -1,7 +1,6 @@
 import React from 'react';
 import { Route, Navigate } from 'react-router-dom';
 import { AdminLayout } from '../layouts/AdminLayout';
-import PlaceholderPage from '../components/feedback/PlaceholderPage';
 import AdminDashboardPage from '../modules/admin/pages/AdminDashboardPage';
 import AdminSubscriptionManagementPage from '../modules/admin/pages/AdminSubscriptionManagementPage';
 
@@ -10,11 +9,6 @@ import AdminChildManagementPage from '../modules/admin/pages/AdminChildManagemen
 import { AdminConnectionManagementPage } from '../modules/admin/pages/AdminConnectionManagementPage';
 import { AdminPlaydateManagementPage } from '../modules/admin/pages/AdminPlaydateManagementPage';
 import AdminReportsPage from '../modules/admin/pages/AdminReportsPage';
-
-// Title on the admin type scale (semi-bold), matching the AdminHeader section label
-const AdminPlaceholder = (props) => (
-  <PlaceholderPage titleClassName="text-headline-md font-semibold text-on-surface" {...props} />
-);
 
 /**
  * Full route definitions for Admin features, in the same order as ADMIN_NAV_LINKS.

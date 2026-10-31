@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Eye, EyeOff } from 'lucide-react';
 import { cn } from '../../utils/cn';
+import { RequiredMark } from '../form/RequiredMark';
 
 export const PasswordInput = React.forwardRef(
   (
@@ -15,6 +16,7 @@ export const PasswordInput = React.forwardRef(
       helperText,
       placeholder = '••••••••',
       disabled = false,
+      required,
       className,
       leftIcon,
       ...props
@@ -32,6 +34,7 @@ export const PasswordInput = React.forwardRef(
             className="block text-sm font-medium text-text-primary"
           >
             {label}
+            {required && <RequiredMark />}
           </label>
         )}
 
@@ -46,6 +49,7 @@ export const PasswordInput = React.forwardRef(
             ref={ref}
             id={inputId}
             name={name}
+            aria-required={required || undefined}
             type={isVisible ? 'text' : 'password'}
             value={value}
             onChange={onChange}

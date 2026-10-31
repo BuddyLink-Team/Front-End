@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { phoneSchema } from '../../auth/validation/authValidation';
 
 export const parentInfoSchema = z.object({
   fullName: z
@@ -6,6 +7,7 @@ export const parentInfoSchema = z.object({
     .trim()
     .min(2, 'Họ và tên tối thiểu 2 ký tự')
     .max(100, 'Họ và tên tối đa 100 ký tự'),
+  phone: phoneSchema,
   bio: z
     .string()
     .trim()

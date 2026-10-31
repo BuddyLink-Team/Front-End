@@ -22,6 +22,7 @@ const openModalStack = [];
  * @param {string} [className] - Extra classes for the modal box
  * @param {string} [bodyClassName] - Extra classes for the scrollable body
  * @param {string} [footerClassName] - Extra classes for the footer (default: actions aligned right)
+ * @param {string} [backdropClassName] - Extra classes for the backdrop (e.g. a darker one)
  * @param {'center'|'sheet'|'right'} [placement='center'] - 'sheet' slides from the bottom on mobile (bottom sheet),
  *   'right' is a full-height side drawer sliding in from the right
  */
@@ -35,6 +36,7 @@ export const Modal = ({
   className,
   bodyClassName,
   footerClassName,
+  backdropClassName,
   placement = 'center',
 }) => {
   const isSheet = placement === 'sheet';
@@ -102,7 +104,7 @@ export const Modal = ({
     >
       {/* Backdrop with blur */}
       <div
-        className="fixed inset-0 bg-text-primary/30 backdrop-blur-sm transition-opacity"
+        className={cn('fixed inset-0 bg-text-primary/30 backdrop-blur-sm transition-opacity', backdropClassName)}
         onClick={onClose}
       />
 
