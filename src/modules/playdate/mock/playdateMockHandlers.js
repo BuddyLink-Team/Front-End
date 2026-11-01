@@ -58,6 +58,13 @@ export const playdateMockHandlers = [
     handler: ({ params, body }) => playdateMockService.voteReschedule(params.id, body),
   },
 
+  // Host withdraws a reschedule proposal
+  {
+    method: 'PATCH',
+    pattern: `${API_ENDPOINTS.PLAYDATE.BASE}/:id/reschedule/cancel`,
+    handler: ({ params, body }) => playdateMockService.cancelReschedule(params.id, body),
+  },
+
   // 5. Get active reschedule request
   {
     method: 'GET',

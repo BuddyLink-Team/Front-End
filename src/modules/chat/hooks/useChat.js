@@ -3,6 +3,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { useToast } from '../../../hooks/useToast.js';
 import { useMediaQuery } from '../../../hooks/useMediaQuery.js';
 import { getApiErrorMsg } from '../../../utils/errorUtils.js';
+import { COMMON_ERROR_MESSAGES } from '../../../constants/error.constants.js';
 import useChatSocket, { SOCKET_ERROR_CODES } from './useChatSocket.js';
 import {
   CONVERSATION_TYPES,
@@ -11,7 +12,7 @@ import {
   ALLOWED_IMAGE_TYPES,
   MAX_IMAGE_SIZE_BYTES,
   CHAT_ERROR_MESSAGES,
-} from '../constants/chatConstants.js';
+} from '../constants/chat.constants.js';
 import {
   createTempId,
   buildOptimisticMessage,
@@ -27,6 +28,7 @@ import {
   markConversationReadRest,
   uploadChatImage,
   conversationUpdated,
+  messageDeleted,
   messageReceived,
   optimisticMessageAdded,
   messageStatusChanged,
@@ -215,10 +217,10 @@ export const useChat = ({ initialConversationId = null, initialPlaydateId = null
 
     try {
       await dispatch(fetchOlderMessages({ conversationId: activeConversationId, before })).unwrap();
-    } catch {
-      toast.error('Không thể tải thêm tin nhắn cũ');
+    } catch (error) {
+      toast.error(toErrorMessage(error, 'Không thể tải thêm tin nhắn cũ.'));
     }
-  }, [activeConversationId, isLoadingOlder, hasMoreMessages, messages, dispatch, toast]);
+  }, [activeConversationId, isLoadingOlder, hasMoreMessages, messages, dispatch, toast, toErrorMessage]);
 
   // 3. Socket Event Handlers
   const handleMessageReceived = useCallback(
@@ -287,12 +289,20 @@ export const useChat = ({ initialConversationId = null, initialPlaydateId = null
     [dispatch],
   );
 
+  const handleMessageDeleted = useCallback(
+    (data) => {
+      dispatch(messageDeleted(data));
+    },
+    [dispatch],
+  );
+
   const { isConnected, emitSendMessage, emitTyping, emitReadStatus } = useChatSocket({
     conversationId: activeConversationId,
     onMessageReceived: handleMessageReceived,
     onUserTyping: handleUserTyping,
     onMessageRead: handleMessageRead,
     onConversationUpdated: handleConversationUpdated,
+    onMessageDeleted: handleMessageDeleted,
   });
 
   useEffect(() => {
@@ -412,11 +422,11 @@ export const useChat = ({ initialConversationId = null, initialPlaydateId = null
     const hasValidExt = /\.(jpe?g|png|webp|gif)$/i.test(file.name || '');
 
     if (!isValidMime || !hasValidExt) {
-      toast.error('Chỉ hỗ trợ ảnh JPG, PNG, WEBP hoặc GIF');
+      toast.error(COMMON_ERROR_MESSAGES.INVALID_FILE_TYPE);
       return;
     }
     if (file.size > MAX_IMAGE_SIZE_BYTES) {
-      toast.error('Kích thước ảnh không được vượt quá 5MB');
+      toast.error(COMMON_ERROR_MESSAGES.FILE_TOO_LARGE);
       return;
     }
     setSelectedImageFile(file);

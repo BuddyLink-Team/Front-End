@@ -1,6 +1,6 @@
 import { useEffect, useRef, useCallback } from 'react';
 import socketService from '../../../services/socket.js';
-import { SOCKET_EVENTS, SOCKET_ACK_TIMEOUT_MS } from '../constants/chatConstants.js';
+import { SOCKET_EVENTS, SOCKET_ACK_TIMEOUT_MS } from '../constants/chat.constants.js';
 
 // Transport failures (as opposed to business errors returned by the server in the ack)
 export const SOCKET_ERROR_CODES = Object.freeze({
@@ -14,6 +14,7 @@ export const useChatSocket = ({
   onUserTyping,
   onMessageRead,
   onConversationUpdated,
+  onMessageDeleted,
 }) => {
   const socketRef = useRef(null);
 
@@ -53,6 +54,12 @@ export const useChatSocket = ({
       }
     };
 
+    const handleMessageDeleted = (data) => {
+      if (onMessageDeleted) {
+        onMessageDeleted(data);
+      }
+    };
+
     // Re-join active conversation room on socket reconnect
     const handleConnect = () => {
       if (conversationId) {
@@ -65,6 +72,7 @@ export const useChatSocket = ({
     socket.on(SOCKET_EVENTS.USER_TYPING, handleUserTyping);
     socket.on(SOCKET_EVENTS.MESSAGE_READ, handleMessageRead);
     socket.on(SOCKET_EVENTS.CONVERSATION_UPDATED, handleConversationUpdated);
+    socket.on(SOCKET_EVENTS.MESSAGE_DELETED, handleMessageDeleted);
 
     return () => {
       if (conversationId && socket) {
@@ -75,8 +83,9 @@ export const useChatSocket = ({
       socket.off(SOCKET_EVENTS.USER_TYPING, handleUserTyping);
       socket.off(SOCKET_EVENTS.MESSAGE_READ, handleMessageRead);
       socket.off(SOCKET_EVENTS.CONVERSATION_UPDATED, handleConversationUpdated);
+      socket.off(SOCKET_EVENTS.MESSAGE_DELETED, handleMessageDeleted);
     };
-  }, [conversationId, onMessageReceived, onUserTyping, onMessageRead, onConversationUpdated]);
+  }, [conversationId, onMessageReceived, onUserTyping, onMessageRead, onConversationUpdated, onMessageDeleted]);
 
   const isConnected = useCallback(() => Boolean(socketRef.current?.connected), []);
 

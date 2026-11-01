@@ -10,7 +10,7 @@ import DiscoveryFilterModal from '../components/DiscoveryFilterModal';
 import ChildProfileDetailModal from '../components/ChildProfileDetailModal';
 import { ReportModal } from '../../safety/components/ReportModal';
 import { useReportTarget } from '../../safety/hooks/useReportTarget';
-import { VISIBLE_CARD_COUNT } from '../constants/discoveryConstants';
+import { VISIBLE_CARD_COUNT } from '../constants/discovery.constants';
 import { ICON_SIZE, ICON_STROKE } from '../../../constants/icon.constants';
 
 export const DiscoveryPage = () => {

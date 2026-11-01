@@ -3,7 +3,7 @@ import { Copy, Clock, QrCode } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
 import { Button } from '../../../components/ui/Button';
 import { cn } from '../../../utils/cn';
-import { QR_CODE_SIZE } from '../constants/subscriptionConstants';
+import { QR_CODE_SIZE } from '../constants/subscription.constants';
 
 const CopyButton = ({ onClick }) => (
   <Button

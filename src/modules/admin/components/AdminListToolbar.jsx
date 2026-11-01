@@ -1,7 +1,9 @@
 import React from 'react';
+import { Download } from 'lucide-react';
 import { SearchBar } from '../../../components/search/SearchBar';
 import { FilterChips } from '../../../components/search/FilterChips';
 import { DateRangeFilter } from '../../../components/search/DateRangeFilter';
+import { Button } from '../../../components/ui/Button';
 import { cn } from '../../../utils/cn';
 
 /**
@@ -15,7 +17,11 @@ import { cn } from '../../../utils/cn';
  * @param {{ options: Array<object>, selected: string|null, onChange: Function }} [statusChips] - FilterChips props
  * @param {{ from: string, to: string, onChange: Function }} [dateRange] - DateRangeFilter props
  * @param {React.ReactNode} [children] - Extra filters (e.g. a Select), shown after the search bar
+ * @param {React.ReactNode} [filters] - Extra filters on their own row, below the search bar
  * @param {React.ReactNode} [actions] - Right-aligned buttons (e.g. export)
+ * @param {Function} [onExport] - Callback to trigger Excel export
+ * @param {boolean} [isExporting=false] - Loading state for Excel export button
+ * @param {string} [exportLabel='Xuất Excel']
  * @param {string} [className]
  */
 export const AdminListToolbar = ({
@@ -25,7 +31,11 @@ export const AdminListToolbar = ({
   statusChips,
   dateRange,
   children,
+  filters,
   actions,
+  onExport,
+  isExporting = false,
+  exportLabel = 'Xuất Excel',
   className,
 }) => (
   <div className={cn('flex flex-col gap-3', className)}>
@@ -40,8 +50,26 @@ export const AdminListToolbar = ({
         />
       )}
       {children && <div className="flex flex-wrap items-center gap-2">{children}</div>}
-      {actions && <div className="flex items-center gap-2 md:ml-auto">{actions}</div>}
+      {(actions || onExport) && (
+        <div className="flex items-center gap-2 md:ml-auto">
+          {actions}
+          {onExport && (
+            <Button
+              type="button"
+              variant="outline"
+              onClick={onExport}
+              isLoading={isExporting}
+              leftIcon={<Download className="w-4 h-4" />}
+              title="Xuất dữ liệu ra file Excel"
+            >
+              {exportLabel}
+            </Button>
+          )}
+        </div>
+      )}
     </div>
+
+    {filters && <div className="flex flex-wrap items-center gap-2">{filters}</div>}
 
     {(statusChips || dateRange) && (
       <div className="flex flex-col gap-2 lg:flex-row lg:items-start lg:justify-between">

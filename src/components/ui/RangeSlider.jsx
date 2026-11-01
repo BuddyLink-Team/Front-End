@@ -32,20 +32,25 @@ export const RangeSlider = ({
       <label htmlFor={id} className="text-xs sm:text-sm font-semibold text-on-surface flex items-center gap-1.5">
         {label}
       </label>
-      <span className="px-2.5 py-0.5 rounded-full bg-primary/10 text-primary font-bold text-xs">
+      <span className="px-2.5 py-0.5 rounded-full bg-primary/10 text-primary font-semibold text-xs">
         {valueLabel ?? value}
       </span>
     </div>
-    <input
-      id={id}
-      type="range"
-      min={min}
-      max={max}
-      step={step}
-      value={value}
-      onChange={(e) => onChange?.(Number(e.target.value))}
-      className="w-full h-2.5 bg-white border border-hairline rounded-lg appearance-none cursor-pointer accent-primary mt-2 transition-all"
-    />
+    {/* The filled part of the track shows the picked value */}
+    <div className="dual-range mt-2">
+      <div className="dual-range-track">
+        <div className="dual-range-fill" style={{ left: 0, width: `${((value - min) / Math.max(1, max - min)) * 100}%` }} />
+      </div>
+      <input
+        id={id}
+        type="range"
+        min={min}
+        max={max}
+        step={step}
+        value={value}
+        onChange={(e) => onChange?.(Number(e.target.value))}
+      />
+    </div>
     {marks.length > 0 && (
       <div className="flex justify-between text-label-sm text-text-muted font-medium pt-1">
         {marks.map((mark, index) => (

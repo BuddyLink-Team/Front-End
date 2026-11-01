@@ -131,6 +131,20 @@ describe('DataTable server-side sort', () => {
   });
 });
 
+describe('DataTable loading', () => {
+  const columns = [{ key: 'name', label: 'Tên' }];
+
+  it('keeps a minimum height on the first load, before any row arrives', () => {
+    const { container } = render(<DataTable columns={columns} rows={[]} isLoading />);
+    expect(container.firstChild).toHaveClass('min-h-table-loading');
+  });
+
+  it('drops the minimum height once rows are shown, even while reloading', () => {
+    const { container } = render(<DataTable columns={columns} rows={[{ id: 1, name: 'An' }]} isLoading />);
+    expect(container.firstChild).not.toHaveClass('min-h-table-loading');
+  });
+});
+
 describe('DateRangeFilter', () => {
   it('emits the preset range as YYYY-MM-DD', () => {
     const onChange = vi.fn();

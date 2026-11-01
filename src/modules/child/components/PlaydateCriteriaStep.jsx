@@ -13,7 +13,7 @@ import {
   TIME_SLOT_OPTIONS,
   LOCATION_PREFERENCE_OPTIONS,
   DISTANCE_SLIDER,
-} from '../constants/childConstants';
+} from '../constants/child.constants';
 
 export const PlaydateCriteriaStep = ({
   formData,

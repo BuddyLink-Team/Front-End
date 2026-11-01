@@ -3,7 +3,7 @@ import dayjs from 'dayjs';
 import { Check, CheckCheck, Clock, AlertCircle, RotateCcw, Flag } from 'lucide-react';
 import { Avatar } from '../../../components/ui/Avatar';
 import { ChatBubble } from '../../../components/chat/ChatBubble';
-import { MESSAGE_STATUS } from '../constants/chatConstants.js';
+import { MESSAGE_STATUS } from '../constants/chat.constants.js';
 
 export const MessageItem = ({
   message,
@@ -80,7 +80,7 @@ export const MessageItem = ({
               )}
             </>
           ) : (
-            onReportMessage && (
+            onReportMessage && !message.isDeleted && (
               <>
                 <span>•</span>
                 <button
@@ -112,7 +112,7 @@ export const MessageItem = ({
 
       {/* Text Content (if not just default placeholder for image) */}
       {message.content && message.content !== '[Hình ảnh]' && (
-        <p className="whitespace-pre-wrap">{message.content}</p>
+        <p className={message.isDeleted ? 'italic' : 'whitespace-pre-wrap'}>{message.content}</p>
       )}
     </ChatBubble>
   );

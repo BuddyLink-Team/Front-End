@@ -1,7 +1,7 @@
 import { createSlice } from '@reduxjs/toolkit';
 import { createApiThunk } from '../../../utils/reduxUtils';
 import chatApi from '../api/chatApi';
-import { PAGE_SIZE } from '../constants/chatConstants';
+import { PAGE_SIZE } from '../constants/chat.constants';
 import { upsertMessage, setMessageStatus } from '../utils/chatMessageUtils';
 
 // ---- Thunks (REST calls for chat live here, not in hooks/components) ----
@@ -120,6 +120,24 @@ export const chatSlice = createSlice({
       state.conversations.unshift(updatedConversation);
     },
 
+    // A moderator removed a message: placeholder in the open chat and in the conversation preview
+    messageDeleted: (state, action) => {
+      const { messageId, conversationId, content } = action.payload;
+
+      const message = state.messages.find((item) => item.id === messageId);
+      if (message) {
+        message.isDeleted = true;
+        message.content = content;
+        message.mediaUrl = null;
+      }
+
+      const conversation = state.conversations.find((item) => item.id === conversationId);
+      if (conversation?.lastMessage?.messageId === messageId) {
+        conversation.lastMessage.content = content;
+        conversation.lastMessage.type = 'text';
+      }
+    },
+
     optimisticMessageAdded: (state, action) => {
       if (action.payload?.conversationId === state.messagesConversationId) {
         state.messages.push(action.payload);
@@ -224,6 +242,7 @@ export const chatSlice = createSlice({
 export const {
   conversationUpdated,
   messageReceived,
+  messageDeleted,
   optimisticMessageAdded,
   messageStatusChanged,
   messagesReadByPartner,

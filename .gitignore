@@ -30,3 +30,4 @@ dist-ssr
 !.env.example
 !.env.mock.example
 !.env.admin.example
+!.env.admin.mock.example

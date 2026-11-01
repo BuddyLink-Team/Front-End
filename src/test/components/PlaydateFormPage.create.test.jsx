@@ -165,23 +165,23 @@ describe('CreatePlaydatePage Component', () => {
     renderWithProviders(<CreatePlaydatePage />);
     await waitFor(() => expect(screen.getAllByText('Bé Bắp').length).toBeGreaterThanOrEqual(2));
 
-    fireEvent.change(screen.getByLabelText('Ngày'), { target: { value: '2030-11-02' } });
+    fireEvent.change(screen.getByLabelText(/^Ngày/), { target: { value: '2030-11-02' } });
     expect(await screen.findByText(/Lịch bận trong ngày/)).toHaveTextContent('Bé Bắp 09:00–11:00 · Bé Sóc 15:00–17:00');
     expect(playdateApi.getBusyTimes).toHaveBeenLastCalledWith({ childId: 'child-1', date: '2030-11-02' });
 
     // Own child busy: red, with the next free time to pick
-    fireEvent.change(screen.getByLabelText('Giờ bắt đầu'), { target: { value: '10:00' } });
+    fireEvent.change(screen.getByLabelText(/^Giờ bắt đầu/), { target: { value: '10:00' } });
     expect(await screen.findByText(/trùng giờ bạn chọn, không thể dùng giờ này/)).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: /chọn 11:00 \(giờ trống gần nhất\)/i }));
-    expect(screen.getByLabelText('Giờ bắt đầu').value).toBe('11:00');
+    expect(screen.getByLabelText(/^Giờ bắt đầu/).value).toBe('11:00');
     expect(screen.queryByText(/trùng giờ bạn chọn/)).not.toBeInTheDocument();
 
     // A friend's child busy: a warning only
-    fireEvent.change(screen.getByLabelText('Giờ bắt đầu'), { target: { value: '16:00' } });
+    fireEvent.change(screen.getByLabelText(/^Giờ bắt đầu/), { target: { value: '16:00' } });
     expect(await screen.findByText(/phụ huynh của bé sẽ chưa nhận lời được/)).toHaveTextContent('Bé Sóc 15:00–17:00');
 
     // A clashing own-child time is refused before any request
-    fireEvent.change(screen.getByLabelText('Giờ bắt đầu'), { target: { value: '09:30' } });
+    fireEvent.change(screen.getByLabelText(/^Giờ bắt đầu/), { target: { value: '09:30' } });
     fireEvent.click(await screen.findByRole('button', { name: /chọn công viên apec/i }));
     fireEvent.click(await screen.findByRole('button', { name: /buổi chơi xếp hình lego & giao lưu/i }));
     await screen.findAllByText('Công viên APEC');
@@ -242,8 +242,8 @@ describe('CreatePlaydatePage Component', () => {
     expect(slot).toHaveTextContent('Hợp với cả các gia đình');
     fireEvent.click(slot);
 
-    expect(screen.getByLabelText('Ngày').value).toBe('2030-11-02');
-    expect(screen.getByLabelText('Giờ bắt đầu').value).toBe('09:00');
+    expect(screen.getByLabelText(/^Ngày/).value).toBe('2030-11-02');
+    expect(screen.getByLabelText(/^Giờ bắt đầu/).value).toBe('09:00');
     // Default duration: 2 hours
     expect(screen.getByText('Kết thúc lúc 11:00')).toBeInTheDocument();
   });

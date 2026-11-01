@@ -7,7 +7,7 @@ import {
 import { Button } from '../../../components/ui/Button';
 import { EmptyState } from '../../../components/cards/EmptyState';
 import { PlaydateCard } from './PlaydateCard';
-import { PLAYDATE_STATUS_META } from '../constants/playdateConstants';
+import { PLAYDATE_STATUS_META } from '../constants/playdate.constants';
 import { formatPlaydateTimeRange } from '../utils/playdateTime';
 
 const DAYS_OF_WEEK = ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN'];

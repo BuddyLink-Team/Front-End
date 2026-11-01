@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useToast } from '../../../hooks/useToast';
 import { fetchMyChildren, deleteChild, CHILD_LIST_STATUS } from '../redux/childSlice';
-import { CHILD_ERROR_MESSAGES } from '../constants/childConstants';
+import { CHILD_ERROR_MESSAGES } from '../constants/child.constants';
 import { getApiErrorMsg } from '../../../utils/errorUtils';
 
 /**

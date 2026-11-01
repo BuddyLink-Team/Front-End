@@ -1,4 +1,4 @@
-import { MESSAGE_STATUS } from '../constants/chatConstants.js';
+import { MESSAGE_STATUS } from '../constants/chat.constants.js';
 
 /**
  * Generate a client-only id for an optimistic message. It is echoed back by the server

@@ -11,7 +11,7 @@ import {
   QUOTA_FEATURES,
   QUOTA_MESSAGES,
   PLAN_CODES,
-} from '../constants/subscriptionConstants';
+} from '../constants/subscription.constants';
 
 export const PaywallModal = () => {
   const dispatch = useDispatch();
@@ -19,7 +19,10 @@ export const PaywallModal = () => {
   const { isPaywallOpen, paywallReason, plans } = useSelector(
     (state) => state.subscription
   );
-  const premiumPlan = plans.find((plan) => plan.planCode === PLAN_CODES.PREMIUM_MONTHLY);
+  const premiumPlan =
+    plans.find((plan) => plan.planCode === PLAN_CODES.PREMIUM_MONTHLY) ||
+    plans.find((plan) => plan.planCode === PLAN_CODES.PREMIUM_YEARLY) ||
+    null;
 
   // Quota errors caught by apiClient (services/apiClient.js) open the paywall
   useEffect(() => {

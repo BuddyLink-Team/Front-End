@@ -10,7 +10,7 @@ import { PlaceSearchModal } from './PlaceSearchModal';
 import { ScheduleAvailability } from './ScheduleAvailability';
 import { useRescheduleForm } from '../hooks/useRescheduleForm';
 import { getLocalDateString } from '../../../utils/formatters';
-import { getDurationOptions } from '../constants/playdateConstants';
+import { getDurationOptions } from '../constants/playdate.constants';
 import { addMinutesToTime } from '../utils/playdateTime';
 
 const TIME_PRESETS = ['08:00', '09:00', '15:00', '16:30'].map((preset) => ({
@@ -58,7 +58,8 @@ export const RescheduleModal = ({ isOpen, onClose, playdate, onSuccess }) => {
 
           <form id="reschedule-form" onSubmit={handleSubmit} className="space-y-4" noValidate>
             <Input
-              label="Ngày mới đề xuất *"
+              label="Ngày mới đề xuất"
+              required
               type="date"
               id="newDate"
               name="newDate"
@@ -71,7 +72,8 @@ export const RescheduleModal = ({ isOpen, onClose, playdate, onSuccess }) => {
 
             <div className="space-y-1.5">
               <Input
-                label="Giờ hẹn mới *"
+                label="Giờ hẹn mới"
+                required
                 type="time"
                 id="newStartTime"
                 name="newStartTime"

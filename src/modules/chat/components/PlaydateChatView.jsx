@@ -32,7 +32,7 @@ import {
   BLOCKED_MEMBER_PROMPT_STEPS,
   CHAT_FILE_INPUT_ACCEPT,
   COMPOSER_TEXTAREA_CLASS,
-} from '../constants/chatConstants.js';
+} from '../constants/chat.constants.js';
 import { cn } from '../../../utils/cn';
 import { useBlockedMemberPrompt } from '../hooks/useBlockedMemberPrompt.js';
 import { ReportModal } from '../../safety/components/ReportModal';

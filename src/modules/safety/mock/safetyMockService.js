@@ -1,5 +1,5 @@
 import { INITIAL_MOCK_BLOCKED_USERS, MOCK_EVIDENCE_URL } from './safetyMockData';
-import { BLOCK_REASONS, REPORT_CATEGORIES, REPORT_TARGET_TYPES } from '../constants/safetyConstants';
+import { BLOCK_REASONS, REPORT_CATEGORIES, REPORT_TARGET_TYPES } from '../constants/safety.constants';
 
 const STORAGE_KEY = 'buddylink_mock_blocked_users_v1';
 const delay = (ms = 120) => new Promise((resolve) => setTimeout(resolve, ms));

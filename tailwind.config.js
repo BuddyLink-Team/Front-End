@@ -74,6 +74,9 @@ export default {
           'fixed-dim': '#9bcee7',
           'on-fixed': '#001f2a',
           'on-fixed-variant': '#114d62',
+          // Pastel badge surface + its border (DESIGN.md: age group badges)
+          soft: '#e8f4fa',
+          border: '#cbe5f2',
         },
 
         // --- Tertiary Brand (Butter Yellow) ---
@@ -101,14 +104,18 @@ export default {
           'on-container': '#93000a',
           'on-error-container': '#93000a',
           'container-hover': '#ffb4ab',
+          // Critical severity and reported content
+          soft: '#ffdad6',
+          dark: '#93000a',
         },
 
         // --- Neutrals & Backgrounds ---
         background: '#f9f9ff',
         'on-background': '#121c2c',
-        canvas: '#fafbf9',
-        'text-primary': '#2d3748',
-        'text-muted': '#718096',
+        // DESIGN.md frontmatter wins over the prose (canvas #fafbf9, text #2d3748 / #718096)
+        canvas: '#f9f9ff', // background
+        'text-primary': '#121c2c', // on-surface
+        'text-muted': '#717970', // outline
       },
 
       fontFamily: {
@@ -192,6 +199,8 @@ export default {
         // Chat message bubbles
         bubble: '85%',
         'bubble-sm': '75%',
+        'ai-drawer': '30rem', // AI assistant slide-out drawer
+        'ai-thread': '52rem', // AI assistant message column (full screen)
       },
       width: {
         'chat-panel': '350px', // Conversation list & playdate side panel
@@ -213,6 +222,7 @@ export default {
         'ai-panel': '350px',
         placeholder: '280px',
         list: '220px',
+        'table-loading': '360px', // DataTable first load: room for the spinner before any row arrives
         'calendar-cell': '90px',
         'calendar-cell-md': '110px',
         'auth-heading': '76px',
@@ -223,10 +233,24 @@ export default {
         'pagination-item': '36px',
         'field-sm': '140px', // Table columns, compact selects
         'field-md': '200px',
+        'table-users': '1200px',
+        'table-reports': '1050px',
+        'table-children': '1050px',
+        'col-actions': '100px',
+        'col-actions-sm': '90px',
+        'col-xs': '80px',
+        'col-sm': '110px',
+        'col-md': '140px',
+        'col-lg': '160px',
+        'col-xl': '190px',
+        'col-2xl': '220px',
+        'col-plan': '150px',
+        'col-gender': '120px',
       },
       maxHeight: {
         modal: '90vh',
         'modal-mobile': '85vh',
+        composer: '10rem', // Auto-growing chat input
       },
       gridTemplateColumns: {
         navbar: '1fr auto 1fr', // Equal side columns keep the center nav truly centered

@@ -7,6 +7,7 @@ import {
   formatDateTime,
   formatChildAge,
   formatPercent,
+  formatTimeRange,
 } from '../../utils/formatters';
 
 describe('formatters utility', () => {
@@ -50,5 +51,12 @@ describe('formatters utility', () => {
     expect(formatPercent(0.5, 0)).toBe('50%');
     expect(formatPercent(null)).toBe('-');
     expect(formatPercent('abc')).toBe('-');
+  });
+
+  it('formatTimeRange formats a start time and a duration as a range', () => {
+    expect(formatTimeRange('10:00', 120)).toBe('10:00 - 12:00');
+    expect(formatTimeRange('23:30', 60)).toBe('23:30 - 00:30');
+    expect(formatTimeRange('10:00')).toBe('10:00');
+    expect(formatTimeRange('')).toBe('');
   });
 });

@@ -27,6 +27,7 @@ export const RegisterForm = ({ onSubmit, isLoading }) => {
       <Input
         id="register-fullName"
         label="Họ và tên phụ huynh"
+        required
         placeholder="VD: Nguyễn Thu Hà"
         type="text"
         autoComplete="name"
@@ -39,6 +40,7 @@ export const RegisterForm = ({ onSubmit, isLoading }) => {
       <Input
         id="register-phone"
         label="Số điện thoại"
+        required
         placeholder="VD: 0901234567"
         type="tel"
         autoComplete="tel"
@@ -51,6 +53,7 @@ export const RegisterForm = ({ onSubmit, isLoading }) => {
       <Input
         id="register-email"
         label="Địa chỉ Email"
+        required
         placeholder="phuhuynh@buddylink.vn"
         type="email"
         autoComplete="email"
@@ -63,6 +66,7 @@ export const RegisterForm = ({ onSubmit, isLoading }) => {
       <PasswordInput
         id="register-password"
         label="Mật khẩu"
+        required
         placeholder="Tối thiểu 6 ký tự an toàn"
         autoComplete="new-password"
         error={errors.password?.message}
@@ -73,6 +77,7 @@ export const RegisterForm = ({ onSubmit, isLoading }) => {
       <PasswordInput
         id="register-confirmPassword"
         label="Xác nhận mật khẩu"
+        required
         placeholder="Nhập lại mật khẩu vừa đặt"
         autoComplete="new-password"
         error={errors.confirmPassword?.message}

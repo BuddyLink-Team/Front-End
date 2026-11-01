@@ -9,9 +9,12 @@ import {
   completePlaydate,
   cancelPlaydate,
   respondToPlaydate,
+  inviteParticipants,
+  leavePlaydate,
   voteRescheduleRequest,
+  cancelRescheduleRequest,
 } from '../redux/playdateSlice';
-import { PLAYDATE_ERROR_MAP, RESCHEDULE_STATUS } from '../constants/playdateConstants';
+import { PLAYDATE_ERROR_MESSAGES, PLAYDATE_WARNING_CODES, RESCHEDULE_STATUS } from '../constants/playdate.constants';
 import { hasPlaydateStarted } from '../utils/playdateTime';
 
 /**
@@ -36,6 +39,9 @@ export const usePlaydateDetail = () => {
   const [showCancelModal, setShowCancelModal] = useState(false);
   const [cancelReason, setCancelReason] = useState('');
   const [showRescheduleModal, setShowRescheduleModal] = useState(false);
+  const [showCancelRescheduleModal, setShowCancelRescheduleModal] = useState(false);
+  const [showInviteModal, setShowInviteModal] = useState(false);
+  const [showLeaveModal, setShowLeaveModal] = useState(false);
   const [hasLoadFailed, setHasLoadFailed] = useState(false);
 
   const fetchDetail = useCallback(async () => {
@@ -44,7 +50,7 @@ export const usePlaydateDetail = () => {
       await dispatch(fetchPlaydateDetail(id)).unwrap();
     } catch (err) {
       setHasLoadFailed(true);
-      toast.error(getApiErrorMsg(PLAYDATE_ERROR_MAP, err, 'Không thể tải thông tin chi tiết buổi hẹn chơi.'));
+      toast.error(getApiErrorMsg(PLAYDATE_ERROR_MESSAGES, err, 'Không thể tải thông tin chi tiết buổi hẹn chơi.'));
       return;
     }
     // Having no reschedule request is normal: failures are ignored here
@@ -63,9 +69,15 @@ export const usePlaydateDetail = () => {
   // Section 6.2: only the host proposes; voters are the accepted participants (myVote from the API)
   const canReschedule = isHost && isUpcoming;
   // Completing is possible only after the start time
-  const canComplete = isHost && isUpcoming && hasPlaydateStarted(currentPlaydate?.scheduledDate, currentPlaydate?.time);
+  const hasStarted = hasPlaydateStarted(currentPlaydate?.scheduledDate, currentPlaydate?.time);
+  const canComplete = isHost && isUpcoming && hasStarted;
+  // More friends can be invited until the playdate starts (e.g. once every invitee declined)
+  const canInvite = isHost && isUpcoming && !hasStarted;
+  // A family who joined and blocked another member can leave (decided by the API)
+  const canLeave = Boolean(currentPlaydate?.canLeave);
   const pendingReschedule = rescheduleReq?.status === RESCHEDULE_STATUS.PENDING ? rescheduleReq : null;
   const myPendingVote = pendingReschedule?.myVote === 'pending';
+  const canCancelReschedule = isHost && isUpcoming && Boolean(pendingReschedule);
   // Latest decided request (accepted / declined), shown so the host learns the outcome
   const resolvedReschedule =
     rescheduleReq && [RESCHEDULE_STATUS.ACCEPTED, RESCHEDULE_STATUS.DECLINED].includes(rescheduleReq.status)
@@ -83,7 +95,7 @@ export const usePlaydateDetail = () => {
         if (successMessage) toast.success(successMessage);
         return result;
       } catch (err) {
-        toast.error(getApiErrorMsg(PLAYDATE_ERROR_MAP, err, fallbackError));
+        toast.error(getApiErrorMsg(PLAYDATE_ERROR_MESSAGES, err, fallbackError));
         return null;
       }
     },
@@ -117,6 +129,31 @@ export const usePlaydateDetail = () => {
     if (result) dispatch(fetchRescheduleRequest(id));
   };
 
+  /**
+   * @param {Array<{ parentId: string, childId: string }>} participants
+   * @returns {Promise<boolean>} true once the invitations are sent
+   */
+  const handleInvite = async (participants) => {
+    const result = await runAction(
+      inviteParticipants({ id, participants }),
+      participants.length > 1 ? `Đã gửi lời mời cho ${participants.length} bé.` : 'Đã gửi lời mời.',
+      'Không thể gửi lời mời.',
+    );
+    // Busy children are still invited: they are checked again when their parent accepts
+    if (result?.warnings?.some((warning) => warning.code === PLAYDATE_WARNING_CODES.SCHEDULE_CONFLICT)) {
+      toast.toast('Có bé đã có lịch hẹn khác trùng giờ này. Phụ huynh của bé có thể chưa nhận lời được.', { icon: '⚠️' });
+    }
+    return Boolean(result);
+  };
+
+  const handleLeave = async () => {
+    const result = await runAction(leavePlaydate(id), 'Bạn đã rời buổi hẹn.', 'Không thể rời buổi hẹn.');
+    if (result) {
+      setShowLeaveModal(false);
+      dispatch(fetchRescheduleRequest(id));
+    }
+  };
+
   const handleVoteReschedule = (voteStatus) => {
     if (!pendingReschedule) return null;
     return runAction(
@@ -125,6 +162,19 @@ export const usePlaydateDetail = () => {
       voteStatus === 'accepted' ? 'Bạn đã đồng ý với lịch hẹn mới đề xuất.' : 'Bạn đã từ chối lịch hẹn mới đề xuất.',
       'Không thể gửi ý kiến bỏ phiếu dời lịch.',
     );
+  };
+
+  const handleCancelReschedule = async () => {
+    if (!pendingReschedule) return;
+    const result = await runAction(
+      // Withdraw the request the host is looking at, never a newer one
+      cancelRescheduleRequest({ id, requestId: pendingReschedule.id }),
+      'Đã rút đề xuất đổi lịch.',
+      'Không thể rút đề xuất đổi lịch.',
+    );
+    setShowCancelRescheduleModal(false);
+    // The votes may have decided it meanwhile: show the current schedule and outcome
+    if (!result) fetchDetail();
   };
 
   const handleRescheduleSuccess = () => {
@@ -144,18 +194,30 @@ export const usePlaydateDetail = () => {
     isCompleted,
     canReschedule,
     canComplete,
+    canInvite,
+    canLeave,
     canOpenGroupChat,
     myPendingVote,
+    canCancelReschedule,
     showCancelModal,
     cancelReason,
     showRescheduleModal,
+    showCancelRescheduleModal,
+    showInviteModal,
+    showLeaveModal,
     setShowCancelModal,
     setCancelReason,
     setShowRescheduleModal,
+    setShowCancelRescheduleModal,
+    setShowInviteModal,
+    setShowLeaveModal,
     handleComplete,
     handleCancel,
     handleRespond,
+    handleInvite,
+    handleLeave,
     handleVoteReschedule,
+    handleCancelReschedule,
     handleRescheduleSuccess,
     navigate,
   };

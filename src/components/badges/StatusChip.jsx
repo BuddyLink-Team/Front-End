@@ -9,10 +9,12 @@ const TONE_STYLES = {
   neutral: 'bg-hairline text-text-muted border-hairline-strong',
 };
 
-// Statuses not listed here (e.g. accepted, declined, upcoming) keep the warning tone
+// Statuses not listed here (e.g. accepted, upcoming) keep the warning tone
 const STATUS_TONES = {
   pending: 'warning',
+  awaiting_playmates: 'warning',
   creating: 'warning',
+  declined: 'neutral',
   confirmed: 'success',
   active: 'success',
   success: 'success',
@@ -28,6 +30,7 @@ const STATUS_TONES = {
 
 const STATUS_LABELS = {
   pending: 'Chờ phản hồi',
+  awaiting_playmates: 'Chưa có bạn tham gia',
   confirmed: 'Đã xác nhận',
   accepted: 'Đã tham gia',
   declined: 'Đã từ chối',

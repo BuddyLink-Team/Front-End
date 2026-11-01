@@ -19,7 +19,7 @@ import { Avatar } from '../../../components/ui/Avatar';
 import { formatDate, getLocalDateString } from '../../../utils/formatters';
 import { formatPlaydateTimeRange } from '../utils/playdateTime';
 import { useScheduleCheck } from '../hooks/useScheduleCheck';
-import { DEFAULT_PLAYDATE_DURATION } from '../constants/playdateConstants';
+import { DEFAULT_PLAYDATE_DURATION } from '../constants/playdate.constants';
 
 const RSVP_BADGES = {
   host: { label: 'Người tổ chức', icon: Crown, className: 'bg-primary text-primary-on-primary border-primary' },
@@ -30,8 +30,9 @@ const RSVP_BADGES = {
 
 /**
  * One family of the playdate: parent, child and their answer
+ * @param {string} [badgeLabel] - Replaces the answer label (e.g. "Sẽ được mời" before the playdate exists)
  */
-export const ParticipantCard = ({ parent, childName, status }) => {
+export const ParticipantCard = ({ parent, childName, status, badgeLabel }) => {
   const badge = RSVP_BADGES[status] || RSVP_BADGES.pending;
   const BadgeIcon = badge.icon;
   return (
@@ -51,7 +52,7 @@ export const ParticipantCard = ({ parent, childName, status }) => {
           <span className="truncate">{childName || 'Bé'}</span>
         </p>
         <span className={`inline-flex items-center gap-1 text-label-sm font-semibold px-2 py-0.5 rounded-full border ${badge.className}`}>
-          <BadgeIcon className="w-3 h-3" /> {badge.label}
+          <BadgeIcon className="w-3 h-3" /> {badgeLabel || badge.label}
         </span>
       </div>
     </div>
@@ -62,11 +63,12 @@ ParticipantCard.propTypes = {
   parent: PropTypes.shape({ fullName: PropTypes.string, avatarUrl: PropTypes.string, isVerified: PropTypes.bool }),
   childName: PropTypes.string,
   status: PropTypes.string.isRequired,
+  badgeLabel: PropTypes.string,
 };
 
 const BANNER_CLASS = 'bg-tertiary-fixed/20 border border-tertiary-fixed/50 rounded-2xl p-5 shadow-2xs';
 
-// "Bé Na đã có hẹn khác 09:00–11:00, …": why the own child cannot accept that time
+// "Bé Na đã có hẹn khác 09:00–11:00, …": why the own children cannot accept that time
 const ConflictNote = ({ conflicts }) =>
   conflicts.length > 0 ? (
     <p className="flex items-center gap-1.5 text-xs text-error">
@@ -89,15 +91,19 @@ export const PlaydateBanners = ({
   rescheduleReq,
   resolvedReschedule,
   myPendingVote,
+  canCancelReschedule,
   isCancelled,
   isActionLoading,
   onRespond,
   onVote,
+  onCancelReschedule,
 }) => {
   const duration = playdate.durationMinutes ?? DEFAULT_PLAYDATE_DURATION;
-  // The own child must be free to accept the invitation (this playdate itself does not count)
+  const [myChildId, ...mySiblingIds] = playdate.myChildIds || [];
+  // The own children must be free to accept the invitation (this playdate itself does not count)
   const invitationCheck = useScheduleCheck({
-    childId: isInvitationPending ? playdate.myChildId : null,
+    childId: isInvitationPending ? myChildId : null,
+    participantChildIds: mySiblingIds,
     date: getLocalDateString(playdate.scheduledDate),
     time: playdate.time,
     durationMinutes: duration,
@@ -105,7 +111,8 @@ export const PlaydateBanners = ({
   });
   // …and free at the proposed new time to agree to it
   const voteCheck = useScheduleCheck({
-    childId: myPendingVote ? playdate.myChildId : null,
+    childId: myPendingVote ? myChildId : null,
+    participantChildIds: mySiblingIds,
     date: rescheduleReq?.newDate ? getLocalDateString(rescheduleReq.newDate) : null,
     time: rescheduleReq?.newStartTime,
     durationMinutes: rescheduleReq?.newDurationMinutes ?? duration,
@@ -214,9 +221,22 @@ export const PlaydateBanners = ({
               </Button>
             </div>
           )}
+
+          {canCancelReschedule && (
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={onCancelReschedule}
+              disabled={isActionLoading}
+              className="shrink-0 rounded-xl border-tertiary text-tertiary-dark hover:bg-surface-container-lowest"
+            >
+              Rút đề xuất đổi lịch
+            </Button>
+          )}
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 p-3.5 bg-surface-container-lowest/80 rounded-xl border border-hairline text-xs">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 p-3.5 bg-surface-container-lowest rounded-xl border border-hairline text-xs">
           <div className="flex items-center gap-2 text-text-primary">
             <CalendarIcon className="w-4 h-4 text-primary shrink-0" />
             <span>
@@ -273,8 +293,10 @@ PlaydateBanners.propTypes = {
   rescheduleReq: PropTypes.object,
   resolvedReschedule: PropTypes.object,
   myPendingVote: PropTypes.bool,
+  canCancelReschedule: PropTypes.bool,
   isCancelled: PropTypes.bool,
   isActionLoading: PropTypes.bool,
   onRespond: PropTypes.func.isRequired,
   onVote: PropTypes.func.isRequired,
+  onCancelReschedule: PropTypes.func,
 };

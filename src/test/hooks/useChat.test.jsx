@@ -64,11 +64,12 @@ describe('useChat hook', () => {
   };
 
   const createWrapper = (store) => {
-    return ({ children }) => (
+    const Wrapper = ({ children }) => (
       <Provider store={store}>
         <MemoryRouter>{children}</MemoryRouter>
       </Provider>
     );
+    return Wrapper;
   };
 
   it('renders useChat hook without throwing ReferenceError for detailOfActive', () => {

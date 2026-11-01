@@ -10,7 +10,7 @@ import {
   verifyPayment,
   clearCurrentOrder,
 } from '../redux/subscriptionSlice';
-import { PLAN_CODES, PAYMENT_STATUS, SUBSCRIPTION_ERROR_MESSAGES } from '../constants/subscriptionConstants';
+import { PLAN_CODES, PAYMENT_STATUS, SUBSCRIPTION_ERROR_MESSAGES } from '../constants/subscription.constants';
 import { getCheckoutKey, regenerateCheckoutKey, clearCheckoutKey } from '../utils/checkoutKeys';
 import { getApiErrorMsg } from '../../../utils/errorUtils';
 
@@ -39,7 +39,10 @@ export const useCheckout = () => {
   } = useSelector((state) => state.subscription);
 
   const orderCodeFromUrl = searchParams.get('orderCode');
-  const planCodeFromUrl = searchParams.get('plan') || PLAN_CODES.PREMIUM_MONTHLY;
+  const defaultPlanCode =
+    plans.find((p) => PURCHASABLE_PLANS.includes(p.planCode))?.planCode ||
+    PLAN_CODES.PREMIUM_MONTHLY;
+  const planCodeFromUrl = searchParams.get('plan') || defaultPlanCode;
   const orderPlanCode = orderData?.planSnapshot?.planCode || orderData?.planCode || planCodeFromUrl;
 
   const [error, setError] = useState(null);

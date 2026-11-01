@@ -41,6 +41,7 @@ export const useProfileInfo = ({ profile, onUpdate }) => {
     resolver: zodResolver(parentInfoSchema),
     defaultValues: {
       fullName: profile?.fullName || '',
+      phone: profile?.phone || '',
       bio: profile?.bio || '',
       city: profile?.location?.city || '',
       area: profile?.location?.area || '',
@@ -51,6 +52,7 @@ export const useProfileInfo = ({ profile, onUpdate }) => {
     if (profile) {
       reset({
         fullName: profile.fullName || '',
+        phone: profile.phone || '',
         bio: profile.bio || '',
         city: profile.location?.city || '',
         area: profile.location?.area || '',
@@ -65,6 +67,7 @@ export const useProfileInfo = ({ profile, onUpdate }) => {
 
     return onUpdate?.({
       fullName: data.fullName,
+      phone: data.phone,
       bio: data.bio,
       location: {
         city: data.city,

@@ -38,6 +38,7 @@ export const AdminLoginForm = ({ onSubmit, isLoading }) => {
       <Input
         id="admin-login-email"
         label="Email quản trị"
+        required
         placeholder="ten@buddylink.vn"
         type="email"
         autoComplete="email"
@@ -50,6 +51,7 @@ export const AdminLoginForm = ({ onSubmit, isLoading }) => {
       <PasswordInput
         id="admin-login-password"
         label="Mật khẩu bảo mật"
+        required
         placeholder="••••••••••••"
         autoComplete="current-password"
         className={FIELD_CLASS}

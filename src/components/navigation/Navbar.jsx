@@ -74,7 +74,7 @@ export const Navbar = ({ onLogout } = {}) => {
 
         {/* Center Navigation Links - Conditional based on Auth & Route */}
         {isAuthenticated ? (
-          <nav className="hidden md:flex md:col-start-2 items-center gap-1.5 bg-surface-muted p-1.5 rounded-full border border-hairline">
+          <nav className="hidden md:flex md:col-start-2 items-center gap-1.5 bg-surface-container-low p-1.5 rounded-full border border-hairline">
             {NAV_LINKS.map((link) => {
               const Icon = link.icon;
               const isActive = location.pathname.startsWith(link.href);

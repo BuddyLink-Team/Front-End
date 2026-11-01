@@ -24,7 +24,7 @@ export const BlockedUsersSettingsPage = () => {
     setSearch,
     isSearching,
     isLoading,
-    error,
+    errorMessage,
     isSubmitting,
     reload,
     unblock,
@@ -52,12 +52,12 @@ export const BlockedUsersSettingsPage = () => {
       );
     }
 
-    if (error && items.length === 0) {
+    if (errorMessage && items.length === 0) {
       return (
         <EmptyState
           icon={<AlertCircle className="w-6 h-6 text-error stroke-1.75" />}
           title="Không thể tải danh sách chặn"
-          description="Đã xảy ra sự cố khi kết nối tới máy chủ. Vui lòng thử lại."
+          description={errorMessage}
           actionLabel="Thử lại"
           onAction={reload}
         />

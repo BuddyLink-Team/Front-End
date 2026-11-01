@@ -1,5 +1,5 @@
 import { useCallback, useState } from 'react';
-import { REPORT_TARGET_TYPES } from '../constants/safetyConstants';
+import { REPORT_TARGET_TYPES } from '../constants/safety.constants';
 
 const getSenderId = (message) =>
   message?.senderId?._id ||

@@ -13,12 +13,13 @@ export const EmptyState = ({
   return (
     <div
       className={cn(
-        'flex flex-col items-center justify-center text-center p-8 md:p-12 border border-dashed border-hairline rounded-2xl bg-white/50',
+        // Solid white + stronger dashed outline so it stands out from the canvas
+        'flex flex-col items-center justify-center text-center p-8 md:p-12 border border-dashed border-hairline-strong rounded-2xl bg-surface-container-lowest shadow-xs',
         className,
       )}
     >
       {icon && (
-        <div className="w-14 h-14 rounded-full bg-surface-container flex items-center justify-center text-primary-dark mb-4 shadow-inner">
+        <div className="w-14 h-14 rounded-full bg-primary-soft border border-primary-border flex items-center justify-center text-primary-dark mb-4">
           {icon}
         </div>
       )}

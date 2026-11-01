@@ -708,6 +708,41 @@ class PlaydateMockService {
   }
 
   /**
+   * PATCH /api/v1/playdates/:id/reschedule/cancel (Host withdraws a pending request)
+   */
+  async cancelReschedule(id, payload = {}) {
+    await delay();
+    const reschedules = this._getStoredReschedules();
+    const playdates = this._getStoredPlaydates();
+    const idx = this._findIndexOrFail(playdates, id);
+    const playdate = playdates[idx];
+
+    if (playdate.status !== 'upcoming') {
+      this._fail('INVALID_PLAYDATE_STATUS_FOR_RESCHEDULE', 'Only upcoming playdates can be rescheduled');
+    }
+    if (!playdate.isHost) this._fail('FORBIDDEN_CANCEL_RESCHEDULE', 'Only the host can withdraw a reschedule', 403);
+
+    const proposal = reschedules[id];
+    if (!proposal || proposal.status !== 'pending' || (payload.requestId && payload.requestId !== proposal.id)) {
+      this._fail('RESCHEDULE_NOT_FOUND', 'No pending reschedule request found', 404);
+    }
+
+    proposal.status = 'cancelled';
+    proposal.resolvedAt = new Date().toISOString();
+    reschedules[id] = proposal;
+    this._saveStoredReschedules(reschedules);
+
+    return {
+      success: true,
+      message: 'Reschedule request cancelled successfully',
+      data: {
+        rescheduleRequest: this._toRescheduleResponse(proposal),
+        playdate,
+      },
+    };
+  }
+
+  /**
    * GET /api/v1/places/nearby (Nearby venues adapter)
    */
   async getNearbyPlaces(params = {}) {

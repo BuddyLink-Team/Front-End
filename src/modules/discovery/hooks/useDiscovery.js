@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '../../../hooks/useToast';
@@ -13,8 +13,8 @@ import {
 } from '../redux/discoverySlice';
 import { fetchMyChildren, CHILD_LIST_STATUS } from '../../child/redux/childSlice';
 import { fetchMyParentProfile } from '../../parent/redux/parentSlice';
-import { PARENT_ERROR_MESSAGES } from '../../parent/constants/parentConstants';
-import { CHILD_ERROR_MESSAGES } from '../../child/constants/childConstants';
+import { PARENT_ERROR_MESSAGES } from '../../parent/constants/parent.constants';
+import { CHILD_ERROR_MESSAGES } from '../../child/constants/child.constants';
 import {
   DISCOVERY_ERROR_CODES,
   DISCOVERY_ERROR_MESSAGES,
@@ -22,7 +22,7 @@ import {
   SUBSCRIPTION_PAGE_PATH,
   SWIPE_DIRECTIONS,
   UNLIMITED_QUOTA,
-} from '../constants/discoveryConstants';
+} from '../constants/discovery.constants';
 
 const FETCH_ERROR_FALLBACK = 'Lỗi tải danh sách khám phá';
 const SWIPE_ERROR_FALLBACK = 'Không thể ghi nhận lựa chọn. Vui lòng thử lại.';
@@ -97,7 +97,9 @@ export const useDiscovery = ({ isKeyboardEnabled = true, onViewDetail } = {}) =>
     // Profile could not be loaded: use the standard defaults
     dispatch(initFiltersFromPreferences());
   }, [parentPreferences, isParentLoading, hasDefaultFilters, dispatch, toast]);
-  const { children: myChildren, listStatus: childListStatus } = useSelector((state) => state.child);
+  const { children: allChildren, listStatus: childListStatus } = useSelector((state) => state.child);
+  // Children locked by the Free plan (past its child limit) cannot be searched for
+  const myChildren = useMemo(() => allChildren.filter((c) => !c.isLocked), [allChildren]);
 
   // Load the parent's children once: the matches are computed for one selected child
   useEffect(() => {

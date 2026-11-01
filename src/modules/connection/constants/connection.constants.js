@@ -91,7 +91,7 @@ export const CONNECTION_CONFIRM = Object.freeze({
 /**
  * Backend error codes -> user-facing Vietnamese strings (getApiErrorMsg)
  */
-export const CONNECTION_ERROR_MAP = Object.freeze({
+export const CONNECTION_ERROR_MESSAGES = Object.freeze({
   // request errors (connectionService.validateConnectionRequest)
   SELF_CONNECTION_NOT_ALLOWED: 'Không thể gửi lời mời kết nối tới chính mình.',
   TARGET_PARENT_NOT_FOUND: 'Không tìm thấy phụ huynh này.',
@@ -106,6 +106,8 @@ export const CONNECTION_ERROR_MAP = Object.freeze({
   // direct chat
   CONNECTION_REQUIRED: 'Chỉ có thể nhắn tin với phụ huynh đã kết nối.',
   USER_BLOCKED: 'Không thể nhắn tin với người dùng này.',
+  SELF_CHAT_NOT_ALLOWED: 'Bạn không thể tự nhắn tin cho chính mình.',
+  ID_REQUIRED: 'Thiếu thông tin phụ huynh cần nhắn tin.',
   // parent resolution
   PARENT_NOT_FOUND: 'Không tìm thấy hồ sơ phụ huynh. Vui lòng thiết lập hồ sơ trước.',
 });

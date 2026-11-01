@@ -5,7 +5,7 @@ import logoImg from '../../assets/images/logo.png';
 
 export const Footer = () => {
   return (
-    <footer className="bg-white border-t border-hairline transition-colors">
+    <footer className="bg-surface-container-lowest border-t border-hairline transition-colors">
       {/* Main Footer Directory */}
       <div className="max-w-shell mx-auto px-6 sm:px-10 lg:px-16 py-14">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-10">
@@ -35,7 +35,7 @@ export const Footer = () => {
 
           {/* Column 1: Khám phá */}
           <div className="space-y-3">
-            <h4 className="text-xs font-bold uppercase tracking-wider text-text-primary">
+            <h4 className="text-xs font-semibold uppercase tracking-wider text-text-primary">
               Khám phá
             </h4>
             <ul className="space-y-2.5 text-sm text-text-muted">
@@ -69,7 +69,7 @@ export const Footer = () => {
 
           {/* Column 2: Liên kết nhanh */}
           <div className="space-y-3">
-            <h4 className="text-xs font-bold uppercase tracking-wider text-text-primary">
+            <h4 className="text-xs font-semibold uppercase tracking-wider text-text-primary">
               Nền tảng
             </h4>
             <ul className="space-y-2.5 text-sm text-text-muted">
@@ -98,7 +98,7 @@ export const Footer = () => {
 
           {/* Column 3: Hỗ trợ & Liên hệ */}
           <div className="space-y-3">
-            <h4 className="text-xs font-bold uppercase tracking-wider text-text-primary">
+            <h4 className="text-xs font-semibold uppercase tracking-wider text-text-primary">
               Hỗ trợ 24/7
             </h4>
             <ul className="space-y-2.5 text-sm text-text-muted">

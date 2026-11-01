@@ -2,7 +2,8 @@ import { useEffect, useCallback } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useToast } from '../../../hooks/useToast';
 import { getApiErrorMsg } from '../../../utils/errorUtils';
-import { PARENT_ERROR_MESSAGES, MAX_AVATAR_SIZE_BYTES } from '../constants/parentConstants';
+import { COMMON_ERROR_MESSAGES } from '../../../constants/error.constants';
+import { PARENT_ERROR_MESSAGES, MAX_AVATAR_SIZE_BYTES } from '../constants/parent.constants';
 import {
   fetchMyParentProfile,
   saveParentProfile,
@@ -74,7 +75,7 @@ export const useParentProfile = () => {
     if (!file) return { success: false };
 
     if (file.size > MAX_AVATAR_SIZE_BYTES) {
-      toast.error('Kích thước ảnh tối đa 5MB. Vui lòng chọn ảnh nhỏ hơn!');
+      toast.error(COMMON_ERROR_MESSAGES.FILE_TOO_LARGE);
       return { success: false };
     }
 

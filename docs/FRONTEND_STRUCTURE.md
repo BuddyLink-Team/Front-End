@@ -62,6 +62,7 @@ src/
 - **`appRoutes.jsx`** (parent app, `npm run dev` / `build`):
   - Root path `/`: Renders **`LandingPage`** for unauthenticated guests; automatically redirects authenticated parents to `/discovery`.
 - **`AdminAppRoutes.jsx`** (admin portal, `npm run dev:admin` / `build:admin`): `/login` → `AdminLoginPage`, `/admin/*` → `AdminRoutes.jsx` behind `ProtectedRoute` + `RoleRoute(admin)`.
+- `MainLayout` and `AdminLayout` render pages through `PageOutlet` (`components/navigation/`), so a lazy page only shows a spinner in the content area; the full-page fallback in the route tree is for pages outside a layout.
 - Role-based route guards: `PublicRoute.jsx`, `ProtectedRoute.jsx`, `RoleRoute.jsx`.
 - Sub-route definitions: `ParentRoutes.jsx`, `AdminRoutes.jsx`.
 
@@ -69,6 +70,7 @@ src/
 
 - **`apiClient.js`**: Axios instance with automatic JWT header attachment, token refresh interceptors, and unified error handling. Its base URL is `VITE_API_URL`, so in the admin build `/auth/*` and `/user/*` calls go to the admin API (`/api/v1/admin`).
 - **`socket.js`**: Socket.io client connection management for realtime chat & instant notifications.
+- **`adminSocket.js`**: Socket.io client of the admin portal (`/admin` namespace on the admin API; simulated in mock mode).
 
 ### `constants/` & `utils/`
 
@@ -115,7 +117,7 @@ modules/playdate/
 ├── pages/           # Page views for this module (PlaydateListPage.jsx)
 ├── components/      # Feature-specific subcomponents (PlaydateCard.jsx)
 ├── validation/      # Form validation schemas (Yup / Zod schema)
-└── constants/       # Module constants & status enums (playdateConstants.js)
+└── constants/       # Module constants & status enums (playdate.constants.js)
 ```
 
 ---

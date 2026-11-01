@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Eye, EyeOff } from 'lucide-react';
 import { cn } from '../../utils/cn';
+import { RequiredMark } from '../form/RequiredMark';
 
 export const PasswordInput = React.forwardRef(
   (
@@ -15,6 +16,7 @@ export const PasswordInput = React.forwardRef(
       helperText,
       placeholder = '••••••••',
       disabled = false,
+      required,
       className,
       leftIcon,
       ...props
@@ -32,6 +34,7 @@ export const PasswordInput = React.forwardRef(
             className="block text-sm font-medium text-text-primary"
           >
             {label}
+            {required && <RequiredMark />}
           </label>
         )}
 
@@ -46,6 +49,7 @@ export const PasswordInput = React.forwardRef(
             ref={ref}
             id={inputId}
             name={name}
+            aria-required={required || undefined}
             type={isVisible ? 'text' : 'password'}
             value={value}
             onChange={onChange}
@@ -53,7 +57,7 @@ export const PasswordInput = React.forwardRef(
             disabled={disabled}
             placeholder={placeholder}
             className={cn(
-              'w-full bg-white border border-hairline text-text-primary rounded-xl px-4 py-2.5 pr-10 text-sm transition-all duration-150 placeholder:text-text-muted/60 focus:outline-none focus:ring-2 focus:ring-primary/25 focus:border-primary disabled:bg-gray-50 disabled:cursor-not-allowed',
+              'w-full bg-surface-container-low border border-hairline-strong text-text-primary rounded-xl focus:bg-surface-container-lowest px-4 py-2.5 pr-10 text-sm transition-all duration-150 placeholder:text-text-muted/60 focus:outline-none focus:ring-2 focus:ring-primary/25 focus:border-primary disabled:bg-gray-50 disabled:cursor-not-allowed',
               leftIcon && 'pl-10',
               error && 'border-red-400 focus:ring-red-200 focus:border-red-500',
               className

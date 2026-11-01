@@ -2,23 +2,23 @@
 // missing or fails to load (e.g. Cloudinary unreachable)
 export const DEFAULT_BADGE_ICON_URL = '/badges/default.svg';
 
-// Pastel accents per badge (card border, unlocked card surface + icon halo), built only from design system
+// Pastel accents per badge (card border, solid unlocked card surface + icon halo), built only from design system
 // tokens (tailwind.config.js).
 // Keys are the badge codes of BADGE_CODES in Back-End/src/modules/gamification/gamification.constants.js
 // (same palettes as the badge images, Back-End/assets/badges)
 const PRIMARY_THEME = Object.freeze({
   border: 'border-primary-border',
-  surface: 'from-primary-soft',
+  surface: 'bg-primary-soft',
   halo: 'bg-primary-tint ring-primary-border',
 });
 const SECONDARY_THEME = Object.freeze({
   border: 'border-secondary-fixed-dim',
-  surface: 'from-secondary-fixed/40',
+  surface: 'bg-secondary-soft',
   halo: 'bg-secondary-fixed/50 ring-secondary-fixed-dim',
 });
 const TERTIARY_THEME = Object.freeze({
   border: 'border-tertiary-border',
-  surface: 'from-tertiary-soft',
+  surface: 'bg-tertiary-soft',
   halo: 'bg-tertiary-soft ring-tertiary-border',
 });
 
@@ -50,3 +50,10 @@ export const STREAK_GOAL_WEEKS = 4;
 
 // First visit on a device: only badges unlocked within these days are celebrated
 export const RECENT_UNLOCK_DAYS = 7;
+
+/**
+ * Backend error codes -> user-facing Vietnamese strings (getApiErrorMsg)
+ */
+export const GAMIFICATION_ERROR_MESSAGES = Object.freeze({
+  PARENT_NOT_FOUND: 'Không tìm thấy hồ sơ phụ huynh. Vui lòng thiết lập hồ sơ trước.',
+});

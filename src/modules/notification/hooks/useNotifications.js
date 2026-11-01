@@ -10,10 +10,14 @@ import { useOpenNotification } from './useOpenNotification';
 import {
   TAB_DEFINITIONS,
   NOTIFICATION_PAGE_LIMIT,
+  NOTIFICATION_ERROR_MESSAGES,
 } from '../constants/notification.constants';
+import { useToast } from '../../../hooks/useToast';
+import { getApiErrorMsg } from '../../../utils/errorUtils';
 
 export const useNotifications = () => {
   const dispatch = useDispatch();
+  const toast = useToast();
   const openNotification = useOpenNotification();
 
   const {
@@ -23,6 +27,7 @@ export const useNotifications = () => {
     isLoading,
     isMarkingRead,
     activeTab,
+    error,
   } = useSelector((state) => state.notification);
 
   const [unreadOnly, setUnreadOnly] = useState(false);
@@ -44,8 +49,12 @@ export const useNotifications = () => {
       queryParams.type = currentTabDef.types.join(',');
     }
 
-    dispatch(fetchNotifications(queryParams));
-  }, [dispatch, activeTab, unreadOnly, currentPage]);
+    dispatch(fetchNotifications(queryParams))
+      .unwrap()
+      .catch((err) =>
+        toast.error(getApiErrorMsg(NOTIFICATION_ERROR_MESSAGES, err, 'Không thể tải danh sách thông báo.')),
+      );
+  }, [dispatch, toast, activeTab, unreadOnly, currentPage]);
 
   const handleTabChange = useCallback((tabId) => {
     dispatch(setActiveTab(tabId));
@@ -63,14 +72,20 @@ export const useNotifications = () => {
 
   const handleMarkAsRead = useCallback((e, notificationId) => {
     e?.stopPropagation?.();
-    dispatch(markNotificationAsRead(notificationId));
-  }, [dispatch]);
+    dispatch(markNotificationAsRead(notificationId))
+      .unwrap()
+      .catch((err) => toast.error(getApiErrorMsg(NOTIFICATION_ERROR_MESSAGES, err, 'Không thể đánh dấu đã đọc.')));
+  }, [dispatch, toast]);
 
   const handleMarkAllRead = useCallback(() => {
     if (unreadCount > 0 && !isMarkingRead) {
-      dispatch(markAllNotificationsAsRead());
+      dispatch(markAllNotificationsAsRead())
+        .unwrap()
+        .catch((err) =>
+          toast.error(getApiErrorMsg(NOTIFICATION_ERROR_MESSAGES, err, 'Không thể đánh dấu tất cả là đã đọc.')),
+        );
     }
-  }, [dispatch, unreadCount, isMarkingRead]);
+  }, [dispatch, toast, unreadCount, isMarkingRead]);
 
   const handleActionClick = openNotification;
 
@@ -80,6 +95,7 @@ export const useNotifications = () => {
     pagination,
     isLoading,
     isMarkingRead,
+    error: error ? getApiErrorMsg(NOTIFICATION_ERROR_MESSAGES, error, 'Không thể tải danh sách thông báo.') : null,
     activeTab,
     unreadOnly,
     currentPage,

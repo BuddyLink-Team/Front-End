@@ -1,6 +1,6 @@
 import React, { useRef } from 'react';
 import { useClickOutside } from '../../../hooks/useClickOutside';
-import { QUICK_EMOJIS } from '../constants/chatConstants.js';
+import { QUICK_EMOJIS } from '../constants/chat.constants.js';
 
 export const EmojiPopover = ({ isOpen, onClose, onSelectEmoji }) => {
   const popoverRef = useRef(null);

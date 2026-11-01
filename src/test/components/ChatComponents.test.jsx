@@ -12,7 +12,7 @@ vi.mock('react-router-dom', () => ({
 }));
 
 vi.mock('react-redux', () => ({
-  useSelector: (fn) => fn({ auth: { parent: { _id: 'my-parent-id' } }, safety: { isSubmitting: false } }),
+  useSelector: (fn) => fn({ auth: { parent: { _id: 'my-parent-id' } }, safety: { isBlockSubmitting: false, isReportSubmitting: false } }),
   useDispatch: () => vi.fn(),
 }));
 

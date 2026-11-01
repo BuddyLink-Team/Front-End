@@ -15,11 +15,11 @@ import {
   setPage,
 } from '../redux/playdateSlice';
 import {
-  PLAYDATE_ERROR_MAP,
+  PLAYDATE_ERROR_MESSAGES,
   PLAYDATE_VIEW_MODES,
   PLAYDATE_PAGE_SIZE,
   PLAYDATE_CALENDAR_LIMIT,
-} from '../constants/playdateConstants';
+} from '../constants/playdate.constants';
 
 const SEARCH_DEBOUNCE_MS = 350;
 // The calendar grid also shows the end of the previous month and the start of the next one
@@ -74,7 +74,7 @@ export const usePlaydate = () => {
     try {
       await dispatch(fetchPlaydatesThunk(params)).unwrap();
     } catch (err) {
-      toast.error(getApiErrorMsg(PLAYDATE_ERROR_MAP, err, 'Không thể tải danh sách cuộc hẹn.'));
+      toast.error(getApiErrorMsg(PLAYDATE_ERROR_MESSAGES, err, 'Không thể tải danh sách cuộc hẹn.'));
     }
   }, [activeTab, debouncedSearch, viewMode, calendarMonth, page, dispatch, toast]);
 
@@ -128,7 +128,7 @@ export const usePlaydate = () => {
         toast.success('Đã hoàn thành buổi hẹn chơi! Bé đã tích lũy thêm chuỗi ngày vui vẻ.');
         setConfirmCompleteId(null);
       } catch (err) {
-        toast.error(getApiErrorMsg(PLAYDATE_ERROR_MAP, err, 'Không thể hoàn thành buổi hẹn.'));
+        toast.error(getApiErrorMsg(PLAYDATE_ERROR_MESSAGES, err, 'Không thể hoàn thành buổi hẹn.'));
       } finally {
         setCompletingId(null);
       }
@@ -155,7 +155,7 @@ export const usePlaydate = () => {
       setCancellingPlaydate(null);
       fetchPlaydates();
     } catch (err) {
-      toast.error(getApiErrorMsg(PLAYDATE_ERROR_MAP, err, 'Không thể hủy cuộc hẹn. Vui lòng thử lại sau.'));
+      toast.error(getApiErrorMsg(PLAYDATE_ERROR_MESSAGES, err, 'Không thể hủy cuộc hẹn. Vui lòng thử lại sau.'));
     } finally {
       setIsCancelling(false);
     }

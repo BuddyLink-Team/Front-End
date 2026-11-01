@@ -58,6 +58,7 @@ export const ResetPasswordPage = () => {
         <Input
           id="reset-email"
           label="Địa chỉ Email đăng ký"
+          required
           placeholder="phuhuynh@buddylink.vn"
           type="email"
           autoComplete="email"
@@ -69,6 +70,7 @@ export const ResetPasswordPage = () => {
         <Input
           id="reset-token"
           label="Mã khôi phục"
+          required
           placeholder="6 chữ số"
           inputMode="numeric"
           autoComplete="one-time-code"
@@ -81,6 +83,7 @@ export const ResetPasswordPage = () => {
         <PasswordInput
           id="reset-new-password"
           label="Mật khẩu mới"
+          required
           placeholder="Tối thiểu 6 ký tự"
           autoComplete="new-password"
           error={errors.newPassword?.message}
@@ -90,6 +93,7 @@ export const ResetPasswordPage = () => {
         <PasswordInput
           id="reset-confirm-password"
           label="Xác nhận mật khẩu mới"
+          required
           placeholder="Nhập lại mật khẩu mới"
           autoComplete="new-password"
           error={errors.confirmNewPassword?.message}

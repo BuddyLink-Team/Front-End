@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useDispatch } from 'react-redux';
 import { useSafetyActions } from '../../safety/hooks/useSafetyActions.js';
-import { BLOCK_REASONS } from '../../safety/constants/safetyConstants.js';
+import { BLOCK_REASONS } from '../../safety/constants/safety.constants.js';
 import { fetchConversationById, fetchConversations } from '../redux/chatSlice.js';
 
 /**
@@ -11,7 +11,7 @@ import { fetchConversationById, fetchConversations } from '../redux/chatSlice.js
  */
 export const useConversationBlock = (conversation) => {
   const dispatch = useDispatch();
-  const { isSubmitting, blockUser, unblockUser } = useSafetyActions();
+  const { isBlockSubmitting: isSubmitting, blockUser, unblockUser } = useSafetyActions();
   const [localBlockedByMe, setLocalBlockedByMe] = useState(null);
 
   const conversationId = conversation?.id;

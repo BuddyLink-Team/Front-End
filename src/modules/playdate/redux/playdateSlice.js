@@ -1,7 +1,7 @@
 import { createSlice, isAnyOf } from '@reduxjs/toolkit';
 import { createApiThunk } from '../../../utils/reduxUtils';
 import { playdateApi } from '../api/playdateApi';
-import { PLAYDATE_VIEW_MODES } from '../constants/playdateConstants';
+import { PLAYDATE_VIEW_MODES } from '../constants/playdate.constants';
 
 // ---- Thunks (all playdate API calls live here) ----
 
@@ -81,6 +81,11 @@ export const respondToPlaydate = createApiThunk(
   ({ id, status }) => playdateApi.respondToPlaydate(id, status),
 );
 
+export const inviteParticipants = createApiThunk(
+  'playdate/inviteParticipants',
+  ({ id, participants }) => playdateApi.inviteParticipants(id, participants),
+);
+
 export const leavePlaydate = createApiThunk('playdate/leave', (id) =>
   playdateApi.leavePlaydate(id),
 );
@@ -94,6 +99,11 @@ export const voteRescheduleRequest = createApiThunk(
   'playdate/voteReschedule',
   ({ id, requestId, status }) =>
     playdateApi.voteReschedule(id, { requestId, status }),
+);
+
+export const cancelRescheduleRequest = createApiThunk(
+  'playdate/cancelReschedule',
+  ({ id, requestId }) => playdateApi.cancelReschedule(id, { requestId }),
 );
 
 const initialState = {
@@ -268,7 +278,12 @@ export const playdateSlice = createSlice({
         applyCompleted(state, action.payload);
       })
       .addMatcher(
-        isAnyOf(cancelPlaydate.fulfilled, respondToPlaydate.fulfilled, leavePlaydate.fulfilled),
+        isAnyOf(
+          cancelPlaydate.fulfilled,
+          respondToPlaydate.fulfilled,
+          inviteParticipants.fulfilled,
+          leavePlaydate.fulfilled,
+        ),
         (state, action) => {
           upsertPlaydate(state, action.payload);
         },
@@ -278,6 +293,7 @@ export const playdateSlice = createSlice({
         isAnyOf(
           createRescheduleRequest.fulfilled,
           voteRescheduleRequest.fulfilled,
+          cancelRescheduleRequest.fulfilled,
         ),
         (state, action) => {
           if (action.payload?.rescheduleRequest)
@@ -290,9 +306,11 @@ export const playdateSlice = createSlice({
           completePlaydate.pending,
           cancelPlaydate.pending,
           respondToPlaydate.pending,
+          inviteParticipants.pending,
           leavePlaydate.pending,
           createRescheduleRequest.pending,
           voteRescheduleRequest.pending,
+          cancelRescheduleRequest.pending,
           createPlaydate.pending,
         ),
         (state) => {
@@ -307,12 +325,16 @@ export const playdateSlice = createSlice({
           cancelPlaydate.rejected,
           respondToPlaydate.fulfilled,
           respondToPlaydate.rejected,
+          inviteParticipants.fulfilled,
+          inviteParticipants.rejected,
           leavePlaydate.fulfilled,
           leavePlaydate.rejected,
           createRescheduleRequest.fulfilled,
           createRescheduleRequest.rejected,
           voteRescheduleRequest.fulfilled,
           voteRescheduleRequest.rejected,
+          cancelRescheduleRequest.fulfilled,
+          cancelRescheduleRequest.rejected,
           createPlaydate.fulfilled,
           createPlaydate.rejected,
         ),

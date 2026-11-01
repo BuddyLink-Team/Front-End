@@ -195,16 +195,16 @@ export const LandingPage = () => {
                   <div className="absolute -bottom-12 -left-12 w-72 h-72 bg-secondary/20 rounded-full blur-3xl pointer-events-none" />
 
                   {/* Main Preview Card */}
-                  <Card className="relative bg-white border border-hairline shadow-hero rounded-3xl p-6 space-y-5">
+                  <Card className="relative bg-surface-container-lowest border border-hairline shadow-hero rounded-3xl p-6 space-y-5">
                     {/* Header with Child Avatar and Verified Badge */}
                     <div className="flex items-start justify-between">
                       <div className="flex items-center gap-3.5">
-                        <div className="w-14 h-14 rounded-2xl bg-primary/10 text-primary-dark font-bold text-2xl flex items-center justify-center border-2 border-white shadow-xs">
+                        <div className="w-14 h-14 rounded-2xl bg-primary/10 text-primary-dark font-semibold text-2xl flex items-center justify-center border-2 border-white shadow-xs">
                           B
                         </div>
                         <div>
                           <div className="flex items-center gap-2">
-                            <h3 className="text-lg font-bold text-text-primary">
+                            <h3 className="text-lg font-semibold text-text-primary">
                               Bé Bo
                             </h3>
                             <span className="text-xs px-2.5 py-0.5 rounded-full bg-secondary-container/40 text-secondary-dark font-semibold">
@@ -218,7 +218,7 @@ export const LandingPage = () => {
                     </div>
 
                     {/* Bio Statement */}
-                    <div className="p-3.5 rounded-2xl bg-canvas border border-hairline text-xs sm:text-sm text-text-muted leading-relaxed">
+                    <div className="p-3.5 rounded-2xl bg-surface-container-low border border-hairline text-xs sm:text-sm text-text-muted leading-relaxed">
                       &ldquo;Thích lắp ghép Lego, vẽ tranh màu nước và vui chơi công
                       viên cuối tuần.&rdquo;
                     </div>
@@ -273,10 +273,10 @@ export const LandingPage = () => {
         {/* ===================== HERO PHOTO BANNER ===================== */}
         <section className="py-6">
           <div className="max-w-shell mx-auto px-6 sm:px-10 lg:px-16">
-            <div className="relative rounded-3xl overflow-hidden shadow-sm border border-hairline bg-white">
+            <div className="relative rounded-3xl overflow-hidden shadow-sm border border-hairline bg-surface-container-lowest">
               <div className="grid grid-cols-1 lg:grid-cols-12 items-center">
                 <div className="lg:col-span-7 p-8 sm:p-12 lg:p-14 space-y-4">
-                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-tertiary/15 text-tertiary-dark">
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider bg-tertiary/15 text-tertiary-dark">
                     <Award className="w-3.5 h-3.5" />
                     Không gian gắn kết gia đình
                   </span>
@@ -318,11 +318,11 @@ export const LandingPage = () => {
         {/* ===================== VALUE PILLARS / FEATURES ===================== */}
         <section
           id="features"
-          className="py-20 bg-white border-y border-hairline"
+          className="py-20 bg-surface-container-lowest border-y border-hairline"
         >
           <div className="max-w-shell mx-auto px-6 sm:px-10 lg:px-16 space-y-14">
             <div className="text-center max-w-4xl mx-auto space-y-3">
-              <span className="text-xs font-bold uppercase tracking-wider text-primary-dark">
+              <span className="text-xs font-semibold uppercase tracking-wider text-primary-dark">
                 Tính năng ưu việt
               </span>
               <h2 className="text-3xl sm:text-4xl font-bold tracking-tight text-text-primary">
@@ -340,7 +340,7 @@ export const LandingPage = () => {
                 <div className="w-14 h-14 rounded-2xl bg-primary/10 text-primary-dark flex items-center justify-center">
                   <Compass className="w-7 h-7" />
                 </div>
-                <h3 className="text-xl font-bold text-text-primary">
+                <h3 className="text-xl font-semibold text-text-primary">
                   Ghép đôi bạn chơi thông minh
                 </h3>
                 <p className="text-sm text-text-muted leading-relaxed">
@@ -359,7 +359,7 @@ export const LandingPage = () => {
                 <div className="w-14 h-14 rounded-2xl bg-secondary/20 text-secondary-dark flex items-center justify-center">
                   <Bot className="w-7 h-7" />
                 </div>
-                <h3 className="text-xl font-bold text-text-primary">
+                <h3 className="text-xl font-semibold text-text-primary">
                   Trợ lý AI Playdate Assistant
                 </h3>
                 <p className="text-sm text-text-muted leading-relaxed">
@@ -378,7 +378,7 @@ export const LandingPage = () => {
                 <div className="w-14 h-14 rounded-2xl bg-tertiary/20 text-tertiary-dark flex items-center justify-center">
                   <ShieldCheck className="w-7 h-7" />
                 </div>
-                <h3 className="text-xl font-bold text-text-primary">
+                <h3 className="text-xl font-semibold text-text-primary">
                   An toàn & Bảo mật tuyệt đối
                 </h3>
                 <p className="text-sm text-text-muted leading-relaxed">
@@ -400,7 +400,7 @@ export const LandingPage = () => {
           <div className="max-w-shell mx-auto px-6 sm:px-10 lg:px-16 space-y-12">
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
               <div className="space-y-3">
-                <span className="text-xs font-bold uppercase tracking-wider text-primary-dark">
+                <span className="text-xs font-semibold uppercase tracking-wider text-primary-dark">
                   Gặp gỡ bạn mới
                 </span>
                 <h2 className="text-3xl sm:text-4xl font-bold tracking-tight text-text-primary">
@@ -427,19 +427,19 @@ export const LandingPage = () => {
               {samplePlaymates.map((kid, idx) => (
                 <Card
                   key={idx}
-                  className="rounded-3xl p-6 sm:p-7 space-y-5 hover:shadow-elevated transition-all border border-hairline bg-white flex flex-col justify-between"
+                  className="rounded-3xl p-6 sm:p-7 space-y-5 hover:shadow-elevated transition-all border border-hairline bg-surface-container-lowest flex flex-col justify-between"
                 >
                   <div className="space-y-4">
                     <div className="flex items-start justify-between">
                       <div className="flex items-center gap-3.5">
                         <div
-                          className={`w-14 h-14 rounded-2xl ${kid.avatarBg} font-bold text-xl flex items-center justify-center border-2 border-white shadow-xs`}
+                          className={`w-14 h-14 rounded-2xl ${kid.avatarBg} font-semibold text-xl flex items-center justify-center border-2 border-white shadow-xs`}
                         >
                           {kid.avatarLetter}
                         </div>
                         <div>
                           <div className="flex items-center gap-2">
-                            <h3 className="text-lg font-bold text-text-primary">
+                            <h3 className="text-lg font-semibold text-text-primary">
                               {kid.name}
                             </h3>
                             <span className="text-xs px-2 py-0.5 rounded-full bg-secondary-container/40 text-secondary-dark font-semibold">
@@ -483,11 +483,11 @@ export const LandingPage = () => {
         {/* ===================== HOW IT WORKS ===================== */}
         <section
           id="how-it-works"
-          className="py-20 bg-white border-y border-hairline"
+          className="py-20 bg-surface-container-lowest border-y border-hairline"
         >
           <div className="max-w-shell mx-auto px-6 sm:px-10 lg:px-16 space-y-14">
             <div className="text-center max-w-3xl mx-auto space-y-3">
-              <span className="text-xs font-bold uppercase tracking-wider text-primary-dark">
+              <span className="text-xs font-semibold uppercase tracking-wider text-primary-dark">
                 Quy trình tinh gọn
               </span>
               <h2 className="text-3xl sm:text-4xl font-bold tracking-tight text-text-primary">
@@ -500,11 +500,11 @@ export const LandingPage = () => {
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8 relative">
               {/* Step 1 */}
-              <div className="bg-canvas rounded-3xl p-8 border border-hairline text-center space-y-4 hover:bg-white hover:shadow-elevated transition-all">
-                <div className="w-12 h-12 rounded-2xl bg-primary text-white font-bold flex items-center justify-center mx-auto text-lg shadow-sm">
+              <div className="bg-surface-container-low rounded-3xl p-8 border border-hairline text-center space-y-4 hover:bg-surface-container-lowest hover:shadow-elevated transition-all">
+                <div className="w-12 h-12 rounded-2xl bg-primary text-white font-semibold flex items-center justify-center mx-auto text-lg shadow-sm">
                   1
                 </div>
-                <h3 className="font-bold text-xl text-text-primary">
+                <h3 className="font-semibold text-xl text-text-primary">
                   Tạo hồ sơ cho con
                 </h3>
                 <p className="text-sm text-text-muted leading-relaxed">
@@ -514,11 +514,11 @@ export const LandingPage = () => {
               </div>
 
               {/* Step 2 */}
-              <div className="bg-canvas rounded-3xl p-8 border border-hairline text-center space-y-4 hover:bg-white hover:shadow-elevated transition-all">
-                <div className="w-12 h-12 rounded-2xl bg-primary text-white font-bold flex items-center justify-center mx-auto text-lg shadow-sm">
+              <div className="bg-surface-container-low rounded-3xl p-8 border border-hairline text-center space-y-4 hover:bg-surface-container-lowest hover:shadow-elevated transition-all">
+                <div className="w-12 h-12 rounded-2xl bg-primary text-white font-semibold flex items-center justify-center mx-auto text-lg shadow-sm">
                   2
                 </div>
-                <h3 className="font-bold text-xl text-text-primary">
+                <h3 className="font-semibold text-xl text-text-primary">
                   Khám phá & Ghép đôi
                 </h3>
                 <p className="text-sm text-text-muted leading-relaxed">
@@ -528,11 +528,11 @@ export const LandingPage = () => {
               </div>
 
               {/* Step 3 */}
-              <div className="bg-canvas rounded-3xl p-8 border border-hairline text-center space-y-4 hover:bg-white hover:shadow-elevated transition-all">
-                <div className="w-12 h-12 rounded-2xl bg-primary text-white font-bold flex items-center justify-center mx-auto text-lg shadow-sm">
+              <div className="bg-surface-container-low rounded-3xl p-8 border border-hairline text-center space-y-4 hover:bg-surface-container-lowest hover:shadow-elevated transition-all">
+                <div className="w-12 h-12 rounded-2xl bg-primary text-white font-semibold flex items-center justify-center mx-auto text-lg shadow-sm">
                   3
                 </div>
-                <h3 className="font-bold text-xl text-text-primary">
+                <h3 className="font-semibold text-xl text-text-primary">
                   Tận hưởng Playdate
                 </h3>
                 <p className="text-sm text-text-muted leading-relaxed">
@@ -547,7 +547,7 @@ export const LandingPage = () => {
         {/* ===================== SAFETY & SECURITY ===================== */}
         <section id="safety" className="py-20 bg-canvas">
           <div className="max-w-shell mx-auto px-6 sm:px-10 lg:px-16">
-            <div className="bg-white rounded-3xl p-8 sm:p-14 border border-hairline shadow-soft grid grid-cols-1 lg:grid-cols-12 gap-10 items-center">
+            <div className="bg-surface-container-lowest rounded-3xl p-8 sm:p-14 border border-hairline shadow-soft grid grid-cols-1 lg:grid-cols-12 gap-10 items-center">
               <div className="lg:col-span-7 space-y-6">
                 <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-error-container/50 text-error text-xs font-semibold border border-error-container">
                   <ShieldCheck className="w-4 h-4 text-error" />
@@ -606,11 +606,11 @@ export const LandingPage = () => {
                 </div>
               </div>
 
-              <div className="lg:col-span-5 bg-canvas rounded-2xl p-6 sm:p-8 border border-hairline text-center space-y-5">
+              <div className="lg:col-span-5 bg-surface-container-low rounded-2xl p-6 sm:p-8 border border-hairline text-center space-y-5">
                 <div className="w-16 h-16 rounded-full bg-primary/10 text-primary-dark flex items-center justify-center mx-auto">
                   <ShieldCheck className="w-8 h-8" />
                 </div>
-                <h3 className="text-xl font-bold text-text-primary">
+                <h3 className="text-xl font-semibold text-text-primary">
                   Tham gia cộng đồng phụ huynh an toàn
                 </h3>
                 <p className="text-xs sm:text-sm text-text-muted leading-relaxed">
@@ -630,11 +630,11 @@ export const LandingPage = () => {
         {/* ===================== TESTIMONIALS ===================== */}
         <section
           id="testimonials"
-          className="py-20 bg-white border-y border-hairline"
+          className="py-20 bg-surface-container-lowest border-y border-hairline"
         >
           <div className="max-w-shell mx-auto px-6 sm:px-10 lg:px-16 space-y-14">
             <div className="text-center max-w-2xl mx-auto space-y-3">
-              <span className="text-xs font-bold uppercase tracking-wider text-primary-dark">
+              <span className="text-xs font-semibold uppercase tracking-wider text-primary-dark">
                 Cộng đồng phụ huynh
               </span>
               <h2 className="text-3xl sm:text-4xl font-bold tracking-tight text-text-primary">
@@ -650,7 +650,7 @@ export const LandingPage = () => {
               {testimonials.map((item, idx) => (
                 <Card
                   key={idx}
-                  className="rounded-3xl p-8 space-y-5 border border-hairline bg-canvas/40 hover:bg-white hover:shadow-elevated transition-all flex flex-col justify-between"
+                  className="rounded-3xl p-8 space-y-5 border border-hairline bg-surface-container-low hover:bg-surface-container-lowest hover:shadow-elevated transition-all flex flex-col justify-between"
                 >
                   <div className="space-y-4">
                     <div className="flex items-center gap-1 text-tertiary">
@@ -683,7 +683,7 @@ export const LandingPage = () => {
         <section id="faq" className="py-20 bg-canvas">
           <div className="max-w-4xl mx-auto px-6 sm:px-10 space-y-12">
             <div className="text-center space-y-3">
-              <span className="text-xs font-bold uppercase tracking-wider text-primary-dark">
+              <span className="text-xs font-semibold uppercase tracking-wider text-primary-dark">
                 Giải đáp thắc mắc
               </span>
               <h2 className="text-3xl sm:text-4xl font-bold tracking-tight text-text-primary">
@@ -700,7 +700,7 @@ export const LandingPage = () => {
                 return (
                   <div
                     key={index}
-                    className="bg-white rounded-2xl border border-hairline overflow-hidden transition-all shadow-xs"
+                    className="bg-surface-container-lowest rounded-2xl border border-hairline overflow-hidden transition-all shadow-xs"
                   >
                     <button
                       type="button"

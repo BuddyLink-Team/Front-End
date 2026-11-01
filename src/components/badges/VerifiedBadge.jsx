@@ -37,7 +37,7 @@ export const VerifiedBadge = ({
   return (
     <span
       className={cn(
-        'inline-flex items-center font-medium bg-primary-soft text-primary-ink rounded-full border border-primary-border shadow-xs select-none',
+        'inline-flex items-center font-medium bg-primary-soft text-primary-ink rounded-full border border-primary-border shadow-xs select-none whitespace-nowrap',
         sizes[size],
         className
       )}

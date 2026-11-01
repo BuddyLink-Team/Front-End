@@ -5,12 +5,10 @@ import { getApiErrorMsg } from '../../../utils/errorUtils';
 import { fetchChildPublicProfile, clearChildDetail } from '../redux/discoverySlice';
 import {
   DAY_LABELS,
-  DEFAULT_CHILD_AVATARS,
   DISCOVERY_ERROR_MESSAGES,
-  GENDER_LABELS,
   LOCATION_LABELS,
   TIME_LABELS,
-} from '../constants/discoveryConstants';
+} from '../constants/discovery.constants';
 
 const PROFILE_ERROR_FALLBACK = 'Không thể tải thông tin hồ sơ bé';
 
@@ -42,8 +40,6 @@ export const useChildProfile = (childId) => {
     if (!profile) return null;
     const preferences = profile.parent?.preferences || {};
     return {
-      genderLabel: GENDER_LABELS[profile.gender] || '',
-      avatarSrc: DEFAULT_CHILD_AVATARS[profile.gender] || DEFAULT_CHILD_AVATARS.DEFAULT,
       interests: [...(profile.interests || []), ...(profile.favoriteActivities || [])],
       preferredLocations: translate(LOCATION_LABELS, preferences.preferredLocations),
       preferredPlaydateDays: translate(DAY_LABELS, preferences.preferredPlaydateDays),

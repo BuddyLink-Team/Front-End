@@ -84,7 +84,7 @@ src/components/
 | Phân loại | Component | Đường dẫn | Trạng thái | Ghi chú |
 | :--- | :--- | :--- | :--- | :--- |
 | **UI** | `Button` | `components/ui/Button.jsx` | ✅ Đã code | 5 variants, loading spinner, icons |
-| **UI** | `Input` | `components/ui/Input.jsx` | ✅ Đã code | Label, helperText, error, icons |
+| **UI** | `Input` | `components/ui/Input.jsx` | ✅ Đã code | Label, helperText, error, icons; `required` hiện dấu * đỏ sau label (dùng chung cho `Textarea`, `Select`, `PasswordInput`, `Combobox`; label tự viết thì dùng `RequiredMark`) |
 | **UI** | `PasswordInput` | `components/ui/PasswordInput.jsx` | ✅ Đã code | Tích hợp toggle hiển thị mật khẩu |
 | **UI** | `Textarea` | `components/ui/Textarea.jsx` | ✅ Đã code | Multi-line text, auto resize ring |
 | **UI** | `Checkbox` | `components/ui/Checkbox.jsx` | ✅ Đã code | Bo góc, hiệu ứng checkmark matcha |
@@ -103,6 +103,7 @@ src/components/
 | **Charts** | `BarChart` | `components/charts/BarChart.jsx` | ✅ Đã code | Biểu đồ cột màu matcha, loading skeleton, empty state |
 | **Chat** | `ChatBubble` | `components/chat/ChatBubble.jsx` | ✅ Đã code | Bố cục tin nhắn dùng chung cho Messenger (`MessageItem`) và Trợ lý AI |
 | **Feedback** | `Modal` | `components/feedback/Modal.jsx` | ✅ Đã code | Backdrop blur, React portal; `placement` = `center` / `sheet` / `right` (drawer) |
+| **Feedback** | `ImageGalleryLightbox` | `components/feedback/ImageGalleryLightbox.jsx` | ✅ Đã code | Xem ảnh toàn màn hình trên nền tối: back/next (nút hoặc phím mũi tên), số x/y dưới ảnh |
 | **Feedback** | `ConfirmDialog` | `components/feedback/ConfirmDialog.jsx` | ✅ Đã code | Warning/danger/info actions; ô nhập lý do qua `reason` |
 | **Feedback** | `TypingIndicator` | `components/feedback/TypingIndicator.jsx` | ✅ Đã code | Bong bóng "đang soạn" (chat, AI) |
 | **Feedback** | `<Toaster />` | `react-hot-toast` (cấu hình tại `App.jsx`) | ✅ Sẵn sàng | Định kiểu sẵn theo theme matcha, dùng qua hook `useToast` |
@@ -110,13 +111,13 @@ src/components/
 | **Feedback** | `Spinner` | `components/feedback/Spinner.jsx` | ✅ Đã code | Vòng quay tải trang |
 | **Feedback** | `LoadingOverlay` | `components/feedback/LoadingOverlay.jsx` | ✅ Đã code | Lớp phủ chờ thao tác |
 | **Feedback** | `AppErrorBoundary` | `components/feedback/AppErrorBoundary.jsx` | ✅ Đã code | Bắt lỗi ứng dụng dự phòng |
-| **Feedback** | `PlaceholderPage` | `components/feedback/PlaceholderPage.jsx` | ✅ Đã code | Trang giữ chỗ (`title`, `description`); `titleClassName` để đổi style tiêu đề (admin dùng `text-headline-md font-semibold` qua `AdminPlaceholder` trong `AdminRoutes.jsx`) |
+| **Feedback** | `PlaceholderPage` | `components/feedback/PlaceholderPage.jsx` | ✅ Đã code | Trang giữ chỗ (`title`, `description`); `titleClassName` để đổi style tiêu đề |
 | **Navigation** | `Navbar` | `components/navigation/Navbar.jsx` | ✅ Đã code | Header sticky với pill navigation |
 | **Navigation** | `Sidebar` | `components/navigation/Sidebar.jsx` | ✅ Đã code | Collapsible sidebar cho Admin/Settings |
 | **Navigation** | `Tabs` | `components/navigation/Tabs.jsx` | ✅ Đã code | Hỗ trợ kiểu Pill và Line tab |
-| **Navigation** | `Pagination` | `components/navigation/Pagination.jsx` | ✅ Đã code | Phân trang kèm dấu chấm lửng (...) |
+| **Navigation** | `Pagination` | `components/navigation/Pagination.jsx` | ✅ Đã code | Phân trang kèm dấu chấm lửng (...); `inactiveItemClassName` thêm class cho các nút không phải trang hiện tại (admin dùng nền trắng `bg-surface-container-lowest`) |
 | **Search** | `SearchBar` | `components/search/SearchBar.jsx` | ✅ Đã code | Ô tìm kiếm có icon và submit trigger |
-| **Search** | `FilterChips` | `components/search/FilterChips.jsx` | ✅ Đã code | Bộ chip lọc đơn/đa tiêu chí kèm nút Clear |
+| **Search** | `FilterChips` | `components/search/FilterChips.jsx` | ✅ Đã code | Bộ chip lọc đơn/đa tiêu chí kèm nút Clear; mỗi option định danh bằng `id`, thiếu thì dùng `value` rồi `label` |
 | **Search** | `DateRangeFilter` | `components/search/DateRangeFilter.jsx` | ✅ Đã code | Preset + khoảng tùy chỉnh, giá trị `YYYY-MM-DD` |
 
 ---
@@ -191,7 +192,7 @@ src/components/
 - **Status bổ sung (màn Admin)**: `active` "Đang hoạt động" và `success` "Thành công" (màu `confirmed`), `locked` "Đã khóa" và `failed` "Thất bại" (màu `reported`), `expired` "Đã hết hạn", `removed` "Đã gỡ", `archived` "Đã xóa" (màu `cancelled`), `creating` "Đang khởi tạo" (màu `pending`).
 - **Props**: `status` (chọn màu và nhãn mặc định), `label` (thay nhãn), `tone` (`success` | `warning` | `danger` | `info` | `neutral`, ghi đè màu lấy từ `status`), `icon` (icon Lucide đặt trước nhãn), `className`.
 - **Quy tắc dùng**: Chỉ các status đã liệt kê có màu riêng; status khác (vd. `upcoming`, `accepted`, `declined`) sẽ rơi về màu `pending`. Với status mới của module, truyền `tone` + `label` thay vì thêm status vào component. Vì vậy module phải map trạng thái nghiệp vụ sang variant có sẵn và truyền `label` riêng, không truyền thẳng status của API:
-  - Playdate (`modules/chat/constants/chatConstants.js` → `PLAYDATE_STATUS_CHIPS`): `upcoming` → `confirmed` "Sắp diễn ra", `completed` → `completed`, `cancelled` → `cancelled`.
+  - Playdate (`modules/chat/constants/chat.constants.js` → `PLAYDATE_STATUS_CHIPS`): `upcoming` → `confirmed` "Sắp diễn ra", `completed` → `completed`, `cancelled` → `cancelled`.
   - Người tham gia Playdate (`PARTICIPANT_STATUS_CHIPS`): `pending` → `pending` "Chờ phản hồi", `accepted` → `confirmed` "Đã tham gia", `declined` → `cancelled` "Đã từ chối".
   - Huy hiệu thành tích (`BadgeCard`): đã mở khóa → `confirmed` + icon `CheckCircle2`, chưa mở → `cancelled` + icon `Lock`.
   - Streak tuần (`StreakBanner`): đã hoàn thành tuần → `confirmed`, chưa → `pending`.
@@ -210,7 +211,7 @@ src/components/
 
 #### 📊 `StatCard.jsx`
 - **Mục đích**: Hiển thị thẻ chỉ số trên màn hình Dashboard Quản trị & Doanh thu (Tổng phụ huynh, Lịch hẹn thành công, Doanh thu PayOS).
-- **Props**: `title`, `value`, `changePercentage`, `icon`, `trend` (`up` | `down`).
+- **Props**: `title`, `value`, `icon`, `variant`, `change` (`'+12%'` / `'-5%'` hiện icon tăng/giảm; `'—'` khi không có kỳ trước để so sánh), `changeSuffix`, `isLoading` (Skeleton thay cho số liệu).
 
 #### 📭 `EmptyState.jsx`
 - **Mục đích**: Hiển thị khi không tìm thấy bạn chơi lân cận, hòm thư chat trống, hoặc chưa có lịch hẹn nào.
@@ -225,7 +226,7 @@ src/components/
 - **Quy chuẩn**:
   - Lớp nền mờ: `backdrop-filter: blur(8px); background-color: rgba(45, 55, 72, 0.25);`
   - Hộp nội dung: Bo góc 24px (`rounded-3xl`), bóng đổ mịn `0 16px 40px -8px rgba(45, 55, 72, 0.08)`.
-- **`placement`**: `center` (mặc định), `sheet` (bottom sheet trên mobile), `right`: **Drawer** full chiều cao trượt từ phải (`animate-slide-in-right`), bo góc trái 24px từ `sm`, rộng theo `maxWidth` (vd. `max-w-md`; màn hẹp hơn thì full width). Dùng cho chi tiết phụ huynh/hồ sơ trẻ (Admin) và Trợ lý AI dạng drawer. Focus trap, Escape, khóa scroll dùng chung với modal thường.
+- **`placement`**: `center` (mặc định), `sheet` (bottom sheet trên mobile), `right`: **Drawer** full chiều cao trượt từ phải (`animate-slide-in-right`), bo góc trái 24px từ `sm`, rộng theo `maxWidth` (vd. `max-w-md`; màn hẹp hơn thì full width). Dùng cho chi tiết phụ huynh/hồ sơ trẻ, kết nối, cuộc hẹn chơi (Admin) và Trợ lý AI dạng drawer. Focus trap, Escape, khóa scroll dùng chung với modal thường.
 
 #### ⚠️ `ConfirmDialog.jsx`
 - **Mục đích**: Xác nhận nhanh các thao tác quan trọng (Hủy cuộc hẹn, Chặn phụ huynh khác, Đăng xuất).
@@ -237,7 +238,7 @@ src/components/
 
 #### 📈 `BarChart.jsx` (`components/charts/`)
 - **Mục đích**: Biểu đồ cột 1 chuỗi số liệu (doanh thu theo tháng ở màn Doanh thu Admin).
-- **Props**: `data`, `xKey`, `yKey`, `valueFormatter` (tooltip + trục y, vd. `formatCurrency`), `axisValueFormatter` (nhãn trục y ngắn gọn), `labelFormatter` (trục x), `isLoading`, `emptyTitle`, `emptyMessage`, `className`.
+- **Props**: `data`, `xKey`, `yKey`, `valueFormatter` (tooltip + trục y, vd. `formatCurrency`), `axisValueFormatter` (nhãn trục y ngắn gọn), `labelFormatter` (trục x), `colorVar` (biến CSS của cột, mặc định màu primary), `valueClassName` (giá trị trong tooltip), `isLoading`, `emptyTitle`, `emptyMessage`, `className`.
 - **Quy chuẩn**: Cao `h-chart`; màu đọc từ biến CSS `--color-primary`, `--color-hairline`, `--color-text-muted` (sinh từ `tailwind.config.js`), kích thước lấy từ `CHART_SIZE` (`constants/chart.constants.js`). `recharts` được tách thành chunk `vendor-charts` (`vite.config.js`) nên chỉ trang có biểu đồ mới tải.
 
 #### 💭 `ChatBubble.jsx` (`components/chat/`)
@@ -297,6 +298,8 @@ src/components/
 
 #### 🗃️ `DataTable.jsx`: sort phía server
 - Truyền `onSortChange({ sortKey, sortDir })` cùng `sortKey`, `sortDir` hiện tại để bảng chỉ phát sự kiện sort và giữ nguyên thứ tự dòng server trả về (dùng với danh sách phân trang ở server). Không truyền `onSortChange` thì vẫn sort phía client bằng `useTableSort` như cũ.
+- **Tùy biến bảng & cột** (không truyền thì giữ style cũ): `tableClassName` gộp vào thẻ `<table>` (vd. `min-w-table-users` để bảng rộng cuộn ngang trong khung); mỗi cột nhận thêm `align` (`left` mặc định | `center` | `right`, áp cho cả tiêu đề và ô), `headerClassName` (vd. `min-w-col-md`) và `cellClassName`.
+- **Loading**: lần tải đầu (`isLoading` và chưa có dòng nào) khung bảng giữ chiều cao tối thiểu `min-h-table-loading` để spinner không bị kẹp trong hàng tiêu đề; các lần tải sau vẫn phủ overlay lên dòng cũ.
 
 ---
 
@@ -316,4 +319,4 @@ src/components/
 | `useSearch` | Bộ lọc tìm kiếm client-side nhanh theo từ khóa | ✅ Đã code |
 | `useServerTable` | State danh sách phân trang ở server: page, limit, search (debounce), filter, sort đồng bộ URL; đổi filter/sort về trang 1; `syncWithUrl: false` cho trang nhiều tab | ✅ Đã code |
 
-> Đi cặp với `useServerTable` ở các màn Admin là `modules/admin/components/AdminListToolbar.jsx` (SearchBar + FilterChips trạng thái + DateRangeFilter + slot `actions`).
+> Đi cặp với `useServerTable` ở các màn Admin là `modules/admin/components/AdminListToolbar.jsx` (SearchBar + FilterChips trạng thái + DateRangeFilter + slot `filters` cho hàng bộ lọc riêng + slot `actions`).

@@ -6,7 +6,7 @@ import discoveryReducer, {
   removeProfile,
   restoreProfile,
 } from '../../modules/discovery/redux/discoverySlice';
-import { DISCOVERY_PAGE_SIZE } from '../../modules/discovery/constants/discoveryConstants';
+import { DISCOVERY_PAGE_SIZE } from '../../modules/discovery/constants/discovery.constants';
 
 const action = (thunk, status, payload, arg) => ({ type: thunk[status].type, payload, meta: { arg } });
 
@@ -95,8 +95,8 @@ describe('discoverySlice', () => {
 
 describe('discovery filter options', () => {
   it('uses the exact personality values stored on child profiles', async () => {
-    const { PERSONALITY_FILTER_OPTIONS } = await import('../../modules/discovery/constants/discoveryConstants');
-    const { PERSONALITY_TRAITS } = await import('../../modules/child/constants/childConstants');
+    const { PERSONALITY_FILTER_OPTIONS } = await import('../../modules/discovery/constants/discovery.constants');
+    const { PERSONALITY_TRAITS } = await import('../../modules/child/constants/child.constants');
     expect(PERSONALITY_FILTER_OPTIONS.map((o) => o.id)).toEqual(PERSONALITY_TRAITS);
   });
 });

@@ -1,40 +1,49 @@
-import React from 'react';
-import { Card } from '../../../components/cards/Card';
-import { Send, Bot } from 'lucide-react';
-import { Button } from '../../../components/ui/Button';
-import { Input } from '../../../components/ui/Input';
+import React, { useState } from 'react';
+import { History } from 'lucide-react';
+import { Modal } from '../../../components/feedback/Modal';
+import { AIChatPanel } from '../components/AIChatPanel';
+import { SessionList } from '../components/SessionList';
+import { useAISessionUrlSync } from '../hooks/useAISessionUrlSync';
 
+/**
+ * /ai-assistant — full-screen assistant: conversation history on the left (a sheet on small screens),
+ * the conversation on the right.
+ */
 export const AIAssistantPage = () => {
+  useAISessionUrlSync();
+  const [isHistoryOpen, setIsHistoryOpen] = useState(false);
+
   return (
-    <div className="max-w-4xl mx-auto space-y-6">
-      <div className="text-center space-y-2">
-        <div className="w-12 h-12 rounded-2xl bg-primary/10 text-primary flex items-center justify-center mx-auto">
-          <Bot className="w-6 h-6" />
-        </div>
-        <h1 className="text-2xl font-bold tracking-tight text-text-primary">BuddyLink AI Assistant</h1>
-        <p className="text-sm text-text-muted">
-          Gợi ý địa điểm vui chơi an toàn, hoạt động phát triển kỹ năng phù hợp lứa tuổi cho bé.
-        </p>
-      </div>
+    <div className="chat-layout-height w-full flex gap-4 overflow-hidden">
+      <aside className="hidden lg:flex w-chat-panel shrink-0 flex-col overflow-hidden rounded-2xl border border-hairline bg-surface-container-lowest">
+        <SessionList />
+      </aside>
 
-      <Card className="min-h-ai-panel flex flex-col justify-between">
-        <div className="space-y-4">
-          <div className="bg-surface-low p-4 rounded-2xl text-sm text-text-primary leading-relaxed">
-            Xin chào ba mẹ! Hôm nay ba mẹ muốn tìm địa điểm vui chơi cuối tuần, trò chơi giáo dục hay hoạt động gắn kết cho bé?
-          </div>
-        </div>
+      <section className="flex min-w-0 flex-1 flex-col overflow-hidden rounded-2xl border border-hairline bg-surface-container-lowest">
+        <AIChatPanel
+          variant="page"
+          headerActions={
+            <button
+              type="button"
+              onClick={() => setIsHistoryOpen(true)}
+              aria-label="Lịch sử trò chuyện"
+              className="lg:hidden rounded-full p-1.5 text-on-surface-variant transition-colors hover:bg-surface-container-low hover:text-on-surface"
+            >
+              <History className="w-5 h-5" />
+            </button>
+          }
+        />
+      </section>
 
-        <div className="pt-4 border-t border-hairline flex gap-2">
-          <div className="flex-1">
-            <Input
-              type="text"
-              aria-label="Câu hỏi cho trợ lý AI"
-              placeholder="Hỏi AI bất kỳ điều gì về hoạt động vui chơi của bé..."
-            />
-          </div>
-          <Button rightIcon={<Send className="w-4 h-4" />}>Gửi</Button>
-        </div>
-      </Card>
+      <Modal
+        isOpen={isHistoryOpen}
+        onClose={() => setIsHistoryOpen(false)}
+        title="Lịch sử trò chuyện"
+        placement="sheet"
+        bodyClassName="p-0"
+      >
+        <SessionList onSelected={() => setIsHistoryOpen(false)} />
+      </Modal>
     </div>
   );
 };

@@ -88,7 +88,7 @@ modules/playdate/
 ├── pages/           # Page routes (PlaydateDiscoveryPage.jsx, PlaydateDetailPage.jsx)
 ├── components/      # Module-only UI (PlaydateCard.jsx, MatchFilterDrawer.jsx)
 ├── validation/      # Form schema validations (playdateValidation.js)
-└── constants/       # Enums and constants (playdateConstants.js)
+└── constants/       # Enums and constants (playdate.constants.js)
 ```
 
 ---
@@ -104,6 +104,7 @@ modules/playdate/
 6. **Encapsulate Realtime**: Manage all Socket.io subscriptions within custom hooks (e.g. `useChatSocket`, `useNotificationSocket`) and always clean up listeners in `useEffect` returns.
 7. **Merge Classes via `cn()` with Design Tokens**: Combine/override classes with `cn()` from `utils/cn.js`. It reads the custom tokens from `tailwind.config.js`, so `px-space-md`, `text-label-md`, `max-w-shell`, `shadow-header`… merge correctly and new tokens need no extra setup (see `FRONTEND_CONVENTION.md` → Styling).
 8. **No Hardcoded Values**: No arbitrary Tailwind values (`text-[10px]`, `max-w-[620px]`, `shadow-[...]`, `z-[200]`), no hex/rgba/px in CSS, no magic numbers in icon props. Use the stock scale or a named token from `tailwind.config.js` — add a token if none fits. CSS reads tokens via `theme()`; Lucide props use `ICON_SIZE` / `ICON_STROKE` (`constants/icon.constants.js`).
+9. **Map API Errors to Vietnamese**: Map the module's backend error codes in `modules/<module>/constants` (`<MODULE>_ERROR_MESSAGES`); shared codes already live in `COMMON_ERROR_MESSAGES` (`constants/error.constants.js`). Resolve the message in hooks with `getApiErrorMsg(errorMap, err, fallback)` from `utils/errorUtils.js` — never a hard-coded toast/throw or the backend's English message (see `FRONTEND_CONVENTION.md` → API Error Message Rules).
 
 ### ❌ NEVER:
 1. **NEVER** import or call `axios` directly inside a React component or page.

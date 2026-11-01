@@ -11,6 +11,8 @@ import gamificationReducer from '../modules/gamification/redux/gamificationSlice
 import ratingFeedbackReducer from '../modules/rating-feedback/redux/ratingFeedbackSlice';
 import connectionReducer from '../modules/connection/redux/connectionSlice';
 import notificationReducer from '../modules/notification/redux/notificationSlice';
+import aiAssistantReducer from '../modules/ai-assistant/redux/aiAssistantSlice';
+import adminReducer from '../modules/admin/redux/adminSlice';
 
 export const store = configureStore({
   reducer: {
@@ -26,6 +28,8 @@ export const store = configureStore({
     ratingFeedback: ratingFeedbackReducer,
     connection: connectionReducer,
     notification: notificationReducer,
+    aiAssistant: aiAssistantReducer,
+    admin: adminReducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({

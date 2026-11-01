@@ -1,13 +1,11 @@
 import { useCallback, useMemo } from 'react';
 import {
   DAY_LABELS,
-  DEFAULT_CHILD_AVATARS,
-  GENDER_LABELS,
   LOCATION_LABELS,
   TIME_LABELS,
   SWIPE_DIRECTIONS,
   SWIPE_THRESHOLD_PX,
-} from '../constants/discoveryConstants';
+} from '../constants/discovery.constants';
 
 const translate = (labels, values = []) => values.map((v) => labels[v] || v);
 
@@ -37,8 +35,6 @@ export const useDiscoveryCard = (profile, onSwipe) => {
 
     return {
       interests: mergeUniqueTags(profile.interests || [], profile.favoriteActivities || []),
-      genderLabel: GENDER_LABELS[profile.gender] || '',
-      avatarSrc: DEFAULT_CHILD_AVATARS[profile.gender] || DEFAULT_CHILD_AVATARS.DEFAULT,
       distanceLabel: profile.distanceKm !== undefined ? `Cách ${profile.distanceKm} km` : 'Gần bạn',
       preferredLocations: translate(LOCATION_LABELS, preferences.preferredLocations),
       preferredPlaydateDays: translate(DAY_LABELS, preferences.preferredPlaydateDays),

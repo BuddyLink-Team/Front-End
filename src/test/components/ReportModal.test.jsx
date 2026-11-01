@@ -5,16 +5,15 @@ import { Provider } from 'react-redux';
 import { configureStore } from '@reduxjs/toolkit';
 import { ReportModal } from '../../modules/safety/components/ReportModal';
 import safetyReducer from '../../modules/safety/redux/safetySlice';
-import { REPORT_CATEGORIES } from '../../modules/safety/constants/safetyConstants';
+import { REPORT_CATEGORIES } from '../../modules/safety/constants/safety.constants';
 
 const mockReportUser = vi.fn();
-const mockUploadEvidence = vi.fn();
 
 vi.mock('../../modules/safety/hooks/useSafetyActions', () => ({
   useSafetyActions: () => ({
     reportUser: mockReportUser,
-    uploadEvidence: mockUploadEvidence,
-    isSubmitting: false,
+    uploadEvidence: vi.fn(),
+    isReportSubmitting: false,
   }),
 }));
 
@@ -44,8 +43,7 @@ describe('ReportModal Component', () => {
         <ReportModal
           isOpen={true}
           onClose={vi.fn()}
-          reportedUserId="target-user-123"
-          targetName="Phụ huynh Thảo"
+          target={{ reportedUserId: 'target-user-123', targetName: 'Phụ huynh Thảo' }}
           {...props}
         />
       </Provider>,
@@ -85,9 +83,7 @@ describe('ReportModal Component', () => {
 
     // Fill in optional description
     const descInput = screen.getByPlaceholderText(/Cung cấp thêm chi tiết/i);
-    fireEvent.change(descInput, {
-      target: { value: 'Gửi nhiều tin nhắn quấy rối làm phiền.' },
-    });
+    fireEvent.change(descInput, { target: { value: 'Gửi nhiều tin nhắn quấy rối làm phiền.' } });
 
     fireEvent.click(submitBtn);
 
@@ -107,39 +103,26 @@ describe('ReportModal Component', () => {
     });
   });
 
-  it('uploads evidence image, updates counter to 1/5, and shows thumbnail', async () => {
-    mockUploadEvidence.mockResolvedValue([
-      'https://res.cloudinary.com/test-cloud/image/upload/v1/evidence1.png',
-    ]);
-
-    renderModal();
-
-    expect(screen.getByText('0/5')).toBeInTheDocument();
-
-    const file = new File(['fake-image-bytes'], 'screenshot.png', {
-      type: 'image/png',
+  it('sends the reported message with a message report', async () => {
+    renderModal({
+      target: {
+        reportedUserId: 'target-user-123',
+        targetType: 'message',
+        targetMessageId: 'msg-1',
+        targetPlaydateId: 'ignored-playdate',
+        targetName: 'Phụ huynh Thảo',
+        targetSummary: 'Tin nhắn xấu',
+      },
     });
-    const fileInput = document.querySelector('input[type="file"]');
-    expect(fileInput).toBeInTheDocument();
 
-    fireEvent.change(fileInput, { target: { files: [file] } });
+    fireEvent.click(screen.getByText('Spam / Tin rác'));
+    fireEvent.click(screen.getByRole('button', { name: /Gửi báo cáo/i }));
 
     await waitFor(() => {
-      expect(mockUploadEvidence).toHaveBeenCalledWith([file]);
-      expect(screen.getByText('1/5')).toBeInTheDocument();
-      expect(screen.getByAltText('Bằng chứng 1')).toBeInTheDocument();
-      expect(screen.getByAltText('Bằng chứng 1')).toHaveAttribute(
-        'src',
-        'https://res.cloudinary.com/test-cloud/image/upload/v1/evidence1.png',
+      expect(mockReportUser).toHaveBeenCalledWith(
+        expect.objectContaining({ targetType: 'message', targetMessageId: 'msg-1', targetPlaydateId: null }),
       );
     });
-
-    // Remove the uploaded image
-    const removeBtn = screen.getByRole('button', { name: /Xóa ảnh 1/i });
-    fireEvent.click(removeBtn);
-
-    expect(screen.getByText('0/5')).toBeInTheDocument();
-    expect(screen.queryByAltText('Bằng chứng 1')).not.toBeInTheDocument();
   });
 
   it('calls onClose when Cancel button is clicked', () => {

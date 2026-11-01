@@ -3,7 +3,7 @@ import { Receipt } from 'lucide-react';
 import { EmptyState } from '../../../components/cards/EmptyState';
 import { StatusChip } from '../../../components/badges/StatusChip';
 import { Pagination } from '../../../components/navigation/Pagination';
-import { PAYMENT_STATUS_CHIPS } from '../constants/subscriptionConstants';
+import { PAYMENT_STATUS_CHIPS } from '../constants/subscription.constants';
 
 const StatusBadge = ({ status }) => {
   const chip = PAYMENT_STATUS_CHIPS[(status || '').toLowerCase()];

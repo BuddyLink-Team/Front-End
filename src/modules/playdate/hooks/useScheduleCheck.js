@@ -11,8 +11,8 @@ const BUSY_TIMES_DEBOUNCE_MS = 200;
  * for the 409 SCHEDULE_CONFLICT on submit.
  *
  * @param {Object} input
- * @param {string} input.childId - The caller's own child (host child, or the invited child answering)
- * @param {string[]} [input.participantChildIds] - Other families' children to check too
+ * @param {string} input.childId - The caller's own child (host child, or an invited child answering)
+ * @param {string[]} [input.participantChildIds] - Other children to check too (other families', or the caller's other invited ones)
  * @param {string} input.date - "YYYY-MM-DD"
  * @param {string} input.time - "HH:mm"
  * @param {number} input.durationMinutes

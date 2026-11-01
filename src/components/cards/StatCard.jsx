@@ -1,5 +1,6 @@
 import React from 'react';
 import { TrendingUp, TrendingDown } from 'lucide-react';
+import { Skeleton } from '../feedback/Skeleton';
 import { cn } from '../../utils/cn';
 
 /**
@@ -8,9 +9,10 @@ import { cn } from '../../utils/cn';
  * @param {React.ReactNode} icon
  * @param {string} title
  * @param {string|number} value
- * @param {string} [change] – e.g. '+12%' or '-5%'
+ * @param {string} [change] – e.g. '+12%', '-5%', or '—' when there is nothing to compare with
  * @param {string} [changeSuffix='so với tháng trước']
  * @param {'primary'|'secondary'|'tertiary'|'error'} [variant='primary']
+ * @param {boolean} [isLoading=false] – Skeletons in place of the value and of the change (when one is passed)
  */
 export const StatCard = ({
   icon,
@@ -19,6 +21,7 @@ export const StatCard = ({
   change = '',
   changeSuffix = 'so với tháng trước',
   variant = 'primary',
+  isLoading = false,
   className,
 }) => {
   const variantMap = {
@@ -69,9 +72,15 @@ export const StatCard = ({
         <p className="text-xs font-semibold uppercase tracking-wider text-text-muted truncate">
           {title}
         </p>
-        <p className="text-2xl font-bold text-text-primary mt-1">{value}</p>
+        {isLoading ? (
+          <Skeleton data-testid="stat-card-skeleton" className="h-8 w-24 mt-1" />
+        ) : (
+          <p className="text-2xl font-bold text-text-primary mt-1">{value}</p>
+        )}
 
-        {change && (
+        {change && isLoading && <Skeleton className="h-4 w-32 mt-2" />}
+
+        {change && !isLoading && (
           <p
             className={cn(
               'text-xs font-medium mt-1 flex items-center gap-1',

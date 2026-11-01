@@ -8,7 +8,8 @@ import safetyReducer, {
 
 describe('safetySlice reducer', () => {
   const initialState = {
-    isSubmitting: false,
+    isBlockSubmitting: false,
+    isReportSubmitting: false,
     isLoadingBlockedUsers: false,
     blockedUsersError: null,
     blockedUsers: {
@@ -26,24 +27,26 @@ describe('safetySlice reducer', () => {
     expect(safetyReducer(undefined, { type: '@@INIT' })).toEqual(initialState);
   });
 
-  it('sets isSubmitting = true on pending actions and false on fulfilled/rejected', () => {
+  it('tracks block / unblock and report submissions separately', () => {
     let state = safetyReducer(initialState, { type: blockParent.pending.type });
-    expect(state.isSubmitting).toBe(true);
+    expect(state.isBlockSubmitting).toBe(true);
+    expect(state.isReportSubmitting).toBe(false);
 
     state = safetyReducer(state, { type: blockParent.fulfilled.type });
-    expect(state.isSubmitting).toBe(false);
+    expect(state.isBlockSubmitting).toBe(false);
 
     state = safetyReducer(state, { type: reportParent.pending.type });
-    expect(state.isSubmitting).toBe(true);
+    expect(state.isReportSubmitting).toBe(true);
+    expect(state.isBlockSubmitting).toBe(false);
 
     state = safetyReducer(state, { type: reportParent.rejected.type });
-    expect(state.isSubmitting).toBe(false);
+    expect(state.isReportSubmitting).toBe(false);
 
     state = safetyReducer(state, { type: unblockParent.pending.type });
-    expect(state.isSubmitting).toBe(true);
+    expect(state.isBlockSubmitting).toBe(true);
 
     state = safetyReducer(state, { type: unblockParent.fulfilled.type, meta: { arg: 'p-1' } });
-    expect(state.isSubmitting).toBe(false);
+    expect(state.isBlockSubmitting).toBe(false);
   });
 
   it('stores fetched blocked users and handles pagination', () => {

@@ -1,4 +1,4 @@
-import { PLAN_CODES, PAYMENT_STATUS } from '../constants/subscriptionConstants';
+import { PLAN_CODES, PAYMENT_STATUS } from '../constants/subscription.constants';
 import { MOCK_PLANS, INITIAL_MOCK_SUBSCRIPTION_STATE, MOCK_AUTO_PAY_AFTER_MS } from './subscriptionMockData';
 
 const STORAGE_KEY_STATE = 'buddylink_mock_subscription_v1';
