@@ -6,13 +6,14 @@ import { configureStore } from '@reduxjs/toolkit';
 import { ReportModal } from '../../modules/safety/components/ReportModal';
 import safetyReducer from '../../modules/safety/redux/safetySlice';
 import { REPORT_CATEGORIES } from '../../modules/safety/constants/safetyConstants';
-import { safetyApi } from '../../modules/safety/api/safetyApi';
 
 const mockReportUser = vi.fn();
+const mockUploadEvidence = vi.fn();
 
 vi.mock('../../modules/safety/hooks/useSafetyActions', () => ({
   useSafetyActions: () => ({
     reportUser: mockReportUser,
+    uploadEvidence: mockUploadEvidence,
     isSubmitting: false,
   }),
 }));
@@ -84,7 +85,9 @@ describe('ReportModal Component', () => {
 
     // Fill in optional description
     const descInput = screen.getByPlaceholderText(/Cung cấp thêm chi tiết/i);
-    fireEvent.change(descInput, { target: { value: 'Gửi nhiều tin nhắn quấy rối làm phiền.' } });
+    fireEvent.change(descInput, {
+      target: { value: 'Gửi nhiều tin nhắn quấy rối làm phiền.' },
+    });
 
     fireEvent.click(submitBtn);
 
@@ -105,31 +108,29 @@ describe('ReportModal Component', () => {
   });
 
   it('uploads evidence image, updates counter to 1/5, and shows thumbnail', async () => {
-    const uploadSpy = vi.spyOn(safetyApi, 'uploadEvidence').mockResolvedValue({
-      status: 'success',
-      data: {
-        mediaUrl: 'https://res.cloudinary.com/test-cloud/image/upload/v1/evidence1.png',
-        publicId: 'test-evidence-1',
-      },
-    });
+    mockUploadEvidence.mockResolvedValue([
+      'https://res.cloudinary.com/test-cloud/image/upload/v1/evidence1.png',
+    ]);
 
     renderModal();
 
     expect(screen.getByText('0/5')).toBeInTheDocument();
 
-    const file = new File(['fake-image-bytes'], 'screenshot.png', { type: 'image/png' });
+    const file = new File(['fake-image-bytes'], 'screenshot.png', {
+      type: 'image/png',
+    });
     const fileInput = document.querySelector('input[type="file"]');
     expect(fileInput).toBeInTheDocument();
 
     fireEvent.change(fileInput, { target: { files: [file] } });
 
     await waitFor(() => {
-      expect(uploadSpy).toHaveBeenCalledWith(file);
+      expect(mockUploadEvidence).toHaveBeenCalledWith([file]);
       expect(screen.getByText('1/5')).toBeInTheDocument();
       expect(screen.getByAltText('Bằng chứng 1')).toBeInTheDocument();
       expect(screen.getByAltText('Bằng chứng 1')).toHaveAttribute(
         'src',
-        'https://res.cloudinary.com/test-cloud/image/upload/v1/evidence1.png'
+        'https://res.cloudinary.com/test-cloud/image/upload/v1/evidence1.png',
       );
     });
 
@@ -139,8 +140,6 @@ describe('ReportModal Component', () => {
 
     expect(screen.getByText('0/5')).toBeInTheDocument();
     expect(screen.queryByAltText('Bằng chứng 1')).not.toBeInTheDocument();
-
-    uploadSpy.mockRestore();
   });
 
   it('calls onClose when Cancel button is clicked', () => {
