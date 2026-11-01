@@ -257,7 +257,7 @@ describe('Chat UI Components (TASK-FE-10)', () => {
     expect(screen.queryByPlaceholderText(/Nhắn tin cùng Mẹ Thu Hà.../i)).not.toBeInTheDocument();
 
     // Blocked notification banner & button
-    expect(screen.getByText('Bạn đã chặn người này. Vui lòng mở chặn để trò chuyện tiếp')).toBeInTheDocument();
+    expect(screen.getByText('Bạn đã chặn người này. Hãy bỏ chặn và kết nối lại để trò chuyện tiếp')).toBeInTheDocument();
     const unblockBtn = screen.getByRole('button', { name: /Bỏ chặn/i });
     expect(unblockBtn).toBeInTheDocument();
 

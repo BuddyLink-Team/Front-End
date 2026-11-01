@@ -49,8 +49,8 @@ describe('safetySlice reducer', () => {
   it('stores fetched blocked users and handles pagination', () => {
     const payload = {
       items: [
-        { id: 'b-1', parentId: 'p-1', displayName: 'Parent One', reason: 'Spam' },
-        { id: 'b-2', parentId: 'p-2', displayName: 'Parent Two', reason: 'Harassment' },
+        { id: 'b-1', parentId: 'p-1', fullName: 'Parent One', reason: 'Spam' },
+        { id: 'b-2', parentId: 'p-2', fullName: 'Parent Two', reason: 'Harassment' },
       ],
       pagination: {
         page: 1,
@@ -77,8 +77,8 @@ describe('safetySlice reducer', () => {
       ...initialState,
       blockedUsers: {
         items: [
-          { id: 'b-1', parentId: 'p-1', displayName: 'Parent One' },
-          { id: 'b-2', parentId: 'p-2', displayName: 'Parent Two' },
+          { id: 'b-1', parentId: 'p-1', fullName: 'Parent One' },
+          { id: 'b-2', parentId: 'p-2', fullName: 'Parent Two' },
         ],
         pagination: { page: 1, limit: 10, total: 2, totalPages: 1 },
       },
@@ -92,5 +92,23 @@ describe('safetySlice reducer', () => {
     expect(state.blockedUsers.items).toHaveLength(1);
     expect(state.blockedUsers.items[0].parentId).toBe('p-2');
     expect(state.blockedUsers.pagination.total).toBe(1);
+  });
+
+  it('recomputes totalPages after an unblock', () => {
+    const populatedState = {
+      ...initialState,
+      blockedUsers: {
+        items: [{ id: 'b-11', parentId: 'p-11', fullName: 'Parent Eleven' }],
+        pagination: { page: 2, limit: 10, total: 11, totalPages: 2 },
+      },
+    };
+
+    const state = safetyReducer(populatedState, {
+      type: unblockParent.fulfilled.type,
+      meta: { arg: 'p-11' },
+    });
+
+    expect(state.blockedUsers.pagination.total).toBe(10);
+    expect(state.blockedUsers.pagination.totalPages).toBe(1);
   });
 });

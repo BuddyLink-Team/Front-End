@@ -28,13 +28,15 @@ import { ImageLightbox } from './ImageLightbox.jsx';
 import { Button } from '../../../components/ui/Button';
 import { Textarea } from '../../../components/ui/Textarea';
 import { Spinner } from '../../../components/feedback/Spinner';
-import { CHAT_FILE_INPUT_ACCEPT, COMPOSER_TEXTAREA_CLASS } from '../constants/chatConstants.js';
+import {
+  BLOCKED_MEMBER_PROMPT_STEPS,
+  CHAT_FILE_INPUT_ACCEPT,
+  COMPOSER_TEXTAREA_CLASS,
+} from '../constants/chatConstants.js';
 import { cn } from '../../../utils/cn';
-import { useToast } from '../../../hooks/useToast';
-import { playdateApi } from '../../playdate/api/playdateApi';
-import { getApiErrorMsg } from '../../../utils/errorUtils';
+import { useBlockedMemberPrompt } from '../hooks/useBlockedMemberPrompt.js';
 import { ReportModal } from '../../safety/components/ReportModal';
-import { REPORT_TARGET_TYPES } from '../../safety/constants/safetyConstants';
+import { useReportTarget } from '../../safety/hooks/useReportTarget';
 
 /**
  * Format date group label for messages separator
@@ -67,7 +69,6 @@ export const PlaydateChatView = ({
   onBack,
   currentParentId,
   canReport = false,
-  onReport,
   className,
 }) => {
   const navigate = useNavigate();
@@ -76,13 +77,12 @@ export const PlaydateChatView = ({
   const [lightboxImageUrl, setLightboxImageUrl] = useState(null);
   const [isCollateralOpen, setIsCollateralOpen] = useState(true);
   const [showMobileCollateral, setShowMobileCollateral] = useState(false);
-  const [showReportDialog, setShowReportDialog] = useState(false);
-  const [reportTarget, setReportTarget] = useState(null);
-
-  const toast = useToast();
-  const [blockedPromptStep, setBlockedPromptStep] = useState(null); // 'ASK_CONTINUE' | 'ASK_LEAVE' | null
-  const [hasConfirmedStay, setHasConfirmedStay] = useState(false);
-  const [isLeavingPlaydate, setIsLeavingPlaydate] = useState(false);
+  const { reportTarget, reportMessage, reportPlaydate, closeReport } = useReportTarget();
+  const blockedPrompt = useBlockedMemberPrompt({
+    conversation,
+    currentParentId,
+    onLeft: () => (onBack ? onBack() : navigate('/chat')),
+  });
 
   const messagesContainerRef = useRef(null);
   const textareaRef = useRef(null);
@@ -93,21 +93,6 @@ export const PlaydateChatView = ({
   const playdate = conversation?.playdate;
   const groupTitle = playdate?.title || playdate?.activity || 'Nhóm Hẹn Chơi';
   const participantsCount = (conversation?.participants?.length || 0);
-
-  const blockedParticipants = conversation?.blockedByMeParticipants || [];
-  const blockedNames = blockedParticipants
-    .map((p) => p.fullName || p.displayName || 'thành viên')
-    .filter(Boolean)
-    .join(', ');
-
-  useEffect(() => {
-    setHasConfirmedStay(false);
-    if (conversation?.blockedByMeParticipants?.length > 0) {
-      setBlockedPromptStep('ASK_CONTINUE');
-    } else {
-      setBlockedPromptStep(null);
-    }
-  }, [conversation?.id]);
 
   // Auto scroll to bottom
   // Scroll only the message list: scrollIntoView would also scroll the page down to the input
@@ -188,84 +173,7 @@ export const PlaydateChatView = ({
     }
   };
 
-  const handleConfirmContinue = () => {
-    setBlockedPromptStep(null);
-    setHasConfirmedStay(true);
-  };
-
-  const handleDeclineContinue = () => {
-    setBlockedPromptStep('ASK_LEAVE');
-  };
-
-  const handleDeclineLeave = () => {
-    setBlockedPromptStep('ASK_CONTINUE');
-  };
-
-  const handleConfirmLeave = async () => {
-    setIsLeavingPlaydate(true);
-    try {
-      const playdateId = playdate?.id || conversation?.playdateId?._id || conversation?.playdateId;
-      const hostId = playdate?.host?.id || playdate?.hostParentId?._id || playdate?.hostParentId;
-      const isHost = String(hostId) === String(currentParentId);
-
-      if (playdateId) {
-        if (isHost) {
-          await playdateApi.cancelPlaydate(playdateId, { reason: 'Rời buổi hẹn do có người dùng bị chặn' });
-          toast.success('Đã hủy buổi hẹn playdate.');
-        } else {
-          await playdateApi.leavePlaydate(playdateId);
-          toast.success('Bạn đã rời khỏi buổi hẹn playdate.');
-        }
-      }
-      setBlockedPromptStep(null);
-      if (onBack) {
-        onBack();
-      } else {
-        navigate('/chat');
-      }
-    } catch (err) {
-      toast.error(getApiErrorMsg({}, err, 'Không thể rời buổi hẹn playdate. Vui lòng thử lại.'));
-      setBlockedPromptStep('ASK_CONTINUE');
-    } finally {
-      setIsLeavingPlaydate(false);
-    }
-  };
-
-  const handleOpenReportGroup = () => {
-    const hostId = playdate?.host?.id || playdate?.hostParentId?._id || playdate?.hostParentId;
-    setReportTarget({
-      reportedUserId: hostId,
-      targetType: REPORT_TARGET_TYPES.PLAYDATE,
-      targetPlaydateId: playdate?.id || conversation?.playdateId?._id || conversation?.playdateId,
-      targetName: groupTitle,
-      targetSummary: playdate?.activity || groupTitle,
-    });
-    setShowReportDialog(true);
-  };
-
-  const handleReportMessage = (msg) => {
-    const senderId =
-      msg.senderId?._id ||
-      msg.senderId?.id ||
-      msg.senderId ||
-      msg.sender?.id ||
-      msg.sender?._id;
-    setReportTarget({
-      reportedUserId: senderId,
-      targetType: REPORT_TARGET_TYPES.MESSAGE,
-      targetMessageId: msg.id || msg._id,
-      targetName: msg.sender?.fullName || 'Thành viên',
-      targetSummary: msg.content,
-    });
-    setShowReportDialog(true);
-  };
-
-  const handleConfirmReport = async () => {
-    const result = await onReport?.();
-    if (result?.success) {
-      setShowReportDialog(false);
-    }
-  };
+  const handleReportMessage = (msg) => reportMessage(msg, 'Thành viên');
 
   // Format short schedule snippet for header
   const scheduleSnippet = playdate?.scheduledDate
@@ -383,7 +291,7 @@ export const PlaydateChatView = ({
             </Button>
 
             {/* Menu More / Report (reported against the host, so hidden for the host) */}
-            {canReport && onReport && (
+            {canReport && (
               <Dropdown
                 trigger={
                   <Button
@@ -400,7 +308,7 @@ export const PlaydateChatView = ({
                 <DropdownItem
                   icon={Flag}
                   danger
-                  onClick={handleOpenReportGroup}
+                  onClick={() => reportPlaydate(playdate, groupTitle)}
                 >
                   Báo cáo nhóm chat
                 </DropdownItem>
@@ -660,54 +568,39 @@ export const PlaydateChatView = ({
       <ImageLightbox imageUrl={lightboxImageUrl} onClose={() => setLightboxImageUrl(null)} />
 
       {/* ============================================================== */}
-      {/* Blocked Participant Warning Dialog 1                           */}
+      {/* Blocked Member Prompt: stay in the chat or leave the playdate  */}
       {/* ============================================================== */}
       <ConfirmDialog
-        open={blockedPromptStep === 'ASK_CONTINUE'}
+        open={blockedPrompt.step === BLOCKED_MEMBER_PROMPT_STEPS.ASK_CONTINUE}
         title="Thành viên bị chặn trong nhóm"
-        description={`Bạn đã chặn ${blockedNames || 'một thành viên trong nhóm này'}. Bạn có muốn tiếp tục trao đổi trong nhóm playdate?`}
+        description={`Bạn đã chặn ${blockedPrompt.blockedNames || 'một thành viên trong nhóm này'}. Bạn có muốn tiếp tục trao đổi trong nhóm playdate?`}
         confirmLabel="Có, tiếp tục"
         cancelLabel="Không"
         variant="warning"
-        onConfirm={handleConfirmContinue}
-        onCancel={handleDeclineContinue}
+        onConfirm={blockedPrompt.stay}
+        onCancel={blockedPrompt.askLeave}
       />
 
-      {/* ============================================================== */}
-      {/* Blocked Participant Leave Dialog 2                             */}
-      {/* ============================================================== */}
       <ConfirmDialog
-        open={blockedPromptStep === 'ASK_LEAVE'}
-        title="Rời buổi hẹn Playdate?"
-        description="Bạn có muốn rời playdate?"
-        confirmLabel="Có, rời playdate"
+        open={blockedPrompt.step === BLOCKED_MEMBER_PROMPT_STEPS.ASK_LEAVE}
+        title={blockedPrompt.isHost ? 'Hủy buổi hẹn Playdate?' : 'Rời buổi hẹn Playdate?'}
+        description={
+          blockedPrompt.isHost
+            ? 'Bạn là người tổ chức nên không thể rời buổi hẹn. Hủy buổi hẹn sẽ hủy cho tất cả các gia đình đã được mời và không thể hoàn tác.'
+            : 'Bạn sẽ rời khỏi buổi hẹn và nhóm trò chuyện này. Các gia đình khác vẫn tham gia như bình thường.'
+        }
+        confirmLabel={blockedPrompt.isHost ? 'Hủy buổi hẹn cho mọi người' : 'Có, rời playdate'}
         cancelLabel="Không"
         variant="danger"
-        isLoading={isLeavingPlaydate}
-        onConfirm={handleConfirmLeave}
-        onCancel={handleDeclineLeave}
+        isLoading={blockedPrompt.isLeaving}
+        onConfirm={blockedPrompt.leave}
+        onCancel={blockedPrompt.backToContinue}
       />
 
       {/* ============================================================== */}
       {/* Report Playdate / Message Modal                                */}
       {/* ============================================================== */}
-      {showReportDialog && (
-        <ReportModal
-          isOpen={showReportDialog}
-          onClose={() => {
-            setShowReportDialog(false);
-            setReportTarget(null);
-          }}
-          target={
-            reportTarget || {
-              reportedUserId: playdate?.host?.id || playdate?.hostParentId,
-              targetType: REPORT_TARGET_TYPES.PLAYDATE,
-              targetPlaydateId: playdate?.id,
-              targetName: groupTitle,
-            }
-          }
-        />
-      )}
+      <ReportModal isOpen={Boolean(reportTarget)} onClose={closeReport} target={reportTarget} />
     </section>
   );
 };

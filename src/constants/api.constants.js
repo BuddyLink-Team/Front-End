@@ -63,6 +63,7 @@ export const API_ENDPOINTS = {
   },
   SAFETY: {
     REPORTS: '/safety/reports',
+    REPORT_EVIDENCE: '/safety/reports/evidence',
     BLOCK: '/safety/block',
     UNBLOCK: (id) => `/safety/unblock/${id}`,
     BLOCKED_USERS: '/safety/blocked-users',

@@ -9,6 +9,8 @@ import useConnections from '../hooks/useConnections';
 import ConnectionCard from '../components/ConnectionCard';
 import ConnectionEmptyState from '../components/ConnectionEmptyState';
 import QuickProfileCard from '../components/QuickProfileCard';
+import { ReportModal } from '../../safety/components/ReportModal';
+import { useReportTarget } from '../../safety/hooks/useReportTarget';
 import { CONNECTION_CONFIRM, CONNECTION_LISTS, CONNECTION_TABS } from '../constants/connection.constants';
 import { cn } from '../../../utils/cn';
 
@@ -20,6 +22,7 @@ import { cn } from '../../../utils/cn';
 const ConnectionsPage = () => {
   const navigate = useNavigate();
   const [selectedId, setSelectedId] = useState(null);
+  const { reportTarget, reportUser, closeReport } = useReportTarget();
 
   const {
     lists,
@@ -116,6 +119,7 @@ const ConnectionsPage = () => {
             onAction={requestAction}
             onMessage={openChat}
             onInvite={invitePlaydate}
+            onReport={(connection) => reportUser(connection.partnerId, connection.parentName)}
           />
         </div>
       </div>
@@ -131,6 +135,8 @@ const ConnectionsPage = () => {
         onConfirm={confirmAction}
         onCancel={cancelAction}
       />
+
+      <ReportModal isOpen={Boolean(reportTarget)} onClose={closeReport} target={reportTarget} />
     </div>
   );
 };

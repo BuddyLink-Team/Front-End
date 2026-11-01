@@ -7,7 +7,6 @@ import {
   X,
   ArrowRight,
   User,
-  Settings,
   Baby,
   Crown,
   LogOut,
@@ -170,7 +169,7 @@ export const Navbar = ({ onLogout } = {}) => {
                   <DropdownItem as={Link} to="/subscription" icon={Crown}>
                     Gói hội viên & Hạn mức
                   </DropdownItem>
-                  <DropdownItem as={Link} to="/settings/blocked-users" icon={UserX}>
+                  <DropdownItem as={Link} to="/blocked-users" icon={UserX}>
                     Người dùng đã chặn
                   </DropdownItem>
                 </div>
@@ -277,7 +276,7 @@ export const Navbar = ({ onLogout } = {}) => {
                   <span>Quản lý hồ sơ bé</span>
                 </Link>
                 <Link
-                  to="/settings/blocked-users"
+                  to="/blocked-users"
                   onClick={closeMobileMenu}
                   className="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-semibold text-text-primary hover:bg-canvas"
                 >

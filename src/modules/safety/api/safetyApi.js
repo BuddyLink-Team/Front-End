@@ -22,18 +22,18 @@ export const safetyApi = {
 
   /**
    * Get paginated list of blocked parents
-   * @param {Object} [params] - { page, limit }
+   * @param {Object} [params] - { page, limit, search }
    */
   getBlockedUsers: (params = {}) => apiClient.get(API_ENDPOINTS.SAFETY.BLOCKED_USERS, { params }),
 
   /**
-   * Upload an evidence image to BuddyLink Cloud Storage
+   * Upload an evidence image for a report to BuddyLink Cloud Storage
    * @param {File} file
    */
-  uploadEvidence: async (file) => {
+  uploadEvidence: (file) => {
     const formData = new FormData();
     formData.append('image', file);
-    return apiClient.post(API_ENDPOINTS.CHAT.UPLOAD, formData, {
+    return apiClient.post(API_ENDPOINTS.SAFETY.REPORT_EVIDENCE, formData, {
       headers: {
         'Content-Type': 'multipart/form-data',
       },
@@ -42,4 +42,3 @@ export const safetyApi = {
 };
 
 export default safetyApi;
-
