@@ -6,6 +6,7 @@ import { configureStore } from '@reduxjs/toolkit';
 import { ReportModal } from '../../modules/safety/components/ReportModal';
 import safetyReducer from '../../modules/safety/redux/safetySlice';
 import { REPORT_CATEGORIES } from '../../modules/safety/constants/safetyConstants';
+import { safetyApi } from '../../modules/safety/api/safetyApi';
 
 const mockReportUser = vi.fn();
 
@@ -101,6 +102,45 @@ describe('ReportModal Component', () => {
       expect(handleClose).toHaveBeenCalled();
       expect(handleSuccess).toHaveBeenCalled();
     });
+  });
+
+  it('uploads evidence image, updates counter to 1/5, and shows thumbnail', async () => {
+    const uploadSpy = vi.spyOn(safetyApi, 'uploadEvidence').mockResolvedValue({
+      status: 'success',
+      data: {
+        mediaUrl: 'https://res.cloudinary.com/test-cloud/image/upload/v1/evidence1.png',
+        publicId: 'test-evidence-1',
+      },
+    });
+
+    renderModal();
+
+    expect(screen.getByText('0/5')).toBeInTheDocument();
+
+    const file = new File(['fake-image-bytes'], 'screenshot.png', { type: 'image/png' });
+    const fileInput = document.querySelector('input[type="file"]');
+    expect(fileInput).toBeInTheDocument();
+
+    fireEvent.change(fileInput, { target: { files: [file] } });
+
+    await waitFor(() => {
+      expect(uploadSpy).toHaveBeenCalledWith(file);
+      expect(screen.getByText('1/5')).toBeInTheDocument();
+      expect(screen.getByAltText('Bằng chứng 1')).toBeInTheDocument();
+      expect(screen.getByAltText('Bằng chứng 1')).toHaveAttribute(
+        'src',
+        'https://res.cloudinary.com/test-cloud/image/upload/v1/evidence1.png'
+      );
+    });
+
+    // Remove the uploaded image
+    const removeBtn = screen.getByRole('button', { name: /Xóa ảnh 1/i });
+    fireEvent.click(removeBtn);
+
+    expect(screen.getByText('0/5')).toBeInTheDocument();
+    expect(screen.queryByAltText('Bằng chứng 1')).not.toBeInTheDocument();
+
+    uploadSpy.mockRestore();
   });
 
   it('calls onClose when Cancel button is clicked', () => {

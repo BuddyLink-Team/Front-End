@@ -120,7 +120,11 @@ export const ReportModal = ({
         }
 
         const response = await safetyApi.uploadEvidence(file);
-        const imageUrl = response?.data?.url || response?.url;
+        const imageUrl =
+          response?.data?.mediaUrl ||
+          response?.mediaUrl ||
+          response?.data?.url ||
+          response?.url;
         if (imageUrl) {
           setEvidenceUrls((prev) => {
             if (prev.length < REPORT_LIMITS.MAX_EVIDENCE_URLS) {
@@ -130,7 +134,8 @@ export const ReportModal = ({
           });
         }
       }
-    } catch {
+    } catch (err) {
+      console.error('[ReportModal] Error uploading evidence image:', err);
       toast.error('Tải ảnh bằng chứng thất bại. Vui lòng thử lại.');
     } finally {
       setIsUploadingImage(false);
