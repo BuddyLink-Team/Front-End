@@ -335,6 +335,8 @@ Participant Declined
 Giữ lịch cũ
 ```
 
+Host có thể rút đề xuất khi còn `Pending`: Reschedule Request chuyển sang `Cancelled`, các phiếu đã bầu bị hủy và buổi hẹn giữ lịch cũ.
+
 ---
 
 ### Tổng thể

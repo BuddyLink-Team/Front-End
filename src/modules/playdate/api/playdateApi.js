@@ -95,6 +95,12 @@ export const playdateApi = {
     apiClient.put(`${API_ENDPOINTS.PLAYDATE.BASE}/${id}/reschedule/vote`, payload),
 
   /**
+   * Withdraw a pending reschedule request (host)
+   */
+  cancelReschedule: (id, payload) =>
+    apiClient.patch(`${API_ENDPOINTS.PLAYDATE.BASE}/${id}/reschedule/cancel`, payload),
+
+  /**
    * Get latest / active reschedule request for a playdate
    */
   getReschedule: (id) =>

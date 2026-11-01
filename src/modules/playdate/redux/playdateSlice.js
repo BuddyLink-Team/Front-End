@@ -101,6 +101,11 @@ export const voteRescheduleRequest = createApiThunk(
     playdateApi.voteReschedule(id, { requestId, status }),
 );
 
+export const cancelRescheduleRequest = createApiThunk(
+  'playdate/cancelReschedule',
+  ({ id, requestId }) => playdateApi.cancelReschedule(id, { requestId }),
+);
+
 const initialState = {
   items: [],
   counts: {
@@ -288,6 +293,7 @@ export const playdateSlice = createSlice({
         isAnyOf(
           createRescheduleRequest.fulfilled,
           voteRescheduleRequest.fulfilled,
+          cancelRescheduleRequest.fulfilled,
         ),
         (state, action) => {
           if (action.payload?.rescheduleRequest)
@@ -304,6 +310,7 @@ export const playdateSlice = createSlice({
           leavePlaydate.pending,
           createRescheduleRequest.pending,
           voteRescheduleRequest.pending,
+          cancelRescheduleRequest.pending,
           createPlaydate.pending,
         ),
         (state) => {
@@ -326,6 +333,8 @@ export const playdateSlice = createSlice({
           createRescheduleRequest.rejected,
           voteRescheduleRequest.fulfilled,
           voteRescheduleRequest.rejected,
+          cancelRescheduleRequest.fulfilled,
+          cancelRescheduleRequest.rejected,
           createPlaydate.fulfilled,
           createPlaydate.rejected,
         ),

@@ -12,6 +12,7 @@ vi.mock('../../modules/playdate/api/playdateApi', () => ({
     respondToPlaydate: vi.fn(),
     createReschedule: vi.fn(),
     voteReschedule: vi.fn(),
+    cancelReschedule: vi.fn(),
     getNearbyPlaces: vi.fn(),
     getBusyTimes: vi.fn(),
     getFriends: vi.fn(),
@@ -402,6 +403,71 @@ describe('PlaydateDetailPage Component', () => {
         status: 'declined',
       });
       expect(screen.getByText(/giữ lịch cũ/i)).toBeInTheDocument();
+    });
+  });
+
+  describe('withdrawing a reschedule', () => {
+    const pendingRequest = {
+      id: 'resched-3',
+      status: 'pending',
+      requestedBy: { fullName: 'Mẹ Lan' },
+      newDate: '2026-10-22T08:00:00.000Z',
+      newStartTime: '16:00',
+      responses: [{ parentId: 'parent-guest-1', status: 'pending' }],
+      myVote: null,
+      isRequester: true,
+    };
+
+    it('lets the host withdraw the pending proposal after confirming', async () => {
+      playdateApi.getPlaydateById.mockResolvedValue({ data: mockHostPlaydate });
+      playdateApi.getReschedule.mockResolvedValue({ data: pendingRequest });
+      playdateApi.cancelReschedule.mockResolvedValue({
+        data: { rescheduleRequest: { ...pendingRequest, status: 'cancelled' }, playdate: mockHostPlaydate },
+      });
+
+      renderWithProviders(<PlaydateDetailPage />);
+
+      fireEvent.click(await screen.findByRole('button', { name: 'Rút đề xuất đổi lịch' }));
+      expect(await screen.findByText('Rút đề xuất đổi lịch?')).toBeInTheDocument();
+      expect(playdateApi.cancelReschedule).not.toHaveBeenCalled();
+
+      fireEvent.click(screen.getByRole('button', { name: 'Rút đề xuất' }));
+
+      await waitFor(() =>
+        expect(playdateApi.cancelReschedule).toHaveBeenCalledWith('playdate-test-123', { requestId: 'resched-3' }),
+      );
+      await waitFor(() => expect(screen.queryByText(/đang có đề xuất đổi lịch hẹn mới/i)).not.toBeInTheDocument());
+      expect(screen.queryByText(/giữ lịch cũ/i)).not.toBeInTheDocument();
+    });
+
+    it('reloads the playdate when the proposal was decided before the withdrawal', async () => {
+      playdateApi.getPlaydateById.mockResolvedValue({ data: mockHostPlaydate });
+      playdateApi.getReschedule
+        .mockResolvedValueOnce({ data: pendingRequest })
+        .mockResolvedValue({ data: { ...pendingRequest, status: 'declined' } });
+      playdateApi.cancelReschedule.mockRejectedValue({
+        response: { data: { error: { code: 'RESCHEDULE_NOT_FOUND' } } },
+      });
+
+      renderWithProviders(<PlaydateDetailPage />);
+
+      fireEvent.click(await screen.findByRole('button', { name: 'Rút đề xuất đổi lịch' }));
+      fireEvent.click(await screen.findByRole('button', { name: 'Rút đề xuất' }));
+
+      expect(await screen.findByText(/giữ lịch cũ/i)).toBeInTheDocument();
+      expect(screen.queryByRole('button', { name: 'Rút đề xuất đổi lịch' })).not.toBeInTheDocument();
+    });
+
+    it('does NOT let a participant withdraw the proposal', async () => {
+      playdateApi.getPlaydateById.mockResolvedValue({
+        data: { ...mockParticipantPlaydate, myParticipantStatus: 'accepted' },
+      });
+      playdateApi.getReschedule.mockResolvedValue({ data: { ...pendingRequest, myVote: 'pending', isRequester: false } });
+
+      renderWithProviders(<PlaydateDetailPage />);
+
+      expect(await screen.findByText(/đang có đề xuất đổi lịch hẹn mới/i)).toBeInTheDocument();
+      expect(screen.queryByRole('button', { name: 'Rút đề xuất đổi lịch' })).not.toBeInTheDocument();
     });
   });
 

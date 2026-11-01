@@ -559,12 +559,15 @@ const PlaydateDetails = () => {
     canInvite,
     canLeave,
     myPendingVote,
+    canCancelReschedule,
     showCancelModal,
     showRescheduleModal,
+    showCancelRescheduleModal,
     showInviteModal,
     showLeaveModal,
     setShowCancelModal,
     setShowRescheduleModal,
+    setShowCancelRescheduleModal,
     setShowInviteModal,
     setShowLeaveModal,
     handleComplete,
@@ -573,6 +576,7 @@ const PlaydateDetails = () => {
     handleInvite,
     handleLeave,
     handleVoteReschedule,
+    handleCancelReschedule,
     handleRescheduleSuccess,
     navigate,
   } = usePlaydateDetail();
@@ -778,10 +782,12 @@ const PlaydateDetails = () => {
           rescheduleReq={rescheduleReq}
           resolvedReschedule={resolvedReschedule}
           myPendingVote={myPendingVote}
+          canCancelReschedule={canCancelReschedule}
           isCancelled={isCancelled}
           isActionLoading={isActionLoading}
           onRespond={handleRespond}
           onVote={handleVoteReschedule}
+          onCancelReschedule={() => setShowCancelRescheduleModal(true)}
         />
       }
       steps={steps}
@@ -820,6 +826,17 @@ const PlaydateDetails = () => {
         onClose={() => setShowRescheduleModal(false)}
         playdate={playdate}
         onSuccess={handleRescheduleSuccess}
+      />
+      <ConfirmDialog
+        open={showCancelRescheduleModal}
+        title="Rút đề xuất đổi lịch?"
+        description="Các phiếu đã bầu sẽ bị hủy và buổi hẹn giữ nguyên lịch hiện tại."
+        confirmLabel="Rút đề xuất"
+        cancelLabel="Giữ đề xuất"
+        variant="danger"
+        isLoading={isActionLoading}
+        onConfirm={handleCancelReschedule}
+        onCancel={() => setShowCancelRescheduleModal(false)}
       />
       <ConfirmDialog
         open={showCancelModal}

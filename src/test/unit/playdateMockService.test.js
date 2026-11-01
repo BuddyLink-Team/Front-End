@@ -131,6 +131,29 @@ describe('playdateMockService', () => {
     expect(voteRes.data.playdate.time).toBe('08:30');
   });
 
+  it('lets only the host withdraw a pending reschedule proposal', async () => {
+    const { data: playdateBefore } = await playdateMockService.getPlaydateById('pd-mock-1');
+    const createRes = await playdateMockService.createReschedule('pd-mock-1', {
+      newDate: new Date(Date.now() + 7 * 86400000).toISOString(),
+      newStartTime: '10:00',
+    });
+    const requestId = createRes.data.rescheduleRequest.id;
+
+    const cancelRes = await playdateMockService.cancelReschedule('pd-mock-1', { requestId });
+    expect(cancelRes.data.rescheduleRequest.status).toBe('cancelled');
+    expect(cancelRes.data.playdate.time).toBe(playdateBefore.time);
+
+    // Already withdrawn
+    await expect(playdateMockService.cancelReschedule('pd-mock-1', { requestId })).rejects.toMatchObject({
+      response: { data: { error: { code: 'RESCHEDULE_NOT_FOUND' } } },
+    });
+
+    // Current parent is not the host of pd-mock-3
+    await expect(playdateMockService.cancelReschedule('pd-mock-3')).rejects.toMatchObject({
+      response: { data: { error: { code: 'FORBIDDEN_CANCEL_RESCHEDULE' } } },
+    });
+  });
+
   it('searches nearby places with filtering by category and search keyword', async () => {
     const allPlaces = await playdateMockService.getNearbyPlaces();
     expect(allPlaces.data.length).toBe(10);

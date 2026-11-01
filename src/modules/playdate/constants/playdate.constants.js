@@ -114,6 +114,7 @@ export const PLAYDATE_ERROR_MESSAGES = Object.freeze({
     'Chỉ người tổ chức mới có quyền hoàn thành buổi hẹn này.',
   FORBIDDEN_CANCEL_PLAYDATE: 'Chỉ người tổ chức mới có quyền hủy buổi hẹn này.',
   FORBIDDEN_RESCHEDULE: 'Chỉ người tổ chức mới có quyền đề xuất đổi lịch.',
+  FORBIDDEN_CANCEL_RESCHEDULE: 'Chỉ người tổ chức mới có quyền rút đề xuất đổi lịch.',
   INVALID_PLAYDATE_STATUS: 'Trạng thái buổi hẹn không hợp lệ để thao tác.',
   INVALID_PLAYDATE_STATUS_FOR_RESCHEDULE:
     'Chỉ có thể đổi lịch các buổi hẹn sắp diễn ra.',

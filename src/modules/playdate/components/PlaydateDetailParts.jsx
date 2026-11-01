@@ -91,10 +91,12 @@ export const PlaydateBanners = ({
   rescheduleReq,
   resolvedReschedule,
   myPendingVote,
+  canCancelReschedule,
   isCancelled,
   isActionLoading,
   onRespond,
   onVote,
+  onCancelReschedule,
 }) => {
   const duration = playdate.durationMinutes ?? DEFAULT_PLAYDATE_DURATION;
   const [myChildId, ...mySiblingIds] = playdate.myChildIds || [];
@@ -219,6 +221,19 @@ export const PlaydateBanners = ({
               </Button>
             </div>
           )}
+
+          {canCancelReschedule && (
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={onCancelReschedule}
+              disabled={isActionLoading}
+              className="shrink-0 rounded-xl border-tertiary text-tertiary-dark hover:bg-surface-container-lowest"
+            >
+              Rút đề xuất đổi lịch
+            </Button>
+          )}
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 p-3.5 bg-surface-container-lowest rounded-xl border border-hairline text-xs">
@@ -278,8 +293,10 @@ PlaydateBanners.propTypes = {
   rescheduleReq: PropTypes.object,
   resolvedReschedule: PropTypes.object,
   myPendingVote: PropTypes.bool,
+  canCancelReschedule: PropTypes.bool,
   isCancelled: PropTypes.bool,
   isActionLoading: PropTypes.bool,
   onRespond: PropTypes.func.isRequired,
   onVote: PropTypes.func.isRequired,
+  onCancelReschedule: PropTypes.func,
 };

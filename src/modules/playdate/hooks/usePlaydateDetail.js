@@ -12,6 +12,7 @@ import {
   inviteParticipants,
   leavePlaydate,
   voteRescheduleRequest,
+  cancelRescheduleRequest,
 } from '../redux/playdateSlice';
 import { PLAYDATE_ERROR_MESSAGES, PLAYDATE_WARNING_CODES, RESCHEDULE_STATUS } from '../constants/playdate.constants';
 import { hasPlaydateStarted } from '../utils/playdateTime';
@@ -38,6 +39,7 @@ export const usePlaydateDetail = () => {
   const [showCancelModal, setShowCancelModal] = useState(false);
   const [cancelReason, setCancelReason] = useState('');
   const [showRescheduleModal, setShowRescheduleModal] = useState(false);
+  const [showCancelRescheduleModal, setShowCancelRescheduleModal] = useState(false);
   const [showInviteModal, setShowInviteModal] = useState(false);
   const [showLeaveModal, setShowLeaveModal] = useState(false);
   const [hasLoadFailed, setHasLoadFailed] = useState(false);
@@ -75,6 +77,7 @@ export const usePlaydateDetail = () => {
   const canLeave = Boolean(currentPlaydate?.canLeave);
   const pendingReschedule = rescheduleReq?.status === RESCHEDULE_STATUS.PENDING ? rescheduleReq : null;
   const myPendingVote = pendingReschedule?.myVote === 'pending';
+  const canCancelReschedule = isHost && isUpcoming && Boolean(pendingReschedule);
   // Latest decided request (accepted / declined), shown so the host learns the outcome
   const resolvedReschedule =
     rescheduleReq && [RESCHEDULE_STATUS.ACCEPTED, RESCHEDULE_STATUS.DECLINED].includes(rescheduleReq.status)
@@ -161,6 +164,19 @@ export const usePlaydateDetail = () => {
     );
   };
 
+  const handleCancelReschedule = async () => {
+    if (!pendingReschedule) return;
+    const result = await runAction(
+      // Withdraw the request the host is looking at, never a newer one
+      cancelRescheduleRequest({ id, requestId: pendingReschedule.id }),
+      'Đã rút đề xuất đổi lịch.',
+      'Không thể rút đề xuất đổi lịch.',
+    );
+    setShowCancelRescheduleModal(false);
+    // The votes may have decided it meanwhile: show the current schedule and outcome
+    if (!result) fetchDetail();
+  };
+
   const handleRescheduleSuccess = () => {
     setShowRescheduleModal(false);
   };
@@ -182,14 +198,17 @@ export const usePlaydateDetail = () => {
     canLeave,
     canOpenGroupChat,
     myPendingVote,
+    canCancelReschedule,
     showCancelModal,
     cancelReason,
     showRescheduleModal,
+    showCancelRescheduleModal,
     showInviteModal,
     showLeaveModal,
     setShowCancelModal,
     setCancelReason,
     setShowRescheduleModal,
+    setShowCancelRescheduleModal,
     setShowInviteModal,
     setShowLeaveModal,
     handleComplete,
@@ -198,6 +217,7 @@ export const usePlaydateDetail = () => {
     handleInvite,
     handleLeave,
     handleVoteReschedule,
+    handleCancelReschedule,
     handleRescheduleSuccess,
     navigate,
   };
