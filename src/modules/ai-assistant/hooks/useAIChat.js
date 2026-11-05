@@ -24,6 +24,9 @@ export const useAIChat = (sessionId) => {
     sessionId ? state.aiAssistant.sendingSessionIds.includes(sessionId) : state.aiAssistant.isCreatingSession,
   );
   const hasMessages = useSelector((state) => Boolean(sessionId && state.aiAssistant.messagesBySession[sessionId]));
+  const progressMessage = useSelector((state) =>
+    sessionId ? state.aiAssistant.progressMessageBySession?.[sessionId] : null,
+  );
 
   // Load a conversation opened from the history (or a ?session= link)
   useEffect(() => {
@@ -106,6 +109,7 @@ export const useAIChat = (sessionId) => {
     planDraft: session?.planDraft || null,
     isLoading,
     isSending,
+    progressMessage,
     isSessionFull,
     messagesLeft,
     send,

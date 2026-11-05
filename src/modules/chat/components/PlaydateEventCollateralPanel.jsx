@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useSelector } from 'react-redux';
 import dayjs from 'dayjs';
 import {
   Calendar,
@@ -12,6 +13,8 @@ import {
   X,
   ShieldCheck,
   CalendarX,
+  UserCheck,
+  AlertTriangle,
 } from 'lucide-react';
 import { Avatar } from '../../../components/ui/Avatar';
 import { VerifiedBadge } from '../../../components/badges/VerifiedBadge';
@@ -19,6 +22,10 @@ import { StatusChip } from '../../../components/badges/StatusChip';
 import { InterestTag } from '../../../components/badges/InterestTag';
 import { cn } from '../../../utils/cn';
 import { formatChildAge } from '../../../utils/formatters';
+import { useToast } from '../../../hooks/useToast';
+import { getApiErrorMsg } from '../../../utils/errorUtils';
+import { PLAYDATE_ERROR_MESSAGES } from '../../playdate/constants/playdate.constants';
+import playdateApi from '../../playdate/api/playdateApi';
 import { PLAYDATE_PARTICIPANT_STATUS, PLAYDATE_STATUS_CHIPS } from '../constants/chat.constants.js';
 
 /**
@@ -39,6 +46,16 @@ export const PlaydateEventCollateralPanel = ({
   className,
 }) => {
   const navigate = useNavigate();
+  const toast = useToast();
+  const currentParentId = useSelector((state) => state.parent?.profile?._id || state.parent?.profile?.id);
+  const [chaperones, setChaperones] = useState(playdate?.chaperones || []);
+  const [isUpdatingChaperone, setIsUpdatingChaperone] = useState(false);
+
+  useEffect(() => {
+    if (playdate?.chaperones) {
+      setChaperones(playdate.chaperones);
+    }
+  }, [playdate?.chaperones]);
 
   if (!playdate) {
     return (
@@ -80,6 +97,44 @@ export const PlaydateEventCollateralPanel = ({
         parentName: p.parent?.fullName || 'Phụ huynh',
       })),
   ];
+
+  // Calculate required chaperones: 1 adult per 2 kids < 5yo; 1 adult per 3 kids >= 5yo; 1:1 if high risk
+  const under5Count = allChildren.filter((k) => {
+    if (!k.dateOfBirth) return false;
+    const diffYears = dayjs().diff(dayjs(k.dateOfBirth), 'year');
+    return diffYears < 5;
+  }).length;
+  const over5Count = allChildren.length - under5Count;
+  const allText = `${activity || ''} ${note || ''}`;
+  const hasHighRisk = /(?<!màu\s|uống\s)(bơi|tắm|hồ bơi|chơi nước|công viên nước|suối|biển)/i.test(allText);
+  const totalKids = allChildren.length;
+  const requiredChaperones = hasHighRisk
+    ? Math.max(1, totalKids)
+    : Math.max(1, Math.ceil(under5Count / 2) + Math.ceil(over5Count / 3));
+  const isChaperoneSufficient = chaperones.length >= requiredChaperones;
+
+  const isConfirmedByMe = chaperones.some(
+    (c) => (c.parentId?._id || c.parentId)?.toString() === currentParentId?.toString()
+  );
+
+  const handleToggleChaperone = async () => {
+    try {
+      setIsUpdatingChaperone(true);
+      const action = isConfirmedByMe ? 'cancel' : 'confirm';
+      const res = await playdateApi.toggleChaperone(id, action);
+      const updated = res.data?.data?.chaperones || [];
+      setChaperones(updated);
+      toast.success(
+        action === 'confirm'
+          ? 'Đã xác nhận tham gia làm người lớn đi kèm'
+          : 'Đã hủy đăng ký người lớn đi kèm'
+      );
+    } catch (err) {
+      toast.error(getApiErrorMsg(PLAYDATE_ERROR_MESSAGES, err, 'Không thể cập nhật trạng thái người đi kèm'));
+    } finally {
+      setIsUpdatingChaperone(false);
+    }
+  };
 
   return (
     <aside
@@ -293,6 +348,50 @@ export const PlaydateEventCollateralPanel = ({
               );
             })}
           </div>
+        </div>
+
+        {/* 5. Chaperone Assignment Section (BUD-49 Part B5) */}
+        <div className="p-3.5 rounded-2xl bg-surface-container-low/70 border border-hairline space-y-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-1.5 text-xs font-bold text-on-surface uppercase tracking-wider">
+              <UserCheck className="w-3.5 h-3.5 text-primary" />
+              <span>Người lớn đi kèm ({chaperones.length}/{requiredChaperones})</span>
+            </div>
+            {isChaperoneSufficient ? (
+              <span className="text-label-xs font-semibold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800">
+                Đủ an toàn
+              </span>
+            ) : (
+              <span className="text-label-xs font-semibold px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 flex items-center gap-1">
+                <AlertTriangle className="w-3 h-3" /> Cần thêm
+              </span>
+            )}
+          </div>
+
+          <p className="text-label-xs text-on-surface-variant leading-relaxed">
+            Quy định BuddyLink: 1 người lớn / 2 bé dưới 5 tuổi; 1 người lớn / 3 bé từ 5 tuổi (1 kèm 1 với hoạt động rủi ro cao).
+          </p>
+
+          {!isChaperoneSufficient && (
+            <p className="text-label-xs text-amber-700 bg-amber-50 p-2 rounded-lg border border-amber-200">
+              ⚠️ Cần thêm ít nhất {Math.max(1, requiredChaperones - chaperones.length)} phụ huynh xác nhận đi kèm để đảm bảo an toàn cho các bé.
+            </p>
+          )}
+
+          <button
+            type="button"
+            disabled={isUpdatingChaperone}
+            onClick={handleToggleChaperone}
+            className={cn(
+              'w-full py-2 px-3 rounded-xl text-xs font-semibold transition-all flex items-center justify-center gap-1.5',
+              isConfirmedByMe
+                ? 'border border-amber-300 bg-amber-50 text-amber-800 hover:bg-amber-100'
+                : 'bg-primary text-white hover:bg-primary-hover shadow-xs',
+            )}
+          >
+            <UserCheck className="w-3.5 h-3.5" />
+            <span>{isConfirmedByMe ? 'Hủy đăng ký đi kèm' : 'Tôi sẽ đi kèm cùng các bé'}</span>
+          </button>
         </div>
 
         {/* Safety & Trust Note */}

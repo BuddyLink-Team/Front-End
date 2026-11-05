@@ -116,6 +116,12 @@ export const playdateApi = {
    * Place details (address resolved, opening hours, contact, OpenStreetMap link)
    */
   getPlaceById: (id) => apiClient.get(`${API_ENDPOINTS.PLACES.BASE}/${id}`),
+
+  /**
+   * Register or cancel chaperone status (Host or accepted participant)
+   */
+  toggleChaperone: (id, action = 'confirm') =>
+    apiClient.post(`${API_ENDPOINTS.PLAYDATE.BASE}/${id}/chaperone`, { action }),
 };
 
 export default playdateApi;

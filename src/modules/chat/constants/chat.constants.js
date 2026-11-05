@@ -9,6 +9,7 @@ export const MESSAGE_TYPES = Object.freeze({
   IMAGE: 'image',
   EMOJI: 'emoji',
   SYSTEM: 'system',
+  POLL: 'poll',
 });
 
 // Playdate participant statuses (mirror of the backend PARTICIPANT_STATUS)
@@ -55,6 +56,7 @@ export const SOCKET_EVENTS = Object.freeze({
   CONVERSATION_UPDATED: 'conversation_updated',
   MESSAGE_DELETED: 'message_deleted',
   ACCOUNT_LOCKED: 'account_locked',
+  POLL_VOTED: 'poll_voted',
 });
 
 // Must match the image types accepted by the backend upload middleware

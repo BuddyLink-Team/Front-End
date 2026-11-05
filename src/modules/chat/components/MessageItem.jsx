@@ -3,6 +3,7 @@ import dayjs from 'dayjs';
 import { Check, CheckCheck, Clock, AlertCircle, RotateCcw, Flag } from 'lucide-react';
 import { Avatar } from '../../../components/ui/Avatar';
 import { ChatBubble } from '../../../components/chat/ChatBubble';
+import { PollMessageCard } from './PollMessageCard';
 import { MESSAGE_STATUS } from '../constants/chat.constants.js';
 
 export const MessageItem = ({
@@ -98,21 +99,28 @@ export const MessageItem = ({
         </>
       }
     >
-      {/* Media Image Attachment if present */}
-      {message.mediaUrl && (
-        <div className="mb-2 overflow-hidden rounded-xl cursor-pointer group">
-          <img
-            src={message.mediaUrl}
-            alt="Hình ảnh đính kèm"
-            onClick={() => onImageClick && onImageClick(message.mediaUrl)}
-            className="max-h-60 w-auto object-cover rounded-xl transition-transform duration-200 group-hover:scale-105"
-          />
-        </div>
-      )}
+      {/* Poll Card if message is a poll */}
+      {message.type === 'poll' && message.poll ? (
+        <PollMessageCard message={message} currentParentId={currentParentId} />
+      ) : (
+        <>
+          {/* Media Image Attachment if present */}
+          {message.mediaUrl && (
+            <div className="mb-2 overflow-hidden rounded-xl cursor-pointer group">
+              <img
+                src={message.mediaUrl}
+                alt="Hình ảnh đính kèm"
+                onClick={() => onImageClick && onImageClick(message.mediaUrl)}
+                className="max-h-60 w-auto object-cover rounded-xl transition-transform duration-200 group-hover:scale-105"
+              />
+            </div>
+          )}
 
-      {/* Text Content (if not just default placeholder for image) */}
-      {message.content && message.content !== '[Hình ảnh]' && (
-        <p className={message.isDeleted ? 'italic' : 'whitespace-pre-wrap'}>{message.content}</p>
+          {/* Text Content (if not just default placeholder for image) */}
+          {message.content && message.content !== '[Hình ảnh]' && (
+            <p className={message.isDeleted ? 'italic' : 'whitespace-pre-wrap'}>{message.content}</p>
+          )}
+        </>
       )}
     </ChatBubble>
   );

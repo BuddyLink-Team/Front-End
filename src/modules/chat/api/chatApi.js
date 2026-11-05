@@ -63,6 +63,20 @@ export const chatApi = {
       },
     });
   },
+
+  /**
+   * Create a poll message in a conversation
+   */
+  createPoll: async (conversationId, data) => {
+    return apiClient.post(`${API_ENDPOINTS.CHAT.CONVERSATIONS}/${conversationId}/poll`, data);
+  },
+
+  /**
+   * Vote on a poll message
+   */
+  votePoll: async (messageId, optionId) => {
+    return apiClient.post(`/chat/messages/${messageId}/poll/vote`, { optionId });
+  },
 };
 
 export default chatApi;

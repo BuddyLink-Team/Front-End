@@ -17,6 +17,7 @@ import {
   MapPin,
   Clock,
   CalendarHeart,
+  BarChart3,
 } from 'lucide-react';
 import { ConfirmDialog } from '../../../components/feedback/ConfirmDialog';
 import { TypingIndicator } from '../../../components/feedback/TypingIndicator';
@@ -24,6 +25,7 @@ import { Dropdown, DropdownItem } from '../../../components/ui/Dropdown';
 import { MessageItem } from './MessageItem.jsx';
 import { EmojiPopover } from './EmojiPopover.jsx';
 import { PlaydateEventCollateralPanel } from './PlaydateEventCollateralPanel.jsx';
+import { CreatePollModal } from './CreatePollModal.jsx';
 import { ImageLightbox } from './ImageLightbox.jsx';
 import { Button } from '../../../components/ui/Button';
 import { Textarea } from '../../../components/ui/Textarea';
@@ -74,6 +76,7 @@ export const PlaydateChatView = ({
   const navigate = useNavigate();
   const [inputText, setInputText] = useState('');
   const [isEmojiOpen, setIsEmojiOpen] = useState(false);
+  const [isCreatePollOpen, setIsCreatePollOpen] = useState(false);
   const [lightboxImageUrl, setLightboxImageUrl] = useState(null);
   const [isCollateralOpen, setIsCollateralOpen] = useState(true);
   const [showMobileCollateral, setShowMobileCollateral] = useState(false);
@@ -492,6 +495,17 @@ export const PlaydateChatView = ({
               <Smile className="w-5 h-5" />
             </Button>
 
+            {/* Poll Button */}
+            <Button
+              type="button"
+              variant="ghost"
+              onClick={() => setIsCreatePollOpen(true)}
+              className="p-2 rounded-full text-on-surface-variant hover:text-primary hover:bg-surface-container transition-colors shrink-0"
+              title="Tạo khảo sát giờ hẹn (Poll)"
+            >
+              <BarChart3 className="w-5 h-5" />
+            </Button>
+
             {/* Elastic Textarea */}
             <Textarea
               ref={textareaRef}
@@ -601,6 +615,16 @@ export const PlaydateChatView = ({
       {/* Report Playdate / Message Modal                                */}
       {/* ============================================================== */}
       <ReportModal isOpen={Boolean(reportTarget)} onClose={closeReport} target={reportTarget} />
+
+      {/* ============================================================== */}
+      {/* Create Poll Modal                                              */}
+      {/* ============================================================== */}
+      <CreatePollModal
+        isOpen={isCreatePollOpen}
+        onClose={() => setIsCreatePollOpen(false)}
+        conversationId={conversation?.id}
+        onPollCreated={() => scrollToBottom('smooth')}
+      />
     </section>
   );
 };

@@ -8,12 +8,21 @@ import { MessageBubble } from './MessageBubble';
 /**
  * Scrollable conversation, kept at the bottom when a message arrives; typing indicator while waiting
  */
-export const MessageList = ({ messages, isLoading, isSending, onRetry, onStartNew, cardHandlers, emptyState }) => {
+export const MessageList = ({
+  messages,
+  isLoading,
+  isSending,
+  progressMessage,
+  onRetry,
+  onStartNew,
+  cardHandlers,
+  emptyState,
+}) => {
   const endRef = useRef(null);
 
   useEffect(() => {
     endRef.current?.scrollIntoView?.({ block: 'end', behavior: 'smooth' });
-  }, [messages.length, isSending]);
+  }, [messages.length, isSending, progressMessage]);
 
   if (isLoading && messages.length === 0) {
     return (
@@ -40,7 +49,12 @@ export const MessageList = ({ messages, isLoading, isSending, onRetry, onStartNe
               cardHandlers={cardHandlers}
             />
           ))}
-          {isSending && <TypingIndicator avatar={<AIMascotAvatar size="sm" />} label="BuddyLink AI đang soạn" />}
+          {isSending && (
+            <TypingIndicator
+              avatar={<AIMascotAvatar size="sm" />}
+              label={progressMessage || 'BuddyLink AI đang soạn'}
+            />
+          )}
           <div ref={endRef} />
         </div>
       )}
@@ -52,6 +66,7 @@ MessageList.propTypes = {
   messages: PropTypes.arrayOf(PropTypes.object).isRequired,
   isLoading: PropTypes.bool,
   isSending: PropTypes.bool,
+  progressMessage: PropTypes.string,
   onRetry: PropTypes.func.isRequired,
   onStartNew: PropTypes.func,
   cardHandlers: PropTypes.object.isRequired,
