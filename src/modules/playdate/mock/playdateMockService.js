@@ -791,6 +791,52 @@ class PlaydateMockService {
       data: MOCK_HOST_CHILDREN,
     };
   }
+
+  /**
+   * POST /api/v1/playdates/:id/chaperone
+   */
+  async toggleChaperone(id, action = 'confirm') {
+    await delay();
+    const playdates = this._getStoredPlaydates();
+    const playdate = playdates.find((p) => p.id === id || p._id === id);
+    if (!playdate) this._fail('PLAYDATE_NOT_FOUND', 'Playdate not found', 404);
+
+    if (!Array.isArray(playdate.chaperones)) {
+      playdate.chaperones = [];
+    }
+
+    const currentParentId = MOCK_CURRENT_PARENT.id;
+    if (action === 'confirm') {
+      if (!playdate.chaperones.some((c) => (c.parentId?._id || c.parentId) === currentParentId)) {
+        playdate.chaperones.push({
+          parentId: currentParentId,
+          confirmedAt: new Date().toISOString(),
+        });
+      }
+    } else {
+      playdate.chaperones = playdate.chaperones.filter(
+        (c) => (c.parentId?._id || c.parentId) !== currentParentId
+      );
+    }
+
+    this._saveStoredPlaydates(playdates);
+
+    return {
+      success: true,
+      message: action === 'confirm' ? 'Chaperone registered' : 'Chaperone cancelled',
+      data: {
+        playdateId: id,
+        chaperones: playdate.chaperones,
+        chaperoneSummary: {
+          requiredChaperones: 2,
+          confirmedCount: playdate.chaperones.length,
+          isSufficient: playdate.chaperones.length >= 2,
+          missingCount: Math.max(0, 2 - playdate.chaperones.length),
+          isConfirmedByMe: action === 'confirm',
+        },
+      },
+    };
+  }
 }
 
 export const playdateMockService = new PlaydateMockService();

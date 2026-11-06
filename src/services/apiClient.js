@@ -26,7 +26,7 @@ const apiClient = axios.create({
  * Exchange the stored refresh token for a new token pair (the backend rotates the refresh token).
  * @returns {Promise<string>} New access token
  */
-const refreshAccessToken = async () => {
+export const refreshAccessToken = async () => {
   const refreshToken = tokenStore.getRefreshToken();
   if (!refreshToken) {
     throw new Error('No refresh token available');

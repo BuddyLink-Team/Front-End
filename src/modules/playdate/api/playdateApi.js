@@ -121,7 +121,7 @@ export const playdateApi = {
    * Register or cancel chaperone status (Host or accepted participant)
    */
   toggleChaperone: (id, action = 'confirm') =>
-    apiClient.post(`${API_ENDPOINTS.PLAYDATE.BASE}/${id}/chaperone`, { action }),
+    apiClient.post(API_ENDPOINTS.PLAYDATE.CHAPERONE(id), { action }),
 };
 
 export default playdateApi;

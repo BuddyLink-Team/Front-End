@@ -18,7 +18,7 @@ import {
   Info,
   Backpack,
 } from 'lucide-react';
-import { Button } from '../../../components/ui/Button';
+import { Button, Checkbox } from '../../../components';
 import { formatDate } from '../../../utils/formatters';
 import { cn } from '../../../utils/cn';
 import { ReadOnlyField } from '../../playdate/components/PlaydateFormLayout';
@@ -83,7 +83,9 @@ export const PlaydateDraftCard = ({ card, onConfirm, disabled = false }) => {
     .filter((w) => DRAFT_WARNING_TEXT[w.code]);
 
   const warnings = Array.from(new Map(normalizedWarnings.map((w) => [w.code, w])).values());
-  const hasBlockingWarning = warnings.some((w) => w.severity === AI_WARNING_SEVERITY.BLOCK);
+  const hasBlockingWarning = warnings.some(
+    (w) => w.severity === AI_WARNING_SEVERITY.BLOCK && !(w.code === 'SAFETY_HIGH_RISK' && safetyAcknowledged)
+  );
   const isConfirmDisabled = disabled || (draft.hasHighRisk && !safetyAcknowledged) || hasBlockingWarning;
 
   const place = draft.placeDetails || {};
@@ -201,8 +203,8 @@ export const PlaydateDraftCard = ({ card, onConfirm, disabled = false }) => {
           <ReadOnlyField label="Lưu ý an toàn" icon={ShieldAlert}>
             <ul className="space-y-1 text-xs">
               {draft.safetyNotes.map((note, index) => (
-                <li key={index} className="flex items-start gap-1.5 text-amber-900">
-                  <span className="text-amber-500 font-bold">•</span>
+                <li key={index} className="flex items-start gap-1.5 text-tertiary-dark">
+                  <span className="text-tertiary font-bold">•</span>
                   <span>{note}</span>
                 </li>
               ))}
@@ -226,20 +228,14 @@ export const PlaydateDraftCard = ({ card, onConfirm, disabled = false }) => {
       </Part>
 
       {draft.hasHighRisk && !isCreated && (
-        <label className="flex items-start gap-2.5 p-3 rounded-xl border border-error-container bg-error-soft/30 text-xs text-error-dark cursor-pointer shadow-xs select-none">
-          <input
-            type="checkbox"
+        <div className="p-3 rounded-xl border border-error-container bg-error-soft text-xs text-error-dark shadow-xs select-none">
+          <Checkbox
             checked={safetyAcknowledged}
-            onChange={(e) => {
-              setSafetyAcknowledged(e.target.checked);
-              draft.safetyAcknowledged = e.target.checked;
-            }}
-            className="mt-0.5 rounded border-error-container text-primary focus:ring-primary h-4 w-4"
+            onChange={(e) => setSafetyAcknowledged(e.target.checked)}
+            label="Tôi đã đọc và cam kết tuân thủ các lưu ý an toàn cho các bé trong suốt buổi hẹn chơi"
+            className="text-xs"
           />
-          <span className="font-medium leading-relaxed">
-            Tôi đã đọc và cam kết tuân thủ các lưu ý an toàn cho các bé trong suốt buổi hẹn chơi
-          </span>
-        </label>
+        </div>
       )}
 
       {warnings.length > 0 && !isCreated && (

@@ -2,16 +2,12 @@ import React, { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import dayjs from 'dayjs';
 import { BarChart3, CheckCircle2, Clock, Lock } from 'lucide-react';
-import { chatApi } from '../api/chatApi';
-import { useToast } from '../../../hooks/useToast';
-import { getApiErrorMsg } from '../../../utils/errorUtils';
-import { CHAT_ERROR_MESSAGES } from '../constants/chat.constants.js';
+import { usePoll } from '../hooks/usePoll.js';
 import { cn } from '../../../utils/cn';
 
 export const PollMessageCard = ({ message, currentParentId }) => {
-  const toast = useToast();
   const [poll, setPoll] = useState(message.poll || {});
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { votePoll, isSubmitting } = usePoll();
 
   useEffect(() => {
     if (message?.poll) {
@@ -29,17 +25,9 @@ export const PollMessageCard = ({ message, currentParentId }) => {
 
   const handleVote = async (optionId) => {
     if (isVotingDisabled) return;
-
-    try {
-      setIsSubmitting(true);
-      const res = await chatApi.votePoll(message.id, optionId);
-      if (res.data?.data?.poll) {
-        setPoll(res.data.data.poll);
-      }
-    } catch (err) {
-      toast.error(getApiErrorMsg(CHAT_ERROR_MESSAGES, err, 'Không thể gửi bình chọn.'));
-    } finally {
-      setIsSubmitting(false);
+    const updatedPoll = await votePoll(message.id, optionId);
+    if (updatedPoll) {
+      setPoll(updatedPoll);
     }
   };
 
@@ -90,8 +78,8 @@ export const PollMessageCard = ({ message, currentParentId }) => {
               className={cn(
                 'relative w-full overflow-hidden rounded-xl border p-2.5 text-left transition-all',
                 hasVoted
-                  ? 'border-primary bg-primary-soft/40 shadow-xs'
-                  : 'border-hairline hover:border-outline hover:bg-surface-container-low/40',
+                  ? 'border-primary bg-primary-soft shadow-xs'
+                  : 'border-hairline hover:border-outline hover:bg-surface-container-low',
                 isVotingDisabled && 'cursor-default',
               )}
             >
@@ -99,7 +87,7 @@ export const PollMessageCard = ({ message, currentParentId }) => {
               <div
                 className={cn(
                   'absolute inset-y-0 left-0 transition-all duration-300 pointer-events-none',
-                  hasVoted ? 'bg-primary/15' : 'bg-surface-container/60',
+                  hasVoted ? 'bg-primary-container' : 'bg-surface-container',
                 )}
                 style={{ width: `${percent}%` }}
               />
@@ -110,8 +98,8 @@ export const PollMessageCard = ({ message, currentParentId }) => {
                     className={cn(
                       'flex h-4 w-4 shrink-0 items-center justify-center rounded-full border transition-colors',
                       hasVoted
-                        ? 'border-primary bg-primary text-white'
-                        : 'border-outline/60 bg-surface-container-lowest',
+                        ? 'border-primary bg-primary text-on-primary'
+                        : 'border-outline bg-surface-container-lowest',
                     )}
                   >
                     {hasVoted && <CheckCircle2 className="w-3.5 h-3.5" />}

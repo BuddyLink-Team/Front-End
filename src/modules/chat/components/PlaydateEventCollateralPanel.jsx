@@ -20,12 +20,10 @@ import { Avatar } from '../../../components/ui/Avatar';
 import { VerifiedBadge } from '../../../components/badges/VerifiedBadge';
 import { StatusChip } from '../../../components/badges/StatusChip';
 import { InterestTag } from '../../../components/badges/InterestTag';
+import { Button } from '../../../components';
 import { cn } from '../../../utils/cn';
 import { formatChildAge } from '../../../utils/formatters';
-import { useToast } from '../../../hooks/useToast';
-import { getApiErrorMsg } from '../../../utils/errorUtils';
-import { PLAYDATE_ERROR_MESSAGES } from '../../playdate/constants/playdate.constants';
-import playdateApi from '../../playdate/api/playdateApi';
+import { usePlaydateChaperone } from '../../playdate/hooks/usePlaydateChaperone.js';
 import { PLAYDATE_PARTICIPANT_STATUS, PLAYDATE_STATUS_CHIPS } from '../constants/chat.constants.js';
 
 /**
@@ -46,10 +44,9 @@ export const PlaydateEventCollateralPanel = ({
   className,
 }) => {
   const navigate = useNavigate();
-  const toast = useToast();
   const currentParentId = useSelector((state) => state.parent?.profile?._id || state.parent?.profile?.id);
   const [chaperones, setChaperones] = useState(playdate?.chaperones || []);
-  const [isUpdatingChaperone, setIsUpdatingChaperone] = useState(false);
+  const { toggleChaperone, isUpdating: isUpdatingChaperone } = usePlaydateChaperone(playdate?.id);
 
   useEffect(() => {
     if (playdate?.chaperones) {
@@ -98,41 +95,20 @@ export const PlaydateEventCollateralPanel = ({
       })),
   ];
 
-  // Calculate required chaperones: 1 adult per 2 kids < 5yo; 1 adult per 3 kids >= 5yo; 1:1 if high risk
-  const under5Count = allChildren.filter((k) => {
-    if (!k.dateOfBirth) return false;
-    const diffYears = dayjs().diff(dayjs(k.dateOfBirth), 'year');
-    return diffYears < 5;
-  }).length;
-  const over5Count = allChildren.length - under5Count;
-  const allText = `${activity || ''} ${note || ''}`;
-  const hasHighRisk = /(?<!màu\s|uống\s)(bơi|tắm|hồ bơi|chơi nước|công viên nước|suối|biển)/i.test(allText);
-  const totalKids = allChildren.length;
-  const requiredChaperones = hasHighRisk
-    ? Math.max(1, totalKids)
-    : Math.max(1, Math.ceil(under5Count / 2) + Math.ceil(over5Count / 3));
-  const isChaperoneSufficient = chaperones.length >= requiredChaperones;
+  const chaperoneSummary = playdate.chaperoneSummary || {};
+  const requiredChaperones = chaperoneSummary.requiredChaperones ?? Math.max(1, allChildren.length);
+  const isChaperoneSufficient = chaperoneSummary.isSufficient ?? (chaperones.length >= requiredChaperones);
+  const missingCount = chaperoneSummary.missingCount ?? Math.max(0, requiredChaperones - chaperones.length);
 
   const isConfirmedByMe = chaperones.some(
     (c) => (c.parentId?._id || c.parentId)?.toString() === currentParentId?.toString()
   );
 
   const handleToggleChaperone = async () => {
-    try {
-      setIsUpdatingChaperone(true);
-      const action = isConfirmedByMe ? 'cancel' : 'confirm';
-      const res = await playdateApi.toggleChaperone(id, action);
-      const updated = res.data?.data?.chaperones || [];
-      setChaperones(updated);
-      toast.success(
-        action === 'confirm'
-          ? 'Đã xác nhận tham gia làm người lớn đi kèm'
-          : 'Đã hủy đăng ký người lớn đi kèm'
-      );
-    } catch (err) {
-      toast.error(getApiErrorMsg(PLAYDATE_ERROR_MESSAGES, err, 'Không thể cập nhật trạng thái người đi kèm'));
-    } finally {
-      setIsUpdatingChaperone(false);
+    const action = isConfirmedByMe ? 'cancel' : 'confirm';
+    const updated = await toggleChaperone(action);
+    if (updated?.chaperones) {
+      setChaperones(updated.chaperones);
     }
   };
 
@@ -146,7 +122,7 @@ export const PlaydateEventCollateralPanel = ({
       {/* 1. Panel Header */}
       <div className="px-5 py-4 border-b border-hairline flex items-center justify-between bg-surface-container-lowest z-10 shrink-0">
         <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-full bg-primary-container/20 flex items-center justify-center text-primary">
+          <div className="w-8 h-8 rounded-full bg-primary-container flex items-center justify-center text-primary">
             <Calendar className="w-4 h-4" />
           </div>
           <div>
@@ -170,7 +146,7 @@ export const PlaydateEventCollateralPanel = ({
       {/* 2. Scrollable Content Body */}
       <div className="flex-1 overflow-y-auto p-5 space-y-5 scrollbar-thin">
         {/* Event Main Overview Card */}
-        <div className="p-4 rounded-2xl bg-surface-container-low/70 border border-hairline space-y-3">
+        <div className="p-4 rounded-2xl bg-surface-container-low border border-hairline space-y-3">
           <div className="flex items-start justify-between gap-2">
             <h4 className="text-base font-bold text-on-surface leading-snug">
               {title || activity || 'Cuộc hẹn chơi cùng bé'}
@@ -210,7 +186,7 @@ export const PlaydateEventCollateralPanel = ({
 
           {/* Host Note if present */}
           {note && (
-            <div className="pt-2 border-t border-hairline/60 flex items-start gap-2 text-xs text-on-surface-variant bg-surface-container-lowest/60 p-2.5 rounded-xl">
+            <div className="pt-2 border-t border-hairline flex items-start gap-2 text-xs text-on-surface-variant bg-surface-container-lowest p-2.5 rounded-xl">
               <FileText className="w-3.5 h-3.5 text-primary shrink-0 mt-0.5" />
               <p className="italic text-label-sm leading-relaxed line-clamp-3">{note}</p>
             </div>
@@ -237,7 +213,7 @@ export const PlaydateEventCollateralPanel = ({
                 return (
                   <div
                     key={kid.id || idx}
-                    className="p-3 rounded-xl bg-surface-container-low/50 border border-hairline hover:bg-surface-container-low transition-colors"
+                    className="p-3 rounded-xl bg-surface-container-low border border-hairline hover:bg-surface-container transition-colors"
                   >
                     <div className="flex items-start justify-between gap-1 mb-1">
                       <div className="flex items-center gap-1.5">
@@ -290,7 +266,7 @@ export const PlaydateEventCollateralPanel = ({
           <div className="space-y-2">
             {/* Host Parent */}
             {host && (
-              <div className="p-3 rounded-xl bg-surface-container-low/50 border border-hairline flex items-center justify-between gap-3">
+              <div className="p-3 rounded-xl bg-surface-container-low border border-hairline flex items-center justify-between gap-3">
                 <div className="flex items-center gap-2.5 min-w-0">
                   <Avatar
                     src={host.avatarUrl}
@@ -310,7 +286,7 @@ export const PlaydateEventCollateralPanel = ({
                   </div>
                 </div>
 
-                <span className="shrink-0 text-label-xs font-bold px-2 py-0.5 rounded-full bg-primary text-white shadow-2xs">
+                <span className="shrink-0 text-label-xs font-bold px-2 py-0.5 rounded-full bg-primary text-on-primary shadow-2xs">
                   Chủ nhà
                 </span>
               </div>
@@ -324,7 +300,7 @@ export const PlaydateEventCollateralPanel = ({
               return (
                 <div
                   key={parent.id || pIdx}
-                  className="p-3 rounded-xl bg-surface-container-low/50 border border-hairline flex items-center justify-between gap-3"
+                  className="p-3 rounded-xl bg-surface-container-low border border-hairline flex items-center justify-between gap-3"
                 >
                   <div className="flex items-center gap-2.5 min-w-0">
                     <Avatar
@@ -351,19 +327,19 @@ export const PlaydateEventCollateralPanel = ({
         </div>
 
         {/* 5. Chaperone Assignment Section (BUD-49 Part B5) */}
-        <div className="p-3.5 rounded-2xl bg-surface-container-low/70 border border-hairline space-y-3">
+        <div className="p-3.5 rounded-2xl bg-surface-container-low border border-hairline space-y-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-1.5 text-xs font-bold text-on-surface uppercase tracking-wider">
               <UserCheck className="w-3.5 h-3.5 text-primary" />
               <span>Người lớn đi kèm ({chaperones.length}/{requiredChaperones})</span>
             </div>
             {isChaperoneSufficient ? (
-              <span className="text-label-xs font-semibold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800">
+              <span className="text-label-xs font-semibold px-2 py-0.5 rounded-full bg-primary-soft text-primary-dark border border-primary-border">
                 Đủ an toàn
               </span>
             ) : (
-              <span className="text-label-xs font-semibold px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 flex items-center gap-1">
-                <AlertTriangle className="w-3 h-3" /> Cần thêm
+              <span className="text-label-xs font-semibold px-2 py-0.5 rounded-full bg-tertiary-soft text-tertiary-dark border border-tertiary-border flex items-center gap-1">
+                <AlertTriangle className="w-3 h-3 text-tertiary" /> Cần thêm
               </span>
             )}
           </div>
@@ -373,29 +349,29 @@ export const PlaydateEventCollateralPanel = ({
           </p>
 
           {!isChaperoneSufficient && (
-            <p className="text-label-xs text-amber-700 bg-amber-50 p-2 rounded-lg border border-amber-200">
-              ⚠️ Cần thêm ít nhất {Math.max(1, requiredChaperones - chaperones.length)} phụ huynh xác nhận đi kèm để đảm bảo an toàn cho các bé.
-            </p>
+            <div className="flex items-start gap-1.5 text-label-xs text-tertiary-dark bg-tertiary-soft p-2.5 rounded-lg border border-tertiary-border">
+              <AlertTriangle className="w-3.5 h-3.5 text-tertiary shrink-0 mt-0.5" />
+              <span>
+                Cần thêm ít nhất {Math.max(1, missingCount)} phụ huynh xác nhận đi kèm để đảm bảo an toàn cho các bé.
+              </span>
+            </div>
           )}
 
-          <button
+          <Button
             type="button"
             disabled={isUpdatingChaperone}
             onClick={handleToggleChaperone}
-            className={cn(
-              'w-full py-2 px-3 rounded-xl text-xs font-semibold transition-all flex items-center justify-center gap-1.5',
-              isConfirmedByMe
-                ? 'border border-amber-300 bg-amber-50 text-amber-800 hover:bg-amber-100'
-                : 'bg-primary text-white hover:bg-primary-hover shadow-xs',
-            )}
+            variant={isConfirmedByMe ? 'secondary' : 'primary'}
+            size="sm"
+            className="w-full"
+            leftIcon={<UserCheck className="w-3.5 h-3.5" />}
           >
-            <UserCheck className="w-3.5 h-3.5" />
-            <span>{isConfirmedByMe ? 'Hủy đăng ký đi kèm' : 'Tôi sẽ đi kèm cùng các bé'}</span>
-          </button>
+            {isConfirmedByMe ? 'Hủy đăng ký đi kèm' : 'Tôi sẽ đi kèm cùng các bé'}
+          </Button>
         </div>
 
         {/* Safety & Trust Note */}
-        <div className="p-3 rounded-xl bg-primary-container/15 border border-primary-container/30 flex items-start gap-2.5">
+        <div className="p-3 rounded-xl bg-primary-soft border border-primary-border flex items-start gap-2.5">
           <ShieldCheck className="w-4 h-4 text-primary shrink-0 mt-0.5" />
           <p className="text-label-sm text-on-surface-variant leading-relaxed">
             Nhóm trò chuyện được bảo mật. Chỉ phụ huynh có trạng thái <strong className="text-on-surface">Đã tham gia (accepted)</strong> mới có quyền gửi và xem tin nhắn.

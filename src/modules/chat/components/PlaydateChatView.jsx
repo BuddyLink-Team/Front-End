@@ -623,6 +623,7 @@ export const PlaydateChatView = ({
         isOpen={isCreatePollOpen}
         onClose={() => setIsCreatePollOpen(false)}
         conversationId={conversation?.id}
+        playdate={playdate}
         onPollCreated={() => scrollToBottom('smooth')}
       />
     </section>

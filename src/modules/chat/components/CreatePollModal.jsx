@@ -1,22 +1,60 @@
 import React, { useState } from 'react';
 import PropTypes from 'prop-types';
-import { Plus, Trash2, BarChart3 } from 'lucide-react';
+import dayjs from 'dayjs';
+import { Plus, Trash2, BarChart3, Sparkles } from 'lucide-react';
 import { Modal } from '../../../components/feedback/Modal';
 import { Button } from '../../../components/ui/Button';
 import { Input } from '../../../components/ui/Input';
 import { useToast } from '../../../hooks/useToast';
-import { getApiErrorMsg } from '../../../utils/errorUtils';
-import { CHAT_ERROR_MESSAGES } from '../constants/chat.constants';
-import { chatApi } from '../api/chatApi';
+import { usePoll } from '../hooks/usePoll.js';
+import playdateApi from '../../playdate/api/playdateApi.js';
 
-export const CreatePollModal = ({ isOpen, onClose, conversationId, onPollCreated }) => {
+export const CreatePollModal = ({ isOpen, onClose, conversationId, playdate, onPollCreated }) => {
   const toast = useToast();
   const [question, setQuestion] = useState('Bình chọn thời gian hẹn chơi phù hợp');
   const [options, setOptions] = useState([
     'Thứ Bảy, 09:00 - 11:00',
     'Chủ Nhật, 15:00 - 17:00',
   ]);
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isLoadingSlots, setIsLoadingSlots] = useState(false);
+  const { createPoll, isSubmitting } = usePoll();
+
+  const handleSuggestSlots = async () => {
+    const childId = playdate?.hostChild?.id || playdate?.hostChildId;
+    if (!childId) {
+      toast.info('Không có thông tin bé để gợi ý khung giờ.');
+      return;
+    }
+    try {
+      setIsLoadingSlots(true);
+      const participantChildIds = (playdate.participants || [])
+        .map((p) => p.childId || p.child?.id)
+        .filter(Boolean)
+        .join(',');
+      const res = await playdateApi.getTimeSlotSuggestions({
+        childId: typeof childId === 'object' ? childId._id || childId.id : String(childId),
+        participantChildIds: participantChildIds || undefined,
+        durationMinutes: playdate.durationMinutes || 60,
+      });
+      const slots = res.data?.data?.slots || res.data?.slots || [];
+      if (slots.length > 0) {
+        const formattedSlots = slots.slice(0, 4).map((slot) => {
+          const d = dayjs(slot.date);
+          const end = dayjs(`${slot.date}T${slot.time}`).add(slot.durationMinutes || 60, 'minute');
+          const dayName = d.day() === 0 ? 'Chủ Nhật' : `Thứ ${d.day() + 1}`;
+          return `${dayName} (${d.format('DD/MM')}), ${slot.time} - ${end.format('HH:mm')}`;
+        });
+        setOptions(formattedSlots);
+        toast.success(`Đã tự động điền ${formattedSlots.length} khung giờ phù hợp nhất.`);
+      } else {
+        toast.info('Chưa tìm thấy khung giờ gợi ý phù hợp.');
+      }
+    } catch (_err) {
+      toast.error('Không thể lấy gợi ý khung giờ.');
+    } finally {
+      setIsLoadingSlots(false);
+    }
+  };
 
   const handleOptionChange = (index, value) => {
     setOptions((prev) => {
@@ -50,27 +88,21 @@ export const CreatePollModal = ({ isOpen, onClose, conversationId, onPollCreated
       return;
     }
 
-    try {
-      setIsSubmitting(true);
-      const payload = {
-        question: cleanQuestion,
-        options: cleanOptions.map((label, idx) => ({
-          id: `opt_${idx + 1}`,
-          label,
-        })),
-        deadline: new Date(Date.now() + 48 * 60 * 60 * 1000).toISOString(),
-      };
+    const payload = {
+      question: cleanQuestion,
+      options: cleanOptions.map((label, idx) => ({
+        id: `opt_${idx + 1}`,
+        label,
+      })),
+      deadline: new Date(Date.now() + 48 * 60 * 60 * 1000).toISOString(),
+    };
 
-      const res = await chatApi.createPoll(conversationId, payload);
-      toast.success('Đã tạo khảo sát bình chọn giờ hẹn.');
-      if (onPollCreated && res.data?.data) {
-        onPollCreated(res.data.data);
+    const resData = await createPoll(conversationId, payload);
+    if (resData) {
+      if (onPollCreated) {
+        onPollCreated(resData);
       }
       onClose();
-    } catch (err) {
-      toast.error(getApiErrorMsg(CHAT_ERROR_MESSAGES, err, 'Không thể tạo cuộc khảo sát.'));
-    } finally {
-      setIsSubmitting(false);
     }
   };
 
@@ -117,15 +149,28 @@ export const CreatePollModal = ({ isOpen, onClose, conversationId, onPollCreated
             <label className="block text-xs font-semibold text-on-surface">
               Các khung giờ đề xuất (tối thiểu 2)
             </label>
-            {options.length < 5 && (
-              <button
-                type="button"
-                onClick={handleAddOption}
-                className="text-xs font-semibold text-primary hover:text-primary-dark flex items-center gap-1"
-              >
-                <Plus className="w-3.5 h-3.5" /> Thêm lựa chọn
-              </button>
-            )}
+            <div className="flex items-center gap-2.5">
+              {playdate && (
+                <button
+                  type="button"
+                  onClick={handleSuggestSlots}
+                  disabled={isLoadingSlots}
+                  className="text-xs font-semibold text-secondary hover:text-secondary-dark flex items-center gap-1 transition-colors disabled:opacity-50"
+                >
+                  <Sparkles className="w-3.5 h-3.5" />
+                  {isLoadingSlots ? 'Đang gợi ý...' : 'Gợi ý từ AI'}
+                </button>
+              )}
+              {options.length < 5 && (
+                <button
+                  type="button"
+                  onClick={handleAddOption}
+                  className="text-xs font-semibold text-primary hover:text-primary-dark flex items-center gap-1"
+                >
+                  <Plus className="w-3.5 h-3.5" /> Thêm lựa chọn
+                </button>
+              )}
+            </div>
           </div>
 
           <div className="space-y-2">
@@ -166,6 +211,7 @@ CreatePollModal.propTypes = {
   isOpen: PropTypes.bool.isRequired,
   onClose: PropTypes.func.isRequired,
   conversationId: PropTypes.string.isRequired,
+  playdate: PropTypes.object,
   onPollCreated: PropTypes.func,
 };
 
