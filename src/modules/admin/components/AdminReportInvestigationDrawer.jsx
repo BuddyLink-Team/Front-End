@@ -14,6 +14,7 @@ import { ReportReopenDialog } from './reports/ReportReopenDialog';
 import { ReportClosedSummary, ReportResolutionForm } from './reports/ReportResolutionForm';
 import { ReportSanctionPanel } from './reports/ReportSanctionPanel';
 import { ReportTargetContext } from './reports/ReportTargetContext';
+import { SentinelCopilotCard } from './reports/SentinelCopilotCard';
 
 const DrawerSkeleton = () => (
   <div className="space-y-4" data-testid="report-detail-skeleton">
@@ -39,10 +40,18 @@ export const AdminReportInvestigationDrawer = ({
   onApplyAction,
   onResolve,
   onReopen,
+  onAssessSentinel,
+  onApplySentinel,
 }) => {
   const [isReopenOpen, setIsReopenOpen] = useState(false);
   const {
     actionState,
+    policyGuidance,
+    isPolicyOverride,
+    setIsPolicyOverride,
+    overrideReason,
+    setOverrideReason,
+    isOverrideValid,
     suspendDays,
     setSuspendDays,
     selectedRelatedIds,
@@ -58,7 +67,7 @@ export const AdminReportInvestigationDrawer = ({
     setIsReopenOpen(false);
   }, [report?.id, open]);
 
-  const { isReviewing, isClosed, hasAccountSanction } = actionState;
+  const { isClosed, hasAccountSanction } = actionState;
 
   return (
     <>
@@ -94,6 +103,12 @@ export const AdminReportInvestigationDrawer = ({
               isActionLoading={isActionLoading}
               onUpdateSeverity={onUpdateSeverity}
             />
+            <SentinelCopilotCard
+              report={report}
+              isActionLoading={isActionLoading}
+              onAssessSentinel={onAssessSentinel}
+              onApplySentinel={onApplySentinel}
+            />
             <ReportPartyCards reporter={report.reporter} reportedUser={report.reportedUser} />
             <ReportContentPanel report={report} />
             <ReportTargetContext report={report} />
@@ -106,10 +121,18 @@ export const AdminReportInvestigationDrawer = ({
                 canSelect={hasAccountSanction}
               />
             )}
-            {isReviewing && (
+            {!isClosed && (
               <ReportSanctionPanel
                 targetType={report.targetType}
                 actionState={actionState}
+                hasSentinelAssessment={Boolean(report.sentinelAssessment)}
+                onAssessSentinel={() => onAssessSentinel(report.id, false)}
+                policyGuidance={policyGuidance}
+                isPolicyOverride={isPolicyOverride}
+                onTogglePolicyOverride={setIsPolicyOverride}
+                overrideReason={overrideReason}
+                onOverrideReasonChange={setOverrideReason}
+                isOverrideValid={isOverrideValid}
                 suspendDays={suspendDays}
                 onSuspendDaysChange={setSuspendDays}
                 onAskSanction={askSanction}

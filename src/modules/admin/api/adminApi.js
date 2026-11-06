@@ -106,6 +106,14 @@ export const adminApi = {
   resolveReport: (id, payload) => apiClient.patch(API_ENDPOINTS.ADMIN.REPORT_RESOLVE(id), payload),
   /** Reopen closed report. @param {{ note: string }} payload */
   reopenReport: (id, payload) => apiClient.patch(API_ENDPOINTS.ADMIN.REPORT_REOPEN(id), payload),
+  /** Trigger or refresh Sentinel AI assessment. @param {{ forceRefresh?: boolean }} [payload] */
+  assessReportWithSentinel: (id, payload = {}) => apiClient.post(API_ENDPOINTS.ADMIN.REPORT_SENTINEL_ASSESS(id), payload),
+  /** 1-Click Approve Sentinel recommendations */
+  applySentinelRecommendation: (id) => apiClient.post(API_ENDPOINTS.ADMIN.REPORT_SENTINEL_APPLY(id)),
+  /** Batch scan open reports with Sentinel AI */
+  batchScanSentinel: () => apiClient.post(API_ENDPOINTS.ADMIN.REPORT_SENTINEL_BATCH_SCAN),
+  /** Batch apply & auto-resolve open reports with high AI confidence */
+  batchApplySentinel: (payload = {}) => apiClient.post(API_ENDPOINTS.ADMIN.REPORT_SENTINEL_BATCH_APPLY, payload),
 
   // System Analytics & Dashboard
   /** @param {{ fromDate?: string, toDate?: string, groupBy?: string }} [params] */

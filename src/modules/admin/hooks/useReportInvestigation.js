@@ -2,8 +2,10 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import {
+  getClientPolicyGuidance,
   getReportSanctionConfirm,
   REPORT_ACCOUNT_SANCTIONS,
+  REPORT_OVERRIDE_MIN_LENGTH,
   REPORT_SUSPEND_DURATIONS,
 } from '../constants/admin.constants';
 import { reportNotesSchema, reportReopenSchema } from '../validation/reportValidation';
@@ -45,15 +47,21 @@ export const useReportInvestigation = (report, isOpen, onApplyAction) => {
   const [pendingSanction, setPendingSanction] = useState(null);
   const [suspendDays, setSuspendDays] = useState(REPORT_SUSPEND_DURATIONS[0]);
   const [selectedRelatedIds, setSelectedRelatedIds] = useState([]);
+  const [isPolicyOverride, setIsPolicyOverride] = useState(false);
+  const [overrideReason, setOverrideReason] = useState('');
 
   const reportId = report?.id;
   useEffect(() => {
     setPendingSanction(null);
     setSuspendDays(REPORT_SUSPEND_DURATIONS[0]);
     setSelectedRelatedIds([]);
+    setIsPolicyOverride(false);
+    setOverrideReason('');
   }, [reportId, isOpen]);
 
   const actionState = useMemo(() => getReportActionState(report), [report]);
+  const policyGuidance = useMemo(() => getClientPolicyGuidance(report), [report]);
+  const isOverrideValid = isPolicyOverride && overrideReason.trim().length >= REPORT_OVERRIDE_MIN_LENGTH;
 
   // Related reports are only closed together with a suspension or a ban
   useEffect(() => {
@@ -70,10 +78,22 @@ export const useReportInvestigation = (report, isOpen, onApplyAction) => {
   const confirmSanction = useCallback(
     async (note) => {
       if (!pendingSanction || !reportId) return;
-      const isApplied = await onApplyAction(reportId, { ...pendingSanction, note: note || '' });
-      if (isApplied) setPendingSanction(null);
+      const isOutsideStandard =
+        policyGuidance?.allowedActionTypes &&
+        !policyGuidance.allowedActionTypes.includes(pendingSanction.type);
+      const effectiveIsOverride = Boolean(isPolicyOverride || isOutsideStandard);
+
+      const isApplied = await onApplyAction(reportId, {
+        ...pendingSanction,
+        note: note || '',
+        isPolicyOverride: effectiveIsOverride,
+        overrideReason: effectiveIsOverride ? overrideReason.trim() : '',
+      });
+      if (isApplied) {
+        setPendingSanction(null);
+      }
     },
-    [pendingSanction, reportId, onApplyAction]
+    [pendingSanction, reportId, onApplyAction, policyGuidance, isPolicyOverride, overrideReason]
   );
 
   const toggleRelatedReport = useCallback((id) => {
@@ -82,6 +102,12 @@ export const useReportInvestigation = (report, isOpen, onApplyAction) => {
 
   return {
     actionState,
+    policyGuidance,
+    isPolicyOverride,
+    setIsPolicyOverride,
+    overrideReason,
+    setOverrideReason,
+    isOverrideValid,
     suspendDays,
     setSuspendDays,
     selectedRelatedIds,

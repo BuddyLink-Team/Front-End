@@ -315,6 +315,9 @@ export const ADMIN_ERROR_MESSAGES = Object.freeze({
   RELATED_REPORTS_REQUIRE_SANCTION: 'Chỉ đóng gộp báo cáo liên quan được khi đã đình chỉ hoặc khóa tài khoản.',
   DURATION_DAYS_REQUIRED: 'Vui lòng chọn thời hạn đình chỉ.',
   TARGET_NOT_FOUND: 'Đối tượng bị báo cáo không còn tồn tại.',
+  POLICY_OVERRIDE_REQUIRED:
+    'Chế tài này nằm ngoài khung quy chuẩn. Vui lòng tích chọn "Áp dụng ngoại lệ chính sách (Policy Override)" và giải trình lý do.',
+  OVERRIDE_REASON_REQUIRED: 'Vui lòng nhập lý do giải trình ngoại lệ chính sách (ít nhất 20 ký tự).',
 });
 
 
@@ -343,11 +346,107 @@ export const PLAYDATE_STATUS_DISPLAY = Object.freeze({
 });
 
 export const REPORT_NOTES_MIN_LENGTH = 10;
+export const REPORT_OVERRIDE_MIN_LENGTH = 20;
 export const REPORT_SUSPEND_DURATIONS = Object.freeze([3, 7, 30]);
 // Sanctions on the whole account: related reports can be closed together with them
 export const REPORT_ACCOUNT_SANCTIONS = Object.freeze(['suspend', 'ban']);
 // Most images a report can have (REPORT_LIMITS.MAX_EVIDENCE_URLS on the backend)
 export const REPORT_EVIDENCE_MAX_LINKS = 5;
+
+/**
+ * Fallback client-side policy matrix calculation when backend policyGuidance is not yet populated
+ * @param {Object|null} report
+ */
+export const getClientPolicyGuidance = (report) => {
+  if (!report || !report.sentinelAssessment) return null;
+  if (report.policyGuidance) return report.policyGuidance;
+
+  const assessment = report.sentinelAssessment;
+  if (assessment.recommendedSanctions?.length > 0) {
+    const strikeCount =
+      assessment.strikeCount ||
+      (report.reportedUser?.previousSanctions?.length ?? report.reportedUser?.strikeCount ?? 0) + 1;
+    const strikeLevel = Math.min(3, Math.max(1, strikeCount));
+    return {
+      strikeCount,
+      strikeLevel,
+      clause: assessment.policyClause || 'Rule 7.1: General Community Guidelines violation',
+      standardActions: assessment.recommendedSanctions,
+      allowedActionTypes: assessment.recommendedSanctions.map((act) => act.type),
+    };
+  }
+
+  const priorCount =
+    report.reportedUser?.previousSanctions?.length ??
+    report.reportedUser?.strikeCount ??
+    0;
+  const strikeCount = priorCount + 1;
+  const strikeLevel = priorCount <= 0 ? 1 : priorCount === 1 ? 2 : 3;
+  const category = report.category || 'other';
+  const severity = assessment.severityRecommendation || report.severity || 'medium';
+
+  if (severity === 'critical' || category === 'child_safety') {
+    return {
+      strikeCount,
+      strikeLevel,
+      clause:
+        category === 'child_safety'
+          ? 'Rule 1.1: Zero tolerance child safety violation (Grooming, Predatory behavior, Exploitation)'
+          : 'Rule 0.1: Critical Severity Emergency Escalate',
+      standardActions: [{ type: 'delete_message' }, { type: 'ban' }],
+      allowedActionTypes: ['delete_message', 'ban'],
+    };
+  }
+
+  const matrix = {
+    harassment: {
+      clause: 'Rule 2.1: Harassment, bullying, and hostile communication',
+      1: { standardActions: [{ type: 'delete_message' }, { type: 'warn' }], allowedActionTypes: ['delete_message', 'warn'] },
+      2: { standardActions: [{ type: 'delete_message' }, { type: 'suspend', durationDays: 7 }], allowedActionTypes: ['delete_message', 'suspend'] },
+      3: { standardActions: [{ type: 'delete_message' }, { type: 'ban' }], allowedActionTypes: ['delete_message', 'ban'] },
+    },
+    inappropriate_content: {
+      clause: 'Rule 3.1: Inappropriate text, media, or vulgar language',
+      1: { standardActions: [{ type: 'delete_message' }, { type: 'warn' }], allowedActionTypes: ['delete_message', 'warn'] },
+      2: { standardActions: [{ type: 'delete_message' }, { type: 'suspend', durationDays: 14 }], allowedActionTypes: ['delete_message', 'suspend'] },
+      3: { standardActions: [{ type: 'delete_message' }, { type: 'ban' }], allowedActionTypes: ['delete_message', 'ban'] },
+    },
+    fake_profile: {
+      clause: 'Rule 4.1: Impersonation, deceptive identity, or misleading family profile',
+      1: { standardActions: [{ type: 'warn' }], allowedActionTypes: ['warn'] },
+      2: { standardActions: [{ type: 'suspend', durationDays: 7 }], allowedActionTypes: ['suspend'] },
+      3: { standardActions: [{ type: 'ban' }], allowedActionTypes: ['ban'] },
+    },
+    spam: {
+      clause: 'Rule 5.1: Commercial spam, unsolicited solicitation, or repetitive junk',
+      1: { standardActions: [{ type: 'delete_message' }, { type: 'warn' }], allowedActionTypes: ['delete_message', 'warn'] },
+      2: { standardActions: [{ type: 'delete_message' }, { type: 'warn' }], allowedActionTypes: ['delete_message', 'warn'] },
+      3: { standardActions: [{ type: 'delete_message' }, { type: 'suspend', durationDays: 3 }], allowedActionTypes: ['delete_message', 'suspend'] },
+    },
+    no_show: {
+      clause: 'Rule 6.1: Repeated confirmed playdate abandonment without notice',
+      1: { standardActions: [{ type: 'warn' }, { type: 'cancel_playdate' }], allowedActionTypes: ['warn', 'cancel_playdate'] },
+      2: { standardActions: [{ type: 'warn' }, { type: 'cancel_playdate' }], allowedActionTypes: ['warn', 'cancel_playdate'] },
+      3: { standardActions: [{ type: 'suspend', durationDays: 3 }, { type: 'cancel_playdate' }], allowedActionTypes: ['suspend', 'cancel_playdate'] },
+    },
+    other: {
+      clause: 'Rule 7.1: General Community Guidelines violation',
+      1: { standardActions: [{ type: 'warn' }], allowedActionTypes: ['warn'] },
+      2: { standardActions: [{ type: 'suspend', durationDays: 7 }], allowedActionTypes: ['suspend'] },
+      3: { standardActions: [{ type: 'suspend', durationDays: 30 }], allowedActionTypes: ['suspend'] },
+    },
+  };
+
+  const entry = matrix[category] || matrix.other;
+  const levelRule = entry[strikeLevel] || entry[1];
+  return {
+    strikeCount,
+    strikeLevel,
+    clause: entry.clause,
+    standardActions: levelRule.standardActions,
+    allowedActionTypes: levelRule.allowedActionTypes,
+  };
+};
 
 /**
  * What the confirmation of a sanction says will happen

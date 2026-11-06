@@ -57,6 +57,12 @@ export const resolveAdminReport = createApiThunk('admin/resolveReport', ({ id, p
 export const reopenAdminReport = createApiThunk('admin/reopenReport', ({ id, note }) =>
   adminApi.reopenReport(id, { note })
 );
+export const assessAdminReportWithSentinel = createApiThunk('admin/assessReportWithSentinel', ({ id, forceRefresh }) =>
+  adminApi.assessReportWithSentinel(id, { forceRefresh })
+);
+export const applyAdminSentinelRecommendation = createApiThunk('admin/applySentinelRecommendation', (id) =>
+  adminApi.applySentinelRecommendation(id)
+);
 
 // Playdates & connections oversight: list, detail, and the admin action on one of them
 export const fetchAdminPlaydates = createApiThunk('admin/fetchPlaydates', (params) => adminApi.getPlaydates(params));
@@ -372,9 +378,15 @@ export const adminSlice = createSlice({
     addOversightDetailCases(builder, fetchAdminPlaydateDetail, 'playdateDetail');
     addOversightDetailCases(builder, fetchAdminConnectionDetail, 'connectionDetail');
     addOversightDetailCases(builder, fetchAdminReportDetail, 'reportDetail');
-    [reviewAdminReport, updateAdminReportSeverity, applyAdminReportAction, resolveAdminReport, reopenAdminReport].forEach(
-      (thunk) => addOversightActionCases(builder, thunk)
-    );
+    [
+      reviewAdminReport,
+      updateAdminReportSeverity,
+      applyAdminReportAction,
+      resolveAdminReport,
+      reopenAdminReport,
+      assessAdminReportWithSentinel,
+      applyAdminSentinelRecommendation,
+    ].forEach((thunk) => addOversightActionCases(builder, thunk));
     addOversightActionCases(builder, cancelAdminPlaydate);
     addOversightActionCases(builder, removeAdminConnection);
   },

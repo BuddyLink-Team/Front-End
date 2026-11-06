@@ -3,6 +3,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { useServerTable } from '../../../hooks/useServerTable';
 import { useToast } from '../../../hooks/useToast';
 import { getApiErrorMsg } from '../../../utils/errorUtils';
+import adminApi from '../api/adminApi';
 import { ADMIN_ERROR_MESSAGES, REPORT_STATUS_CHIPS } from '../constants/admin.constants';
 import {
   applyAdminReportAction,
@@ -14,6 +15,8 @@ import {
   resolveAdminReport,
   reviewAdminReport,
   updateAdminReportSeverity,
+  assessAdminReportWithSentinel,
+  applyAdminSentinelRecommendation,
 } from '../redux/adminSlice';
 import { fetchAllPages } from '../utils/excelExport';
 import { buildModerationReportSheets } from '../utils/moderationReport';
@@ -120,6 +123,77 @@ export const useAdminReports = () => {
     [runAction]
   );
 
+  const handleAssessSentinel = useCallback(
+    (id, forceRefresh = false) =>
+      runAction(
+        assessAdminReportWithSentinel({ id, forceRefresh }),
+        'Sentinel AI đã hoàn tất thẩm định vụ việc.',
+        'Không thể chạy thẩm định Sentinel AI.'
+      ),
+    [runAction]
+  );
+
+  const handleApplySentinel = useCallback(
+    (id) =>
+      runAction(
+        applyAdminSentinelRecommendation(id),
+        'Đã tự động thi hành toàn bộ chế tài theo đề xuất của Sentinel AI.',
+        'Không thể tự động thi hành chế tài Sentinel.'
+      ),
+    [runAction]
+  );
+
+  const [isBatchScanning, setIsBatchScanning] = useState(false);
+  const [isBatchApplying, setIsBatchApplying] = useState(false);
+
+  const handleBatchScanSentinel = useCallback(async () => {
+    setIsBatchScanning(true);
+    try {
+      const response = await adminApi.batchScanSentinel();
+      const result = response?.data || response;
+      const scannedCount = result?.scannedCount || 0;
+      const highCount = result?.highConfidenceCount || 0;
+      success(
+        scannedCount > 0
+          ? `Sentinel AI đã quét xong ${scannedCount} báo cáo (${highCount} báo cáo có độ tự tin cao ≥ 80%).`
+          : 'Tất cả báo cáo đang mở trong hàng đợi đều đã được AI thẩm định.'
+      );
+      refetch();
+      reloadStats();
+      return result;
+    } catch (err) {
+      toastError(getApiErrorMsg(ADMIN_ERROR_MESSAGES, err, 'Không thể quét AI hàng loạt.'));
+      return null;
+    } finally {
+      setIsBatchScanning(false);
+    }
+  }, [success, toastError, refetch, reloadStats]);
+
+  const handleBatchApplySentinel = useCallback(
+    async (minConfidence = 75) => {
+      setIsBatchApplying(true);
+      try {
+        const response = await adminApi.batchApplySentinel({ minConfidence });
+        const result = response?.data || response;
+        const executedCount = result?.executedCount || 0;
+        success(
+          executedCount > 0
+            ? `Đã tự động thi hành chế tài chuẩn và đóng ${executedCount} báo cáo (độ tự tin ≥ ${minConfidence}%).`
+            : `Không có báo cáo đang mở nào đạt ngưỡng tự tin ≥ ${minConfidence}% để thi hành tự động.`
+        );
+        refetch();
+        reloadStats();
+        return result;
+      } catch (err) {
+        toastError(getApiErrorMsg(ADMIN_ERROR_MESSAGES, err, 'Không thể thi hành hàng loạt theo AI.'));
+        return null;
+      } finally {
+        setIsBatchApplying(false);
+      }
+    },
+    [success, toastError, refetch, reloadStats]
+  );
+
   // Same query as the list: every page, with the current filters and date range
   const { isExporting, handleExport } = useAdminExport({
     page: 'bao-cao-vi-pham',
@@ -187,6 +261,12 @@ export const useAdminReports = () => {
     handleApplyAction,
     handleResolve,
     handleReopen,
+    handleAssessSentinel,
+    handleApplySentinel,
+    isBatchScanning,
+    isBatchApplying,
+    handleBatchScanSentinel,
+    handleBatchApplySentinel,
 
     // Export
     isExporting,
