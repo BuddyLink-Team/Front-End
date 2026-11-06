@@ -1,10 +1,11 @@
 import React from 'react';
-import { Calendar, Eye, MessageSquare, RotateCcw, User } from 'lucide-react';
+import { Calendar, Eye, MessageSquare, RotateCcw, Sparkles, User } from 'lucide-react';
 import { AdminListToolbar } from '../components/AdminListToolbar';
 import { AdminFilterDropdown } from '../components/AdminFilterDropdown';
 import { AdminStatStrip } from '../components/AdminStatStrip';
 import { AdminReportInvestigationDrawer } from '../components/AdminReportInvestigationDrawer';
 import { ReportOverdueChip, ReportSeverityChip, ReportStatusChip } from '../components/reports/ReportChips';
+import { SentinelBatchCommandBar } from '../components/reports/SentinelBatchCommandBar';
 import { DataTable } from '../../../components/ui/DataTable';
 import { Pagination } from '../../../components/navigation/Pagination';
 import { Avatar } from '../../../components/ui/Avatar';
@@ -75,6 +76,12 @@ export const AdminReportsPage = () => {
     handleApplyAction,
     handleResolve,
     handleReopen,
+    handleAssessSentinel,
+    handleApplySentinel,
+    isBatchScanning,
+    isBatchApplying,
+    handleBatchScanSentinel,
+    handleBatchApplySentinel,
     isExporting,
     handleExport,
   } = useAdminReports();
@@ -82,7 +89,27 @@ export const AdminReportsPage = () => {
   const renderCell = (key, _value, row) => {
     switch (key) {
       case 'severity':
-        return <ReportSeverityChip severity={row.severity} />;
+        return (
+          <div className="flex flex-col items-start gap-1">
+            <ReportSeverityChip severity={row.severity} />
+            {row.sentinelAssessment && (
+              <div className="flex flex-wrap items-center gap-1">
+                <span
+                  className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-2 py-0.5 text-label-xs font-semibold text-primary"
+                  title={row.sentinelAssessment.summary}
+                >
+                  <Sparkles size={10} />
+                  AI: {row.sentinelAssessment.confidenceScore}%
+                </span>
+                {row.sentinelAssessment.autoShieldApplied && (
+                  <span className="inline-flex items-center gap-0.5 rounded-full bg-red-500/15 px-1.5 py-0.5 text-[10px] font-bold text-red-700 border border-red-500/30">
+                    🛡️ Auto-Shield
+                  </span>
+                )}
+              </div>
+            )}
+          </div>
+        );
 
       case 'category': {
         const label = getReportCategoryLabel(row.category);
@@ -161,6 +188,15 @@ export const AdminReportsPage = () => {
         stats={stats}
         isLoading={isStatsLoading}
         hasError={hasStatsError}
+      />
+
+      <SentinelBatchCommandBar
+        rows={rows}
+        stats={stats}
+        isBatchScanning={isBatchScanning}
+        isBatchApplying={isBatchApplying}
+        onBatchScan={handleBatchScanSentinel}
+        onBatchApply={handleBatchApplySentinel}
       />
 
       <AdminListToolbar
@@ -255,6 +291,8 @@ export const AdminReportsPage = () => {
         onApplyAction={handleApplyAction}
         onResolve={handleResolve}
         onReopen={handleReopen}
+        onAssessSentinel={handleAssessSentinel}
+        onApplySentinel={handleApplySentinel}
       />
     </div>
   );

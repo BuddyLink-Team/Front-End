@@ -29,6 +29,21 @@ export const safetyMockHandlers = [
     pattern: SAFETY.REPORTS,
     handler: ({ body }) => safetyMockService.createReport(body),
   },
+  // POST /chat/upload (Mock upload handler for chat & evidence attachments)
+  {
+    method: 'POST',
+    pattern: '/chat/upload',
+    handler: async () => {
+      return {
+        success: true,
+        message: 'Attachment uploaded successfully',
+        data: {
+          mediaUrl: 'https://images.unsplash.com/photo-1543269865-cbf427effbad?auto=format&fit=crop&w=400',
+          publicId: `mock-evidence-${Date.now()}`,
+        },
+      };
+    },
+  },
 ];
 
 export default safetyMockHandlers;
