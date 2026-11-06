@@ -170,6 +170,14 @@ export const chatSlice = createSlice({
       state.activeConversationDetail = null;
     },
 
+    pollVoted: (state, action) => {
+      const { messageId, poll } = action.payload;
+      const message = state.messages.find((m) => m.id === messageId);
+      if (message) {
+        message.poll = poll;
+      }
+    },
+
     // Called on logout so the next account never sees the previous account's messages
     resetChatState: () => initialState,
   },
@@ -248,6 +256,7 @@ export const {
   messagesReadByPartner,
   activeConversationClosed,
   resetChatState,
+  pollVoted,
 } = chatSlice.actions;
 
 export { LIST_STATUS as CHAT_LIST_STATUS };

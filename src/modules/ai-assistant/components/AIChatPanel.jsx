@@ -78,6 +78,7 @@ export const AIChatPanel = ({ variant = 'page', headerActions }) => {
         messages={chat.messages}
         isLoading={chat.isLoading}
         isSending={chat.isSending}
+        progressMessage={chat.progressMessage}
         onRetry={chat.retry}
         onStartNew={startNewSession}
         cardHandlers={cardHandlers}

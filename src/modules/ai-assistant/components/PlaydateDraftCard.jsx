@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import PropTypes from 'prop-types';
 import { useSelector } from 'react-redux';
 import { Link } from 'react-router-dom';
@@ -13,8 +13,12 @@ import {
   StickyNote,
   Timer,
   TriangleAlert,
+  ShieldAlert,
+  AlertCircle,
+  Info,
+  Backpack,
 } from 'lucide-react';
-import { Button } from '../../../components/ui/Button';
+import { Button, Checkbox } from '../../../components';
 import { formatDate } from '../../../utils/formatters';
 import { cn } from '../../../utils/cn';
 import { ReadOnlyField } from '../../playdate/components/PlaydateFormLayout';
@@ -32,7 +36,9 @@ import {
   AI_CHOICE_STATUS,
   AI_LINK_KINDS,
   AI_TONE_CYCLE,
+  AI_WARNING_SEVERITY,
   DRAFT_WARNING_TEXT,
+  WARNING_SEVERITY_STYLES,
 } from '../constants/ai-assistant.constants';
 
 // Same three parts as the playdate detail page (PlaydateFormLayout)
@@ -66,7 +72,22 @@ export const PlaydateDraftCard = ({ card, onConfirm, disabled = false }) => {
   const { draft } = card;
   const parent = useSelector((state) => state.parent.profile);
   const isCreated = card.status === AI_CHOICE_STATUS.ANSWERED && Boolean(card.playdateId);
-  const warnings = [...new Set((draft.warnings || []).map((warning) => warning.code))].filter((code) => DRAFT_WARNING_TEXT[code]);
+  const [safetyAcknowledged, setSafetyAcknowledged] = useState(draft.safetyAcknowledged || false);
+
+  const rawWarnings = draft.warnings || [];
+  const normalizedWarnings = rawWarnings
+    .map((w) => {
+      if (typeof w === 'string') return { code: w, severity: AI_WARNING_SEVERITY.WARN };
+      return { code: w.code, severity: w.severity || AI_WARNING_SEVERITY.WARN };
+    })
+    .filter((w) => DRAFT_WARNING_TEXT[w.code]);
+
+  const warnings = Array.from(new Map(normalizedWarnings.map((w) => [w.code, w])).values());
+  const hasBlockingWarning = warnings.some(
+    (w) => w.severity === AI_WARNING_SEVERITY.BLOCK && !(w.code === 'SAFETY_HIGH_RISK' && safetyAcknowledged)
+  );
+  const isConfirmDisabled = disabled || (draft.hasHighRisk && !safetyAcknowledged) || hasBlockingWarning;
+
   const place = draft.placeDetails || {};
   const mapsUrl = googleMapsSearchUrl(draft.location || {});
   const placeLinks = [
@@ -178,18 +199,70 @@ export const PlaydateDraftCard = ({ card, onConfirm, disabled = false }) => {
             <span className="leading-relaxed">{draft.extraNote}</span>
           </ReadOnlyField>
         )}
+        {draft.safetyNotes?.length > 0 && (
+          <ReadOnlyField label="Lưu ý an toàn" icon={ShieldAlert}>
+            <ul className="space-y-1 text-xs">
+              {draft.safetyNotes.map((note, index) => (
+                <li key={index} className="flex items-start gap-1.5 text-tertiary-dark">
+                  <span className="text-tertiary font-bold">•</span>
+                  <span>{note}</span>
+                </li>
+              ))}
+            </ul>
+          </ReadOnlyField>
+        )}
+        {draft.itemsToBring?.length > 0 && (
+          <ReadOnlyField label="Gợi ý đồ mang theo" icon={Backpack}>
+            <div className="flex flex-wrap gap-1.5">
+              {draft.itemsToBring.map((item, index) => (
+                <span
+                  key={index}
+                  className="inline-flex items-center rounded-full bg-surface-container-high px-2.5 py-0.5 text-xs font-medium text-on-surface border border-hairline"
+                >
+                  {item}
+                </span>
+              ))}
+            </div>
+          </ReadOnlyField>
+        )}
       </Part>
 
+      {draft.hasHighRisk && !isCreated && (
+        <div className="p-3 rounded-xl border border-error-container bg-error-soft text-xs text-error-dark shadow-xs select-none">
+          <Checkbox
+            checked={safetyAcknowledged}
+            onChange={(e) => setSafetyAcknowledged(e.target.checked)}
+            label="Tôi đã đọc và cam kết tuân thủ các lưu ý an toàn cho các bé trong suốt buổi hẹn chơi"
+            className="text-xs"
+          />
+        </div>
+      )}
+
       {warnings.length > 0 && !isCreated && (
-        <ul className="space-y-1">
-          {warnings.map((code) => (
-            <li
-              key={code}
-              className="flex items-center gap-1.5 rounded-lg border border-tertiary-border bg-tertiary-soft px-2 py-1 text-xs text-tertiary-dark"
-            >
-              <TriangleAlert className="w-3.5 h-3.5 shrink-0" /> {DRAFT_WARNING_TEXT[code]}
-            </li>
-          ))}
+        <ul className="space-y-1.5">
+          {warnings.map((w) => {
+            const style = WARNING_SEVERITY_STYLES[w.severity] || WARNING_SEVERITY_STYLES[AI_WARNING_SEVERITY.WARN];
+            const Icon =
+              w.severity === AI_WARNING_SEVERITY.BLOCK
+                ? TriangleAlert
+                : w.severity === AI_WARNING_SEVERITY.INFO
+                  ? Info
+                  : AlertCircle;
+            return (
+              <li
+                key={w.code}
+                className={cn('flex items-center justify-between gap-2 rounded-xl border px-3 py-2 text-xs shadow-2xs', style.card)}
+              >
+                <div className="flex items-center gap-2">
+                  <Icon className={cn('w-4 h-4 shrink-0', style.iconColor)} />
+                  <span className="font-medium">{DRAFT_WARNING_TEXT[w.code]}</span>
+                </div>
+                <span className={cn('shrink-0 text-label-xs font-bold px-2 py-0.5 rounded-full border', style.badge)}>
+                  {style.label}
+                </span>
+              </li>
+            );
+          })}
         </ul>
       )}
 
@@ -198,14 +271,21 @@ export const PlaydateDraftCard = ({ card, onConfirm, disabled = false }) => {
           <CalendarCheck className="w-3.5 h-3.5" /> Xem lịch hẹn
         </Link>
       ) : (
-        <Button
-          className="w-full sm:w-auto"
-          disabled={disabled}
-          leftIcon={<CheckCircle2 className="w-4 h-4" />}
-          onClick={onConfirm}
-        >
-          Xác nhận tạo lịch hẹn
-        </Button>
+        <div className="space-y-1">
+          <Button
+            className="w-full sm:w-auto"
+            disabled={isConfirmDisabled}
+            leftIcon={<CheckCircle2 className="w-4 h-4" />}
+            onClick={() => onConfirm({ safetyAcknowledged })}
+          >
+            Xác nhận tạo lịch hẹn
+          </Button>
+          {hasBlockingWarning && (
+            <p className="text-label-xs text-error font-medium">
+              Vui lòng xử lý các cảnh báo nghiêm trọng trước khi xác nhận tạo lịch hẹn.
+            </p>
+          )}
+        </div>
       )}
     </ToolCardFrame>
   );

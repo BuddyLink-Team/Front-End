@@ -1,6 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import { Baby, Calendar, Check, HeartHandshake, MapPin, PencilLine, Send, Shapes, SlidersHorizontal, StickyNote, Users } from 'lucide-react';
+import { Baby, Calendar, Check, HeartHandshake, MapPin, PencilLine, Search, Send, Shapes, SlidersHorizontal, StickyNote, Users } from 'lucide-react';
 import { cn } from '../../../utils/cn';
 import { Button } from '../../../components/ui/Button';
 import { CHIP_CLASS, chipState } from '../../playdate/utils/suggestionFormatters';
@@ -151,6 +151,19 @@ export const ChoiceCard = ({ card, onChoose, disabled = false, onViewChild }) =>
                   onClick={choice.openCustom}
                 >
                   {CUSTOM_LABELS[card.stepId] || 'Khác…'}
+                </Button>
+              )}
+              {card.stepId === AI_STEPS.AGENDA && card.canSearchAttractions && (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  disabled={disabled}
+                  leftIcon={<Search className="w-3.5 h-3.5 text-primary" />}
+                  onClick={() =>
+                    choice.submitCustom({ searchAttractions: true })
+                  }
+                >
+                  Tìm trò chơi tại đây
                 </Button>
               )}
               {card.allowSkip && (

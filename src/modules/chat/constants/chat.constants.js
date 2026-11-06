@@ -9,6 +9,7 @@ export const MESSAGE_TYPES = Object.freeze({
   IMAGE: 'image',
   EMOJI: 'emoji',
   SYSTEM: 'system',
+  POLL: 'poll',
 });
 
 // Playdate participant statuses (mirror of the backend PARTICIPANT_STATUS)
@@ -55,6 +56,7 @@ export const SOCKET_EVENTS = Object.freeze({
   CONVERSATION_UPDATED: 'conversation_updated',
   MESSAGE_DELETED: 'message_deleted',
   ACCOUNT_LOCKED: 'account_locked',
+  POLL_VOTED: 'poll_voted',
 });
 
 // Must match the image types accepted by the backend upload middleware
@@ -108,4 +110,11 @@ export const CHAT_ERROR_MESSAGES = Object.freeze({
   INTERNAL_ERROR: 'Không thể gửi tin nhắn. Vui lòng thử lại sau.',
   // Image upload (file type / size / storage codes: COMMON_ERROR_MESSAGES)
   FILE_REQUIRED: 'Vui lòng chọn ảnh để gửi.',
+  // Polls
+  POLL_CLOSED: 'Bình chọn đã kết thúc.',
+  POLL_EXPIRED: 'Đã hết thời hạn bình chọn.',
+  INVALID_OPTION: 'Lựa chọn bình chọn không hợp lệ.',
+  NOT_A_POLL: 'Tin nhắn không phải là khảo sát bình chọn.',
+  INVALID_POLL_OPTIONS: 'Khảo sát phải có ít nhất 2 lựa chọn.',
+  INVALID_CONVERSATION_TYPE: 'Khảo sát chỉ hỗ trợ trong nhóm chat Playdate.',
 });
