@@ -131,7 +131,7 @@ export const playdateMockHandlers = [
   // 13. Chaperone confirmation / cancellation (BUD-49 B5)
   {
     method: 'POST',
-    pattern: `${API_ENDPOINTS.PLAYDATE.BASE}/:id/chaperone`,
+    pattern: API_ENDPOINTS.PLAYDATE.CHAPERONE(':id'),
     handler: ({ params, body }) => playdateMockService.toggleChaperone(params.id, body?.action),
   },
 ];

@@ -6,7 +6,9 @@ import {
   Award,
   Flame,
   Bell,
+  Sparkles,
 } from 'lucide-react';
+import { AI_SESSION_PARAM } from '../../ai-assistant/constants/ai-assistant.constants';
 
 export const NOTIFICATION_TYPES = Object.freeze({
   CONNECTION_REQUEST: 'connection_request',
@@ -15,6 +17,8 @@ export const NOTIFICATION_TYPES = Object.freeze({
   PLAYDATE_REMINDER: 'playdate_reminder',
   BADGE_UNLOCKED: 'badge_unlocked',
   STREAK_REMINDER: 'streak_reminder',
+  // A plan prepared by the AI assistant (meeting the same friends again after a good playdate)
+  AI_SUGGESTION: 'ai_suggestion',
   SYSTEM: 'system',
 });
 
@@ -128,6 +132,14 @@ export const NOTIFICATION_META = {
     badgeText: 'Chuỗi ngày',
     actionLabel: 'Xem chuỗi',
     getActionPath: () => '/gamification',
+  },
+  [NOTIFICATION_TYPES.AI_SUGGESTION]: {
+    icon: Sparkles,
+    bgClass: 'bg-secondary-soft text-secondary-dark border-secondary-border',
+    badgeTone: 'info',
+    badgeText: 'Trợ lý AI',
+    actionLabel: 'Xem kế hoạch',
+    getActionPath: (data) => (data?.sessionId ? `/ai-assistant?${AI_SESSION_PARAM}=${data.sessionId}` : '/ai-assistant'),
   },
   [NOTIFICATION_TYPES.SYSTEM]: {
     icon: Bell,

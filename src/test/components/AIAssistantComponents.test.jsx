@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { configureStore } from '@reduxjs/toolkit';
-import { renderWithProviders, screen, fireEvent, waitFor } from '../utils/testUtils';
+import { renderWithProviders, screen, fireEvent, waitFor, act } from '../utils/testUtils';
 import authReducer from '../../modules/auth/redux/authSlice';
 import childReducer from '../../modules/child/redux/childSlice';
 import parentReducer from '../../modules/parent/redux/parentSlice';
@@ -24,7 +24,14 @@ const mockNavigate = vi.fn();
 vi.mock('react-router-dom', async (importOriginal) => ({ ...(await importOriginal()), useNavigate: () => mockNavigate }));
 
 vi.mock('../../modules/ai-assistant/api/aiAssistantApi', () => ({
-  aiAssistantApi: { createSession: vi.fn(), listSessions: vi.fn(), getSession: vi.fn(), sendMessage: vi.fn(), deleteSession: vi.fn() },
+  aiAssistantApi: {
+    createSession: vi.fn(),
+    listSessions: vi.fn(),
+    getSession: vi.fn(),
+    sendMessage: vi.fn(),
+    sendMessageStream: vi.fn(),
+    deleteSession: vi.fn(),
+  },
 }));
 vi.mock('../../modules/playdate/api/playdateApi', () => ({
   playdateApi: { createPlaydate: vi.fn(), getBusyTimes: vi.fn(), getFriends: vi.fn() },
@@ -391,6 +398,37 @@ describe('PlaydateDraftCard', () => {
     expect(onConfirm).toHaveBeenCalled();
   });
 
+  it('enables the confirm button only after the safety acknowledgement of a high-risk plan', () => {
+    const onConfirm = vi.fn();
+    const draft = {
+      ...DRAFT,
+      hasHighRisk: true,
+      safetyNotes: ['Luôn giám sát trực tiếp 1-1 khi trẻ gần khu vực nước, mặc áo phao đạt chuẩn.'],
+      itemsToBring: ['Áo phao'],
+      warnings: [{ code: 'SAFETY_HIGH_RISK', severity: 'block' }],
+    };
+    renderWithProviders(<PlaydateDraftCard card={{ type: 'playdate_draft', stepId: 'confirm', status: 'open', draft }} onConfirm={onConfirm} />, {
+      store: makeStore(),
+    });
+    const confirm = screen.getByRole('button', { name: 'Xác nhận tạo lịch hẹn' });
+    expect(confirm).toBeDisabled();
+    expect(screen.getByText('Áo phao')).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('checkbox'));
+    expect(confirm).toBeEnabled();
+    fireEvent.click(confirm);
+    expect(onConfirm).toHaveBeenCalledWith({ safetyAcknowledged: true });
+  });
+
+  it('keeps the confirm button locked while another warning blocks the plan', () => {
+    const draft = { ...DRAFT, warnings: [{ code: 'PLACE_CLOSED', severity: 'block' }] };
+    renderWithProviders(<PlaydateDraftCard card={{ type: 'playdate_draft', stepId: 'confirm', status: 'open', draft }} onConfirm={vi.fn()} />, {
+      store: makeStore(),
+    });
+    expect(screen.getByRole('button', { name: 'Xác nhận tạo lịch hẹn' })).toBeDisabled();
+    expect(screen.getByText('Địa điểm đóng cửa vào thời gian này')).toBeInTheDocument();
+  });
+
   it('links to the created playdate and cannot be confirmed again', () => {
     renderWithProviders(
       <PlaydateDraftCard card={{ type: 'playdate_draft', stepId: 'confirm', status: 'answered', playdateId: 'pd-1', draft: DRAFT }} onConfirm={vi.fn()} />,
@@ -401,17 +439,69 @@ describe('PlaydateDraftCard', () => {
   });
 });
 
+describe('ChoiceCard BUD-49', () => {
+  it('lets the parent pick several own children on the child step', () => {
+    const onChoose = vi.fn();
+    const card = {
+      type: 'choices',
+      stepId: 'child',
+      title: 'Hẹn chơi cho bé nào?',
+      status: 'open',
+      selectionMode: 'multiple',
+      selectedOptionIds: [],
+      options: [
+        { id: 'child:1', label: 'Na', description: '5 tuổi', data: { childId: '1' }, links: [] },
+        { id: 'child:2', label: 'Bin', description: '3 tuổi', data: { childId: '2' }, links: [] },
+      ],
+    };
+    renderWithProviders(<ChoiceCard card={card} onChoose={onChoose} />, { store: makeStore() });
+    fireEvent.click(screen.getByRole('button', { name: /Na/ }));
+    fireEvent.click(screen.getByRole('button', { name: /Bin/ }));
+    fireEvent.click(screen.getByRole('button', { name: /Xác nhận các bé/ }));
+    expect(onChoose).toHaveBeenCalledWith(expect.objectContaining({ optionIds: ['child:1', 'child:2'] }));
+  });
+
+  it('shows the description of a confirmation card', () => {
+    const card = {
+      type: 'choices',
+      stepId: 'cancel_confirm',
+      title: 'Xác nhận hủy buổi hẹn chơi?',
+      description: 'Buổi hẹn sẽ bị hủy và các gia đình được thông báo.',
+      status: 'open',
+      selectionMode: 'single',
+      selectedOptionIds: [],
+      options: [{ id: 'cancel_confirm:confirm:1', label: 'Xác nhận hủy hẹn', description: '', data: {}, links: [] }],
+    };
+    renderWithProviders(<ChoiceCard card={card} onChoose={vi.fn()} />, { store: makeStore() });
+    expect(screen.getByText('Buổi hẹn sẽ bị hủy và các gia đình được thông báo.')).toBeInTheDocument();
+  });
+});
+
 describe('AIChatPanel', () => {
   it('starts a conversation with a quick prompt and shows the typing indicator, then the reply', async () => {
     aiAssistantApi.createSession.mockResolvedValue({ data: { session: { id: 's1', title: 'Cuộc trò chuyện mới', messageCount: 0, messageCap: 30 } } });
     let resolveReply;
-    aiAssistantApi.sendMessage.mockReturnValue(new Promise((resolve) => (resolveReply = resolve)));
+    let reportProgress;
+    aiAssistantApi.sendMessageStream.mockImplementation((_id, _body, { onProgress }) => {
+      reportProgress = onProgress;
+      return new Promise((resolve) => (resolveReply = resolve));
+    });
 
     renderWithProviders(<AIChatPanel />, { store: makeStore() });
     fireEvent.click(screen.getByRole('button', { name: /Tìm bạn chơi cho bé/ }));
 
-    await waitFor(() => expect(aiAssistantApi.sendMessage).toHaveBeenCalledWith('s1', { content: 'Tìm bạn chơi phù hợp cho bé nhà mình' }));
+    // The local id goes with the message, so a retry returns the stored turn instead of running it again
+    await waitFor(() =>
+      expect(aiAssistantApi.sendMessageStream).toHaveBeenCalledWith(
+        's1',
+        { content: 'Tìm bạn chơi phù hợp cho bé nhà mình', clientMessageId: expect.stringMatching(/^local-/) },
+        expect.objectContaining({ onProgress: expect.any(Function) }),
+      ),
+    );
     expect(await screen.findByRole('status', { name: 'BuddyLink AI đang soạn' })).toBeInTheDocument();
+    // Tool progress replaces the typing label
+    act(() => reportProgress('Đang tìm kiếm các bạn chơi phù hợp...'));
+    expect(await screen.findByRole('status', { name: 'Đang tìm kiếm các bạn chơi phù hợp...' })).toBeInTheDocument();
     expect(screen.getByLabelText('Tin nhắn cho Trợ lý AI')).toBeDisabled();
 
     resolveReply({

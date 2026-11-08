@@ -39,6 +39,7 @@ const playmateNamesSchema = z.object({ text: requiredText(1, 'Vui lòng nhập t
 const placeSchema = z.object({
   name: requiredText(1, 'Vui lòng chọn địa điểm.'),
   address: z.string().optional(),
+  id: z.string().optional(),
   placeId: z.string().optional(),
   coordinates: z.any().optional(),
 });

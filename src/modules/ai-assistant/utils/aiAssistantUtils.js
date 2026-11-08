@@ -98,7 +98,10 @@ export const normalizeAgenda = (agenda = []) =>
   [
     ...new Set(
       agenda
-        .map((item) => String(item || '').replace(/\s+/g, ' ').trim().slice(0, AI_LIMITS.AGENDA_ITEM_MAX_LENGTH))
+        .map((item) => {
+          const text = String(item || '').replace(/\s+/g, ' ').trim();
+          return text.slice(0, agendaItemMaxLength(text));
+        })
         .filter(Boolean)
     ),
   ].slice(0, AI_LIMITS.MAX_AGENDA_ITEMS);
@@ -185,6 +188,8 @@ export const buildCustomAnswer = (card, values) => {
         custom: {
           name: values.name,
           address: values.address || '',
+          // Ids of the cached place: the server reads its type, opening hours and attractions from them
+          id: values.id || undefined,
           placeId: values.placeId || undefined,
           // The BE stores [lng, lat]; the place picker returns a GeoJSON point
           coordinates: values.coordinates?.coordinates || values.coordinates || undefined,
@@ -241,3 +246,13 @@ export const interestOptions = (current = []) =>
 
 /** Activities of the catalog for the activity step, listed by category */
 export const ACTIVITY_OPTIONS = ACTIVITY_GROUPS.flatMap((group) => group.activities.map(toActivityOption(group.label)));
+
+const SOURCED_AGENDA_PREFIX = 'Theo thông tin trên mạng về';
+
+/**
+ * Longest text of an agenda item: an item of the place's real attractions also carries its source link
+ * @param {string} item
+ * @returns {number}
+ */
+export const agendaItemMaxLength = (item) =>
+  String(item || '').startsWith(SOURCED_AGENDA_PREFIX) ? AI_LIMITS.SOURCED_AGENDA_ITEM_MAX_LENGTH : AI_LIMITS.AGENDA_ITEM_MAX_LENGTH;

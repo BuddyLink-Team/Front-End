@@ -37,7 +37,6 @@ import {
   pollVoted,
   CHAT_LIST_STATUS,
 } from '../redux/chatSlice.js';
-import chatApi from '../api/chatApi.js';
 
 const getSenderId = (message) =>
   message?.senderId?._id || message?.senderId?.id || message?.senderId || message?.sender?.id;
@@ -491,43 +490,6 @@ export const useChat = ({ initialConversationId = null, initialPlaydateId = null
   const canReportPlaydateChat =
     Boolean(playdateHostId) && String(playdateHostId) !== String(currentParentId);
 
-  const createPoll = useCallback(
-    async (conversationId, payload) => {
-      try {
-        const response = await chatApi.createPoll(conversationId, payload);
-        const resData = response?.data?.data || response?.data;
-        if (resData?.message) {
-          dispatch(messageReceived(resData.message));
-        }
-        if (resData?.conversation) {
-          dispatch(conversationUpdated(resData.conversation));
-        }
-        return resData;
-      } catch (error) {
-        toast.error(toErrorMessage(error, 'Không thể tạo khảo sát. Vui lòng thử lại.'));
-        throw error;
-      }
-    },
-    [dispatch, toast, toErrorMessage],
-  );
-
-  const votePoll = useCallback(
-    async (messageId, optionId) => {
-      try {
-        const response = await chatApi.votePoll(messageId, optionId);
-        const resData = response?.data?.data || response?.data;
-        if (resData?.message?.poll) {
-          dispatch(pollVoted({ messageId, poll: resData.message.poll }));
-        }
-        return resData;
-      } catch (error) {
-        toast.error(toErrorMessage(error, 'Không thể gửi bình chọn. Vui lòng thử lại.'));
-        throw error;
-      }
-    },
-    [dispatch, toast, toErrorMessage],
-  );
-
   return {
     conversations: filteredConversations,
     allConversations: conversations,
@@ -559,8 +521,6 @@ export const useChat = ({ initialConversationId = null, initialPlaydateId = null
     handleRetryMessage,
     handleSendTyping,
     refreshConversations,
-    createPoll,
-    votePoll,
   };
 };
 

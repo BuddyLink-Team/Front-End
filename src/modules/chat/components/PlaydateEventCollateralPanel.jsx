@@ -1,6 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useSelector } from 'react-redux';
 import dayjs from 'dayjs';
 import {
   Calendar,
@@ -24,6 +23,7 @@ import { Button } from '../../../components';
 import { cn } from '../../../utils/cn';
 import { formatChildAge } from '../../../utils/formatters';
 import { usePlaydateChaperone } from '../../playdate/hooks/usePlaydateChaperone.js';
+import { hostChildrenOf } from '../../playdate/utils/hostChildren';
 import { PLAYDATE_PARTICIPANT_STATUS, PLAYDATE_STATUS_CHIPS } from '../constants/chat.constants.js';
 
 /**
@@ -44,15 +44,7 @@ export const PlaydateEventCollateralPanel = ({
   className,
 }) => {
   const navigate = useNavigate();
-  const currentParentId = useSelector((state) => state.parent?.profile?._id || state.parent?.profile?.id);
-  const [chaperones, setChaperones] = useState(playdate?.chaperones || []);
-  const { toggleChaperone, isUpdating: isUpdatingChaperone } = usePlaydateChaperone(playdate?.id);
-
-  useEffect(() => {
-    if (playdate?.chaperones) {
-      setChaperones(playdate.chaperones);
-    }
-  }, [playdate?.chaperones]);
+  const { summary: chaperoneSummary, toggle: toggleChaperone, isUpdating: isUpdatingChaperone } = usePlaydateChaperone(playdate);
 
   if (!playdate) {
     return (
@@ -85,7 +77,11 @@ export const PlaydateEventCollateralPanel = ({
   // Only the group chat members: the host and the accepted families (the API already leaves out the others)
   const members = participants.filter((p) => p.status === PLAYDATE_PARTICIPANT_STATUS.ACCEPTED);
   const allChildren = [
-    ...(hostChild ? [{ ...hostChild, isHost: true, parentName: host?.fullName }] : []),
+    ...hostChildrenOf({ hostChild, hostChildren: playdate.hostChildren }).map((child) => ({
+      ...child,
+      isHost: true,
+      parentName: host?.fullName,
+    })),
     ...members
       .filter((p) => p.child)
       .map((p) => ({
@@ -95,22 +91,13 @@ export const PlaydateEventCollateralPanel = ({
       })),
   ];
 
-  const chaperoneSummary = playdate.chaperoneSummary || {};
-  const requiredChaperones = chaperoneSummary.requiredChaperones ?? Math.max(1, allChildren.length);
-  const isChaperoneSufficient = chaperoneSummary.isSufficient ?? (chaperones.length >= requiredChaperones);
-  const missingCount = chaperoneSummary.missingCount ?? Math.max(0, requiredChaperones - chaperones.length);
-
-  const isConfirmedByMe = chaperones.some(
-    (c) => (c.parentId?._id || c.parentId)?.toString() === currentParentId?.toString()
-  );
-
-  const handleToggleChaperone = async () => {
-    const action = isConfirmedByMe ? 'cancel' : 'confirm';
-    const updated = await toggleChaperone(action);
-    if (updated?.chaperones) {
-      setChaperones(updated.chaperones);
-    }
-  };
+  const {
+    requiredChaperones,
+    confirmedChaperones,
+    missingChaperones,
+    isChaperoneSufficient,
+    isChaperoneConfirmedByMe: isConfirmedByMe,
+  } = chaperoneSummary;
 
   return (
     <aside
@@ -331,7 +318,7 @@ export const PlaydateEventCollateralPanel = ({
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-1.5 text-xs font-bold text-on-surface uppercase tracking-wider">
               <UserCheck className="w-3.5 h-3.5 text-primary" />
-              <span>Người lớn đi kèm ({chaperones.length}/{requiredChaperones})</span>
+              <span>Người lớn đi kèm ({confirmedChaperones}/{requiredChaperones})</span>
             </div>
             {isChaperoneSufficient ? (
               <span className="text-label-xs font-semibold px-2 py-0.5 rounded-full bg-primary-soft text-primary-dark border border-primary-border">
@@ -352,7 +339,7 @@ export const PlaydateEventCollateralPanel = ({
             <div className="flex items-start gap-1.5 text-label-xs text-tertiary-dark bg-tertiary-soft p-2.5 rounded-lg border border-tertiary-border">
               <AlertTriangle className="w-3.5 h-3.5 text-tertiary shrink-0 mt-0.5" />
               <span>
-                Cần thêm ít nhất {Math.max(1, missingCount)} phụ huynh xác nhận đi kèm để đảm bảo an toàn cho các bé.
+                Cần thêm ít nhất {missingChaperones} phụ huynh xác nhận đi kèm để đảm bảo an toàn cho các bé.
               </span>
             </div>
           )}
@@ -360,8 +347,8 @@ export const PlaydateEventCollateralPanel = ({
           <Button
             type="button"
             disabled={isUpdatingChaperone}
-            onClick={handleToggleChaperone}
-            variant={isConfirmedByMe ? 'secondary' : 'primary'}
+            onClick={toggleChaperone}
+            variant={isConfirmedByMe ? 'danger' : 'primary'}
             size="sm"
             className="w-full"
             leftIcon={<UserCheck className="w-3.5 h-3.5" />}

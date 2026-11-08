@@ -10,6 +10,7 @@ import { fetchPlaymates, fetchPlaceDetail, createPlaydate } from '../redux/playd
 import { useSubscriptionQuota } from '../../subscription/hooks/useSubscriptionQuota';
 import { usePlaydateSuggestions } from './usePlaydateSuggestions';
 import { useScheduleCheck } from './useScheduleCheck';
+import { useTimeCheck } from './useTimeCheck';
 import { createPlaydateSchema } from '../validation/playdateValidation';
 import { getLocalDateString } from '../../../utils/formatters';
 import { getApiErrorMsg, getErrorCode } from '../../../utils/errorUtils';
@@ -18,6 +19,7 @@ import {
   PLAYDATE_ERROR_CODES,
   PLAYDATE_ERROR_MESSAGES,
   PLAYDATE_WARNING_CODES,
+  TIME_ISSUE_TEXT,
 } from '../constants/playdate.constants';
 
 const getChildId = (child) => (child._id || child.id)?.toString();
@@ -86,7 +88,7 @@ export const useCreatePlaydate = () => {
   } = useForm({
     resolver: zodResolver(createPlaydateSchema),
     defaultValues: {
-      hostChildId: '',
+      hostChildIds: [],
       activity: '',
       scheduledDate: '',
       time: '',
@@ -97,7 +99,10 @@ export const useCreatePlaydate = () => {
     },
   });
 
-  const selectedChildId = watch('hostChildId');
+  // Own children who come; the first one picked is the main child (playmates ranked for it)
+  const watchedOwnChildIds = watch('hostChildIds');
+  const ownChildIds = useMemo(() => watchedOwnChildIds || [], [watchedOwnChildIds]);
+  const selectedChildId = ownChildIds[0] || '';
   const activity = watch('activity');
   const scheduledDate = watch('scheduledDate');
   const time = watch('time');
@@ -115,7 +120,7 @@ export const useCreatePlaydate = () => {
         if (!isMounted) return;
         const ids = (Array.isArray(data) ? data : data?.children || []).map(getChildId);
         const initialChildId = ids.includes(preferredChildId) ? preferredChildId : ids[0];
-        if (initialChildId) setValue('hostChildId', initialChildId);
+        if (initialChildId) setValue('hostChildIds', [initialChildId]);
       })
       .catch((err) => toast.error(getApiErrorMsg(PLAYDATE_ERROR_MESSAGES, err, 'Không thể tải danh sách bé. Vui lòng thử lại sau.')))
       .finally(() => isMounted && setIsLoadingInitialData(false));
@@ -152,15 +157,29 @@ export const useCreatePlaydate = () => {
   // Step 3: suggestions for the selected children
   // Stable list: the playmate picker and the suggestions only re-render when the invited children change
   const selectedChildIds = useMemo(() => selectedFriends.map((f) => f.childId), [selectedFriends]);
+  // The other own children count for the suggestions and the schedule checks as well
+  const groupChildIds = useMemo(() => [...ownChildIds.slice(1), ...selectedChildIds], [ownChildIds, selectedChildIds]);
   const suggestions = usePlaydateSuggestions({
     childId: selectedChildId,
-    participantChildIds: selectedChildIds,
+    participantChildIds: groupChildIds,
     durationMinutes,
+    date: scheduledDate,
+    time,
+    placeId: locationPlaceId,
+  });
+  // Every time rule of the picked time and place (nap, school hours, opening hours...): BUD-49 C
+  const timeCheck = useTimeCheck({
+    childId: selectedChildId,
+    participantChildIds: groupChildIds,
+    date: scheduledDate,
+    time,
+    durationMinutes,
+    placeId: locationPlaceId,
   });
   // The children's other playdates that day: a clash shows as soon as the time is picked
   const scheduleCheck = useScheduleCheck({
     childId: selectedChildId,
-    participantChildIds: selectedChildIds,
+    participantChildIds: groupChildIds,
     date: scheduledDate,
     time,
     durationMinutes,
@@ -168,9 +187,13 @@ export const useCreatePlaydate = () => {
   // Usual length of the chosen activity, when it is one of the suggestions
   const suggestedDuration = suggestions.activities.items.find((a) => a.title === activity)?.durationMinutes ?? null;
 
+  // Tap a child to add or remove them (at least one must stay selected to create the playdate)
   const handleSelectChild = useCallback(
-    (childId) => setValue('hostChildId', childId, { shouldValidate: true }),
-    [setValue],
+    (childId) => {
+      const next = ownChildIds.includes(childId) ? ownChildIds.filter((id) => id !== childId) : [...ownChildIds, childId];
+      setValue('hostChildIds', next, { shouldValidate: true });
+    },
+    [ownChildIds, setValue],
   );
 
   const handleTogglePlaymate = useCallback((entry) => {
@@ -264,8 +287,14 @@ export const useCreatePlaydate = () => {
       setError('time', { message: PLAYDATE_ERROR_MESSAGES[PLAYDATE_ERROR_CODES.SCHEDULE_CONFLICT] });
       return;
     }
+    // A blocking time rule (place closed, time passed): the notices say why, no request
+    if (timeCheck.blocking.length > 0) {
+      setError('time', { message: TIME_ISSUE_TEXT[timeCheck.blocking[0].code] });
+      return;
+    }
     const payload = {
-      hostChildId: formData.hostChildId,
+      hostChildId: formData.hostChildIds[0],
+      hostChildIds: formData.hostChildIds,
       scheduledDate: new Date(formData.scheduledDate).toISOString(),
       time: formData.time,
       durationMinutes: formData.durationMinutes,
@@ -292,7 +321,7 @@ export const useCreatePlaydate = () => {
       const code = getErrorCode(err);
       // The global PaywallModal is opened by apiClient for quota errors
       if (code === PLAYDATE_ERROR_CODES.QUOTA_EXCEEDED) return;
-      if (code === PLAYDATE_ERROR_CODES.SCHEDULE_CONFLICT) {
+      if (code === PLAYDATE_ERROR_CODES.SCHEDULE_CONFLICT || code === PLAYDATE_ERROR_CODES.PLACE_CLOSED) {
         setError('time', { message: PLAYDATE_ERROR_MESSAGES[code] });
       }
       toast.error(getApiErrorMsg(PLAYDATE_ERROR_MESSAGES, err, 'Có lỗi xảy ra khi tạo cuộc hẹn chơi. Vui lòng kiểm tra lại.'));
@@ -312,6 +341,7 @@ export const useCreatePlaydate = () => {
     selectedFriends,
     selectedChildIds,
     selectedChildId,
+    ownChildIds,
     activity,
     scheduledDate,
     time,
@@ -328,6 +358,7 @@ export const useCreatePlaydate = () => {
     placeToView,
     suggestions,
     scheduleCheck,
+    timeCheck,
     register,
     handleSubmit: handleSubmit(onSubmitForm),
     setValue,

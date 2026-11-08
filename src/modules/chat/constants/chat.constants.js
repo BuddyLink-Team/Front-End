@@ -85,6 +85,17 @@ export const QUICK_EMOJIS = ['😊', '❤️', '👍', '🎉', '👶', '🧸', '
  * Codes returned by the chat REST endpoints and socket acks (chat.service, chat.socket,
  * upload middleware, storage adapter); shared middleware codes are in constants/error.constants.js.
  */
+// Time poll of a playdate group chat (BUD-49 D5)
+export const POLL_LIMITS = Object.freeze({
+  MIN_OPTIONS: 2,
+  MAX_OPTIONS: 5,
+  SUGGESTED_OPTIONS: 4,
+  QUESTION_MAX_LENGTH: 150,
+  OPTION_MAX_LENGTH: 100,
+  DEADLINE_HOURS: 48,
+});
+export const DEFAULT_POLL_QUESTION = 'Bình chọn thời gian hẹn chơi phù hợp';
+
 export const CHAT_ERROR_MESSAGES = Object.freeze({
   PARENT_REQUIRED: 'Chỉ tài khoản phụ huynh mới sử dụng được tính năng trò chuyện.',
   PARENT_NOT_FOUND: 'Không tìm thấy hồ sơ phụ huynh.',

@@ -21,6 +21,7 @@ import {
 import { Button, Checkbox } from '../../../components';
 import { formatDate } from '../../../utils/formatters';
 import { cn } from '../../../utils/cn';
+import { hostChildNames } from '../../playdate/utils/hostChildren';
 import { ReadOnlyField } from '../../playdate/components/PlaydateFormLayout';
 import { ParticipantCard } from '../../playdate/components/PlaydateDetailParts';
 import { formatDurationLabel } from '../../playdate/constants/playdate.constants';
@@ -37,6 +38,7 @@ import {
   AI_LINK_KINDS,
   AI_TONE_CYCLE,
   AI_WARNING_SEVERITY,
+  AI_DRAFT_WARNING_CODES,
   DRAFT_WARNING_TEXT,
   WARNING_SEVERITY_STYLES,
 } from '../constants/ai-assistant.constants';
@@ -84,7 +86,7 @@ export const PlaydateDraftCard = ({ card, onConfirm, disabled = false }) => {
 
   const warnings = Array.from(new Map(normalizedWarnings.map((w) => [w.code, w])).values());
   const hasBlockingWarning = warnings.some(
-    (w) => w.severity === AI_WARNING_SEVERITY.BLOCK && !(w.code === 'SAFETY_HIGH_RISK' && safetyAcknowledged)
+    (w) => w.severity === AI_WARNING_SEVERITY.BLOCK && !(w.code === AI_DRAFT_WARNING_CODES.SAFETY_HIGH_RISK && safetyAcknowledged)
   );
   const isConfirmDisabled = disabled || (draft.hasHighRisk && !safetyAcknowledged) || hasBlockingWarning;
 
@@ -113,7 +115,7 @@ export const PlaydateDraftCard = ({ card, onConfirm, disabled = false }) => {
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
           <ParticipantCard
             parent={{ fullName: parent?.fullName, avatarUrl: parent?.avatarUrl, isVerified: parent?.isVerified }}
-            childName={draft.hostChild?.displayName}
+            childName={hostChildNames(draft)}
             status="host"
           />
           {draft.participants.map((p) => (

@@ -1,4 +1,6 @@
-import { MESSAGE_STATUS } from '../constants/chat.constants.js';
+import { MESSAGE_STATUS, POLL_LIMITS } from '../constants/chat.constants.js';
+import { formatSlotDay } from '../../playdate/utils/suggestionFormatters';
+import { formatTimeRange } from '../../../utils/formatters';
 
 /**
  * Generate a client-only id for an optimistic message. It is echoed back by the server
@@ -75,3 +77,30 @@ export const setMessageStatus = (messages, tempId, status) =>
  */
 export const getOldestPersistedMessageId = (messages) =>
   messages.find((m) => !m.status)?.id || null;
+
+/**
+ * Poll option from a suggested time slot: "T7 15/11 · 09:00 - 11:00", keeping its date and time
+ * @param {{ date: string, time: string }} slot
+ * @param {number} durationMinutes
+ * @returns {{ label: string, date: string, time: string }}
+ */
+export const pollOptionFromSlot = (slot, durationMinutes) => ({
+  label: `${formatSlotDay(slot.date)} · ${formatTimeRange(slot.time, durationMinutes)}`,
+  date: slot.date,
+  time: slot.time,
+});
+
+/**
+ * Body of POST /chat/conversations/:id/poll from the form: empty options dropped, closes after 48 hours
+ * @param {{ question: string, options: Array<{ label: string, date?: string|null, time?: string|null }> }} form
+ * @param {Date} [now]
+ * @returns {Object}
+ */
+export const toPollPayload = ({ question, options }, now = new Date()) => ({
+  question: question.trim(),
+  options: options
+    .map((option) => ({ ...option, label: option.label.trim() }))
+    .filter((option) => option.label)
+    .map((option, index) => ({ id: `opt_${index + 1}`, label: option.label, date: option.date || null, time: option.time || null })),
+  deadline: new Date(now.getTime() + POLL_LIMITS.DEADLINE_HOURS * 60 * 60 * 1000).toISOString(),
+});

@@ -24,18 +24,12 @@ export const createAISession = createApiThunk('aiAssistant/createSession', () =>
  */
 export const sendAIMessage = createApiThunk(
   'aiAssistant/sendMessage',
-  ({ sessionId, content, choice, onProgress }, { dispatch }) => {
-    const body = { content, ...(choice ? { choice } : {}) };
-    const handleProgress = (msg) => {
-      dispatch(setProgressMessage({ sessionId, message: msg }));
-      if (typeof onProgress === 'function') {
-        onProgress(msg);
-      }
-    };
-    if (typeof aiAssistantApi.sendMessageStream === 'function') {
-      return aiAssistantApi.sendMessageStream(sessionId, body, { onProgress: handleProgress });
-    }
-    return aiAssistantApi.sendMessage(sessionId, body);
+  ({ sessionId, content, choice, localId }, { dispatch }) => {
+    // The local id is kept by a retry: the server returns the stored turn instead of running it again
+    const body = { content, clientMessageId: localId, ...(choice ? { choice } : {}) };
+    return aiAssistantApi.sendMessageStream(sessionId, body, {
+      onProgress: (message) => dispatch(setProgressMessage({ sessionId, message })),
+    });
   },
 );
 

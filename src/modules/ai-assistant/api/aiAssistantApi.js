@@ -1,9 +1,56 @@
 import apiClient, { refreshAccessToken, endSession } from '../../../services/apiClient';
 import tokenStore from '../../../services/tokenStore';
 import { API_ENDPOINTS } from '../../../constants/api.constants';
-import { AI_LIMITS } from '../constants/ai-assistant.constants';
+import { CLIENT_ERROR_CODES } from '../../../constants/error.constants';
+import { AI_LIMITS, AI_ERROR_CODES } from '../constants/ai-assistant.constants';
 
 const { AI_ASSISTANT } = API_ENDPOINTS;
+const IS_MOCK = import.meta.env.MODE === 'mock' || import.meta.env.VITE_USE_MOCK === 'true';
+
+// Same shape as the errors apiClient rejects with, so getApiErrorMsg maps the code
+const clientError = (code) => ({ success: false, message: code, data: null, error: { code, details: [] } });
+
+const parseEvent = (block) => {
+  let event = 'message';
+  let data = '';
+  block.split('\n').forEach((line) => {
+    if (line.startsWith('event: ')) event = line.slice(7).trim();
+    else if (line.startsWith('data: ')) data += line.slice(6);
+  });
+  return { event, data };
+};
+
+const parseJson = (text) => {
+  try {
+    return JSON.parse(text);
+  } catch (_error) {
+    return null;
+  }
+};
+
+/**
+ * Read the Server-Sent Events of a reply: `progress` (one per tool), then `complete` (the reply) or `error`
+ * @returns {Promise<Object|null>} The reply, null when the stream ended without one
+ */
+const readStream = async (response, onProgress) => {
+  const reader = response.body.getReader();
+  const decoder = new TextDecoder('utf-8');
+  let buffer = '';
+  for (;;) {
+    const { value, done } = await reader.read();
+    if (done) return null;
+    buffer += decoder.decode(value, { stream: true });
+    const blocks = buffer.split('\n\n');
+    buffer = blocks.pop() || '';
+    for (const block of blocks) {
+      const { event, data } = parseEvent(block);
+      const payload = data ? parseJson(data) : null;
+      if (event === 'progress' && payload?.message) onProgress?.(payload.message);
+      if (event === 'complete' && payload) return payload;
+      if (event === 'error') throw payload?.error?.code ? payload : clientError(AI_ERROR_CODES.AI_PROVIDER_ERROR);
+    }
+  }
+};
 
 export const aiAssistantApi = {
   /**
@@ -24,127 +71,59 @@ export const aiAssistantApi = {
   getSession: (id) => apiClient.get(AI_ASSISTANT.SESSION(id)),
 
   /**
-   * Send a typed message, or the options tapped on a choice card
+   * Send a typed message, or the options tapped on a choice card. `clientMessageId` is the same on a
+   * retry, so a turn the server already stored is returned instead of run again.
    * @param {string} id
-   * @param {{ content: string, choice?: { messageId: string, stepId: string, optionIds?: string[], custom?: Object } }} body
-   * @param {{ onProgress?: (msg: string) => void }} [options]
+   * @param {{ content: string, choice?: { messageId: string, stepId: string, optionIds?: string[], custom?: Object }, clientMessageId?: string }} body
    */
-  sendMessage: (id, body, options) => {
-    if (options?.onProgress) {
-      return aiAssistantApi.sendMessageStream(id, body, options);
-    }
-    return apiClient.post(AI_ASSISTANT.MESSAGES(id), body, { timeout: AI_LIMITS.REQUEST_TIMEOUT_MS });
-  },
+  sendMessage: (id, body) => apiClient.post(AI_ASSISTANT.MESSAGES(id), body, { timeout: AI_LIMITS.REQUEST_TIMEOUT_MS }),
 
   /**
-   * Send a typed message with SSE progress streaming
+   * Same as sendMessage, with the progress of each tool while the reply is prepared (Server-Sent Events).
+   * Rejects with the same error body as apiClient ({ error: { code } }), so the messages are mapped the same way.
+   * The mock engine only intercepts axios: in mock mode the plain request is used.
    * @param {string} id
    * @param {Object} body
-   * @param {{ onProgress?: (msg: string) => void }} [options]
+   * @param {{ onProgress?: (message: string) => void }} [options]
    */
   sendMessageStream: async (id, body, { onProgress } = {}) => {
-    if (import.meta.env.MODE === 'mock' || import.meta.env.VITE_USE_MOCK === 'true') {
-      return aiAssistantApi.sendMessage(id, body);
-    }
+    if (IS_MOCK) return aiAssistantApi.sendMessage(id, body);
 
-    let token = tokenStore.getAccessToken();
-    const baseURL = apiClient.defaults.baseURL || import.meta.env.VITE_API_URL || '';
-    const url = `${baseURL}${AI_ASSISTANT.MESSAGES(id)}/stream`;
+    const url = `${apiClient.defaults.baseURL}${AI_ASSISTANT.MESSAGES_STREAM(id)}`;
+    const post = (token) =>
+      fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) },
+        body: JSON.stringify(body),
+      });
 
-    let response = await fetch(url, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      },
-      body: JSON.stringify(body),
-    });
-
-    if (response.status === 401) {
-      try {
-        token = await refreshAccessToken();
-        response = await fetch(url, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            ...(token ? { Authorization: `Bearer ${token}` } : {}),
-          },
-          body: JSON.stringify(body),
-        });
-      } catch (_refreshErr) {
-        endSession();
-        throw new Error('Phiên đăng nhập đã hết hạn.');
+    let response;
+    try {
+      response = await post(tokenStore.getAccessToken());
+      if (response.status === 401) {
+        // Same refresh as the axios interceptor (shared, never twice with the same refresh token)
+        let token;
+        try {
+          token = await refreshAccessToken();
+        } catch (_refreshError) {
+          endSession();
+          throw clientError(AI_ERROR_CODES.ACCESS_TOKEN_EXPIRED);
+        }
+        response = await post(token);
       }
+    } catch (error) {
+      if (error?.error?.code) throw error;
+      throw clientError(CLIENT_ERROR_CODES.NETWORK_ERROR);
     }
 
     if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      const err = new Error(errorData.message || 'Stream request failed');
-      err.response = { status: response.status, data: errorData };
-      throw err;
+      throw await response.json().catch(() => clientError(CLIENT_ERROR_CODES.NETWORK_ERROR));
     }
 
-    const reader = response.body.getReader();
-    const decoder = new TextDecoder('utf-8');
-    let buffer = '';
-    let result = null;
-    let isDone = false;
-
-    while (!isDone) {
-      const { value, done } = await reader.read();
-      if (done) {
-        isDone = true;
-        break;
-      }
-      buffer += decoder.decode(value, { stream: true });
-
-      const parts = buffer.split('\n\n');
-      buffer = parts.pop() || '';
-
-      for (const part of parts) {
-        const lines = part.split('\n');
-        let event = 'message';
-        let data = '';
-
-        for (const line of lines) {
-          if (line.startsWith('event: ')) {
-            event = line.replace('event: ', '').trim();
-          } else if (line.startsWith('data: ')) {
-            data = line.replace('data: ', '').trim();
-          }
-        }
-
-        if (event === 'progress' && onProgress && data) {
-          try {
-            const parsed = JSON.parse(data);
-            onProgress(parsed.message || parsed.text || parsed);
-          } catch (_e) {
-            // Ignore invalid progress chunk
-          }
-        } else if ((event === 'complete' || event === 'done') && data) {
-          try {
-            result = JSON.parse(data);
-          } catch (_e) {
-            // Ignore payload parsing error
-          }
-        } else if (event === 'error' && data) {
-          let parsed = {};
-          try {
-            parsed = JSON.parse(data);
-          } catch (_e) {
-            parsed = { message: data };
-          }
-          const err = new Error(parsed.message || 'Error from assistant');
-          err.response = { data: parsed };
-          throw err;
-        }
-      }
-    }
-
-    if (result) {
-      return { data: result };
-    }
-    throw new Error('Stream ended without complete event');
+    const result = await readStream(response, onProgress);
+    // The connection closed before the reply: a retry sends the same clientMessageId (no repeated turn)
+    if (!result) throw clientError(CLIENT_ERROR_CODES.NETWORK_ERROR);
+    return { data: result };
   },
 
   /**

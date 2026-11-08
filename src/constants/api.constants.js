@@ -53,6 +53,8 @@ export const API_ENDPOINTS = {
     SESSIONS: '/ai-assistant/sessions',
     SESSION: (id) => `/ai-assistant/sessions/${id}`,
     MESSAGES: (id) => `/ai-assistant/sessions/${id}/messages`,
+    // Same body as MESSAGES, answered with Server-Sent Events (tool progress, then the reply)
+    MESSAGES_STREAM: (id) => `/ai-assistant/sessions/${id}/messages/stream`,
   },
   NOTIFICATION: {
     BASE: '/notifications',

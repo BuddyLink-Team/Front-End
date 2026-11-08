@@ -45,6 +45,12 @@ export const playdateApi = {
   getBusyTimes: (params) => apiClient.get(`${API_ENDPOINTS.PLAYDATE.BASE}/busy-times`, { params }),
 
   /**
+   * Every time rule a chosen time breaks (nap, school hours, opening hours of the place...)
+   * @param {{ childId: string, participantChildIds?: string, date: string, time: string, durationMinutes?: number, placeId?: string }} params
+   */
+  getTimeCheck: (params) => apiClient.get(`${API_ENDPOINTS.PLAYDATE.BASE}/suggestions/time-check`, { params }),
+
+  /**
    * Activities the children share an interest in
    * @param {{ childId: string, participantChildIds?: string }} params
    */
@@ -120,7 +126,7 @@ export const playdateApi = {
   /**
    * Register or cancel chaperone status (Host or accepted participant)
    */
-  toggleChaperone: (id, action = 'confirm') =>
+  toggleChaperone: (id, action) =>
     apiClient.post(API_ENDPOINTS.PLAYDATE.CHAPERONE(id), { action }),
 };
 
