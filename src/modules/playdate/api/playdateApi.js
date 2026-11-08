@@ -45,6 +45,12 @@ export const playdateApi = {
   getBusyTimes: (params) => apiClient.get(`${API_ENDPOINTS.PLAYDATE.BASE}/busy-times`, { params }),
 
   /**
+   * Every time rule a chosen time breaks (nap, school hours, opening hours of the place...)
+   * @param {{ childId: string, participantChildIds?: string, date: string, time: string, durationMinutes?: number, placeId?: string }} params
+   */
+  getTimeCheck: (params) => apiClient.get(`${API_ENDPOINTS.PLAYDATE.BASE}/suggestions/time-check`, { params }),
+
+  /**
    * Activities the children share an interest in
    * @param {{ childId: string, participantChildIds?: string }} params
    */
@@ -116,6 +122,12 @@ export const playdateApi = {
    * Place details (address resolved, opening hours, contact, OpenStreetMap link)
    */
   getPlaceById: (id) => apiClient.get(`${API_ENDPOINTS.PLACES.BASE}/${id}`),
+
+  /**
+   * Register or cancel chaperone status (Host or accepted participant)
+   */
+  toggleChaperone: (id, action) =>
+    apiClient.post(API_ENDPOINTS.PLAYDATE.CHAPERONE(id), { action }),
 };
 
 export default playdateApi;

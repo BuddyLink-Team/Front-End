@@ -21,6 +21,7 @@ vi.mock('../../modules/playdate/api/playdateApi', () => ({
     getPlaceSuggestions: vi.fn(),
     getActivitySuggestions: vi.fn(),
     getBusyTimes: vi.fn(),
+    getTimeCheck: vi.fn(),
   },
 }));
 
@@ -74,6 +75,7 @@ describe('CreatePlaydatePage Component', () => {
       ],
     });
     playdateApi.getFriends.mockResolvedValue({ data: PLAYMATES });
+    playdateApi.getTimeCheck.mockResolvedValue({ data: { issues: [] } });
     playdateApi.getNearbyPlaces.mockResolvedValue({
       data: [
         {
@@ -417,6 +419,73 @@ describe('CreatePlaydatePage Component', () => {
       );
     });
     expect(await screen.findByText(/bé đã có một buổi hẹn khác trùng giờ này/i)).toBeInTheDocument();
+  });
+
+  it('brings several own children: at least one, all of them sent with the main child first', async () => {
+    childApi.getMyChildren.mockResolvedValue({
+      data: [
+        { _id: 'child-1', displayName: 'Bé Bắp', gender: 'boy', interests: ['Lego'] },
+        { _id: 'child-2', displayName: 'Bé Na', gender: 'girl', interests: ['Vẽ'] },
+      ],
+    });
+    renderWithProviders(<CreatePlaydatePage />);
+
+    const group = await screen.findByRole('group', { name: 'Bé tham gia' });
+    const [bap, na] = await within(group).findAllByRole('button');
+    fireEvent.click(na);
+    expect(na).toHaveAttribute('aria-pressed', 'true');
+    expect(bap).toHaveAttribute('aria-pressed', 'true');
+
+    // Removing both children: the form asks for at least one
+    fireEvent.click(bap);
+    fireEvent.click(na);
+    const [submitBtn] = screen.getAllByRole('button', { name: /tạo buổi hẹn/i });
+    fireEvent.click(submitBtn);
+    expect(await screen.findByText('Vui lòng chọn ít nhất 1 bé tham gia của bạn')).toBeInTheDocument();
+    expect(playdateApi.createPlaydate).not.toHaveBeenCalled();
+
+    fireEvent.click(bap);
+    fireEvent.click(na);
+    fireEvent.click(await screen.findByRole('button', { name: /T7 02\/11 · 09:00/ }));
+    fireEvent.click(await screen.findByRole('button', { name: /công viên apec/i }));
+    fireEvent.click(await screen.findByRole('button', { name: /buổi chơi xếp hình lego & giao lưu/i }));
+    await screen.findAllByText('Công viên APEC');
+    fireEvent.click(submitBtn);
+
+    await waitFor(() => {
+      expect(playdateApi.createPlaydate).toHaveBeenCalledWith(
+        expect.objectContaining({ hostChildId: 'child-1', hostChildIds: ['child-1', 'child-2'] })
+      );
+    });
+  });
+
+  it('shows the time rules of the picked time and the place, and stops on a closed place', async () => {
+    playdateApi.getTimeCheck.mockResolvedValue({
+      data: {
+        issues: [
+          { code: 'PLACE_CLOSED', severity: 'block' },
+          { code: 'MEAL_TIME', severity: 'info' },
+        ],
+      },
+    });
+    renderWithProviders(<CreatePlaydatePage />);
+
+    fireEvent.click(await screen.findByRole('button', { name: /T7 02\/11 · 09:00/ }));
+    fireEvent.click(await screen.findByRole('button', { name: /công viên apec/i }));
+    fireEvent.click(await screen.findByRole('button', { name: /buổi chơi xếp hình lego & giao lưu/i }));
+
+    expect(await screen.findByText(/Trùng giờ ăn/)).toBeInTheDocument();
+    // The chosen place goes with the check (its opening hours apply)
+    await waitFor(() =>
+      expect(playdateApi.getTimeCheck).toHaveBeenCalledWith(
+        expect.objectContaining({ childId: 'child-1', date: '2030-11-02', time: '09:00', placeId: 'osm-way-9' })
+      )
+    );
+
+    const [submitBtn] = screen.getAllByRole('button', { name: /tạo buổi hẹn/i });
+    fireEvent.click(submitBtn);
+    expect((await screen.findAllByText(/Địa điểm đóng cửa vào thời gian này/)).length).toBeGreaterThan(0);
+    expect(playdateApi.createPlaydate).not.toHaveBeenCalled();
   });
 
   it('renders unlimited quota badge when the plan has no playdate limit', async () => {

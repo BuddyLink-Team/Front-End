@@ -44,10 +44,16 @@ const formatDistance = (meters) => {
   return `${(meters / 1000).toFixed(1).replace('.', ',')} km`;
 };
 
+// Every detail of the picked place: the form keeps name / address / ids, the AI plan also needs the cache id,
+// type and opening hours (attractions search, opening-hours warnings)
 const toLocation = (place) => ({
+  id: place.id || null,
   name: place.name,
   address: place.address || '',
   placeId: place.placeId,
+  placeType: place.placeType || place.type || null,
+  openingHours: place.openingHours || '',
+  osmUrl: place.osmUrl || null,
   coordinates: place.coordinates ? { type: 'Point', coordinates: place.coordinates } : null,
 });
 

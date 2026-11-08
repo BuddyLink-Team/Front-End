@@ -22,8 +22,15 @@ export const createAISession = createApiThunk('aiAssistant/createSession', () =>
  * @param {{ sessionId: string, content: string, choice?: Object, localId: string }} arg
  *   localId identifies the optimistic message (and a retry of it)
  */
-export const sendAIMessage = createApiThunk('aiAssistant/sendMessage', ({ sessionId, content, choice }) =>
-  aiAssistantApi.sendMessage(sessionId, { content, ...(choice ? { choice } : {}) }),
+export const sendAIMessage = createApiThunk(
+  'aiAssistant/sendMessage',
+  ({ sessionId, content, choice, localId }, { dispatch }) => {
+    // The local id is kept by a retry: the server returns the stored turn instead of running it again
+    const body = { content, clientMessageId: localId, ...(choice ? { choice } : {}) };
+    return aiAssistantApi.sendMessageStream(sessionId, body, {
+      onProgress: (message) => dispatch(setProgressMessage({ sessionId, message })),
+    });
+  },
 );
 
 export const deleteAISession = createApiThunk('aiAssistant/deleteSession', async (id) => {
@@ -49,6 +56,7 @@ const initialState = {
   // { limit, used, remaining } returned by the last message (-1 = unlimited)
   quota: null,
   isDrawerOpen: false,
+  progressMessageBySession: {},
 };
 
 const toListItem = ({ id, title, lastMessageAt, createdAt, updatedAt }) => ({ id, title, lastMessageAt, createdAt, updatedAt });
@@ -98,6 +106,10 @@ const aiAssistantSlice = createSlice({
     },
     closeAIDrawer(state) {
       state.isDrawerOpen = false;
+    },
+    setProgressMessage(state, action) {
+      const { sessionId, message } = action.payload;
+      state.progressMessageBySession[sessionId] = message;
     },
     discardAIMessage(state, action) {
       const { sessionId, localId } = action.payload;
@@ -192,11 +204,13 @@ const aiAssistantSlice = createSlice({
         state.messagesBySession[sessionId] = messages;
         state.sessionsById[sessionId] = { ...state.sessionsById[sessionId], ...session, planDraft };
         state.quota = quota || state.quota;
+        state.progressMessageBySession[sessionId] = null;
         stopSending(state, sessionId);
         moveToTop(state, session);
       })
       .addCase(sendAIMessage.rejected, (state, action) => {
         const { sessionId, localId, choice } = action.meta.arg;
+        state.progressMessageBySession[sessionId] = null;
         const messages = state.messagesBySession[sessionId] || [];
         const failed = messages.find((m) => m.localId === localId);
         if (failed) {
@@ -221,5 +235,5 @@ const aiAssistantSlice = createSlice({
   },
 });
 
-export const { setActiveAISession, openAIDrawer, closeAIDrawer, discardAIMessage } = aiAssistantSlice.actions;
+export const { setActiveAISession, openAIDrawer, closeAIDrawer, discardAIMessage, setProgressMessage } = aiAssistantSlice.actions;
 export default aiAssistantSlice.reducer;

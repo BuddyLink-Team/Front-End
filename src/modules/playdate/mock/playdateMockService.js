@@ -9,9 +9,13 @@ import {
   INITIAL_MOCK_RESCHEDULES,
   MOCK_NEARBY_PLACES,
 } from './playdateMockData';
+import { CHAPERONE_ACTIONS } from '../constants/playdate.constants';
 
 const STORAGE_KEY_PLAYDATES = 'buddylink_mock_playdates_v2';
 const STORAGE_KEY_RESCHEDULES = 'buddylink_mock_reschedules_v2';
+
+// The mock group needs 2 adults (e.g. 3 children under 5)
+const MOCK_REQUIRED_CHAPERONES = 2;
 
 // Small artificial delay to simulate realistic network latency
 const delay = (ms = 120) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -789,6 +793,40 @@ class PlaydateMockService {
       success: true,
       message: 'Lấy danh sách bé thành công',
       data: MOCK_HOST_CHILDREN,
+    };
+  }
+
+  /**
+   * POST /api/v1/playdates/:id/chaperone
+   */
+  async toggleChaperone(id, action = CHAPERONE_ACTIONS.CONFIRM) {
+    await delay();
+    const playdates = this._getStoredPlaydates();
+    const playdate = playdates.find((p) => p.id === id || p._id === id);
+    if (!playdate) this._fail('PLAYDATE_NOT_FOUND', 'Playdate not found', 404);
+
+    const currentParentId = MOCK_CURRENT_PARENT.id;
+    const others = (playdate.chaperones || []).filter((c) => (c.parentId?._id || c.parentId) !== currentParentId);
+    playdate.chaperones =
+      action === CHAPERONE_ACTIONS.CONFIRM ? [...others, { parentId: currentParentId, confirmedAt: new Date().toISOString() }] : others;
+    this._saveStoredPlaydates(playdates);
+
+    // Same fields as the backend chaperoneSummary (playdate.rules.js computeChaperoneSummary)
+    const requiredChaperones = MOCK_REQUIRED_CHAPERONES;
+    const confirmedChaperones = playdate.chaperones.length;
+    return {
+      success: true,
+      message: 'Chaperone status updated successfully',
+      data: {
+        ...playdate,
+        chaperoneSummary: {
+          requiredChaperones,
+          confirmedChaperones,
+          missingChaperones: Math.max(0, requiredChaperones - confirmedChaperones),
+          isChaperoneSufficient: confirmedChaperones >= requiredChaperones,
+          isChaperoneConfirmedByMe: action === CHAPERONE_ACTIONS.CONFIRM,
+        },
+      },
     };
   }
 }

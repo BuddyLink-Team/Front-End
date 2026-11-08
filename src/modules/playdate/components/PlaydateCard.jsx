@@ -4,6 +4,7 @@ import { Clock, MapPin, CheckCircle2, Hourglass, Star, X, Crown } from 'lucide-r
 import { Button } from '../../../components/ui/Button';
 import { StatusChip } from '../../../components/badges/StatusChip';
 import { hasPlaydateStarted, formatPlaydateTimeRange } from '../utils/playdateTime';
+import { hostChildrenOf, hostChildNames } from '../utils/hostChildren';
 import { ACTIVITY_CATEGORY_META, getActivityCategory } from '../../../constants/activity.constants';
 
 const WEEKDAY_SHORT = ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7'];
@@ -99,8 +100,10 @@ export const PlaydateCard = ({
   const countdownLabel = getCountdownLabel();
 
   // Participant Kids & Parents
-  const hostChildName = hostChild?.displayName || 'Bé';
-  const hostChildAge = hostChild?.ageText ? ` (${hostChild.ageText})` : '';
+  // Several own children: their names only (the age is shown for a single child)
+  const hostChildren = hostChildrenOf(playdate);
+  const hostChildName = hostChildNames(playdate) || 'Bé';
+  const hostChildAge = hostChildren.length <= 1 && hostChild?.ageText ? ` (${hostChild.ageText})` : '';
   // The guest shown on the card: someone who joined, else someone still invited (never a family who declined)
   const firstParticipant =
     participants.find((p) => p.status === 'accepted') || participants.find((p) => p.status === 'pending');

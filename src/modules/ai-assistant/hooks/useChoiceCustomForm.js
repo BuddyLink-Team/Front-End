@@ -30,9 +30,10 @@ export const useChoiceCustomForm = (card, onSubmit) => {
 
   // The place step sends the place picked in the search modal right away
   const submitPlace = useCallback(
-    ({ name, address, placeId, coordinates }) => {
+    ({ id, name, address, placeId, coordinates }) => {
       setValue('name', name || '');
       setValue('address', address || '');
+      setValue('id', id || undefined);
       setValue('placeId', placeId || undefined);
       setValue('coordinates', coordinates);
       submit();

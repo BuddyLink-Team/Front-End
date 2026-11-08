@@ -3,7 +3,9 @@ import dayjs from 'dayjs';
 import { Check, CheckCheck, Clock, AlertCircle, RotateCcw, Flag } from 'lucide-react';
 import { Avatar } from '../../../components/ui/Avatar';
 import { ChatBubble } from '../../../components/chat/ChatBubble';
-import { MESSAGE_STATUS } from '../constants/chat.constants.js';
+import { PollMessageCard } from './PollMessageCard';
+import { SystemMessage } from './SystemMessage';
+import { MESSAGE_STATUS, MESSAGE_TYPES } from '../constants/chat.constants.js';
 
 export const MessageItem = ({
   message,
@@ -28,6 +30,9 @@ export const MessageItem = ({
   const timeFormatted = dayjs(message.createdAt).format('HH:mm');
   const isSending = message.status === MESSAGE_STATUS.SENDING;
   const isFailed = message.status === MESSAGE_STATUS.FAILED;
+
+  // Posted by BuddyLink (no sender): never shown as the partner's bubble
+  if (message.type === MESSAGE_TYPES.SYSTEM) return <SystemMessage message={message} />;
 
   return (
     <ChatBubble
@@ -98,21 +103,28 @@ export const MessageItem = ({
         </>
       }
     >
-      {/* Media Image Attachment if present */}
-      {message.mediaUrl && (
-        <div className="mb-2 overflow-hidden rounded-xl cursor-pointer group">
-          <img
-            src={message.mediaUrl}
-            alt="Hình ảnh đính kèm"
-            onClick={() => onImageClick && onImageClick(message.mediaUrl)}
-            className="max-h-60 w-auto object-cover rounded-xl transition-transform duration-200 group-hover:scale-105"
-          />
-        </div>
-      )}
+      {/* Poll Card if message is a poll */}
+      {message.type === MESSAGE_TYPES.POLL && message.poll ? (
+        <PollMessageCard message={message} currentParentId={currentParentId} />
+      ) : (
+        <>
+          {/* Media Image Attachment if present */}
+          {message.mediaUrl && (
+            <div className="mb-2 overflow-hidden rounded-xl cursor-pointer group">
+              <img
+                src={message.mediaUrl}
+                alt="Hình ảnh đính kèm"
+                onClick={() => onImageClick && onImageClick(message.mediaUrl)}
+                className="max-h-60 w-auto object-cover rounded-xl transition-transform duration-200 group-hover:scale-105"
+              />
+            </div>
+          )}
 
-      {/* Text Content (if not just default placeholder for image) */}
-      {message.content && message.content !== '[Hình ảnh]' && (
-        <p className={message.isDeleted ? 'italic' : 'whitespace-pre-wrap'}>{message.content}</p>
+          {/* Text Content (if not just default placeholder for image) */}
+          {message.content && message.content !== '[Hình ảnh]' && (
+            <p className={message.isDeleted ? 'italic' : 'whitespace-pre-wrap'}>{message.content}</p>
+          )}
+        </>
       )}
     </ChatBubble>
   );

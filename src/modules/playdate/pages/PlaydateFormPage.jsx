@@ -57,6 +57,8 @@ import {
 } from '../constants/playdate.constants';
 import { addMinutesToTime, formatPlaydateTimeRange } from '../utils/playdateTime';
 import { googleMapsDirectionsUrl, toLngLat } from '../utils/placeLinks';
+import { hostChildNames } from '../utils/hostChildren';
+import { TimeRuleNotices } from '../components/TimeRuleNotices';
 import { formatDate } from '../../../utils/formatters';
 
 // Quick start time presets
@@ -100,6 +102,7 @@ const CreatePlaydateForm = () => {
     selectedFriends,
     selectedChildIds,
     selectedChildId,
+    ownChildIds,
     activity,
     scheduledDate,
     time,
@@ -115,6 +118,7 @@ const CreatePlaydateForm = () => {
     placeToView,
     suggestions,
     scheduleCheck,
+    timeCheck,
     register,
     handleSubmit,
     setShowNearbyModal,
@@ -134,6 +138,10 @@ const CreatePlaydateForm = () => {
   const [showManualLocation, setShowManualLocation] = useState(false);
 
   const selectedChild = myChildren.find((c) => (c._id || c.id)?.toString() === selectedChildId);
+  const ownChildNames = ownChildIds
+    .map((id) => myChildren.find((c) => (c._id || c.id)?.toString() === id)?.displayName)
+    .filter(Boolean)
+    .join(', ');
   const hasPlaymates = playmates.matched.length > 0 || playmates.others.length > 0;
   const { timeSlots, places, activities } = suggestions;
 
@@ -183,7 +191,7 @@ const CreatePlaydateForm = () => {
     <div className="flex flex-wrap gap-2" role="group" aria-label="Bé tham gia">
       {myChildren.map((child) => {
         const childId = (child._id || child.id)?.toString();
-        const isSelected = selectedChildId === childId;
+        const isSelected = ownChildIds.includes(childId);
         return (
           <button
             type="button"
@@ -328,7 +336,8 @@ const CreatePlaydateForm = () => {
     family: (
       <>
         {childPicker}
-        {errors.hostChildId && <p className="text-xs text-error">{errors.hostChildId.message}</p>}
+        {myChildren.length > 1 && <p className="text-xs text-text-muted">Có thể chọn nhiều bé cùng đi chơi.</p>}
+        {errors.hostChildIds && <p className="text-xs text-error">{errors.hostChildIds.message}</p>}
         {selectedChildId && (
           <>
             <PartHeading
@@ -414,6 +423,7 @@ const CreatePlaydateForm = () => {
           </div>
         </div>
         {selectedChildId && scheduledDate && <ScheduleAvailability {...scheduleCheck} onPickFreeTime={handleSelectTime} />}
+        {selectedChildId && scheduledDate && time && <TimeRuleNotices issues={timeCheck.issues} />}
         <div className="border-t border-hairline pt-4 space-y-3">
           {selectedChildId && (
             <PlaceSuggestionList
@@ -490,7 +500,7 @@ const CreatePlaydateForm = () => {
         },
       }}
       summary={{
-        childName: selectedChild?.displayName,
+        childName: ownChildNames,
         playmates: selectedFriends.map((f) => f.childName).join(', '),
         scheduledDate,
         timeRange: time && endTime ? `${time} - ${endTime}` : time,
@@ -625,7 +635,7 @@ const PlaydateDetails = () => {
     family: (
       <>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          <ParticipantCard parent={playdate.hostParent} childName={playdate.hostChild?.displayName} status="host" />
+          <ParticipantCard parent={playdate.hostParent} childName={hostChildNames(playdate)} status="host" />
           {participants.map((p) => (
             <ParticipantCard key={`${p.parentId}-${p.childId}`} parent={p.parent} childName={p.child?.displayName} status={p.status} />
           ))}
@@ -770,7 +780,7 @@ const PlaydateDetails = () => {
         <FormPageHeader
           title={playdate.activity}
           badge={<StatusChip status={playdate.displayStatus || playdate.status} />}
-          description={`Tổ chức bởi ${playdate.hostParent?.fullName || 'phụ huynh'} cùng bé ${playdate.hostChild?.displayName || ''}`}
+          description={`Tổ chức bởi ${playdate.hostParent?.fullName || 'phụ huynh'} cùng bé ${hostChildNames(playdate)}`}
           onBack={() => navigate('/playdates')}
           backLabel="Về danh sách cuộc hẹn"
         />
@@ -798,7 +808,7 @@ const PlaydateDetails = () => {
       }}
       after={playdate.status === 'completed' && <PlaydateRatingsSection playdate={playdate} />}
       summary={{
-        childName: playdate.hostChild?.displayName,
+        childName: hostChildNames(playdate),
         // Families who declined are not part of the playdate anymore
         playmates: participants
           .filter((p) => p.status !== 'declined')

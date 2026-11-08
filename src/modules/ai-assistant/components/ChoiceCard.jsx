@@ -1,6 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import { Baby, Calendar, Check, HeartHandshake, MapPin, PencilLine, Send, Shapes, SlidersHorizontal, StickyNote, Users } from 'lucide-react';
+import { Baby, Calendar, Check, HeartHandshake, MapPin, PencilLine, Search, Send, Shapes, SlidersHorizontal, StickyNote, Users } from 'lucide-react';
 import { cn } from '../../../utils/cn';
 import { Button } from '../../../components/ui/Button';
 import { CHIP_CLASS, chipState } from '../../playdate/utils/suggestionFormatters';
@@ -35,6 +35,8 @@ const CUSTOM_LABELS = {
 // Button that sends a multiple selection
 const MULTIPLE_SUBMIT = {
   [AI_STEPS.CONNECT]: { label: 'Gửi lời mời', icon: Send },
+  // Several own children can come together (at least one)
+  [AI_STEPS.CHILD]: { label: 'Xác nhận các bé', icon: Baby },
 };
 
 /**
@@ -75,6 +77,7 @@ export const ChoiceCard = ({ card, onChoose, disabled = false, onViewChild }) =>
         </>
       }
     >
+      {card.description && <p className="text-xs text-text-muted leading-relaxed">{card.description}</p>}
 
       {card.options.length === 0 ? (
         <p className="text-xs text-text-muted">Chưa có gợi ý phù hợp cho bước này.</p>
@@ -153,6 +156,19 @@ export const ChoiceCard = ({ card, onChoose, disabled = false, onViewChild }) =>
                   {CUSTOM_LABELS[card.stepId] || 'Khác…'}
                 </Button>
               )}
+              {card.stepId === AI_STEPS.AGENDA && card.canSearchAttractions && (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  disabled={disabled}
+                  leftIcon={<Search className="w-3.5 h-3.5 text-primary" />}
+                  onClick={() =>
+                    choice.submitCustom({ searchAttractions: true })
+                  }
+                >
+                  Tìm trò chơi tại đây
+                </Button>
+              )}
               {card.allowSkip && (
                 <Button size="sm" variant="ghost" disabled={disabled} onClick={choice.skip}>
                   Bỏ qua
@@ -170,6 +186,7 @@ ChoiceCard.propTypes = {
   card: PropTypes.shape({
     stepId: PropTypes.string.isRequired,
     title: PropTypes.string,
+    description: PropTypes.string,
     status: PropTypes.string.isRequired,
     selectionMode: PropTypes.oneOf(['single', 'multiple']),
     selectedOptionIds: PropTypes.arrayOf(PropTypes.string),

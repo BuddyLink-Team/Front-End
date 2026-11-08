@@ -34,6 +34,7 @@ import {
   messageStatusChanged,
   messagesReadByPartner,
   activeConversationClosed,
+  pollVoted,
   CHAT_LIST_STATUS,
 } from '../redux/chatSlice.js';
 
@@ -296,6 +297,13 @@ export const useChat = ({ initialConversationId = null, initialPlaydateId = null
     [dispatch],
   );
 
+  const handlePollVoted = useCallback(
+    (data) => {
+      dispatch(pollVoted(data));
+    },
+    [dispatch],
+  );
+
   const { isConnected, emitSendMessage, emitTyping, emitReadStatus } = useChatSocket({
     conversationId: activeConversationId,
     onMessageReceived: handleMessageReceived,
@@ -303,6 +311,7 @@ export const useChat = ({ initialConversationId = null, initialPlaydateId = null
     onMessageRead: handleMessageRead,
     onConversationUpdated: handleConversationUpdated,
     onMessageDeleted: handleMessageDeleted,
+    onPollVoted: handlePollVoted,
   });
 
   useEffect(() => {

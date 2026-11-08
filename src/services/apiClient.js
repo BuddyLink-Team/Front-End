@@ -26,7 +26,7 @@ const apiClient = axios.create({
  * Exchange the stored refresh token for a new token pair (the backend rotates the refresh token).
  * @returns {Promise<string>} New access token
  */
-const refreshAccessToken = async () => {
+const requestNewAccessToken = async () => {
   const refreshToken = tokenStore.getRefreshToken();
   if (!refreshToken) {
     throw new Error('No refresh token available');
@@ -38,6 +38,28 @@ const refreshAccessToken = async () => {
   }
   tokenStore.setTokens(tokens);
   return tokens.accessToken;
+};
+
+// The refresh in flight: every caller (axios interceptor, AI stream) waits for the same one, so a rotated
+// refresh token is never sent twice
+let refreshPromise = null;
+
+/**
+ * New access token, shared by concurrent callers. The socket reconnects with it.
+ * @returns {Promise<string>}
+ */
+export const refreshAccessToken = () => {
+  if (!refreshPromise) {
+    refreshPromise = requestNewAccessToken()
+      .then((token) => {
+        socketService.updateToken();
+        return token;
+      })
+      .finally(() => {
+        refreshPromise = null;
+      });
+  }
+  return refreshPromise;
 };
 
 /**
@@ -64,20 +86,6 @@ apiClient.interceptors.request.use(
 );
 
 // Response interceptor: handle automatic token refresh and global error formatting
-let isRefreshing = false;
-let failedQueue = [];
-
-const processQueue = (error, token = null) => {
-  failedQueue.forEach((prom) => {
-    if (error) {
-      prom.reject(error);
-    } else {
-      prom.resolve(token);
-    }
-  });
-  failedQueue = [];
-};
-
 // Endpoints whose 401 means "wrong credentials / no session", not "access token expired"
 const NO_REFRESH_ENDPOINTS = [
   API_ENDPOINTS.AUTH.LOGIN,
@@ -116,34 +124,15 @@ apiClient.interceptors.response.use(
     openPaywallOnQuotaError(error);
 
     if (error.response?.status === 401 && originalRequest && !originalRequest._retry && !skipRefresh) {
-      if (isRefreshing) {
-        return new Promise((resolve, reject) => {
-          failedQueue.push({ resolve, reject });
-        })
-          .then((token) => {
-            originalRequest.headers.Authorization = `Bearer ${token}`;
-            return apiClient(originalRequest);
-          })
-          .catch((err) => Promise.reject(err));
-      }
-
       originalRequest._retry = true;
-      isRefreshing = true;
-
       try {
+        // Concurrent 401s wait for the same refresh
         const newAccessToken = await refreshAccessToken();
-        // Reconnect the socket if the server rejected the expired token
-        socketService.updateToken();
-        processQueue(null, newAccessToken);
         originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
         return apiClient(originalRequest);
       } catch (refreshError) {
-        socketService.disconnect();
-        processQueue(refreshError, null);
         endSession();
         return Promise.reject(refreshError);
-      } finally {
-        isRefreshing = false;
       }
     }
 

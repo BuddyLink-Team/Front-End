@@ -12,13 +12,18 @@ import {
   X,
   ShieldCheck,
   CalendarX,
+  UserCheck,
+  AlertTriangle,
 } from 'lucide-react';
 import { Avatar } from '../../../components/ui/Avatar';
 import { VerifiedBadge } from '../../../components/badges/VerifiedBadge';
 import { StatusChip } from '../../../components/badges/StatusChip';
 import { InterestTag } from '../../../components/badges/InterestTag';
+import { Button } from '../../../components';
 import { cn } from '../../../utils/cn';
 import { formatChildAge } from '../../../utils/formatters';
+import { usePlaydateChaperone } from '../../playdate/hooks/usePlaydateChaperone.js';
+import { hostChildrenOf } from '../../playdate/utils/hostChildren';
 import { PLAYDATE_PARTICIPANT_STATUS, PLAYDATE_STATUS_CHIPS } from '../constants/chat.constants.js';
 
 /**
@@ -39,6 +44,7 @@ export const PlaydateEventCollateralPanel = ({
   className,
 }) => {
   const navigate = useNavigate();
+  const { summary: chaperoneSummary, toggle: toggleChaperone, isUpdating: isUpdatingChaperone } = usePlaydateChaperone(playdate);
 
   if (!playdate) {
     return (
@@ -71,7 +77,11 @@ export const PlaydateEventCollateralPanel = ({
   // Only the group chat members: the host and the accepted families (the API already leaves out the others)
   const members = participants.filter((p) => p.status === PLAYDATE_PARTICIPANT_STATUS.ACCEPTED);
   const allChildren = [
-    ...(hostChild ? [{ ...hostChild, isHost: true, parentName: host?.fullName }] : []),
+    ...hostChildrenOf({ hostChild, hostChildren: playdate.hostChildren }).map((child) => ({
+      ...child,
+      isHost: true,
+      parentName: host?.fullName,
+    })),
     ...members
       .filter((p) => p.child)
       .map((p) => ({
@@ -80,6 +90,14 @@ export const PlaydateEventCollateralPanel = ({
         parentName: p.parent?.fullName || 'Phụ huynh',
       })),
   ];
+
+  const {
+    requiredChaperones,
+    confirmedChaperones,
+    missingChaperones,
+    isChaperoneSufficient,
+    isChaperoneConfirmedByMe: isConfirmedByMe,
+  } = chaperoneSummary;
 
   return (
     <aside
@@ -91,7 +109,7 @@ export const PlaydateEventCollateralPanel = ({
       {/* 1. Panel Header */}
       <div className="px-5 py-4 border-b border-hairline flex items-center justify-between bg-surface-container-lowest z-10 shrink-0">
         <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-full bg-primary-container/20 flex items-center justify-center text-primary">
+          <div className="w-8 h-8 rounded-full bg-primary-container flex items-center justify-center text-primary">
             <Calendar className="w-4 h-4" />
           </div>
           <div>
@@ -115,7 +133,7 @@ export const PlaydateEventCollateralPanel = ({
       {/* 2. Scrollable Content Body */}
       <div className="flex-1 overflow-y-auto p-5 space-y-5 scrollbar-thin">
         {/* Event Main Overview Card */}
-        <div className="p-4 rounded-2xl bg-surface-container-low/70 border border-hairline space-y-3">
+        <div className="p-4 rounded-2xl bg-surface-container-low border border-hairline space-y-3">
           <div className="flex items-start justify-between gap-2">
             <h4 className="text-base font-bold text-on-surface leading-snug">
               {title || activity || 'Cuộc hẹn chơi cùng bé'}
@@ -155,7 +173,7 @@ export const PlaydateEventCollateralPanel = ({
 
           {/* Host Note if present */}
           {note && (
-            <div className="pt-2 border-t border-hairline/60 flex items-start gap-2 text-xs text-on-surface-variant bg-surface-container-lowest/60 p-2.5 rounded-xl">
+            <div className="pt-2 border-t border-hairline flex items-start gap-2 text-xs text-on-surface-variant bg-surface-container-lowest p-2.5 rounded-xl">
               <FileText className="w-3.5 h-3.5 text-primary shrink-0 mt-0.5" />
               <p className="italic text-label-sm leading-relaxed line-clamp-3">{note}</p>
             </div>
@@ -182,7 +200,7 @@ export const PlaydateEventCollateralPanel = ({
                 return (
                   <div
                     key={kid.id || idx}
-                    className="p-3 rounded-xl bg-surface-container-low/50 border border-hairline hover:bg-surface-container-low transition-colors"
+                    className="p-3 rounded-xl bg-surface-container-low border border-hairline hover:bg-surface-container transition-colors"
                   >
                     <div className="flex items-start justify-between gap-1 mb-1">
                       <div className="flex items-center gap-1.5">
@@ -235,7 +253,7 @@ export const PlaydateEventCollateralPanel = ({
           <div className="space-y-2">
             {/* Host Parent */}
             {host && (
-              <div className="p-3 rounded-xl bg-surface-container-low/50 border border-hairline flex items-center justify-between gap-3">
+              <div className="p-3 rounded-xl bg-surface-container-low border border-hairline flex items-center justify-between gap-3">
                 <div className="flex items-center gap-2.5 min-w-0">
                   <Avatar
                     src={host.avatarUrl}
@@ -255,7 +273,7 @@ export const PlaydateEventCollateralPanel = ({
                   </div>
                 </div>
 
-                <span className="shrink-0 text-label-xs font-bold px-2 py-0.5 rounded-full bg-primary text-white shadow-2xs">
+                <span className="shrink-0 text-label-xs font-bold px-2 py-0.5 rounded-full bg-primary text-on-primary shadow-2xs">
                   Chủ nhà
                 </span>
               </div>
@@ -269,7 +287,7 @@ export const PlaydateEventCollateralPanel = ({
               return (
                 <div
                   key={parent.id || pIdx}
-                  className="p-3 rounded-xl bg-surface-container-low/50 border border-hairline flex items-center justify-between gap-3"
+                  className="p-3 rounded-xl bg-surface-container-low border border-hairline flex items-center justify-between gap-3"
                 >
                   <div className="flex items-center gap-2.5 min-w-0">
                     <Avatar
@@ -295,8 +313,52 @@ export const PlaydateEventCollateralPanel = ({
           </div>
         </div>
 
+        {/* 5. Chaperone Assignment Section (BUD-49 Part B5) */}
+        <div className="p-3.5 rounded-2xl bg-surface-container-low border border-hairline space-y-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-1.5 text-xs font-bold text-on-surface uppercase tracking-wider">
+              <UserCheck className="w-3.5 h-3.5 text-primary" />
+              <span>Người lớn đi kèm ({confirmedChaperones}/{requiredChaperones})</span>
+            </div>
+            {isChaperoneSufficient ? (
+              <span className="text-label-xs font-semibold px-2 py-0.5 rounded-full bg-primary-soft text-primary-dark border border-primary-border">
+                Đủ an toàn
+              </span>
+            ) : (
+              <span className="text-label-xs font-semibold px-2 py-0.5 rounded-full bg-tertiary-soft text-tertiary-dark border border-tertiary-border flex items-center gap-1">
+                <AlertTriangle className="w-3 h-3 text-tertiary" /> Cần thêm
+              </span>
+            )}
+          </div>
+
+          <p className="text-label-xs text-on-surface-variant leading-relaxed">
+            Quy định BuddyLink: 1 người lớn / 2 bé dưới 5 tuổi; 1 người lớn / 3 bé từ 5 tuổi (1 kèm 1 với hoạt động rủi ro cao).
+          </p>
+
+          {!isChaperoneSufficient && (
+            <div className="flex items-start gap-1.5 text-label-xs text-tertiary-dark bg-tertiary-soft p-2.5 rounded-lg border border-tertiary-border">
+              <AlertTriangle className="w-3.5 h-3.5 text-tertiary shrink-0 mt-0.5" />
+              <span>
+                Cần thêm ít nhất {missingChaperones} phụ huynh xác nhận đi kèm để đảm bảo an toàn cho các bé.
+              </span>
+            </div>
+          )}
+
+          <Button
+            type="button"
+            disabled={isUpdatingChaperone}
+            onClick={toggleChaperone}
+            variant={isConfirmedByMe ? 'danger' : 'primary'}
+            size="sm"
+            className="w-full"
+            leftIcon={<UserCheck className="w-3.5 h-3.5" />}
+          >
+            {isConfirmedByMe ? 'Hủy đăng ký đi kèm' : 'Tôi sẽ đi kèm cùng các bé'}
+          </Button>
+        </div>
+
         {/* Safety & Trust Note */}
-        <div className="p-3 rounded-xl bg-primary-container/15 border border-primary-container/30 flex items-start gap-2.5">
+        <div className="p-3 rounded-xl bg-primary-soft border border-primary-border flex items-start gap-2.5">
           <ShieldCheck className="w-4 h-4 text-primary shrink-0 mt-0.5" />
           <p className="text-label-sm text-on-surface-variant leading-relaxed">
             Nhóm trò chuyện được bảo mật. Chỉ phụ huynh có trạng thái <strong className="text-on-surface">Đã tham gia (accepted)</strong> mới có quyền gửi và xem tin nhắn.

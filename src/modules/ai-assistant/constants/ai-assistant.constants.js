@@ -26,8 +26,8 @@ export const AI_STEPS = Object.freeze({
 // Steps of a playdate plan: their cards are locked once the plan is closed (created or replaced)
 export const AI_PLAN_STEPS = Object.freeze([
   AI_STEPS.CHILD,
-  AI_STEPS.TIME,
   AI_STEPS.PLAYMATES,
+  AI_STEPS.TIME,
   AI_STEPS.ACTIVITY,
   AI_STEPS.PLACE,
   AI_STEPS.AGENDA,
@@ -85,6 +85,8 @@ export const AI_LIMITS = Object.freeze({
   SESSION_NEAR_FULL: 5,
   MAX_AGENDA_ITEMS: 5,
   AGENDA_ITEM_MAX_LENGTH: 80,
+  // A real attraction of the place keeps its source link ("Theo thông tin trên mạng về …", BE same limit)
+  SOURCED_AGENDA_ITEM_MAX_LENGTH: 400,
   // An AI turn can call the model several times (tool rounds)
   REQUEST_TIMEOUT_MS: 90000,
   // Friend families loaded once by the playmate search of a card, then filtered on the device
@@ -102,6 +104,10 @@ export const TOOL_LABELS = Object.freeze({
   suggestPlaces: 'Địa điểm',
   proposePlaydate: 'Kế hoạch hẹn chơi',
   sendConnectionRequests: 'Lời mời kết bạn',
+  listMyPlaydates: 'Xem lịch hẹn',
+  reschedulePlaydate: 'Dời lịch hẹn',
+  cancelPlaydate: 'Hủy lịch hẹn',
+  respondInvitation: 'Phản hồi lời mời',
 });
 
 // Accents of the starters and Tool UI Cards, same pastel badges as the rest of the web (DESIGN.md palette roles):
@@ -148,7 +154,7 @@ export const AI_STEP_TONES = Object.freeze({
 // Starters shown in an empty conversation (Stitch "Chủ đề gợi ý nhanh")
 export const QUICK_PROMPTS = Object.freeze([
   { key: 'playmates', icon: Compass, tone: AI_TONES.primary, label: 'Tìm bạn chơi cho bé', prompt: 'Tìm bạn chơi phù hợp cho bé nhà mình' },
-  { key: 'plan', icon: Calendar, tone: AI_TONES.primary, label: 'Lên kế hoạch playdate cuối tuần', prompt: 'Lên kế hoạch hẹn chơi cuối tuần này cho bé' },
+  { key: 'plan', icon: Calendar, tone: AI_TONES.primary, label: 'Lên kế hoạch playdate', prompt: 'Lên kế hoạch hẹn chơi cho bé' },
   { key: 'places', icon: MapPin, tone: AI_TONES.secondary, label: 'Địa điểm vui chơi gần nhà', prompt: 'Gợi ý địa điểm vui chơi cho bé gần nhà mình' },
   { key: 'indoor', icon: Shapes, tone: AI_TONES.tertiary, label: 'Hoạt động trong nhà cho bé', prompt: 'Gợi ý vài hoạt động trong nhà phù hợp với bé' },
 ]);
@@ -167,13 +173,76 @@ export const SESSION_GROUP_LABELS = Object.freeze({
   [SESSION_GROUPS.OLDER]: 'Cũ hơn',
 });
 
+export const AI_WARNING_SEVERITY = Object.freeze({
+  BLOCK: 'block',
+  WARN: 'warn',
+  INFO: 'info',
+});
+
+// Warning codes the cards act on (the others are only shown, DRAFT_WARNING_TEXT)
+export const AI_DRAFT_WARNING_CODES = Object.freeze({
+  SAFETY_HIGH_RISK: 'SAFETY_HIGH_RISK',
+});
+
 export const DRAFT_WARNING_TEXT = Object.freeze({
-  AGE_GAP: 'Các bé chênh lệch tuổi khá nhiều',
-  SCHEDULE_CONFLICT: 'Có bé đã có lịch hẹn khác trùng giờ này',
+  // Time
+  NAP_TIME: 'Trùng giờ ngủ trưa của bé (12:00 - 14:00)',
+  SCHOOL_HOURS: 'Trùng giờ học của các bé',
   PAST_DATE: 'Thời gian đã qua, hãy chọn lại',
-  INVITEE_NOT_FRIEND: 'Có bạn chưa kết nối nên không thể mời',
   UNUSUAL_HOUR: 'Giờ hẹn khá sớm hoặc khá muộn với các bé',
-  FAR_PLACE: 'Địa điểm khá xa nhà bạn',
+  SHORT_NOTICE: 'Hẹn gấp dưới 4 tiếng, bạn chơi có thể chưa kịp chuẩn bị',
+  HOLIDAY: 'Ngày lễ lớn, địa điểm có thể rất đông',
+  // Place
+  PLACE_CLOSED: 'Địa điểm đóng cửa vào thời gian này',
+  PLACE_CLOSES_EARLY: 'Địa điểm đóng cửa sớm hơn giờ kết thúc hẹn',
+  HOURS_UNKNOWN: 'Chưa có thông tin giờ mở cửa chính xác',
+  OUTDOOR_AFTER_DARK: 'Khu vực ngoài trời sau 18:00 có thể thiếu sáng',
+  PLACE_AGE: 'Độ tuổi chưa thật sự phù hợp với quy định địa điểm',
+  ACTIVITY_PLACE_MISMATCH: 'Hoạt động có thể không khớp với loại hình địa điểm',
+  FAR_PLACE: 'Địa điểm khá xa nhà một gia đình (> 15 km)',
+  // Agenda
+  AGENDA_OVER_TIME: 'Tổng thời lượng các trò chơi vượt quá thời gian buổi hẹn',
+  ITEM_AGE: 'Có trò chơi trong lịch trình chưa phù hợp độ tuổi bé',
+  ITEM_NOT_AT_PLACE: 'Hoạt động không phù hợp với loại hình địa điểm đã chọn',
+  AGENDA_TOO_LONG: 'Số lượng hoạt động quá nhiều so với thời lượng',
+  AGENDA_TOO_THIN: 'Thời lượng dài nhưng ít hoạt động',
+  AGENDA_AGE_MISMATCH: 'Một số hoạt động có thể chưa phù hợp với lứa tuổi bé',
+  TOO_LONG_FOR_AGE: 'Thời lượng buổi chơi khá dài so với độ tuổi bé',
+  MEAL_TIME: 'Trùng vào khung giờ ăn uống, nhớ chuẩn bị đồ ăn nhẹ cho bé',
+  // Safety
+  SAFETY_HIGH_RISK: 'Hoạt động tiềm ẩn rủi ro cao, cần sự giám sát đặc biệt',
+  INSUFFICIENT_ADULTS: 'Chưa đủ tỷ lệ người lớn đi kèm an toàn',
+  // Participants
+  AGE_GAP: 'Các bé chênh lệch tuổi khá nhiều (> 3 tuổi)',
+  GROUP_TOO_LARGE: 'Nhóm khá đông (> 6 bé), cần nhiều người lớn hỗ trợ',
+  INVITEE_NOT_FRIEND: 'Có bạn chưa kết nối nên không thể mời',
+  SCHEDULE_CONFLICT: 'Có bé đã có lịch hẹn khác trùng giờ này',
+  INVITEE_BUSY: 'Có bạn bị trùng lịch bận',
+  NOT_PREFERRED_TIME: 'Giờ này chưa hợp lịch ưu tiên của mọi gia đình',
+  NO_SHARED_INTEREST: 'Các bé chưa có sở thích chung nào được lưu',
+  // Weather
+  BAD_WEATHER: 'Dự báo thời tiết có thể có mưa hoặc bão',
+});
+
+export const WARNING_SEVERITY_STYLES = Object.freeze({
+  [AI_WARNING_SEVERITY.BLOCK]: {
+    card: 'bg-error-soft/30 border-error-container text-error-dark',
+    iconColor: 'text-error',
+    badge: 'bg-error-soft text-error-dark border-error-container',
+    label: 'Cần xử lý',
+  },
+  [AI_WARNING_SEVERITY.WARN]: {
+    card: 'bg-tertiary-soft border-tertiary-border text-tertiary-dark',
+    iconColor: 'text-tertiary-dark',
+    badge: 'bg-tertiary-soft text-tertiary-dark border-tertiary-border',
+    label: 'Lưu ý',
+  },
+  [AI_WARNING_SEVERITY.INFO]: {
+    card: 'bg-secondary-soft border-secondary-border text-secondary-dark',
+    iconColor: 'text-secondary-dark',
+    badge: 'bg-secondary-soft text-secondary-dark border-secondary-border',
+    label: 'Thông tin',
+  },
 });
 
 export const AI_ERROR_CODES = Object.freeze({
@@ -185,6 +254,10 @@ export const AI_ERROR_CODES = Object.freeze({
   AI_RATE_LIMITED: 'AI_RATE_LIMITED',
   AI_UNAVAILABLE: 'AI_UNAVAILABLE',
   AI_PROVIDER_ERROR: 'AI_PROVIDER_ERROR',
+  SAFETY_ACKNOWLEDGE_REQUIRED: 'SAFETY_ACKNOWLEDGE_REQUIRED',
+  AI_PLAN_BLOCKED: 'AI_PLAN_BLOCKED',
+  // Shared code (COMMON_ERROR_MESSAGES): the AI stream could not refresh the session
+  ACCESS_TOKEN_EXPIRED: 'ACCESS_TOKEN_EXPIRED',
 });
 
 export const AI_ERROR_MESSAGES = Object.freeze({
@@ -196,6 +269,9 @@ export const AI_ERROR_MESSAGES = Object.freeze({
   [AI_ERROR_CODES.AI_RATE_LIMITED]: 'Trợ lý AI đang bận, bạn thử lại sau ít phút nhé.',
   [AI_ERROR_CODES.AI_UNAVAILABLE]: 'Trợ lý AI chưa sẵn sàng. Bạn thử lại sau nhé.',
   [AI_ERROR_CODES.AI_PROVIDER_ERROR]: 'Trợ lý AI tạm thời gặp sự cố. Bạn thử lại nhé.',
+  [AI_ERROR_CODES.AI_PLAN_BLOCKED]: 'Kế hoạch còn cảnh báo cần xử lý (ví dụ địa điểm đóng cửa hoặc giờ đã qua). Bạn đổi lại rồi xác nhận nhé.',
+  [AI_ERROR_CODES.SAFETY_ACKNOWLEDGE_REQUIRED]:
+    'Vui lòng xác nhận đã đọc và cam kết tuân thủ các lưu ý an toàn cho các bé trước khi tạo lịch hẹn.',
   PARENT_NOT_FOUND: 'Không tìm thấy hồ sơ phụ huynh. Vui lòng thiết lập hồ sơ trước.',
 });
 

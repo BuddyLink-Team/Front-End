@@ -84,12 +84,16 @@ describe('PlaceSearchModal', () => {
     fireEvent.click(await screen.findByRole('button', { name: /^chọn$/i }));
 
     await waitFor(() =>
-      expect(onSelectPlace).toHaveBeenCalledWith({
-        name: 'Công viên APEC',
-        address: 'Bạch Đằng, Phường Hải Châu, Đà Nẵng',
-        placeId: 'osm-way-512870334',
-        coordinates: { type: 'Point', coordinates: [108.2238, 16.0598] },
-      }),
+      // The cache id, type and opening hours go with the place (the AI plan reads them, BUD-49)
+      expect(onSelectPlace).toHaveBeenCalledWith(
+        expect.objectContaining({
+          id: 'p1',
+          name: 'Công viên APEC',
+          address: 'Bạch Đằng, Phường Hải Châu, Đà Nẵng',
+          placeId: 'osm-way-512870334',
+          coordinates: { type: 'Point', coordinates: [108.2238, 16.0598] },
+        }),
+      ),
     );
     expect(onClose).toHaveBeenCalled();
   });

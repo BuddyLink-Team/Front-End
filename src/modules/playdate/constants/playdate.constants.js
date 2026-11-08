@@ -49,6 +49,29 @@ export const RESCHEDULE_STATUS = Object.freeze({
 export const PLAYDATE_ERROR_CODES = Object.freeze({
   QUOTA_EXCEEDED: 'QUOTA_EXCEEDED',
   SCHEDULE_CONFLICT: 'SCHEDULE_CONFLICT',
+  PLACE_CLOSED: 'PLACE_CLOSED',
+});
+
+/** Rules on the time of a playdate (BE playdate-time.rules.js), checked while the form is filled */
+export const TIME_ISSUE_SEVERITY = Object.freeze({
+  BLOCK: 'block',
+  WARN: 'warn',
+  INFO: 'info',
+});
+
+export const TIME_ISSUE_TEXT = Object.freeze({
+  PAST_DATE: 'Thời gian đã qua, hãy chọn lại.',
+  PLACE_CLOSED: 'Địa điểm đóng cửa vào thời gian này, hãy đổi giờ hoặc địa điểm.',
+  UNUSUAL_HOUR: 'Giờ hẹn khá sớm hoặc khá muộn với các bé.',
+  NAP_TIME: 'Trùng giờ ngủ trưa của bé nhỏ (12:00 - 14:00).',
+  SCHOOL_HOURS: 'Trùng giờ học của các bé (ngày trong tuần).',
+  TOO_LONG_FOR_AGE: 'Thời lượng khá dài so với tuổi của bé nhỏ nhất.',
+  PLACE_CLOSES_EARLY: 'Địa điểm đóng cửa ngay sau giờ kết thúc buổi hẹn.',
+  OUTDOOR_AFTER_DARK: 'Khu vực ngoài trời sau 18:00 có thể thiếu sáng.',
+  MEAL_TIME: 'Trùng giờ ăn, nhớ chuẩn bị đồ ăn nhẹ cho các bé.',
+  SHORT_NOTICE: 'Hẹn gấp dưới 4 tiếng, các gia đình có thể chưa kịp chuẩn bị.',
+  HOLIDAY: 'Ngày lễ lớn, địa điểm có thể rất đông.',
+  HOURS_UNKNOWN: 'Chưa có thông tin giờ mở cửa của địa điểm, bạn kiểm tra lại trước nhé.',
 });
 
 /** Warnings returned with a playdate or a playmate (never block the action) */
@@ -105,6 +128,12 @@ export const TIME_SLOT_LABELS = Object.freeze({
  * Codes returned by the /playdates and /places endpoints (playdate.service, subscription quota);
  * shared middleware codes are in constants/error.constants.js.
  */
+// POST /playdates/:id/chaperone (mirror of the backend CHAPERONE_ACTIONS)
+export const CHAPERONE_ACTIONS = Object.freeze({
+  CONFIRM: 'confirm',
+  CANCEL: 'cancel',
+});
+
 export const PLAYDATE_ERROR_MESSAGES = Object.freeze({
   PARENT_NOT_FOUND: 'Không tìm thấy thông tin phụ huynh.',
   PLAYDATE_NOT_FOUND: 'Không tìm thấy thông tin buổi hẹn chơi.',
@@ -140,6 +169,8 @@ export const PLAYDATE_ERROR_MESSAGES = Object.freeze({
   PLAYDATE_CHANGED: 'Buổi hẹn vừa thay đổi, bạn tải lại trang rồi thử lại nhé.',
   HOST_CANNOT_LEAVE: 'Người tổ chức không thể rời buổi hẹn, chỉ có thể hủy buổi hẹn.',
   NOT_PARTICIPANT: 'Bạn không có trong danh sách tham gia buổi hẹn này.',
+  PLACE_CLOSED: 'Địa điểm đóng cửa vào thời gian này, hãy đổi giờ hoặc địa điểm.',
+  TOO_MANY_HOST_CHILDREN: 'Một buổi hẹn có tối đa 5 bé của bạn.',
   ALREADY_LEFT: 'Bạn đã rời buổi hẹn này rồi.',
   LEAVE_CONFLICT: 'Buổi hẹn đã thay đổi trạng thái. Vui lòng tải lại trang.',
   INVALID_RESCHEDULE_LOCATION: 'Địa điểm mới cần có cả tên và địa chỉ.',

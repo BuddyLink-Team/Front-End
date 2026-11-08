@@ -44,6 +44,9 @@ export const fetchPlaceSuggestions = createApiThunk(
 // Children's other playdates on a day (checked while a schedule is picked)
 export const fetchBusyTimes = createApiThunk('playdate/fetchBusyTimes', (params) => playdateApi.getBusyTimes(params));
 
+// Time rules of the picked time (checked while a schedule is picked)
+export const fetchTimeCheck = createApiThunk('playdate/fetchTimeCheck', (params) => playdateApi.getTimeCheck(params));
+
 export const fetchActivitySuggestions = createApiThunk(
   'playdate/fetchActivitySuggestions',
   (params) => playdateApi.getActivitySuggestions(params),

@@ -15,6 +15,7 @@ export const useChatSocket = ({
   onMessageRead,
   onConversationUpdated,
   onMessageDeleted,
+  onPollVoted,
 }) => {
   const socketRef = useRef(null);
 
@@ -60,6 +61,12 @@ export const useChatSocket = ({
       }
     };
 
+    const handlePollVoted = (data) => {
+      if (onPollVoted && data.conversationId === conversationId) {
+        onPollVoted(data);
+      }
+    };
+
     // Re-join active conversation room on socket reconnect
     const handleConnect = () => {
       if (conversationId) {
@@ -73,6 +80,7 @@ export const useChatSocket = ({
     socket.on(SOCKET_EVENTS.MESSAGE_READ, handleMessageRead);
     socket.on(SOCKET_EVENTS.CONVERSATION_UPDATED, handleConversationUpdated);
     socket.on(SOCKET_EVENTS.MESSAGE_DELETED, handleMessageDeleted);
+    socket.on(SOCKET_EVENTS.POLL_VOTED, handlePollVoted);
 
     return () => {
       if (conversationId && socket) {
@@ -84,8 +92,9 @@ export const useChatSocket = ({
       socket.off(SOCKET_EVENTS.MESSAGE_READ, handleMessageRead);
       socket.off(SOCKET_EVENTS.CONVERSATION_UPDATED, handleConversationUpdated);
       socket.off(SOCKET_EVENTS.MESSAGE_DELETED, handleMessageDeleted);
+      socket.off(SOCKET_EVENTS.POLL_VOTED, handlePollVoted);
     };
-  }, [conversationId, onMessageReceived, onUserTyping, onMessageRead, onConversationUpdated, onMessageDeleted]);
+  }, [conversationId, onMessageReceived, onUserTyping, onMessageRead, onConversationUpdated, onMessageDeleted, onPollVoted]);
 
   const isConnected = useCallback(() => Boolean(socketRef.current?.connected), []);
 

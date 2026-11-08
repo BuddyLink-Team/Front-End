@@ -4,7 +4,7 @@ import { Check, Plus, Shapes, Trash2 } from 'lucide-react';
 import { Button } from '../../../components/ui/Button';
 import { Input } from '../../../components/ui/Input';
 import { cn } from '../../../utils/cn';
-import { normalizeAgenda } from '../utils/aiAssistantUtils';
+import { normalizeAgenda, agendaItemMaxLength } from '../utils/aiAssistantUtils';
 import { ToolCardFrame } from './ToolCardFrame';
 import { AI_CHOICE_STATUS, AI_LIMITS, AI_STEP_TONES, AI_STEPS, AI_TONE_CYCLE } from '../constants/ai-assistant.constants';
 
@@ -70,7 +70,7 @@ export const AgendaCard = ({ card, onChoose, disabled = false }) => {
             <Input
               aria-label={`Hoạt động chính ${index + 1}`}
               value={item}
-              maxLength={AI_LIMITS.AGENDA_ITEM_MAX_LENGTH}
+              maxLength={agendaItemMaxLength(item)}
               disabled={disabled}
               onChange={(event) => setItems((prev) => prev.map((value, i) => (i === index ? event.target.value : value)))}
             />

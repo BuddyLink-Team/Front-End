@@ -4,7 +4,8 @@ import { PLAYDATE_TIME_REGEX, hasPlaydateStarted } from '../utils/playdateTime';
 
 export const createPlaydateSchema = z
   .object({
-    hostChildId: z.string().min(1, 'Vui lòng chọn bé tham gia của bạn'),
+    // Every own child who comes (at least one; the first one is the main child the playmates are ranked for)
+    hostChildIds: z.array(z.string().min(1)).min(1, 'Vui lòng chọn ít nhất 1 bé tham gia của bạn'),
     activity: z.string().trim().min(2, 'Vui lòng nhập tên hoạt động hoặc chọn từ gợi ý'),
     scheduledDate: z
       .string()

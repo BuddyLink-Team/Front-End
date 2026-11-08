@@ -56,7 +56,15 @@ export const ToolCardList = ({
             key={key}
             card={card}
             disabled={disabled || isPlanLocked || message.id !== latestDraftMessageId}
-            onConfirm={() => choose({ optionIds: [AI_OPTION_IDS.CREATE_PLAYDATE], label: 'Xác nhận tạo lịch hẹn' })}
+            onConfirm={(params) =>
+              choose({
+                optionIds: [AI_OPTION_IDS.CREATE_PLAYDATE],
+                label: 'Xác nhận tạo lịch hẹn',
+                custom: {
+                  safetyAcknowledged: params?.safetyAcknowledged ?? Boolean(card.draft?.safetyAcknowledged),
+                },
+              })
+            }
           />
         );
       case AI_CARD_TYPES.QUOTA_NOTICE:

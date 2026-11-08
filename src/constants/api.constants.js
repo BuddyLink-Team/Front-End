@@ -35,6 +35,7 @@ export const API_ENDPOINTS = {
     BASE: '/playdates',
     PENDING_RATINGS: '/playdates/ratings/pending',
     RATINGS: (id) => `/playdates/${id}/ratings`,
+    CHAPERONE: (id) => `/playdates/${id}/chaperone`,
   },
   PLACES: {
     BASE: '/places',
@@ -45,11 +46,15 @@ export const API_ENDPOINTS = {
     PLAYDATE: '/chat/playdate',
     MESSAGES: '/chat/conversations',
     UPLOAD: '/chat/upload',
+    POLL: (conversationId) => `/chat/conversations/${conversationId}/poll`,
+    VOTE_POLL: (messageId) => `/chat/messages/${messageId}/poll/vote`,
   },
   AI_ASSISTANT: {
     SESSIONS: '/ai-assistant/sessions',
     SESSION: (id) => `/ai-assistant/sessions/${id}`,
     MESSAGES: (id) => `/ai-assistant/sessions/${id}/messages`,
+    // Same body as MESSAGES, answered with Server-Sent Events (tool progress, then the reply)
+    MESSAGES_STREAM: (id) => `/ai-assistant/sessions/${id}/messages/stream`,
   },
   NOTIFICATION: {
     BASE: '/notifications',
