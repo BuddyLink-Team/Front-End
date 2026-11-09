@@ -79,9 +79,7 @@ export const AdminReportsPage = () => {
     handleAssessSentinel,
     handleApplySentinel,
     isBatchScanning,
-    isBatchApplying,
     handleBatchScanSentinel,
-    handleBatchApplySentinel,
     isExporting,
     handleExport,
   } = useAdminReports();
@@ -101,11 +99,15 @@ export const AdminReportsPage = () => {
                   <Sparkles size={10} />
                   AI: {row.sentinelAssessment.confidenceScore}%
                 </span>
-                {row.sentinelAssessment.autoShieldApplied && (
-                  <span className="inline-flex items-center gap-0.5 rounded-full bg-red-500/15 px-1.5 py-0.5 text-[10px] font-bold text-red-700 border border-red-500/30">
-                    🛡️ Auto-Shield
-                  </span>
-                )}
+                {(row.sentinelAssessment.autoShieldApplied ||
+                  row.sentinelAssessment.monitoring?.riskLevel === 'high' ||
+                  row.severity === 'critical' ||
+                  row.severity === 'high') &&
+                  (row.status === 'pending' || row.status === 'reviewing') && (
+                    <span className="inline-flex items-center gap-0.5 rounded-full bg-[#FDECE6] px-2 py-0.5 text-[10px] font-bold text-[#B44B27] border border-[#F8CBBBE0]">
+                      ⏳ Temporary restriction
+                    </span>
+                  )}
               </div>
             )}
           </div>
@@ -194,9 +196,7 @@ export const AdminReportsPage = () => {
         rows={rows}
         stats={stats}
         isBatchScanning={isBatchScanning}
-        isBatchApplying={isBatchApplying}
         onBatchScan={handleBatchScanSentinel}
-        onBatchApply={handleBatchApplySentinel}
       />
 
       <AdminListToolbar
