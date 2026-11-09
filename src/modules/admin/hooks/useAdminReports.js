@@ -153,10 +153,13 @@ export const useAdminReports = () => {
       const result = response?.data || response;
       const scannedCount = result?.scannedCount || 0;
       const highCount = result?.highConfidenceCount || 0;
+      const autoCount = result?.autoResolvedCount || 0;
       success(
-        scannedCount > 0
-          ? `Sentinel AI đã quét xong ${scannedCount} báo cáo (${highCount} báo cáo có độ tự tin cao ≥ 80%).`
-          : 'Tất cả báo cáo đang mở trong hàng đợi đều đã được AI thẩm định.'
+        autoCount > 0
+          ? `Sentinel AI đã quét xong: Tự động thi hành & đóng ${autoCount} vi phạm nhẹ (Cảnh cáo / Đình chỉ ≤7d). Các vụ việc còn lại đã được tổng hợp chờ Admin xem xét.`
+          : scannedCount > 0
+            ? `Sentinel AI đã quét xong ${scannedCount} báo cáo (${highCount} báo cáo có độ tự tin cao ≥ 80%).`
+            : 'Tất cả báo cáo đang mở trong hàng đợi đều đã được AI thẩm định.'
       );
       refetch();
       reloadStats();

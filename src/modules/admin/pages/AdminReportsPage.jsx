@@ -196,7 +196,10 @@ export const AdminReportsPage = () => {
         rows={rows}
         stats={stats}
         isBatchScanning={isBatchScanning}
+        isActionLoading={isActionLoading}
         onBatchScan={handleBatchScanSentinel}
+        onOpenReportDetail={openReportDetail}
+        onApplySentinel={handleApplySentinel}
       />
 
       <AdminListToolbar
