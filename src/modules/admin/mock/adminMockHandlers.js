@@ -9,11 +9,31 @@ import adminReportMockService from './adminReportMockService';
  * Consumed by Central Mock Server Engine (src/mock/index.js).
  */
 export const adminMockHandlers = [
-  // Safety & Reports Moderation (/stats placed before :id)
+  // Safety & Reports Moderation (/stats and batch routes placed before :id)
   {
     method: 'GET',
     pattern: '/admin/reports/stats',
     handler: () => adminReportMockService.getReportStats(),
+  },
+  {
+    method: 'POST',
+    pattern: '/admin/reports/sentinel/batch-scan',
+    handler: () => adminReportMockService.batchScanSentinel(),
+  },
+  {
+    method: 'POST',
+    pattern: '/admin/reports/sentinel/batch-apply',
+    handler: ({ body }) => adminReportMockService.batchApplySentinel(body),
+  },
+  {
+    method: 'POST',
+    pattern: '/admin/reports/:id/sentinel-assess',
+    handler: ({ params, body }) => adminReportMockService.assessReportWithSentinel(params.id, body),
+  },
+  {
+    method: 'POST',
+    pattern: '/admin/reports/:id/sentinel-apply',
+    handler: ({ params }) => adminReportMockService.applySentinelRecommendation(params.id),
   },
   {
     method: 'PATCH',

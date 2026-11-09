@@ -106,6 +106,7 @@ export const CHAT_ERROR_MESSAGES = Object.freeze({
     'Chỉ chủ cuộc hẹn và phụ huynh đã chấp nhận lời mời mới được tham gia nhóm chat.',
   JOIN_REJECTED: 'Không thể mở cuộc trò chuyện. Vui lòng thử lại.',
   INTERNAL_ERROR: 'Không thể gửi tin nhắn. Vui lòng thử lại sau.',
+  MESSAGING_RESTRICTED: 'Tài khoản của bạn đang bị tạm hạn chế gửi tin nhắn do vi phạm quy chuẩn an toàn.',
   // Image upload (file type / size / storage codes: COMMON_ERROR_MESSAGES)
   FILE_REQUIRED: 'Vui lòng chọn ảnh để gửi.',
 });

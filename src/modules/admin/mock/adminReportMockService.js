@@ -224,7 +224,7 @@ class AdminReportMockService {
   /**
    * POST /admin/reports/:id/action
    */
-  async applyReportAction(id, { type, durationDays, note }) {
+  async applyReportAction(id, { type, durationDays, note, isPolicyOverride, overrideReason }) {
     await delay();
     return this._update(id, (report, reports) => {
       if (CLOSED_STATUSES.includes(report.status)) {
@@ -235,6 +235,19 @@ class AdminReportMockService {
       }
       if (report.actions.some((action) => action.type === type)) {
         throw fail(409, 'ACTION_ALREADY_APPLIED', 'This action has already been applied');
+      }
+
+      // If report has AI assessment, check policy compliance
+      if (report.sentinelAssessment?.assessedAt) {
+        const allowedTypes = (report.sentinelAssessment.recommendedSanctions || []).map((s) => s.type);
+        if (allowedTypes.length > 0 && !allowedTypes.includes(type)) {
+          if (!isPolicyOverride) {
+            throw fail(422, 'POLICY_OVERRIDE_REQUIRED', 'Chế tài này nằm ngoài khung quy chuẩn.');
+          }
+          if (!overrideReason || overrideReason.trim().length < 20) {
+            throw fail(422, 'OVERRIDE_REASON_REQUIRED', 'Lý do giải trình tối thiểu 20 ký tự.');
+          }
+        }
       }
 
       // The account is the same on every report against this user
@@ -338,6 +351,165 @@ class AdminReportMockService {
       Object.assign(report, { status: 'reviewing', resolution: null, adminNotes: '', resolvedBy: null, resolvedAt: null });
       report.history.push(logEntry('reopen', fromStatus, 'reviewing', note));
     });
+  }
+
+  /**
+   * POST /admin/reports/:id/sentinel-assess
+   */
+  async assessReportWithSentinel(id, { forceRefresh = false } = {}) {
+    await delay();
+    return this._update(id, (report) => {
+      if (CLOSED_STATUSES.includes(report.status)) {
+        throw fail(400, 'INVALID_STATUS_TRANSITION', 'Cannot assess closed report');
+      }
+      if (report.sentinelAssessment && !forceRefresh) {
+        return;
+      }
+      const priorStrikes = report.reportedUser?.strikeCount || 0;
+      const isCritical = report.severity === 'critical' || report.category === 'child_safety';
+      const recommendedSanctions = isCritical
+        ? [{ type: 'delete_message' }, { type: 'ban' }]
+        : priorStrikes >= 2
+          ? [{ type: 'suspend', durationDays: 7 }]
+          : [{ type: 'warn' }];
+
+      report.sentinelAssessment = {
+        assessedAt: new Date().toISOString(),
+        confidenceScore: 88,
+        violationType: report.category,
+        summary: `Sentinel AI đã tổng hợp vụ việc: Phát hiện dấu hiệu vi phạm ${report.category}. Khuyến nghị xử lý dựa trên tiền sử ${priorStrikes} strike.`,
+        recommendedSanctions,
+        autoResolveEligible: !isCritical && priorStrikes < 2,
+        isFallback: false,
+        strikeCount: priorStrikes + 1,
+        policyClause: isCritical ? 'Rule 1.1: Zero tolerance safety' : 'Rule 3.2: Community Standards',
+        monitoring: {
+          reportsReceived: 1,
+          timeWindow: '30 min',
+          riskLevel: isCritical ? 'high' : 'medium',
+          uniqueReportersCount: 1,
+          reporterCredibility: {
+            score: 85,
+            label: 'Đáng tin cậy — Tài khoản hoạt động bình thường',
+          },
+        },
+      };
+      report.history.push(logEntry('sentinel_assessment', report.status, report.status, 'Sentinel AI thẩm định vụ việc'));
+    });
+  }
+
+  /**
+   * POST /admin/reports/:id/sentinel-apply
+   */
+  async applySentinelRecommendation(id) {
+    await delay();
+    return this._update(id, (report, _reports) => {
+      if (CLOSED_STATUSES.includes(report.status)) {
+        throw fail(409, 'REPORT_ALREADY_CLOSED', 'Report is already closed');
+      }
+      if (!report.sentinelAssessment) {
+        throw fail(400, 'NOT_ASSESSED', 'Chưa có kết quả thẩm định Sentinel');
+      }
+      const sanctions = report.sentinelAssessment.recommendedSanctions || [];
+      sanctions.forEach((sanction) => {
+        if (!report.actions.some((a) => a.type === sanction.type)) {
+          report.actions.push({
+            id: `action-${Date.now()}-${Math.random().toString(36).slice(2, 5)}`,
+            type: sanction.type,
+            params: { durationDays: sanction.durationDays || null },
+            performedBy: { id: null, fullName: 'Sentinel AI', isSystem: true },
+            performedAt: new Date().toISOString(),
+            note: 'Áp dụng theo đề xuất của Sentinel AI',
+          });
+        }
+      });
+      report.status = 'resolved';
+      report.resolution = 'action_taken';
+      report.adminNotes = 'Đã thi hành tự động toàn bộ chế tài theo đề xuất của Sentinel AI.';
+      report.resolvedBy = MOCK_ADMIN;
+      report.resolvedAt = new Date().toISOString();
+      report.history.push(logEntry('sentinel_applied', 'reviewing', 'resolved', 'Admin xác nhận thi hành đề xuất Sentinel AI'));
+    });
+  }
+
+  /**
+   * POST /admin/reports/sentinel/batch-scan
+   */
+  async batchScanSentinel() {
+    await delay();
+    const reports = this._getReports();
+    let scannedCount = 0;
+    let highConfidenceCount = 0;
+    let autoResolvedCount = 0;
+
+    reports.forEach((report) => {
+      if (OPEN_STATUSES.includes(report.status) && !report.sentinelAssessment) {
+        scannedCount += 1;
+        highConfidenceCount += 1;
+        report.sentinelAssessment = {
+          assessedAt: new Date().toISOString(),
+          confidenceScore: 85,
+          summary: 'Quét tự động hàng loạt từ Sentinel AI.',
+          recommendedSanctions: [{ type: 'warn' }],
+          autoResolveEligible: true,
+          isFallback: false,
+          strikeCount: (report.reportedUser?.strikeCount || 0) + 1,
+          policyClause: 'Rule 3.2: Community Standards',
+          monitoring: {
+            reportsReceived: 1,
+            timeWindow: '30 min',
+            riskLevel: 'medium',
+            uniqueReportersCount: 1,
+          },
+        };
+      }
+    });
+
+    this._saveReports(reports);
+    return {
+      success: true,
+      data: {
+        scannedCount,
+        highConfidenceCount,
+        autoResolvedCount,
+        scannedReports: reports.filter((r) => OPEN_STATUSES.includes(r.status)),
+        scannedAt: new Date().toISOString(),
+      },
+    };
+  }
+
+  /**
+   * POST /admin/reports/sentinel/batch-apply
+   */
+  async batchApplySentinel({ minConfidence = 75 } = {}) {
+    await delay();
+    const reports = this._getReports();
+    let executedCount = 0;
+
+    reports.forEach((report) => {
+      if (
+        OPEN_STATUSES.includes(report.status) &&
+        report.sentinelAssessment &&
+        (report.sentinelAssessment.confidenceScore || 0) >= minConfidence &&
+        report.sentinelAssessment.autoResolveEligible
+      ) {
+        executedCount += 1;
+        report.status = 'resolved';
+        report.resolution = 'action_taken';
+        report.adminNotes = `Tự động xử lý hàng loạt theo Sentinel AI (độ tự tin ${report.sentinelAssessment.confidenceScore}%).`;
+        report.resolvedAt = new Date().toISOString();
+        report.resolvedBy = { id: null, fullName: 'Sentinel AI', isSystem: true };
+      }
+    });
+
+    this._saveReports(reports);
+    return {
+      success: true,
+      data: {
+        executedCount,
+        minConfidence,
+      },
+    };
   }
 }
 

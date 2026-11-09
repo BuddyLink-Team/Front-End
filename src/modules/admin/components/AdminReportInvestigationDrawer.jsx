@@ -67,7 +67,7 @@ export const AdminReportInvestigationDrawer = ({
     setIsReopenOpen(false);
   }, [report?.id, open]);
 
-  const { isClosed, hasAccountSanction } = actionState;
+  const { isClosed, isReviewing, hasAccountSanction } = actionState;
 
   return (
     <>
@@ -121,7 +121,7 @@ export const AdminReportInvestigationDrawer = ({
                 canSelect={hasAccountSanction}
               />
             )}
-            {!isClosed && (
+            {isReviewing && (
               <ReportSanctionPanel
                 targetType={report.targetType}
                 actionState={actionState}

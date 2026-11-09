@@ -77,11 +77,11 @@ export const SentinelBatchCommandBar = ({
 
   return (
     <>
-      <div className="relative overflow-hidden rounded-2xl border border-[#7BAE7F]/45 bg-gradient-to-r from-[#EAF6EC] via-[#E1F2E4] to-[#EDF8EF] p-4 sm:p-5 shadow-xs">
+      <div className="relative overflow-hidden rounded-2xl border border-primary/40 bg-linear-to-r from-primary-soft via-surface-card to-primary-soft p-4 sm:p-5 shadow-xs">
         {/* Decorative animated background glow orbs */}
         <div
           aria-hidden="true"
-          className="pointer-events-none absolute -right-10 -top-10 h-40 w-40 rounded-full bg-[#7BAE7F]/20 blur-2xl animate-pulse"
+          className="pointer-events-none absolute -right-10 -top-10 h-40 w-40 rounded-full bg-primary/20 blur-2xl animate-pulse"
         />
         <div
           aria-hidden="true"
@@ -95,13 +95,13 @@ export const SentinelBatchCommandBar = ({
             <div className="relative flex shrink-0 items-center justify-center">
               {/* Outer pulsing radar ring */}
               <span
-                className={`absolute inline-flex h-16 w-16 rounded-full bg-[#7BAE7F]/35 ${
+                className={`absolute inline-flex h-16 w-16 rounded-full bg-primary/30 ${
                   isBusy ? 'animate-ping' : 'animate-pulse'
                 }`}
               />
               {/* Spinning dashed orbital ring when active */}
               <span
-                className={`absolute h-16 w-16 rounded-full border-2 border-dashed border-[#4E8C54]/60 ${
+                className={`absolute h-16 w-16 rounded-full border-2 border-dashed border-primary/60 ${
                   isBusy ? 'animate-spin' : ''
                 }`}
               />
@@ -121,7 +121,7 @@ export const SentinelBatchCommandBar = ({
                     onError={() => setImgError(true)}
                   />
                 ) : (
-                  <Bot size={28} className="text-[#4E8C54]" />
+                  <Bot size={28} className="text-primary-dark" />
                 )}
 
                 {/* Live status dot */}
@@ -135,7 +135,7 @@ export const SentinelBatchCommandBar = ({
             {/* Center Text & 3-Factor Automated Enforcement Capabilities */}
             <div className="space-y-1.5">
               <div className="flex flex-wrap items-center gap-2">
-                <span className="inline-flex items-center gap-1 rounded-full bg-[#4E8C54] px-2.5 py-0.5 text-label-xs font-bold text-white shadow-2xs">
+                <span className="inline-flex items-center gap-1 rounded-full bg-primary px-2.5 py-0.5 text-label-xs font-bold text-white shadow-2xs">
                   <Sparkles
                     size={11}
                     className="animate-spin"
@@ -143,10 +143,10 @@ export const SentinelBatchCommandBar = ({
                   />
                   AUTOMATED ENFORCEMENT SYSTEM
                 </span>
-                <h3 className="text-title-md font-bold text-[#1E3A23]">
+                <h3 className="text-title-md font-bold text-text-primary">
                   AI Report Monitoring &amp; Điều tra Tổng hợp Đa chiều
                 </h3>
-                <span className="inline-flex items-center gap-1 rounded-full bg-white/80 px-2.5 py-0.5 text-label-xs font-semibold text-[#2E5E36] border border-[#7BAE7F]/40">
+                <span className="inline-flex items-center gap-1 rounded-full bg-white/80 px-2.5 py-0.5 text-label-xs font-semibold text-primary-dark border border-primary/30">
                   <Cpu size={12} />
                   {isBusy
                     ? 'Bot đang điều tra & tổng hợp...'
@@ -154,7 +154,7 @@ export const SentinelBatchCommandBar = ({
                 </span>
               </div>
 
-              <p className="text-body-sm text-[#2F4F35] max-w-3xl">
+              <p className="text-body-sm text-text-secondary max-w-3xl">
                 Thay vì phải mở thủ công từng dòng, bấm{' '}
                 <strong>Quét &amp; Tổng hợp AI hàng loạt</strong> để AI gom nhóm theo đối tượng bị báo cáo, chấm{' '}
                 <strong>3 yếu tố (Report velocity • Reporter credibility • Violation evidence)</strong> và bật ngay{' '}
@@ -163,18 +163,18 @@ export const SentinelBatchCommandBar = ({
 
               {/* 3 Pillars + Live Queue Metrics Strip */}
               <div className="flex flex-wrap items-center gap-2 pt-1">
-                <span className="inline-flex items-center gap-1.5 rounded-lg bg-white/90 px-2.5 py-1 text-label-xs font-semibold text-[#1E3A23] border border-[#7BAE7F]/35">
-                  <Activity size={13} className="text-[#4E8C54]" />
+                <span className="inline-flex items-center gap-1.5 rounded-lg bg-white/90 px-2.5 py-1 text-label-xs font-semibold text-text-primary border border-primary/25">
+                  <Activity size={13} className="text-primary-dark" />
                   1. Report velocity (Mật độ 30p)
                 </span>
 
-                <span className="inline-flex items-center gap-1.5 rounded-lg bg-white/90 px-2.5 py-1 text-label-xs font-semibold text-[#1E3A23] border border-[#7BAE7F]/35">
-                  <UserCheck size={13} className="text-[#4E8C54]" />
+                <span className="inline-flex items-center gap-1.5 rounded-lg bg-white/90 px-2.5 py-1 text-label-xs font-semibold text-text-primary border border-primary/25">
+                  <UserCheck size={13} className="text-primary-dark" />
                   2. Reporter credibility (Chống report ảo)
                 </span>
 
-                <span className="inline-flex items-center gap-1.5 rounded-lg bg-white/90 px-2.5 py-1 text-label-xs font-semibold text-[#1E3A23] border border-[#7BAE7F]/35">
-                  <FileSearch size={13} className="text-[#4E8C54]" />
+                <span className="inline-flex items-center gap-1.5 rounded-lg bg-white/90 px-2.5 py-1 text-label-xs font-semibold text-text-primary border border-primary/25">
+                  <FileSearch size={13} className="text-primary-dark" />
                   3. Violation evidence (Đối chiếu tin nhắn)
                 </span>
 
@@ -192,7 +192,7 @@ export const SentinelBatchCommandBar = ({
                 )}
 
                 {queueMetrics.tempRestrictedCount > 0 && (
-                  <span className="inline-flex items-center gap-1 rounded-lg bg-[#FDECE6] px-2.5 py-1 text-label-xs font-bold text-[#B44B27] border border-[#F8CBBBE0]">
+                  <span className="inline-flex items-center gap-1 rounded-lg bg-error-soft px-2.5 py-1 text-label-xs font-bold text-error-dark border border-error/20">
                     <ShieldAlert size={13} />
                     Temporary restriction (High risk):{' '}
                     {queueMetrics.tempRestrictedCount} chờ Admin duyệt
@@ -215,12 +215,12 @@ export const SentinelBatchCommandBar = ({
               }
               className={`px-3.5 py-2.5 font-semibold transition-all ${
                 hasScannedOverview
-                  ? 'bg-white hover:bg-emerald-50 border-[#4E8C54] text-[#1E3A23] shadow-2xs'
+                  ? 'bg-white hover:bg-primary-soft border-primary/40 text-primary-dark shadow-2xs'
                   : 'bg-white/60 border-border-default text-text-muted opacity-75 cursor-not-allowed'
               }`}
               leftIcon={
                 hasScannedOverview ? (
-                  <FileText size={ICON_SIZE.XS} className="text-[#4E8C54]" />
+                  <FileText size={ICON_SIZE.XS} className="text-primary-dark" />
                 ) : (
                   <Lock size={ICON_SIZE.XS} className="text-text-muted" />
                 )
@@ -235,7 +235,7 @@ export const SentinelBatchCommandBar = ({
               variant="primary"
               isLoading={isBatchScanning}
               disabled={isBusy}
-              className="bg-[#4E8C54] hover:bg-[#3F7644] text-white font-semibold shadow-xs px-4 py-2.5"
+              className="font-semibold shadow-xs px-4 py-2.5"
               leftIcon={<Radar size={ICON_SIZE.XS} />}
               onClick={handleRunScanAndOpenOverview}
             >

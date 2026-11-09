@@ -63,6 +63,12 @@ export const assessAdminReportWithSentinel = createApiThunk('admin/assessReportW
 export const applyAdminSentinelRecommendation = createApiThunk('admin/applySentinelRecommendation', (id) =>
   adminApi.applySentinelRecommendation(id)
 );
+export const batchScanAdminSentinel = createApiThunk('admin/batchScanSentinel', () =>
+  adminApi.batchScanSentinel()
+);
+export const batchApplyAdminSentinel = createApiThunk('admin/batchApplySentinel', (payload) =>
+  adminApi.batchApplySentinel(payload)
+);
 
 // Playdates & connections oversight: list, detail, and the admin action on one of them
 export const fetchAdminPlaydates = createApiThunk('admin/fetchPlaydates', (params) => adminApi.getPlaydates(params));
@@ -386,6 +392,8 @@ export const adminSlice = createSlice({
       reopenAdminReport,
       assessAdminReportWithSentinel,
       applyAdminSentinelRecommendation,
+      batchScanAdminSentinel,
+      batchApplyAdminSentinel,
     ].forEach((thunk) => addOversightActionCases(builder, thunk));
     addOversightActionCases(builder, cancelAdminPlaydate);
     addOversightActionCases(builder, removeAdminConnection);

@@ -27,7 +27,7 @@ const SANCTION_LABEL_MAP = {
 const RISK_BADGE_MAP = {
   high: {
     label: 'High risk',
-    className: 'bg-[#FDECE6] text-[#B44B27] border-[#F8CBBBE0]',
+    className: 'bg-error-soft text-error-dark border-error/20',
   },
   medium: {
     label: 'Medium risk',
@@ -261,7 +261,7 @@ export const SentinelCopilotCard = ({
             <h6 className="text-body-md font-bold text-text-primary">
               AI recommendation (Khuyến nghị xử lý)
             </h6>
-            <span className="inline-flex items-center rounded-full bg-[#FDECE6] px-3 py-0.5 text-label-xs font-bold text-[#B44B27] border border-[#F8CBBBE0]">
+            <span className="inline-flex items-center rounded-full bg-error-soft px-3 py-0.5 text-label-xs font-bold text-error-dark border border-error/20">
               {monitoring.temporaryRestriction?.badgeLabel || 'Temporary restriction'}
             </span>
           </div>

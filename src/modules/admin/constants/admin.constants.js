@@ -318,6 +318,8 @@ export const ADMIN_ERROR_MESSAGES = Object.freeze({
   POLICY_OVERRIDE_REQUIRED:
     'Chế tài này nằm ngoài khung quy chuẩn. Vui lòng tích chọn "Áp dụng ngoại lệ chính sách (Policy Override)" và giải trình lý do.',
   OVERRIDE_REASON_REQUIRED: 'Vui lòng nhập lý do giải trình ngoại lệ chính sách (ít nhất 20 ký tự).',
+  MESSAGING_RESTRICTED: 'Tài khoản đang bị tạm hạn chế gửi tin nhắn do vi phạm quy chuẩn an toàn.',
+  SENTINEL_API_KEY_REQUIRED: 'Chưa cấu hình SENTINEL_GEMINI_API_KEY cho hệ thống kiểm duyệt Sentinel AI. Vui lòng liên hệ quản trị viên.',
 });
 
 

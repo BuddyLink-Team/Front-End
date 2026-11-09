@@ -3,7 +3,6 @@ import { useDispatch, useSelector } from 'react-redux';
 import { useServerTable } from '../../../hooks/useServerTable';
 import { useToast } from '../../../hooks/useToast';
 import { getApiErrorMsg } from '../../../utils/errorUtils';
-import adminApi from '../api/adminApi';
 import { ADMIN_ERROR_MESSAGES, REPORT_STATUS_CHIPS } from '../constants/admin.constants';
 import {
   applyAdminReportAction,
@@ -17,6 +16,8 @@ import {
   updateAdminReportSeverity,
   assessAdminReportWithSentinel,
   applyAdminSentinelRecommendation,
+  batchScanAdminSentinel,
+  batchApplyAdminSentinel,
 } from '../redux/adminSlice';
 import { fetchAllPages } from '../utils/excelExport';
 import { buildModerationReportSheets } from '../utils/moderationReport';
@@ -133,15 +134,49 @@ export const useAdminReports = () => {
     [runAction]
   );
 
+  const [pendingSentinelApply, setPendingSentinelApply] = useState(null);
+
   const handleApplySentinel = useCallback(
-    (id) =>
-      runAction(
-        applyAdminSentinelRecommendation(id),
+    (reportOrId) => {
+      const reportId = typeof reportOrId === 'object' && reportOrId !== null ? reportOrId.id : reportOrId;
+      const reportObj =
+        typeof reportOrId === 'object' && reportOrId !== null
+          ? reportOrId
+          : detail.data?.id === reportId
+            ? detail.data
+            : table.rows.find((r) => r.id === reportId);
+
+      const sanctions = reportObj?.sentinelAssessment?.recommendedSanctions || [];
+      const hasHeavySanction = sanctions.some((s) => s.type === 'ban' || s.type === 'suspend');
+
+      setPendingSentinelApply({
+        reportId,
+        report: reportObj,
+        sanctions,
+        requiresReason: hasHeavySanction,
+        targetUser: reportObj?.reportedUser?.fullName || reportObj?.reportedUser?.email || 'Người dùng',
+      });
+    },
+    [detail.data, table.rows]
+  );
+
+  const confirmApplySentinel = useCallback(
+    async (_reason = '') => {
+      if (!pendingSentinelApply) return false;
+      const { reportId } = pendingSentinelApply;
+      setPendingSentinelApply(null);
+      return runAction(
+        applyAdminSentinelRecommendation(reportId),
         'Đã tự động thi hành toàn bộ chế tài theo đề xuất của Sentinel AI.',
         'Không thể tự động thi hành chế tài Sentinel.'
-      ),
-    [runAction]
+      );
+    },
+    [pendingSentinelApply, runAction]
   );
+
+  const cancelApplySentinel = useCallback(() => {
+    setPendingSentinelApply(null);
+  }, []);
 
   const [isBatchScanning, setIsBatchScanning] = useState(false);
   const [isBatchApplying, setIsBatchApplying] = useState(false);
@@ -149,8 +184,7 @@ export const useAdminReports = () => {
   const handleBatchScanSentinel = useCallback(async () => {
     setIsBatchScanning(true);
     try {
-      const response = await adminApi.batchScanSentinel();
-      const result = response?.data || response;
+      const result = await dispatch(batchScanAdminSentinel()).unwrap();
       const scannedCount = result?.scannedCount || 0;
       const highCount = result?.highConfidenceCount || 0;
       const autoCount = result?.autoResolvedCount || 0;
@@ -170,14 +204,13 @@ export const useAdminReports = () => {
     } finally {
       setIsBatchScanning(false);
     }
-  }, [success, toastError, refetch, reloadStats]);
+  }, [dispatch, success, toastError, refetch, reloadStats]);
 
   const handleBatchApplySentinel = useCallback(
     async (minConfidence = 75) => {
       setIsBatchApplying(true);
       try {
-        const response = await adminApi.batchApplySentinel({ minConfidence });
-        const result = response?.data || response;
+        const result = await dispatch(batchApplyAdminSentinel({ minConfidence })).unwrap();
         const executedCount = result?.executedCount || 0;
         success(
           executedCount > 0
@@ -194,7 +227,7 @@ export const useAdminReports = () => {
         setIsBatchApplying(false);
       }
     },
-    [success, toastError, refetch, reloadStats]
+    [dispatch, success, toastError, refetch, reloadStats]
   );
 
   // Same query as the list: every page, with the current filters and date range
@@ -266,6 +299,9 @@ export const useAdminReports = () => {
     handleReopen,
     handleAssessSentinel,
     handleApplySentinel,
+    pendingSentinelApply,
+    confirmApplySentinel,
+    cancelApplySentinel,
     isBatchScanning,
     isBatchApplying,
     handleBatchScanSentinel,

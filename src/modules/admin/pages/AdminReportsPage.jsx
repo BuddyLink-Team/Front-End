@@ -8,6 +8,7 @@ import { ReportOverdueChip, ReportSeverityChip, ReportStatusChip } from '../comp
 import { SentinelBatchCommandBar } from '../components/reports/SentinelBatchCommandBar';
 import { DataTable } from '../../../components/ui/DataTable';
 import { Pagination } from '../../../components/navigation/Pagination';
+import { ConfirmDialog } from '../../../components/feedback/ConfirmDialog';
 import { Avatar } from '../../../components/ui/Avatar';
 import { Button } from '../../../components/ui/Button';
 import { useAdminReports } from '../hooks/useAdminReports';
@@ -78,6 +79,9 @@ export const AdminReportsPage = () => {
     handleReopen,
     handleAssessSentinel,
     handleApplySentinel,
+    pendingSentinelApply,
+    confirmApplySentinel,
+    cancelApplySentinel,
     isBatchScanning,
     handleBatchScanSentinel,
     isExporting,
@@ -296,6 +300,31 @@ export const AdminReportsPage = () => {
         onReopen={handleReopen}
         onAssessSentinel={handleAssessSentinel}
         onApplySentinel={handleApplySentinel}
+      />
+
+      <ConfirmDialog
+        open={Boolean(pendingSentinelApply)}
+        title={
+          pendingSentinelApply?.requiresReason
+            ? 'Xác nhận áp dụng chế tài nghiêm khắc theo AI Sentinel'
+            : 'Xác nhận phê duyệt khuyến nghị của AI Sentinel'
+        }
+        description={
+          pendingSentinelApply?.requiresReason
+            ? `Sentinel AI đề xuất chế tài nghiêm khắc đối với tài khoản ${pendingSentinelApply.targetUser}. Bạn có chắc chắn muốn phê duyệt thi hành ngay không?`
+            : 'Hệ thống sẽ tự động thi hành toàn bộ chế tài được đề xuất và cập nhật trạng thái báo cáo theo phán quyết của AI.'
+        }
+        variant={pendingSentinelApply?.requiresReason ? 'danger' : 'primary'}
+        confirmLabel="Xác nhận & Thi hành"
+        cancelLabel="Hủy bỏ"
+        isLoading={isActionLoading}
+        reason={{
+          required: Boolean(pendingSentinelApply?.requiresReason),
+          label: pendingSentinelApply?.requiresReason ? 'Lý do phê duyệt chế tài nghiêm khắc *' : 'Ghi chú (không bắt buộc)',
+          placeholder: 'Nhập ghi chú hoặc lý do phê duyệt...',
+        }}
+        onConfirm={(reason) => confirmApplySentinel(reason)}
+        onCancel={cancelApplySentinel}
       />
     </div>
   );

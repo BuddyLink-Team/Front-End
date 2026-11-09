@@ -25,7 +25,7 @@ import { ReportSection } from './ReportChips';
 
 /**
  * Policy-governed sanction panel with progressive strike matrix and mandatory Policy Override justification.
- * Only unlocked after BuddyLink Sentinel AI completes its assessment.
+ * Accessible for manual moderation even before Sentinel AI runs, with policy enforcement applied once AI assesses.
  */
 export const ReportSanctionPanel = ({
   targetType,
@@ -54,45 +54,6 @@ export const ReportSanctionPanel = ({
     canBan,
   } = actionState;
 
-  if (!hasSentinelAssessment) {
-    return (
-      <ReportSection icon={ShieldAlert} title="Khung kỷ luật & Thi hành chế tài">
-        <div className="rounded-xl border border-dashed border-primary/40 bg-primary/5 p-4 space-y-3">
-          <div className="flex items-start gap-2.5">
-            <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary/15 text-primary">
-              <Lock size={ICON_SIZE.SM} />
-            </div>
-            <div className="space-y-1">
-              <p className="text-label-sm font-bold text-text-primary">
-                Khung kỷ luật đang khóa — Cần chạy AI Thẩm định trước
-              </p>
-              <p className="text-label-xs text-text-muted leading-relaxed">
-                Để đảm bảo tính khách quan và chống xử phạt cảm tính, quản trị viên cần bấm{' '}
-                <strong>Kích hoạt AI Thẩm định</strong> trước. Hệ thống sẽ đọc ngữ cảnh tin nhắn, quét ảnh bằng chứng và đối chiếu tiền án (<em>Strike</em>) để mở khóa{' '}
-                <strong>Khung Kỷ Luật Quy Chuẩn</strong> cùng cơ chế{' '}
-                <strong>Áp dụng ngoại lệ chính sách (Policy Override)</strong>.
-              </p>
-            </div>
-          </div>
-
-          {onAssessSentinel && (
-            <div className="flex justify-end pt-1">
-              <Button
-                size="sm"
-                variant="primary"
-                isLoading={isActionLoading}
-                leftIcon={<Sparkles size={ICON_SIZE.XS} />}
-                onClick={onAssessSentinel}
-              >
-                Kích hoạt AI Thẩm định ngay
-              </Button>
-            </div>
-          )}
-        </div>
-      </ReportSection>
-    );
-  }
-
   const allowedTypes = policyGuidance?.allowedActionTypes || [];
   const standardActions = policyGuidance?.standardActions || [];
   const trimmedReasonLength = (overrideReason || '').trim().length;
@@ -100,6 +61,7 @@ export const ReportSanctionPanel = ({
 
   const isActionAllowedByPolicy = (type) => {
     if (!isReviewing) return false;
+    if (!hasSentinelAssessment) return true;
     const isStandard = allowedTypes.length === 0 || allowedTypes.includes(type);
     if (isPolicyOverride) {
       return isOverrideValid;
@@ -108,7 +70,7 @@ export const ReportSanctionPanel = ({
   };
 
   const renderPolicyBadge = (type, alreadyApplied) => {
-    if (alreadyApplied || allowedTypes.length === 0) return null;
+    if (!hasSentinelAssessment || alreadyApplied || allowedTypes.length === 0) return null;
     const isStandard = allowedTypes.includes(type);
     if (isStandard) {
       return (
@@ -127,8 +89,40 @@ export const ReportSanctionPanel = ({
 
   return (
     <ReportSection icon={ShieldAlert} title="Khung kỷ luật & Thi hành chế tài">
-      {/* 1. Standard Sanction Policy Matrix Banner */}
-      {policyGuidance && (
+      {/* 1A. Informative Banner when No AI Assessment Exists */}
+      {!hasSentinelAssessment && (
+        <div className="rounded-xl border border-hairline-strong bg-surface-container-low p-3.5 space-y-2">
+          <div className="flex items-start gap-2.5">
+            <div className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-primary/15 text-primary-dark">
+              <Sparkles size={ICON_SIZE.SM} />
+            </div>
+            <div className="space-y-1">
+              <p className="text-label-sm font-bold text-text-primary">
+                Chưa có đánh giá AI — Bạn đang áp dụng chế tài thủ công
+              </p>
+              <p className="text-label-xs text-text-muted leading-relaxed">
+                Quản trị viên có thể thi hành chế tài trực tiếp mà không cần giải trình ngoại lệ chính sách (Policy Override). Hoặc bấm kích hoạt AI Thẩm định để đối chiếu khung quy chuẩn tự động.
+              </p>
+            </div>
+          </div>
+          {onAssessSentinel && (
+            <div className="flex justify-end pt-1">
+              <Button
+                size="sm"
+                variant="outline"
+                isLoading={isActionLoading}
+                leftIcon={<Sparkles size={ICON_SIZE.XS} className="text-primary" />}
+                onClick={onAssessSentinel}
+              >
+                Kích hoạt AI Thẩm định
+              </Button>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* 1B. Standard Sanction Policy Matrix Banner (when AI Assessment Exists) */}
+      {hasSentinelAssessment && policyGuidance && (
         <div className="rounded-xl border border-primary/25 bg-primary/5 p-3.5 space-y-2">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <div className="flex items-center gap-1.5 text-label-sm font-bold text-primary">
@@ -165,62 +159,66 @@ export const ReportSanctionPanel = ({
       {isPending && (
         <div className="rounded-xl border border-amber-300 bg-amber-50/80 px-3.5 py-2.5 text-label-xs text-amber-900">
           💡 Vụ việc đang ở trạng thái <strong>Chờ xử lý</strong>. Nhấn nút{' '}
-          <strong>Tiếp nhận xử lý</strong> ở thanh công cụ phía dưới để mở khóa các nút thi hành chế tài hoặc áp dụng ngoại lệ chính sách.
+          <strong>Tiếp nhận xử lý</strong> ở thanh công cụ phía dưới để mở khóa các nút thi hành chế tài.
         </div>
       )}
 
-      {/* 2. Policy Override Checkbox & Mandatory 20-char Justification */}
-      <div className="rounded-xl border border-hairline-strong bg-surface-container-low p-3.5 space-y-3">
-        <Checkbox
-          id="policy-override-checkbox"
-          checked={isPolicyOverride}
-          disabled={!isReviewing || isActionLoading}
-          onChange={(e) => onTogglePolicyOverride(e.target.checked)}
-          label="Áp dụng ngoại lệ chính sách (Policy Override)"
-          description="Bắt buộc tích chọn và nhập lý do giải trình (ít nhất 20 ký tự) nếu muốn phạt nặng hơn hoặc nhẹ hơn mức quy định. Lý do này được ghi vĩnh viễn vào Nhật ký kiểm toán (ReportAuditLog) để Super Admin kiểm tra định kỳ."
-        />
+      {/* 2. Policy Override Checkbox & Mandatory 20-char Justification (Only for assessed reports) */}
+      {hasSentinelAssessment && (
+        <div className="rounded-xl border border-hairline-strong bg-surface-container-low p-3.5 space-y-3">
+          <Checkbox
+            id="policy-override-checkbox"
+            checked={isPolicyOverride}
+            disabled={!isReviewing || isActionLoading}
+            onChange={(e) => onTogglePolicyOverride(e.target.checked)}
+            label="Áp dụng ngoại lệ chính sách (Policy Override)"
+            description="Bắt buộc tích chọn và nhập lý do giải trình (ít nhất 20 ký tự) nếu muốn phạt ngoài khung quy định AI đề xuất. Lý do này được ghi vĩnh viễn vào Nhật ký kiểm toán để Super Admin kiểm tra."
+          />
 
-        {isPolicyOverride && (
-          <div className="space-y-1.5 pt-1 border-t border-hairline">
-            <Textarea
-              id="policy-override-reason"
-              rows={3}
-              required
-              disabled={!isReviewing || isActionLoading}
-              value={overrideReason}
-              onChange={(e) => onOverrideReasonChange(e.target.value)}
-              label="Lý do giải trình ngoại lệ chính sách (tối thiểu 20 ký tự)"
-              placeholder="Ví dụ: Người bị báo cáo đã chủ động xin lỗi và hai gia đình đã hòa giải thành công, hoặc vi phạm có tình tiết nghiêm trọng cần khóa tài khoản ngay..."
-              error={
-                trimmedReasonLength > 0 && remainingChars > 0
-                  ? `Cần nhập thêm ít nhất ${remainingChars} ký tự nữa (hiện tại: ${trimmedReasonLength}/${REPORT_OVERRIDE_MIN_LENGTH} ký tự).`
-                  : undefined
-              }
-            />
-            <div className="flex items-center justify-between text-label-xs">
-              <span className="text-text-muted">
-                🔒 Lưu vĩnh viễn vào <code className="font-mono">ReportAuditLog</code> phục vụ hậu kiểm Super Admin
-              </span>
-              <span
-                className={
-                  isOverrideValid
-                    ? 'font-bold text-emerald-700'
-                    : 'font-semibold text-amber-700'
+          {isPolicyOverride && (
+            <div className="space-y-1.5 pt-1 border-t border-hairline">
+              <Textarea
+                id="policy-override-reason"
+                rows={3}
+                required
+                disabled={!isReviewing || isActionLoading}
+                value={overrideReason}
+                onChange={(e) => onOverrideReasonChange(e.target.value)}
+                label="Lý do giải trình ngoại lệ chính sách (tối thiểu 20 ký tự)"
+                placeholder="Ví dụ: Người bị báo cáo đã chủ động xin lỗi và hai gia đình đã hòa giải thành công, hoặc vi phạm có tình tiết nghiêm trọng cần khóa tài khoản ngay..."
+                error={
+                  trimmedReasonLength > 0 && remainingChars > 0
+                    ? `Cần nhập thêm ít nhất ${remainingChars} ký tự nữa (hiện tại: ${trimmedReasonLength}/${REPORT_OVERRIDE_MIN_LENGTH} ký tự).`
+                    : undefined
                 }
-              >
-                {trimmedReasonLength}/{REPORT_OVERRIDE_MIN_LENGTH} ký tự tối thiểu
-              </span>
+              />
+              <div className="flex items-center justify-between text-label-xs">
+                <span className="text-text-muted">
+                  🔒 Lưu vĩnh viễn vào <code className="font-mono">ReportAuditLog</code> phục vụ hậu kiểm Super Admin
+                </span>
+                <span
+                  className={
+                    isOverrideValid
+                      ? 'font-bold text-emerald-700'
+                      : 'font-semibold text-amber-700'
+                  }
+                >
+                  {trimmedReasonLength}/{REPORT_OVERRIDE_MIN_LENGTH} ký tự tối thiểu
+                </span>
+              </div>
             </div>
-          </div>
-        )}
-      </div>
+          )}
+        </div>
+      )}
 
       {/* 3. Sanction Execution Buttons */}
       <div className="space-y-1.5">
-        <p className="text-label-xs text-text-muted">
-          Các chế tài gắn nhãn <strong>Chuẩn</strong> tuân theo khung quy định. Các chế tài gắn nhãn{' '}
-          <strong>Ngoại lệ</strong> chỉ mở khóa khi đã tích chọn <em>Áp dụng ngoại lệ chính sách</em> và nhập đủ 20 ký tự giải trình.
-        </p>
+        {hasSentinelAssessment && (
+          <p className="text-label-xs text-text-muted">
+            Các chế tài gắn nhãn <strong>Chuẩn</strong> tuân theo khung quy định. Các chế tài gắn nhãn{' '}
+            <strong>Ngoại lệ</strong> chỉ mở khóa khi đã tích chọn <em>Áp dụng ngoại lệ chính sách</em> và nhập đủ 20 ký tự giải trình.
+          </p>
+        )}
 
         <div className="flex flex-wrap items-center gap-2 pt-1">
           <Button
