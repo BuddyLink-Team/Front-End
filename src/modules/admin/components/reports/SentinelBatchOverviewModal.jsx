@@ -27,10 +27,10 @@ export const SentinelBatchOverviewModal = ({
   scanOverview,
   rows = [],
   isBatchScanning = false,
-  isActionLoading = false,
   onRescan,
   onOpenReportDetail,
-  onConfirmApplySentinel,
+  onAskResolveCluster,
+  isActionLoading = false,
 }) => {
   useEffect(() => {
     if (!open) return undefined;
@@ -70,11 +70,11 @@ export const SentinelBatchOverviewModal = ({
       <div
         role="dialog"
         aria-modal="true"
-        className="relative z-10 flex max-h-[90vh] w-full max-w-5xl flex-col overflow-hidden rounded-3xl border border-border-default bg-surface-card shadow-dialog"
+        className="relative z-10 flex max-h-modal w-full max-w-5xl flex-col overflow-hidden rounded-3xl border border-hairline-strong bg-surface-container-lowest shadow-dialog"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Top Modal Header */}
-        <div className="shrink-0 flex flex-wrap items-center justify-between gap-3 border-b border-border-default bg-linear-to-r from-primary-soft via-surface-card to-primary-soft px-6 py-4">
+        <div className="shrink-0 flex flex-wrap items-center justify-between gap-3 border-b border-hairline-strong bg-primary-soft px-6 py-4">
           <div className="flex items-center gap-3">
             <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-primary text-white shadow-xs">
               <ShieldCheck size={ICON_SIZE.MD} />
@@ -82,15 +82,17 @@ export const SentinelBatchOverviewModal = ({
             <div>
               <div className="flex flex-wrap items-center gap-2">
                 <h3 className="text-title-md font-bold text-text-primary">
-                  Báo cáo Tổng quan Điều tra AI Sentinel (All Reports Overview)
+                  Báo cáo tổng quan điều tra của Sentinel AI
                 </h3>
                 <span className="inline-flex items-center gap-1 rounded-full bg-primary px-2.5 py-0.5 text-label-xs font-bold text-white">
-                  <Sparkles size={11} />
+                  <Sparkles size={ICON_SIZE.XS} />
                   Đã đồng bộ AI
                 </span>
               </div>
               <p className="text-label-sm text-text-muted mt-0.5">
-                Cập nhật lần quét gần nhất: <strong>{formatDateTime(scannedAt)}</strong> • Tổng hợp toàn bộ hàng đợi theo 3 yếu tố (Velocity • Credibility • Evidence)
+                Cập nhật lần quét gần nhất:{' '}
+                <strong>{formatDateTime(scannedAt)}</strong> • Tổng hợp toàn bộ
+                hàng đợi theo 3 yếu tố (mật độ • độ tin cậy • bằng chứng)
               </p>
             </div>
           </div>
@@ -115,7 +117,7 @@ export const SentinelBatchOverviewModal = ({
             <button
               type="button"
               onClick={onClose}
-              className="flex h-9 w-9 items-center justify-center rounded-xl bg-white text-text-secondary hover:bg-surface-muted hover:text-text-primary transition-colors border border-border-default"
+              className="flex h-9 w-9 items-center justify-center rounded-xl bg-white text-on-surface-variant hover:bg-surface-muted hover:text-text-primary transition-colors border border-hairline-strong"
               aria-label="Đóng báo cáo tổng quan"
             >
               <X size={ICON_SIZE.SM} />
@@ -124,24 +126,30 @@ export const SentinelBatchOverviewModal = ({
         </div>
 
         {/* Scrollable Content Body */}
-        <div className="flex-1 min-h-0 overflow-y-auto p-6 space-y-6 bg-surface-subtle">
+        <div className="flex-1 min-h-0 overflow-y-auto p-6 space-y-6 bg-surface-container-low">
           {autoResolvedCount > 0 && (
-            <div className="flex items-center gap-3 rounded-2xl border border-emerald-300 bg-emerald-50 px-4 py-3 text-label-sm font-medium text-emerald-900 shadow-2xs">
-              <CheckCircle2 size={18} className="text-emerald-700 shrink-0" />
+            <div className="flex items-center gap-3 rounded-2xl border border-primary-border bg-primary-soft px-4 py-3 text-label-sm font-medium text-primary-ink shadow-2xs">
+              <CheckCircle2
+                size={ICON_SIZE.LG}
+                className="text-primary-dark shrink-0"
+              />
               <div>
-                <strong>AI Sentinel Auto-Resolve:</strong> Đã tự động thi hành chế tài &amp; đóng <strong>{autoResolvedCount}</strong> vụ vi phạm nhẹ (Cảnh cáo / Đình chỉ ≤7 ngày) đạt chuẩn tin cậy. Dưới đây là các vụ việc cần Admin trực tiếp phán quyết.
+                <strong>Sentinel AI tự xử lý:</strong> Đã tự động thi hành chế
+                tài &amp; đóng <strong>{autoResolvedCount}</strong> vụ vi phạm
+                nhẹ (Cảnh cáo / Đình chỉ ≤7 ngày) đạt chuẩn tin cậy. Dưới đây là
+                các vụ việc cần Admin trực tiếp phán quyết.
               </div>
             </div>
           )}
 
           {/* 4 Summary KPI Cards */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5">
-            <div className="rounded-2xl border border-border-default bg-surface-card p-4 shadow-2xs">
+            <div className="rounded-2xl border border-hairline-strong bg-surface-container-lowest p-4 shadow-2xs">
               <div className="flex items-center justify-between text-label-xs font-semibold text-text-muted uppercase">
                 <span>Tổng báo cáo đã quét</span>
-                <FileSearch size={15} className="text-primary" />
+                <FileSearch size={ICON_SIZE.MD} className="text-primary" />
               </div>
-              <div className="mt-1.5 text-headline-sm font-bold text-text-primary">
+              <div className="mt-1.5 text-headline-md font-bold text-text-primary">
                 {sourceReports.length} vụ việc
               </div>
               <p className="mt-0.5 text-label-xs text-text-muted">
@@ -149,38 +157,38 @@ export const SentinelBatchOverviewModal = ({
               </p>
             </div>
 
-            <div className="rounded-2xl border border-border-default bg-surface-card p-4 shadow-2xs">
+            <div className="rounded-2xl border border-hairline-strong bg-surface-container-lowest p-4 shadow-2xs">
               <div className="flex items-center justify-between text-label-xs font-semibold text-text-muted uppercase">
                 <span>Đối tượng bị báo cáo</span>
-                <Users size={15} className="text-primary" />
+                <Users size={ICON_SIZE.MD} className="text-primary" />
               </div>
-              <div className="mt-1.5 text-headline-sm font-bold text-text-primary">
+              <div className="mt-1.5 text-headline-md font-bold text-text-primary">
                 {clusters.length} phụ huynh
               </div>
               <p className="mt-0.5 text-label-xs text-text-muted">
-                Đã gom nhóm các report trùng người
+                Đã gom nhóm các báo cáo cùng một người
               </p>
             </div>
 
             <div className="rounded-2xl border border-error/20 bg-error-soft/40 p-4 shadow-2xs">
               <div className="flex items-center justify-between text-label-xs font-bold text-error-dark uppercase">
-                <span>Temporary Restriction</span>
-                <ShieldAlert size={15} className="text-error-dark" />
+                <span>Đang hạn chế nhắn tin</span>
+                <ShieldAlert size={ICON_SIZE.MD} className="text-error-dark" />
               </div>
-              <div className="mt-1.5 text-headline-sm font-bold text-error-dark">
+              <div className="mt-1.5 text-headline-md font-bold text-error-dark">
                 {highRiskClustersCount} đối tượng
               </div>
               <p className="mt-0.5 text-label-xs text-error-dark/80">
-                Mức High risk đang tạm hạn chế
+                Mức rủi ro cao đang bị tạm hạn chế
               </p>
             </div>
 
-            <div className="rounded-2xl border border-border-default bg-surface-card p-4 shadow-2xs">
+            <div className="rounded-2xl border border-hairline-strong bg-surface-container-lowest p-4 shadow-2xs">
               <div className="flex items-center justify-between text-label-xs font-semibold text-text-muted uppercase">
-                <span>Độ tự tin AI TB</span>
-                <Zap size={15} className="text-emerald-600" />
+                <span>Độ tự tin AI trung bình</span>
+                <Zap size={ICON_SIZE.MD} className="text-primary-dark" />
               </div>
-              <div className="mt-1.5 text-headline-sm font-bold text-emerald-700">
+              <div className="mt-1.5 text-headline-md font-bold text-primary-dark">
                 {avgConfidence}%
               </div>
               <p className="mt-0.5 text-label-xs text-text-muted">
@@ -190,16 +198,17 @@ export const SentinelBatchOverviewModal = ({
           </div>
 
           {clusters.length === 0 ? (
-            <div className="rounded-2xl border border-border-default bg-surface-card p-8 text-center">
+            <div className="rounded-2xl border border-hairline-strong bg-surface-container-lowest p-8 text-center">
               <CheckCircle2
-                size={36}
-                className="mx-auto text-emerald-600 mb-2"
+                size={ICON_SIZE.XXXL}
+                className="mx-auto text-primary-dark mb-2"
               />
-              <h4 className="text-title-sm font-bold text-text-primary">
+              <h4 className="text-title-md font-bold text-text-primary">
                 Không còn báo cáo vi phạm nào đang mở
               </h4>
-              <p className="text-body-sm text-text-muted mt-1">
-                Toàn bộ các báo cáo trong hàng đợi đã được Admin xem xét và xử lý hoàn tất.
+              <p className="text-body-md text-text-muted mt-1">
+                Toàn bộ các báo cáo trong hàng đợi đã được Admin xem xét và xử
+                lý hoàn tất.
               </p>
             </div>
           ) : (
@@ -209,10 +218,10 @@ export const SentinelBatchOverviewModal = ({
                   key={cluster.key || idx}
                   cluster={cluster}
                   index={idx}
-                  isActionLoading={isActionLoading}
                   onOpenReportDetail={onOpenReportDetail}
-                  onConfirmApplySentinel={onConfirmApplySentinel}
                   onCloseModal={onClose}
+                  onAskResolveCluster={onAskResolveCluster}
+                  isActionLoading={isActionLoading}
                 />
               ))}
             </div>
@@ -220,9 +229,10 @@ export const SentinelBatchOverviewModal = ({
         </div>
 
         {/* Bottom Footer */}
-        <div className="shrink-0 flex items-center justify-between border-t border-border-default bg-surface-card px-6 py-3.5">
+        <div className="shrink-0 flex items-center justify-between border-t border-hairline-strong bg-surface-container-lowest px-6 py-3.5">
           <p className="text-label-sm text-text-muted">
-            💡 <strong>Lưu ý:</strong> Báo cáo tổng quan này được cập nhật tự động mỗi khi Admin bấm{' '}
+            <strong>Lưu ý:</strong> Báo cáo tổng quan này được cập nhật tự động
+            mỗi khi Admin bấm{' '}
             <strong>&ldquo;Quét &amp; Tổng hợp AI hàng loạt&rdquo;</strong>.
           </p>
           <Button variant="outline" size="sm" onClick={onClose}>
@@ -231,7 +241,7 @@ export const SentinelBatchOverviewModal = ({
         </div>
       </div>
     </div>,
-    document.body
+    document.body,
   );
 };
 

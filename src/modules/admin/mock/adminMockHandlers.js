@@ -17,48 +17,60 @@ export const adminMockHandlers = [
   },
   {
     method: 'POST',
-    pattern: '/admin/reports/sentinel/batch-scan',
+    pattern: '/admin/reports/sentinel-batch-scan',
     handler: () => adminReportMockService.batchScanSentinel(),
   },
   {
     method: 'POST',
-    pattern: '/admin/reports/sentinel/batch-apply',
+    pattern: '/admin/reports/sentinel-batch-apply',
     handler: ({ body }) => adminReportMockService.batchApplySentinel(body),
   },
   {
     method: 'POST',
+    pattern: '/admin/reports/sentinel-cluster-resolve',
+    handler: ({ body }) => adminReportMockService.resolveSentinelCluster(body),
+  },
+  {
+    method: 'POST',
     pattern: '/admin/reports/:id/sentinel-assess',
-    handler: ({ params, body }) => adminReportMockService.assessReportWithSentinel(params.id, body),
+    handler: ({ params, body }) =>
+      adminReportMockService.assessReportWithSentinel(params.id, body),
   },
   {
     method: 'POST',
     pattern: '/admin/reports/:id/sentinel-apply',
-    handler: ({ params }) => adminReportMockService.applySentinelRecommendation(params.id),
+    handler: ({ params, body }) =>
+      adminReportMockService.applySentinelRecommendation(params.id, body),
   },
   {
     method: 'PATCH',
     pattern: '/admin/reports/:id/review',
-    handler: ({ params, body }) => adminReportMockService.reviewReport(params.id, body),
+    handler: ({ params, body }) =>
+      adminReportMockService.reviewReport(params.id, body),
   },
   {
     method: 'PATCH',
     pattern: '/admin/reports/:id/severity',
-    handler: ({ params, body }) => adminReportMockService.updateReportSeverity(params.id, body),
+    handler: ({ params, body }) =>
+      adminReportMockService.updateReportSeverity(params.id, body),
   },
   {
     method: 'POST',
     pattern: '/admin/reports/:id/action',
-    handler: ({ params, body }) => adminReportMockService.applyReportAction(params.id, body),
+    handler: ({ params, body }) =>
+      adminReportMockService.applyReportAction(params.id, body),
   },
   {
     method: 'PATCH',
     pattern: '/admin/reports/:id/resolve',
-    handler: ({ params, body }) => adminReportMockService.resolveReport(params.id, body),
+    handler: ({ params, body }) =>
+      adminReportMockService.resolveReport(params.id, body),
   },
   {
     method: 'PATCH',
     pattern: '/admin/reports/:id/reopen',
-    handler: ({ params, body }) => adminReportMockService.reopenReport(params.id, body),
+    handler: ({ params, body }) =>
+      adminReportMockService.reopenReport(params.id, body),
   },
   {
     method: 'GET',
@@ -87,7 +99,8 @@ export const adminMockHandlers = [
   {
     method: 'PATCH',
     pattern: '/admin/notifications/read-all',
-    handler: ({ query }) => adminAnalyticsMockService.markAllAsRead(query?.category),
+    handler: ({ query }) =>
+      adminAnalyticsMockService.markAllAsRead(query?.category),
   },
   {
     method: 'PATCH',
@@ -104,7 +117,8 @@ export const adminMockHandlers = [
   {
     method: 'PATCH',
     pattern: '/admin/playdates/:id/cancel',
-    handler: ({ params, body }) => adminMockService.cancelPlaydate(params.id, body),
+    handler: ({ params, body }) =>
+      adminMockService.cancelPlaydate(params.id, body),
   },
   // Platform-wide counts (before :id, which would take 'stats' as an ID)
   {
@@ -140,7 +154,8 @@ export const adminMockHandlers = [
   {
     method: 'DELETE',
     pattern: '/admin/connections/:id',
-    handler: ({ params, body }) => adminMockService.removeConnection(params.id, body),
+    handler: ({ params, body }) =>
+      adminMockService.removeConnection(params.id, body),
   },
   // 6. Paginated connections list with filters & search
   {
@@ -158,27 +173,32 @@ export const adminMockHandlers = [
   {
     method: 'GET',
     pattern: '/admin/plans/:id',
-    handler: ({ params }) => adminSubscriptionMockService.getPlanDetail(params.id),
+    handler: ({ params }) =>
+      adminSubscriptionMockService.getPlanDetail(params.id),
   },
   {
     method: 'PATCH',
     pattern: '/admin/plans/:id',
-    handler: ({ params, body }) => adminSubscriptionMockService.updatePlan(params.id, body),
+    handler: ({ params, body }) =>
+      adminSubscriptionMockService.updatePlan(params.id, body),
   },
   {
     method: 'GET',
     pattern: '/admin/subscriptions/:id',
-    handler: ({ params }) => adminSubscriptionMockService.getSubscriptionDetail(params.id),
+    handler: ({ params }) =>
+      adminSubscriptionMockService.getSubscriptionDetail(params.id),
   },
   {
     method: 'GET',
     pattern: '/admin/subscriptions',
-    handler: ({ query }) => adminSubscriptionMockService.getSubscriptions(query),
+    handler: ({ query }) =>
+      adminSubscriptionMockService.getSubscriptions(query),
   },
   {
     method: 'GET',
     pattern: '/admin/transactions/:id',
-    handler: ({ params }) => adminSubscriptionMockService.getTransactionDetail(params.id),
+    handler: ({ params }) =>
+      adminSubscriptionMockService.getTransactionDetail(params.id),
   },
   {
     method: 'GET',
@@ -188,9 +208,9 @@ export const adminMockHandlers = [
   {
     method: 'GET',
     pattern: '/admin/revenue/summary',
-    handler: ({ query }) => adminSubscriptionMockService.getRevenueSummary(query),
+    handler: ({ query }) =>
+      adminSubscriptionMockService.getRevenueSummary(query),
   },
 ];
 
 export default adminMockHandlers;
-

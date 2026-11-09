@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Modal } from '../../../components/feedback/Modal';
 import { ConfirmDialog } from '../../../components/feedback/ConfirmDialog';
 import { Skeleton } from '../../../components/feedback/Skeleton';
-import { useReportInvestigation, useReportResolutionForm } from '../hooks/useReportInvestigation';
+import { useReportInvestigation } from '../hooks/useReportInvestigation';
 import { RelatedReportsPanel } from './reports/RelatedReportsPanel';
 import { ReportAuditLog } from './reports/ReportAuditLog';
 import { ReportContentPanel } from './reports/ReportContentPanel';
@@ -11,7 +11,8 @@ import { ReportDrawerHeader } from './reports/ReportDrawerHeader';
 import { ReportedUserHistory } from './reports/ReportedUserHistory';
 import { ReportPartyCards } from './reports/ReportPartyCards';
 import { ReportReopenDialog } from './reports/ReportReopenDialog';
-import { ReportClosedSummary, ReportResolutionForm } from './reports/ReportResolutionForm';
+import { ReportClosedSummary } from './reports/ReportResolutionForm';
+import { ReportConclusionDialog } from './reports/ReportConclusionDialog';
 import { ReportSanctionPanel } from './reports/ReportSanctionPanel';
 import { ReportTargetContext } from './reports/ReportTargetContext';
 import { SentinelCopilotCard } from './reports/SentinelCopilotCard';
@@ -35,7 +36,6 @@ export const AdminReportInvestigationDrawer = ({
   isLoading,
   isActionLoading,
   onClaim,
-  onTakeover,
   onUpdateSeverity,
   onApplyAction,
   onResolve,
@@ -44,6 +44,8 @@ export const AdminReportInvestigationDrawer = ({
   onApplySentinel,
 }) => {
   const [isReopenOpen, setIsReopenOpen] = useState(false);
+  // 'resolve' | 'dismiss' while the conclusion dialog is open
+  const [conclusionMode, setConclusionMode] = useState(null);
   const {
     actionState,
     policyGuidance,
@@ -54,20 +56,17 @@ export const AdminReportInvestigationDrawer = ({
     isOverrideValid,
     suspendDays,
     setSuspendDays,
-    selectedRelatedIds,
-    toggleRelatedReport,
     askSanction,
     cancelSanction,
     confirmSanction,
     sanctionConfirm,
   } = useReportInvestigation(report, open, onApplyAction);
-  const resolution = useReportResolutionForm(report, selectedRelatedIds, onResolve);
-
   useEffect(() => {
     setIsReopenOpen(false);
+    setConclusionMode(null);
   }, [report?.id, open]);
 
-  const { isClosed, isReviewing, hasAccountSanction } = actionState;
+  const { isClosed, isReviewing } = actionState;
 
   return (
     <>
@@ -84,10 +83,8 @@ export const AdminReportInvestigationDrawer = ({
               report={report}
               actionState={actionState}
               isActionLoading={isActionLoading}
-              resolution={resolution}
-              onClose={onClose}
               onClaim={onClaim}
-              onTakeover={onTakeover}
+              onAskConclusion={setConclusionMode}
               onAskReopen={() => setIsReopenOpen(true)}
             />
           )
@@ -109,24 +106,21 @@ export const AdminReportInvestigationDrawer = ({
               onAssessSentinel={onAssessSentinel}
               onApplySentinel={onApplySentinel}
             />
-            <ReportPartyCards reporter={report.reporter} reportedUser={report.reportedUser} />
+            <ReportPartyCards
+              reporter={report.reporter}
+              reportedUser={report.reportedUser}
+            />
             <ReportContentPanel report={report} />
             <ReportTargetContext report={report} />
             <ReportedUserHistory reportedUser={report.reportedUser} />
             {!isClosed && report.relatedOpenReports?.length > 0 && (
-              <RelatedReportsPanel
-                reports={report.relatedOpenReports}
-                selectedIds={selectedRelatedIds}
-                onToggle={toggleRelatedReport}
-                canSelect={hasAccountSanction}
-              />
+              <RelatedReportsPanel reports={report.relatedOpenReports} />
             )}
             {isReviewing && (
               <ReportSanctionPanel
                 targetType={report.targetType}
                 actionState={actionState}
                 hasSentinelAssessment={Boolean(report.sentinelAssessment)}
-                onAssessSentinel={() => onAssessSentinel(report.id, false)}
                 policyGuidance={policyGuidance}
                 isPolicyOverride={isPolicyOverride}
                 onTogglePolicyOverride={setIsPolicyOverride}
@@ -140,14 +134,20 @@ export const AdminReportInvestigationDrawer = ({
               />
             )}
             <ReportAuditLog actions={report.actions} history={report.history} />
-            {isClosed ? (
-              <ReportClosedSummary report={report} />
-            ) : (
-              <ReportResolutionForm form={resolution.form} actionState={actionState} />
-            )}
+            {isClosed && <ReportClosedSummary report={report} />}
           </div>
         )}
       </Modal>
+
+      {report && (
+        <ReportConclusionDialog
+          report={report}
+          mode={conclusionMode}
+          onClose={() => setConclusionMode(null)}
+          onResolve={onResolve}
+          isActionLoading={isActionLoading}
+        />
+      )}
 
       {report && (
         <ReportReopenDialog

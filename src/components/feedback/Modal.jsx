@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useId, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { X } from 'lucide-react';
 import { cn } from '../../utils/cn';
@@ -42,6 +42,8 @@ export const Modal = ({
   const isSheet = placement === 'sheet';
   const isDrawer = placement === 'right';
   const dialogRef = useRef(null);
+  // Names the dialog after its title for screen readers
+  const titleId = useId();
   const closeRef = useRef(onClose);
   closeRef.current = onClose;
 
@@ -113,6 +115,7 @@ export const Modal = ({
         ref={dialogRef}
         role="dialog"
         aria-modal="true"
+        aria-labelledby={title ? titleId : undefined}
         tabIndex={-1}
         className={cn(
           'relative w-full flex flex-col outline-none bg-surface-container-lowest shadow-dialog border border-hairline z-10',
@@ -127,7 +130,9 @@ export const Modal = ({
       >
         {title && (
           <div className="shrink-0 flex items-center justify-between gap-3 px-6 pt-5 pb-3 border-b border-hairline">
-            <h3 className="text-lg font-semibold text-text-primary">{title}</h3>
+            <h3 id={titleId} className="text-lg font-semibold text-text-primary">
+              {title}
+            </h3>
             <button
               type="button"
               onClick={onClose}

@@ -7,6 +7,23 @@ import { adminApi } from '../../modules/admin/api/adminApi';
 const toastMock = vi.hoisted(() => ({ success: vi.fn(), error: vi.fn() }));
 vi.mock('../../hooks/useToast', () => ({ useToast: () => toastMock }));
 
+// Admin socket: lets a test push a realtime notification
+const socketMock = vi.hoisted(() => {
+  const handlers = {};
+  return {
+    handlers,
+    on: vi.fn((event, handler) => {
+      handlers[event] = handler;
+    }),
+    off: vi.fn((event) => {
+      delete handlers[event];
+    }),
+  };
+});
+vi.mock('../../services/adminSocket', () => ({
+  default: { connect: () => socketMock },
+}));
+
 vi.mock('../../modules/admin/api/adminApi', () => ({
   adminApi: {
     getReports: vi.fn(),
@@ -105,7 +122,7 @@ const renderPage = async () => {
 const openDrawer = async (detail = makeDetail()) => {
   respondDetail(detail);
   await renderPage();
-  fireEvent.click(screen.getByRole('button', { name: /Chi tiết/ }));
+  fireEvent.click(screen.getByRole('button', { name: 'Xem chi tiết' }));
   await screen.findByText('Chi tiết báo cáo vi phạm');
   return screen.findByText('Nội dung báo cáo');
 };
@@ -205,41 +222,58 @@ describe('AdminReportsPage', () => {
       fireEvent.click(closeButtons[0]);
       await waitFor(() => expect(screen.queryByText('Chi tiết báo cáo vi phạm')).not.toBeInTheDocument());
 
-      fireEvent.click(screen.getByRole('button', { name: /Chi tiết/ }));
+      fireEvent.click(screen.getByRole('button', { name: 'Xem chi tiết' }));
       await waitFor(() => expect(adminApi.getReportDetail).toHaveBeenCalledTimes(2));
+    });
+
+    it('reloads the open report, the list and the counts when a new report arrives', async () => {
+      await openDrawer();
+      const listCalls = adminApi.getReports.mock.calls.length;
+      const statsCalls = adminApi.getReportStats.mock.calls.length;
+      expect(adminApi.getReportDetail).toHaveBeenCalledTimes(1);
+
+      // Other notifications change nothing here
+      socketMock.handlers['admin:notification:new']({ entityType: 'Payment' });
+      socketMock.handlers['admin:notification:new']({ entityType: 'Report', entityId: 'report-9' });
+
+      await waitFor(() => expect(adminApi.getReportDetail).toHaveBeenCalledTimes(2));
+      expect(adminApi.getReportDetail).toHaveBeenLastCalledWith('report-1');
+      expect(adminApi.getReports.mock.calls.length).toBe(listCalls + 1);
+      expect(adminApi.getReportStats.mock.calls.length).toBe(statsCalls + 1);
+      // The drawer keeps its content while it reloads
+      expect(screen.getByText('Chi tiết báo cáo vi phạm')).toBeInTheDocument();
     });
 
     describe('footer', () => {
       const footerOf = (name) => screen.getByRole('button', { name }).parentElement;
       const buttonsOf = (footer) => within(footer).getAllByRole('button').map((button) => button.textContent);
 
-      it('holds close, start and dismiss on a pending report', async () => {
+      it('holds dismiss and start on a pending report', async () => {
         await openDrawer(makeDetail({ status: 'pending', history: [] }));
 
-        expect(buttonsOf(footerOf('Bắt đầu xử lý'))).toEqual(['Đóng', 'Bác bỏ', 'Bắt đầu xử lý']);
+        expect(buttonsOf(footerOf('Bắt đầu xử lý'))).toEqual(['Bác bỏ báo cáo', 'Bắt đầu xử lý']);
       });
 
-      it('holds the closing actions of a reviewing report, with the notes left in the body', async () => {
+      it('holds dismiss and conclude on a reviewing report, with no notes in the body', async () => {
         await openDrawer();
 
-        const footer = footerOf('Đánh dấu đã xử lý');
-        expect(buttonsOf(footer)).toEqual(['Đóng', 'Tiếp quản vụ việc', 'Bác bỏ', 'Đóng, không kỷ luật', 'Đánh dấu đã xử lý']);
-        expect(within(footer).queryByLabelText(/Ghi chú xử lý/)).not.toBeInTheDocument();
-        expect(screen.getByLabelText(/Ghi chú xử lý/)).toBeInTheDocument();
+        expect(buttonsOf(footerOf('Kết luận & đóng báo cáo'))).toEqual(['Bác bỏ báo cáo', 'Kết luận & đóng báo cáo']);
+        expect(screen.queryByLabelText(/Ghi chú xử lý/)).not.toBeInTheDocument();
+        expect(screen.queryByRole('button', { name: 'Tiếp quản vụ việc' })).not.toBeInTheDocument();
       });
 
-      it('holds close and reopen on a closed report', async () => {
+      it('holds only reopen on a closed report', async () => {
         await openDrawer(
           makeDetail({ status: 'resolved', resolution: 'no_action', adminNotes: 'Không vi phạm rõ ràng', resolvedBy: ADMIN, resolvedAt: '2026-10-11T00:00:00.000Z' })
         );
 
-        expect(buttonsOf(footerOf('Mở lại vụ việc'))).toEqual(['Đóng', 'Mở lại vụ việc']);
+        expect(buttonsOf(footerOf('Mở lại vụ việc'))).toEqual(['Mở lại vụ việc']);
       });
 
-      it('closes the drawer', async () => {
+      it('closes the drawer from its header', async () => {
         await openDrawer();
 
-        fireEvent.click(within(footerOf('Đánh dấu đã xử lý')).getByRole('button', { name: 'Đóng' }));
+        fireEvent.click(screen.getByRole('button', { name: 'Đóng' }));
 
         await waitFor(() => expect(screen.queryByText('Chi tiết báo cáo vi phạm')).not.toBeInTheDocument());
       });
@@ -378,9 +412,9 @@ describe('AdminReportsPage', () => {
         await openDrawer(makeDetail({ status: 'pending', history: [] }));
 
         expect(screen.getByRole('button', { name: 'Bắt đầu xử lý' })).toBeInTheDocument();
-        expect(screen.getByRole('button', { name: 'Bác bỏ' })).toBeInTheDocument();
+        expect(screen.getByRole('button', { name: 'Bác bỏ báo cáo' })).toBeInTheDocument();
         expect(screen.queryByRole('button', { name: 'Cảnh cáo' })).not.toBeInTheDocument();
-        expect(screen.queryByRole('button', { name: 'Đánh dấu đã xử lý' })).not.toBeInTheDocument();
+        expect(screen.queryByRole('button', { name: 'Kết luận & đóng báo cáo' })).not.toBeInTheDocument();
       });
 
       it('a closed report is read-only until reopened', async () => {
@@ -389,8 +423,7 @@ describe('AdminReportsPage', () => {
         );
 
         expect(screen.queryByRole('button', { name: 'Cảnh cáo' })).not.toBeInTheDocument();
-        expect(screen.queryByRole('button', { name: 'Bác bỏ' })).not.toBeInTheDocument();
-        expect(screen.queryByLabelText(/Ghi chú xử lý/)).not.toBeInTheDocument();
+        expect(screen.queryByRole('button', { name: 'Bác bỏ báo cáo' })).not.toBeInTheDocument();
         expect(screen.getByText('Không vi phạm rõ ràng')).toBeInTheDocument();
         expect(screen.getByRole('button', { name: 'Mở lại vụ việc' })).toBeInTheDocument();
       });
@@ -453,24 +486,42 @@ describe('AdminReportsPage', () => {
 
     describe('closing a report', () => {
       const NOTES = 'Đã xác minh nội dung báo cáo.';
+      const banned = {
+        id: 'x1',
+        type: 'ban',
+        params: {},
+        performedBy: ADMIN,
+        performedAt: '2026-10-10T05:00:00.000Z',
+        note: '',
+      };
+      const relatedOpenReports = [
+        { id: 'report-2', category: 'spam', severity: 'low', createdAt: '2026-10-01T00:00:00.000Z', reporterName: 'Mẹ An' },
+      ];
+      const askConclusion = async () => {
+        fireEvent.click(screen.getByRole('button', { name: 'Kết luận & đóng báo cáo' }));
+        return screen.findByRole('dialog', { name: 'Kết luận và đóng báo cáo' });
+      };
 
       it('needs notes of at least 10 characters', async () => {
         await openDrawer();
+        const dialog = await askConclusion();
 
-        fireEvent.change(screen.getByLabelText(/Ghi chú xử lý/), { target: { value: 'Ngắn' } });
-        fireEvent.click(screen.getByRole('button', { name: 'Bác bỏ' }));
+        fireEvent.change(within(dialog).getByLabelText(/Ghi chú xử lý/), { target: { value: 'Ngắn' } });
+        fireEvent.click(within(dialog).getByRole('button', { name: 'Đóng báo cáo' }));
 
-        expect(await screen.findByText('Ghi chú xử lý phải có tối thiểu 10 ký tự.')).toBeInTheDocument();
+        expect(await within(dialog).findByText('Ghi chú xử lý phải có tối thiểu 10 ký tự.')).toBeInTheDocument();
         expect(adminApi.resolveReport).not.toHaveBeenCalled();
       });
 
-      it('resolves explicitly without action when nothing was applied', async () => {
+      it('resolves without action when nothing was applied: the sanctioned outcome is locked', async () => {
         await openDrawer();
+        const dialog = await askConclusion();
 
-        expect(screen.getByRole('button', { name: 'Đánh dấu đã xử lý' })).toBeDisabled();
+        expect(within(dialog).getByRole('radio', { name: /đã xử lý bằng chế tài/ })).toBeDisabled();
+        expect(within(dialog).getByRole('radio', { name: /không kỷ luật/ })).toHaveAttribute('aria-checked', 'true');
 
-        fireEvent.change(screen.getByLabelText(/Ghi chú xử lý/), { target: { value: NOTES } });
-        fireEvent.click(screen.getByRole('button', { name: 'Đóng, không kỷ luật' }));
+        fireEvent.change(within(dialog).getByLabelText(/Ghi chú xử lý/), { target: { value: NOTES } });
+        fireEvent.click(within(dialog).getByRole('button', { name: 'Đóng báo cáo' }));
 
         await waitFor(() =>
           expect(adminApi.resolveReport).toHaveBeenCalledWith('report-1', {
@@ -481,11 +532,22 @@ describe('AdminReportsPage', () => {
         );
       });
 
-      it('dismisses a pending report directly', async () => {
+      it('prefills the notes with the AI draft', async () => {
+        await openDrawer(
+          makeDetail({ sentinelAssessment: { assessedAt: '2026-10-10T03:00:00.000Z', confidenceScore: 90, verdict: 'violation', draftNotes: { adminNote: 'Bản nháp của AI cho admin' } } })
+        );
+        const dialog = await askConclusion();
+
+        expect(within(dialog).getByLabelText(/Ghi chú xử lý/)).toHaveValue('Bản nháp của AI cho admin');
+      });
+
+      it('dismisses a pending report with its reason', async () => {
         await openDrawer(makeDetail({ status: 'pending', history: [] }));
 
-        fireEvent.change(screen.getByLabelText(/Ghi chú xử lý/), { target: { value: NOTES } });
-        fireEvent.click(screen.getByRole('button', { name: 'Bác bỏ' }));
+        fireEvent.click(screen.getByRole('button', { name: 'Bác bỏ báo cáo' }));
+        const dialog = await screen.findByRole('dialog', { name: 'Bác bỏ báo cáo' });
+        fireEvent.change(within(dialog).getByLabelText(/Lý do bác bỏ/), { target: { value: NOTES } });
+        fireEvent.click(within(dialog).getByRole('button', { name: 'Xác nhận bác bỏ' }));
 
         await waitFor(() =>
           expect(adminApi.resolveReport).toHaveBeenCalledWith('report-1', {
@@ -499,30 +561,24 @@ describe('AdminReportsPage', () => {
       it('keeps the drawer open and refreshes it after closing', async () => {
         await openDrawer();
         adminApi.getReportDetail.mockClear();
+        const dialog = await askConclusion();
 
-        fireEvent.change(screen.getByLabelText(/Ghi chú xử lý/), { target: { value: NOTES } });
-        fireEvent.click(screen.getByRole('button', { name: 'Bác bỏ' }));
+        fireEvent.change(within(dialog).getByLabelText(/Ghi chú xử lý/), { target: { value: NOTES } });
+        fireEvent.click(within(dialog).getByRole('button', { name: 'Đóng báo cáo' }));
 
         await waitFor(() => expect(adminApi.getReportDetail).toHaveBeenCalledWith('report-1'));
         expect(screen.getByText('Chi tiết báo cáo vi phạm')).toBeInTheDocument();
+        await waitFor(() => expect(screen.queryByRole('dialog', { name: 'Kết luận và đóng báo cáo' })).not.toBeInTheDocument());
       });
 
-      it('closes related reports only after a suspension or a ban', async () => {
-        const relatedOpenReports = [{ id: 'report-2', category: 'spam', severity: 'low', createdAt: '2026-10-01T00:00:00.000Z', reporterName: 'Mẹ An' }];
-        const banned = {
-          id: 'x1',
-          type: 'ban',
-          params: {},
-          performedBy: ADMIN,
-          performedAt: '2026-10-10T05:00:00.000Z',
-          note: '',
-        };
-
+      it('closes related reports with a resolution that has a suspension or a ban', async () => {
         await openDrawer(makeDetail({ relatedOpenReports, actions: [banned] }));
+        const dialog = await askConclusion();
 
-        fireEvent.click(screen.getByLabelText(/Tin rác/));
-        fireEvent.change(screen.getByLabelText(/Ghi chú xử lý/), { target: { value: NOTES } });
-        fireEvent.click(screen.getByRole('button', { name: 'Đánh dấu đã xử lý' }));
+        expect(within(dialog).getByRole('radio', { name: /đã xử lý bằng chế tài/ })).toHaveAttribute('aria-checked', 'true');
+        fireEvent.click(within(dialog).getByLabelText(/Tin rác/));
+        fireEvent.change(within(dialog).getByLabelText(/Ghi chú xử lý/), { target: { value: NOTES } });
+        fireEvent.click(within(dialog).getByRole('button', { name: 'Đóng báo cáo' }));
 
         await waitFor(() =>
           expect(adminApi.resolveReport).toHaveBeenCalledWith('report-1', {
@@ -534,14 +590,55 @@ describe('AdminReportsPage', () => {
         );
       });
 
-      it('disables the related reports before any account sanction', async () => {
-        await openDrawer(
-          makeDetail({
-            relatedOpenReports: [{ id: 'report-2', category: 'spam', severity: 'low', createdAt: '2026-10-01T00:00:00.000Z', reporterName: 'Mẹ An' }],
-          })
-        );
+      it('locks the outcome to the sanctions: no "no sanction" once one was applied, and no dismissal', async () => {
+        await openDrawer(makeDetail({ actions: [banned] }));
 
-        expect(screen.getByLabelText(/Tin rác/)).toBeDisabled();
+        expect(screen.getByRole('button', { name: 'Bác bỏ báo cáo' })).toBeDisabled();
+        const dialog = await askConclusion();
+        expect(within(dialog).getByRole('radio', { name: /không kỷ luật/ })).toBeDisabled();
+        expect(within(dialog).getByRole('radio', { name: /đã xử lý bằng chế tài/ })).toHaveAttribute('aria-checked', 'true');
+        expect(within(dialog).getByText(/không thể kết luận là không kỷ luật/)).toBeInTheDocument();
+      });
+
+      it('does not count a provisional Auto-Shield action as a sanction', async () => {
+        await openDrawer(makeDetail({ actions: [{ ...banned, type: 'suspend', isProvisional: true }] }));
+
+        expect(screen.getByRole('button', { name: 'Bác bỏ báo cáo' })).toBeEnabled();
+        const dialog = await askConclusion();
+        expect(within(dialog).getByRole('radio', { name: /đã xử lý bằng chế tài/ })).toBeDisabled();
+        expect(within(dialog).getByRole('radio', { name: /không kỷ luật/ })).toHaveAttribute('aria-checked', 'true');
+      });
+
+      it('puts the AI draft in the dismissal when the AI found no violation', async () => {
+        const sentinelAssessment = {
+          assessedAt: '2026-10-10T03:00:00.000Z',
+          confidenceScore: 90,
+          verdict: 'no_violation',
+          draftNotes: { adminNote: 'Báo cáo không hợp lệ, hai bên hiểu nhầm' },
+        };
+        await openDrawer(makeDetail({ sentinelAssessment }));
+
+        const resolveDialog = await askConclusion();
+        expect(within(resolveDialog).getByLabelText(/Ghi chú xử lý/)).toHaveValue('');
+        fireEvent.click(within(resolveDialog).getByRole('button', { name: 'Hủy' }));
+
+        fireEvent.click(screen.getByRole('button', { name: 'Bác bỏ báo cáo' }));
+        const dismissDialog = await screen.findByRole('dialog', { name: 'Bác bỏ báo cáo' });
+        expect(within(dismissDialog).getByLabelText(/Lý do bác bỏ/)).toHaveValue('Báo cáo không hợp lệ, hai bên hiểu nhầm');
+      });
+
+      it('disables the related reports before any account sanction', async () => {
+        await openDrawer(makeDetail({ relatedOpenReports }));
+        const dialog = await askConclusion();
+
+        expect(within(dialog).getByLabelText(/Tin rác/)).toBeDisabled();
+      });
+
+      it('lists the related reports in the body without choosing them there', async () => {
+        await openDrawer(makeDetail({ relatedOpenReports, actions: [banned] }));
+
+        expect(screen.getByText('Báo cáo mở liên quan (1)')).toBeInTheDocument();
+        expect(screen.queryByLabelText(/Tin rác/)).not.toBeInTheDocument();
       });
     });
 

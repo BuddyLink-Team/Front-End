@@ -1,25 +1,29 @@
 import React from 'react';
+import { cn } from '../../../../utils/cn';
 import { Eye, Sparkles } from 'lucide-react';
 import { Avatar } from '../../../../components/ui/Avatar';
 import { Button } from '../../../../components/ui/Button';
 import { ICON_SIZE } from '../../../../constants/icon.constants';
 import { formatDateTime } from '../../../../utils/formatters';
-import { getReportCategoryLabel } from '../../constants/admin.constants';
+import {
+  getReportCategoryLabel,
+  planSentinelCluster,
+} from '../../constants/admin.constants';
 import { ReportSeverityChip, ReportStatusChip } from './ReportChips';
 import { SentinelMonitoringBlock } from './SentinelMonitoringBlock';
 
 const RISK_BADGE_MAP = {
   high: {
-    label: 'High risk',
+    label: 'Rủi ro cao',
     className: 'bg-error-soft text-error-dark border-error/20',
   },
   medium: {
-    label: 'Medium risk',
-    className: 'bg-amber-50 text-amber-700 border-amber-200',
+    label: 'Rủi ro trung bình',
+    className: 'bg-tertiary-soft text-tertiary-dark border-tertiary-border',
   },
   low: {
-    label: 'Low risk',
-    className: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+    label: 'Rủi ro thấp',
+    className: 'bg-primary-soft text-primary-dark border-primary-border',
   },
 };
 
@@ -30,17 +34,19 @@ const RISK_BADGE_MAP = {
 export const SentinelClusterCard = ({
   cluster,
   index,
-  isActionLoading,
   onOpenReportDetail,
-  onConfirmApplySentinel,
   onCloseModal,
+  onAskResolveCluster,
+  isActionLoading = false,
 }) => {
   const riskBadge = RISK_BADGE_MAP[cluster.riskLevel] || RISK_BADGE_MAP.high;
+  // Nothing the quick handling can close (no violation or false report concluded by the AI)
+  const plan = planSentinelCluster(cluster.reports);
 
   return (
-    <div className="rounded-2xl border border-border-default bg-surface-card p-5 shadow-xs space-y-4">
+    <div className="rounded-2xl border border-hairline-strong bg-surface-container-lowest p-5 shadow-xs space-y-4">
       {/* Reported Parent Cluster Header */}
-      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border-default pb-3.5">
+      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-hairline-strong pb-3.5">
         <div className="flex items-center gap-3">
           <Avatar
             src={cluster.reportedUser?.avatarUrl}
@@ -52,29 +58,38 @@ export const SentinelClusterCard = ({
               <span className="text-label-xs font-bold uppercase tracking-wider text-primary-dark bg-primary-soft px-2.5 py-0.5 rounded-md border border-primary/20">
                 Cụm đối tượng #{index + 1}
               </span>
-              <h4 className="text-title-sm font-bold text-text-primary">
+              <h4 className="text-title-md font-bold text-text-primary">
                 {cluster.reportedUser?.fullName || 'Phụ huynh bị báo cáo'}
               </h4>
               <span
-                className={`inline-flex items-center rounded-full border px-3 py-0.5 text-label-xs font-bold ${riskBadge.className}`}
+                className={cn(
+                  'inline-flex items-center rounded-full border px-3 py-0.5 text-label-xs font-bold',
+                  riskBadge.className,
+                )}
               >
                 {riskBadge.label}
               </span>
               {cluster.reportedUser?.strikeCount > 0 && (
-                <span className="rounded-full bg-amber-50 border border-amber-200 px-2.5 py-0.5 text-label-xs font-semibold text-amber-800">
+                <span className="rounded-full bg-tertiary-soft border border-tertiary-border px-2.5 py-0.5 text-label-xs font-semibold text-tertiary-dark">
                   {cluster.reportedUser.strikeCount} lần cảnh cáo trước đó
                 </span>
               )}
             </div>
-            <p className="text-body-sm text-text-muted mt-0.5">
-              {cluster.reportedUser?.email || 'Tài khoản phụ huynh BuddyLink'} • Đang có{' '}
-              <strong className="text-text-primary">{cluster.reports.length} báo cáo đang mở</strong> từ{' '}
-              <strong className="text-text-primary">{cluster.uniqueReportersCount} phụ huynh</strong>
+            <p className="text-body-md text-text-muted mt-0.5">
+              {cluster.reportedUser?.email || 'Tài khoản phụ huynh BuddyLink'} •
+              Đang có{' '}
+              <strong className="text-text-primary">
+                {cluster.reports.length} báo cáo đang mở
+              </strong>{' '}
+              từ{' '}
+              <strong className="text-text-primary">
+                {cluster.uniqueReportersCount} phụ huynh
+              </strong>
             </p>
           </div>
         </div>
 
-        {/* Quick Admin Confirm or Inspect Buttons */}
+        {/* Opens the report in the drawer, where it is sanctioned and concluded */}
         <div className="flex flex-wrap items-center gap-2">
           <Button
             size="sm"
@@ -85,33 +100,38 @@ export const SentinelClusterCard = ({
             }}
             leftIcon={<Eye size={ICON_SIZE.XS} />}
           >
-            Mở Drawer điều tra
+            Mở để xử lý
           </Button>
-          <Button
-            size="sm"
-            variant="primary"
-            isLoading={isActionLoading}
-            disabled={isActionLoading}
-            onClick={async () => {
-              await onConfirmApplySentinel(cluster.primaryReport.id);
-            }}
-            leftIcon={<Sparkles size={ICON_SIZE.XS} />}
-            className="font-semibold shadow-xs"
-          >
-            Admin Confirm: Xử lý &amp; Đóng cụm ({cluster.reports.length})
-          </Button>
+          {onAskResolveCluster && (
+            <Button
+              size="sm"
+              variant="primary"
+              disabled={isActionLoading || !plan.isActionable}
+              title={
+                plan.isActionable
+                  ? undefined
+                  : 'Không có báo cáo nào xử lý nhanh được: mở chi tiết để xử lý'
+              }
+              onClick={() => onAskResolveCluster(cluster)}
+              leftIcon={<Sparkles size={ICON_SIZE.XS} />}
+              className="font-semibold shadow-xs"
+            >
+              Xác nhận xử lý &amp; đóng cụm ({cluster.reports.length})
+            </Button>
+          )}
         </div>
       </div>
 
-      {/* AI Report Monitoring Block */}
+      {/* AI report monitoring block */}
       <SentinelMonitoringBlock cluster={cluster} />
 
       {/* Individual Reports List inside this Cluster */}
       <div className="space-y-2">
         <div className="text-label-xs font-bold uppercase tracking-wider text-text-muted">
-          Danh sách {cluster.reports.length} báo cáo thành phần của đối tượng này:
+          Danh sách {cluster.reports.length} báo cáo thành phần của đối tượng
+          này:
         </div>
-        <div className="divide-y divide-border-default rounded-xl border border-border-default bg-surface-subtle">
+        <div className="divide-y divide-hairline-strong rounded-xl border border-hairline-strong bg-surface-container-low">
           {cluster.reports.map((rep) => (
             <div
               key={rep.id}
@@ -120,12 +140,12 @@ export const SentinelClusterCard = ({
               <div className="space-y-0.5 min-w-0">
                 <div className="flex flex-wrap items-center gap-2">
                   <ReportSeverityChip severity={rep.severity} />
-                  <span className="text-body-sm font-semibold text-text-primary">
+                  <span className="text-body-md font-semibold text-text-primary">
                     {getReportCategoryLabel(rep.category)}
                   </span>
                   <span className="text-label-xs text-text-muted">
                     • Người báo cáo:{' '}
-                    <strong className="text-text-secondary">
+                    <strong className="text-on-surface-variant">
                       {rep.reporter?.fullName || 'Phụ huynh'}
                     </strong>
                   </span>
@@ -135,7 +155,7 @@ export const SentinelClusterCard = ({
                   <ReportStatusChip status={rep.status} />
                 </div>
                 {rep.sentinelAssessment?.summary && (
-                  <p className="text-label-sm text-text-secondary line-clamp-1">
+                  <p className="text-label-sm text-on-surface-variant line-clamp-1">
                     <strong>AI tóm tắt:</strong>{' '}
                     {rep.sentinelAssessment.summary.replace(/\n+/g, ' ')}
                   </p>
@@ -163,4 +183,3 @@ export const SentinelClusterCard = ({
 };
 
 export default SentinelClusterCard;
-

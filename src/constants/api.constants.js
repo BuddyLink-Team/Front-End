@@ -1,3 +1,10 @@
+// Requests that wait on an AI model (Sentinel assessment) answer slower than the default timeout
+export const AI_REQUEST_TIMEOUT_MS = 60000;
+
+// Sign-in right after the Google popup: a sleeping server (free hosting cold start) can take more than
+// the default 15s to answer, and the Google ID token cannot be asked for again without a new click
+export const COLD_START_REQUEST_TIMEOUT_MS = 60000;
+
 export const API_ENDPOINTS = {
   AUTH: {
     LOGIN: '/auth/login',
@@ -117,6 +124,7 @@ export const API_ENDPOINTS = {
     REPORT_SENTINEL_APPLY: (id) => `/reports/${id}/sentinel-apply`,
     REPORT_SENTINEL_BATCH_SCAN: '/reports/sentinel-batch-scan',
     REPORT_SENTINEL_BATCH_APPLY: '/reports/sentinel-batch-apply',
+    REPORT_SENTINEL_CLUSTER_RESOLVE: '/reports/sentinel-cluster-resolve',
     ANALYTICS: '/analytics',
     NOTIFICATIONS: '/notifications',
     NOTIFICATIONS_UNREAD_COUNT: '/notifications/unread-count',

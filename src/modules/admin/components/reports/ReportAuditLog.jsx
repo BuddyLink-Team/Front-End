@@ -1,7 +1,18 @@
 import React from 'react';
-import { CheckCircle2, History, Scale, ShieldAlert, TriangleAlert } from 'lucide-react';
+import { ICON_SIZE } from '../../../../constants/icon.constants';
+import {
+  CheckCircle2,
+  History,
+  Scale,
+  ShieldAlert,
+  TriangleAlert,
+} from 'lucide-react';
 import { formatDateTime } from '../../../../utils/formatters';
-import { REPORT_ACTION_LABELS, REPORT_STATUS_DISPLAY } from '../../constants/admin.constants';
+import {
+  REPORT_ACTION_LABELS,
+  REPORT_STATUS_DISPLAY,
+  formatPolicyClause,
+} from '../../constants/admin.constants';
 import { ReportSection } from './ReportChips';
 
 const statusLabel = (status) => REPORT_STATUS_DISPLAY[status]?.label || status;
@@ -13,30 +24,32 @@ const statusLabel = (status) => REPORT_STATUS_DISPLAY[status]?.label || status;
 export const ReportAuditLog = ({ actions = [], history = [] }) => (
   <>
     {actions.length > 0 && (
-      <ReportSection icon={ShieldAlert} title="Chế tài đã áp dụng (Audit Record)">
+      <ReportSection icon={ShieldAlert} title="Chế tài đã áp dụng">
         <div className="space-y-3">
           {actions.map((action) => (
             <div
               key={action.id}
               className={`rounded-xl border p-3 space-y-1.5 ${
                 action.isPolicyOverride
-                  ? 'border-amber-400/60 bg-amber-50/60'
+                  ? 'border-tertiary-border bg-tertiary-soft'
                   : 'border-hairline bg-surface-container-low/50'
               }`}
             >
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <p className="font-semibold text-text-primary">
                   {REPORT_ACTION_LABELS[action.type] || action.type}
-                  {action.params?.durationDays ? ` (${action.params.durationDays} ngày)` : ''}
+                  {action.params?.durationDays
+                    ? ` (${action.params.durationDays} ngày)`
+                    : ''}
                 </p>
                 {action.isPolicyOverride ? (
-                  <span className="inline-flex items-center gap-1 rounded-full bg-amber-500/20 px-2.5 py-0.5 text-label-xs font-bold text-amber-900 border border-amber-500/40">
-                    <TriangleAlert size={12} />
-                    Ngoại lệ chính sách (Policy Override)
+                  <span className="inline-flex items-center gap-1 rounded-full bg-tertiary-soft px-2.5 py-0.5 text-label-xs font-bold text-tertiary-dark border border-tertiary-border">
+                    <TriangleAlert size={ICON_SIZE.XS} />
+                    Ngoại lệ chính sách
                   </span>
                 ) : (
-                  <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/15 px-2.5 py-0.5 text-label-xs font-semibold text-emerald-800 border border-emerald-500/30">
-                    <CheckCircle2 size={12} />
+                  <span className="inline-flex items-center gap-1 rounded-full bg-primary-soft px-2.5 py-0.5 text-label-xs font-semibold text-primary-ink border border-primary-border">
+                    <CheckCircle2 size={ICON_SIZE.XS} />
                     Đúng khung quy chuẩn
                   </span>
                 )}
@@ -44,22 +57,32 @@ export const ReportAuditLog = ({ actions = [], history = [] }) => (
 
               <p className="text-label-xs text-text-muted">
                 {formatDateTime(action.performedAt)} · Quản trị viên:{' '}
-                <strong className="text-text-primary">{action.performedBy?.fullName || 'Không rõ'}</strong>
+                <strong className="text-text-primary">
+                  {action.performedBy?.fullName || 'Không rõ'}
+                </strong>
               </p>
 
               {action.policyClause && (
                 <p className="flex items-center gap-1 text-label-xs text-text-muted">
-                  <Scale size={12} className="shrink-0 text-primary" />
-                  <span>Điều khoản tham chiếu: {action.policyClause}</span>
+                  <Scale
+                    size={ICON_SIZE.XS}
+                    className="shrink-0 text-primary"
+                  />
+                  <span>
+                    Điều khoản tham chiếu:{' '}
+                    {formatPolicyClause(action.policyClause)}
+                  </span>
                 </p>
               )}
 
               {action.isPolicyOverride && action.overrideReason && (
-                <div className="mt-1.5 rounded-lg border border-amber-400/50 bg-white/90 px-3 py-2 text-label-xs text-amber-950">
-                  <span className="font-bold block text-amber-900">
-                    📋 Lý do giải trình ngoại lệ (Lưu kiểm toán Super Admin):
+                <div className="mt-1.5 rounded-lg border border-tertiary-border bg-surface-container-lowest px-3 py-2 text-label-xs text-tertiary-dark">
+                  <span className="font-bold block text-tertiary-dark">
+                    Lý do giải trình ngoại lệ (lưu để hậu kiểm):
                   </span>
-                  <span className="italic">&ldquo;{action.overrideReason}&rdquo;</span>
+                  <span className="italic">
+                    &ldquo;{action.overrideReason}&rdquo;
+                  </span>
                 </div>
               )}
 
@@ -80,17 +103,20 @@ export const ReportAuditLog = ({ actions = [], history = [] }) => (
         <div className="space-y-2.5">
           {history.map((entry) => {
             const isOverrideEvent =
-              entry.eventType === 'policy_overridden' || entry.metadata?.isPolicyOverride;
+              entry.eventType === 'policy_overridden' ||
+              entry.metadata?.isPolicyOverride;
             return (
               <div
                 key={entry.id}
                 className={`flex items-start gap-3 border-b border-hairline last:border-none pb-2.5 last:pb-0 ${
-                  isOverrideEvent ? 'rounded-lg bg-amber-50/70 px-2.5 py-2 border border-amber-300/60' : ''
+                  isOverrideEvent
+                    ? 'rounded-lg bg-tertiary-soft px-2.5 py-2 border border-tertiary-border'
+                    : ''
                 }`}
               >
                 <div
                   className={`mt-1.5 h-2.5 w-2.5 rounded-full shrink-0 ${
-                    isOverrideEvent ? 'bg-amber-600' : 'bg-primary'
+                    isOverrideEvent ? 'bg-tertiary-dark' : 'bg-primary'
                   }`}
                 />
                 <div className="min-w-0 flex-1">
@@ -100,19 +126,24 @@ export const ReportAuditLog = ({ actions = [], history = [] }) => (
                         {entry.by?.fullName || 'Hệ thống / Sentinel AI'}
                       </span>
                       {isOverrideEvent && (
-                        <span className="rounded bg-amber-500/20 px-1.5 py-0.5 text-[10px] font-bold text-amber-900">
-                          Policy Override
+                        <span className="rounded bg-tertiary-soft px-1.5 py-0.5 text-label-xs font-bold text-tertiary-dark">
+                          Ngoại lệ chính sách
                         </span>
                       )}
                     </div>
-                    <span className="text-text-muted shrink-0">{formatDateTime(entry.at)}</span>
+                    <span className="text-text-muted shrink-0">
+                      {formatDateTime(entry.at)}
+                    </span>
                   </div>
                   {entry.fromStatus !== entry.toStatus && (
                     <p className="text-label-xs text-text-muted">
-                      {statusLabel(entry.fromStatus)} → {statusLabel(entry.toStatus)}
+                      {statusLabel(entry.fromStatus)} →{' '}
+                      {statusLabel(entry.toStatus)}
                     </p>
                   )}
-                  <p className="text-label-md text-text-primary mt-0.5">{entry.note}</p>
+                  <p className="text-label-md text-text-primary mt-0.5">
+                    {entry.note}
+                  </p>
                 </div>
               </div>
             );

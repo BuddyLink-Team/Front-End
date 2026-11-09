@@ -1,7 +1,20 @@
 import React, { useState } from 'react';
-import { GoogleLogin } from '@react-oauth/google';
+import { GoogleLogin, useGoogleOAuth } from '@react-oauth/google';
 import { Loader2 } from 'lucide-react';
 
+const GOOGLE_UNAVAILABLE_MESSAGE =
+  'Không tải được đăng nhập Google. Vui lòng kiểm tra kết nối rồi tải lại trang.';
+
+/**
+ * Custom-styled Google button. The official GSI button (it returns the ID token the backend verifies)
+ * is laid invisibly over it, and only while it can really be clicked:
+ * - not before the Google script has loaded (an empty overlay would swallow the clicks)
+ * - not while the backend verifies the token (the button shows its loader instead)
+ * After each attempt (success, refusal, closed popup, backend error) the GSI button is mounted again,
+ * so the next click always reaches a fresh one.
+ * @param {(idToken: string) => Promise<unknown>|void} onSuccess
+ * @param {Function} [onClick] - Used without a Google client id (local mock sign-in)
+ */
 export const GoogleLoginButton = ({
   onSuccess,
   onClick,
@@ -9,20 +22,46 @@ export const GoogleLoginButton = ({
   text = 'Đăng nhập nhanh bằng Google',
 }) => {
   const [isLoading, setIsLoading] = useState(false);
+  const [attempt, setAttempt] = useState(0);
+  const [isUnavailable, setIsUnavailable] = useState(false);
+  const { scriptLoadedSuccessfully } = useGoogleOAuth();
   const hasClientId = Boolean(import.meta.env.VITE_GOOGLE_CLIENT_ID);
 
+  const isOverlayActive =
+    hasClientId && scriptLoadedSuccessfully && !disabled && !isLoading;
+
+  const remountGoogleButton = () => setAttempt((count) => count + 1);
+
+  const handleCredential = async (credentialResponse) => {
+    if (!credentialResponse?.credential) {
+      remountGoogleButton();
+      return;
+    }
+    setIsLoading(true);
+    try {
+      await onSuccess?.(credentialResponse.credential);
+    } finally {
+      setIsLoading(false);
+      remountGoogleButton();
+    }
+  };
+
+  // Reached only when no GSI button lies over the custom one
+  const handleFallbackClick = () => {
+    if (!hasClientId) {
+      onClick?.();
+      return;
+    }
+    if (!scriptLoadedSuccessfully) setIsUnavailable(true);
+  };
+
   return (
-    <div className="w-full flex justify-center">
-      {/* 
-        Container wrapping the custom Stitch button with the official GoogleLogin overlaid invisibly.
-        This provides 100% pixel-perfect Stitch UI while returning the required JWT ID Token to backend.
-      */}
+    <div className="w-full flex flex-col items-center gap-1.5">
       {/* `group` lives here because the invisible GSI overlay sits above the button and swallows its own :hover */}
       <div className="group relative w-full overflow-hidden rounded-xl">
-        {/* Custom Stitch Designed UI Button */}
         <button
           type="button"
-          onClick={!hasClientId ? onClick : undefined}
+          onClick={isOverlayActive ? undefined : handleFallbackClick}
           disabled={disabled || isLoading}
           className="w-full py-3 px-4 rounded-xl bg-surface-container-low text-on-surface text-sm font-semibold transition-all duration-200 flex items-center justify-center gap-3 border border-hairline shadow-soft cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary/20 group-hover:bg-surface-container group-hover:border-primary-border group-hover:shadow-md group-hover:text-primary-dark group-active:scale-99 group-focus-within:ring-2 group-focus-within:ring-primary/20 disabled:opacity-60 disabled:cursor-not-allowed disabled:group-hover:bg-surface-container-low disabled:group-hover:border-hairline disabled:group-hover:shadow-soft disabled:group-hover:text-on-surface"
         >
@@ -55,23 +94,20 @@ export const GoogleLoginButton = ({
           <span>{isLoading ? 'Đang xác thực Google...' : text}</span>
         </button>
 
-        {/* 
-          Official Google GSI iframe rendered with opacity-0 and scaled to cover the button.
-          When clicked, Google GSI popup opens and returns credentialResponse.credential (JWT ID token).
-          Keep text='signin_with' constant to prevent google.accounts.id.initialize() re-triggers.
+        {/*
+          Official GSI button, invisible and scaled to cover the custom one. A new `key` after every
+          attempt mounts a fresh GSI button. text='signin_with' stays constant so that
+          google.accounts.id.initialize() is not triggered again on each render.
         */}
-        {hasClientId && !disabled && (
-          <div className="absolute inset-0 opacity-0 cursor-pointer overflow-hidden flex items-center justify-center scale-150">
+        {isOverlayActive && (
+          <div
+            key={attempt}
+            data-testid="google-gsi-overlay"
+            className="absolute inset-0 opacity-0 overflow-hidden flex items-center justify-center scale-150"
+          >
             <GoogleLogin
-              onSuccess={(credentialResponse) => {
-                setIsLoading(false);
-                if (onSuccess && credentialResponse?.credential) {
-                  onSuccess(credentialResponse.credential);
-                }
-              }}
-              onError={() => {
-                setIsLoading(false);
-              }}
+              onSuccess={handleCredential}
+              onError={remountGoogleButton}
               text="signin_with"
               shape="rectangular"
               size="large"
@@ -80,6 +116,11 @@ export const GoogleLoginButton = ({
           </div>
         )}
       </div>
+      {isUnavailable && (
+        <p role="alert" className="text-label-sm text-error">
+          {GOOGLE_UNAVAILABLE_MESSAGE}
+        </p>
+      )}
     </div>
   );
 };
