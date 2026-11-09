@@ -1,5 +1,5 @@
 import apiClient from '../../../services/apiClient';
-import { API_ENDPOINTS } from '../../../constants/api.constants';
+import { API_ENDPOINTS, COLD_START_REQUEST_TIMEOUT_MS } from '../../../constants/api.constants';
 
 export const authApi = {
   /**
@@ -15,7 +15,8 @@ export const authApi = {
   /**
    * Google OAuth login / signup
    */
-  googleLogin: (payload) => apiClient.post(API_ENDPOINTS.AUTH.GOOGLE, payload),
+  googleLogin: (payload) =>
+    apiClient.post(API_ENDPOINTS.AUTH.GOOGLE, payload, { timeout: COLD_START_REQUEST_TIMEOUT_MS }),
 
   /**
    * Logout: revoke the stored refresh token

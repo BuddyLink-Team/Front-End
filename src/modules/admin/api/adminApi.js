@@ -1,5 +1,8 @@
 import apiClient from '../../../services/apiClient';
-import { API_ENDPOINTS } from '../../../constants/api.constants';
+import {
+  AI_REQUEST_TIMEOUT_MS,
+  API_ENDPOINTS,
+} from '../../../constants/api.constants';
 
 const { USERS, CHILDREN, PAYMENTS } = API_ENDPOINTS.ADMIN;
 
@@ -31,7 +34,8 @@ export const adminApi = {
    * @param {string} id
    * @param {{ isActive: boolean }} data
    */
-  updateUserStatus: (id, { isActive }) => apiClient.patch(`${USERS}/${id}/status`, { isActive }),
+  updateUserStatus: (id, { isActive }) =>
+    apiClient.patch(`${USERS}/${id}/status`, { isActive }),
 
   /**
    * Get paginated children list (read-only)
@@ -57,20 +61,28 @@ export const adminApi = {
   getPayments: (params) => apiClient.get(PAYMENTS, { params }),
 
   // Playdates
-  getPlaydates: (params) => apiClient.get(API_ENDPOINTS.ADMIN.PLAYDATES, { params }),
+  getPlaydates: (params) =>
+    apiClient.get(API_ENDPOINTS.ADMIN.PLAYDATES, { params }),
   /** Playdates across the platform: { total, upcoming, completed, cancelled } */
-  getPlaydateStats: () => apiClient.get(`${API_ENDPOINTS.ADMIN.PLAYDATES}/stats`),
-  getPlaydateDetail: (id) => apiClient.get(API_ENDPOINTS.ADMIN.PLAYDATE_BY_ID(id)),
+  getPlaydateStats: () =>
+    apiClient.get(`${API_ENDPOINTS.ADMIN.PLAYDATES}/stats`),
+  getPlaydateDetail: (id) =>
+    apiClient.get(API_ENDPOINTS.ADMIN.PLAYDATE_BY_ID(id)),
   cancelPlaydate: (id, reason) =>
     apiClient.patch(API_ENDPOINTS.ADMIN.CANCEL_PLAYDATE(id), { reason }),
 
   // Connections
-  getConnections: (params) => apiClient.get(API_ENDPOINTS.ADMIN.CONNECTIONS, { params }),
+  getConnections: (params) =>
+    apiClient.get(API_ENDPOINTS.ADMIN.CONNECTIONS, { params }),
   /** Connections across the platform: { total, pending, accepted, declined, removed } */
-  getConnectionStats: () => apiClient.get(`${API_ENDPOINTS.ADMIN.CONNECTIONS}/stats`),
-  getConnectionDetail: (id) => apiClient.get(API_ENDPOINTS.ADMIN.CONNECTION_BY_ID(id)),
+  getConnectionStats: () =>
+    apiClient.get(`${API_ENDPOINTS.ADMIN.CONNECTIONS}/stats`),
+  getConnectionDetail: (id) =>
+    apiClient.get(API_ENDPOINTS.ADMIN.CONNECTION_BY_ID(id)),
   removeConnection: (id, reason) =>
-    apiClient.delete(API_ENDPOINTS.ADMIN.CONNECTION_BY_ID(id), { data: { reason } }),
+    apiClient.delete(API_ENDPOINTS.ADMIN.CONNECTION_BY_ID(id), {
+      data: { reason },
+    }),
 
   // Subscription plans & revenue
   /** All plans, inactive ones included */
@@ -78,46 +90,98 @@ export const adminApi = {
   /** One plan as stored now */
   getPlanDetail: (id) => apiClient.get(API_ENDPOINTS.ADMIN.PLAN_BY_ID(id)),
   /** @param {{ name?: string, price?: number, isActive?: boolean, features?: Object }} payload */
-  updatePlan: (id, payload) => apiClient.patch(API_ENDPOINTS.ADMIN.PLAN_BY_ID(id), payload),
+  updatePlan: (id, payload) =>
+    apiClient.patch(API_ENDPOINTS.ADMIN.PLAN_BY_ID(id), payload),
   /** @param {Object} [params] - { search, planCode, status, page, limit } */
-  getSubscriptions: (params) => apiClient.get(API_ENDPOINTS.ADMIN.SUBSCRIPTIONS, { params }),
-  getSubscriptionDetail: (id) => apiClient.get(API_ENDPOINTS.ADMIN.SUBSCRIPTION_BY_ID(id)),
+  getSubscriptions: (params) =>
+    apiClient.get(API_ENDPOINTS.ADMIN.SUBSCRIPTIONS, { params }),
+  getSubscriptionDetail: (id) =>
+    apiClient.get(API_ENDPOINTS.ADMIN.SUBSCRIPTION_BY_ID(id)),
   /** Payments of every parent. @param {Object} [params] - { search, status, planCode, fromDate, toDate, page, limit } */
-  getTransactions: (params) => apiClient.get(API_ENDPOINTS.ADMIN.TRANSACTIONS, { params }),
+  getTransactions: (params) =>
+    apiClient.get(API_ENDPOINTS.ADMIN.TRANSACTIONS, { params }),
   /** Payment audit detail (checkoutUrl and qrCode left out) */
-  getTransactionDetail: (id) => apiClient.get(API_ENDPOINTS.ADMIN.TRANSACTION_BY_ID(id)),
+  getTransactionDetail: (id) =>
+    apiClient.get(API_ENDPOINTS.ADMIN.TRANSACTION_BY_ID(id)),
   /** @param {{ fromDate?: string, toDate?: string }} [params] */
-  getRevenueSummary: (params) => apiClient.get(API_ENDPOINTS.ADMIN.REVENUE_SUMMARY, { params }),
+  getRevenueSummary: (params) =>
+    apiClient.get(API_ENDPOINTS.ADMIN.REVENUE_SUMMARY, { params }),
 
   // Safety & Reports Moderation
   /** Paginated reports list. @param {Object} [params] */
-  getReports: (params) => apiClient.get(API_ENDPOINTS.ADMIN.REPORTS, { params }),
+  getReports: (params) =>
+    apiClient.get(API_ENDPOINTS.ADMIN.REPORTS, { params }),
   /** Queue stats and SLA averages */
-  getReportStats: (params) => apiClient.get(API_ENDPOINTS.ADMIN.REPORT_STATS, { params }),
+  getReportStats: (params) =>
+    apiClient.get(API_ENDPOINTS.ADMIN.REPORT_STATS, { params }),
   /** Full investigation report detail */
   getReportDetail: (id) => apiClient.get(API_ENDPOINTS.ADMIN.REPORT_BY_ID(id)),
   /** Claim or takeover report. @param {{ action: 'claim' | 'takeover' }} payload */
-  reviewReport: (id, payload) => apiClient.patch(API_ENDPOINTS.ADMIN.REPORT_REVIEW(id), payload),
+  reviewReport: (id, payload) =>
+    apiClient.patch(API_ENDPOINTS.ADMIN.REPORT_REVIEW(id), payload),
   /** Update severity during review. @param {{ severity: string, note?: string }} payload */
-  updateReportSeverity: (id, payload) => apiClient.patch(API_ENDPOINTS.ADMIN.REPORT_SEVERITY(id), payload),
+  updateReportSeverity: (id, payload) =>
+    apiClient.patch(API_ENDPOINTS.ADMIN.REPORT_SEVERITY(id), payload),
   /** Apply disciplinary action. @param {{ type: string, durationDays?: number, note?: string }} payload */
-  applyReportAction: (id, payload) => apiClient.post(API_ENDPOINTS.ADMIN.REPORT_ACTION(id), payload),
+  applyReportAction: (id, payload) =>
+    apiClient.post(API_ENDPOINTS.ADMIN.REPORT_ACTION(id), payload),
   /** Resolve or dismiss report. @param {{ status: string, resolution: string, adminNotes: string, applyToRelatedReportIds?: string[] }} payload */
-  resolveReport: (id, payload) => apiClient.patch(API_ENDPOINTS.ADMIN.REPORT_RESOLVE(id), payload),
+  resolveReport: (id, payload) =>
+    apiClient.patch(API_ENDPOINTS.ADMIN.REPORT_RESOLVE(id), payload),
   /** Reopen closed report. @param {{ note: string }} payload */
-  reopenReport: (id, payload) => apiClient.patch(API_ENDPOINTS.ADMIN.REPORT_REOPEN(id), payload),
+  reopenReport: (id, payload) =>
+    apiClient.patch(API_ENDPOINTS.ADMIN.REPORT_REOPEN(id), payload),
+  /** Trigger or refresh Sentinel AI assessment. @param {{ forceRefresh?: boolean }} [payload] */
+  assessReportWithSentinel: (id, payload = {}) =>
+    apiClient.post(API_ENDPOINTS.ADMIN.REPORT_SENTINEL_ASSESS(id), payload, {
+      timeout: AI_REQUEST_TIMEOUT_MS,
+    }),
+  /** 1-Click Approve Sentinel recommendations. @param {{ note?: string }} [payload] */
+  applySentinelRecommendation: (id, payload = {}) =>
+    apiClient.post(API_ENDPOINTS.ADMIN.REPORT_SENTINEL_APPLY(id), payload, {
+      timeout: AI_REQUEST_TIMEOUT_MS,
+    }),
+  /** Batch scan open reports with Sentinel AI */
+  batchScanSentinel: () =>
+    apiClient.post(
+      API_ENDPOINTS.ADMIN.REPORT_SENTINEL_BATCH_SCAN,
+      {},
+      { timeout: AI_REQUEST_TIMEOUT_MS },
+    ),
+  /** Batch apply & auto-resolve open reports with high AI confidence */
+  batchApplySentinel: (payload = {}) =>
+    apiClient.post(API_ENDPOINTS.ADMIN.REPORT_SENTINEL_BATCH_APPLY, payload, {
+      timeout: AI_REQUEST_TIMEOUT_MS,
+    }),
+  /** @param {{ reportIds: string[], note?: string }} payload - Open reports against one parent */
+  resolveSentinelCluster: (payload) =>
+    apiClient.post(
+      API_ENDPOINTS.ADMIN.REPORT_SENTINEL_CLUSTER_RESOLVE,
+      payload,
+      { timeout: AI_REQUEST_TIMEOUT_MS },
+    ),
 
   // System Analytics & Dashboard
   /** @param {{ fromDate?: string, toDate?: string, groupBy?: string }} [params] */
-  getAnalytics: (params) => apiClient.get(API_ENDPOINTS.ADMIN.ANALYTICS, { params }),
+  getAnalytics: (params) =>
+    apiClient.get(API_ENDPOINTS.ADMIN.ANALYTICS, { params }),
 
   // Admin Notifications
   /** @param {{ category?: string, severity?: string, isRead?: boolean, page?: number, limit?: number }} [params] */
-  getNotifications: (params) => apiClient.get(API_ENDPOINTS.ADMIN.NOTIFICATIONS, { params }),
-  getUnreadNotificationCount: () => apiClient.get(API_ENDPOINTS.ADMIN.NOTIFICATIONS_UNREAD_COUNT),
-  markNotificationAsRead: (id) => apiClient.patch(API_ENDPOINTS.ADMIN.NOTIFICATIONS_READ(id)),
+  getNotifications: (params) =>
+    apiClient.get(API_ENDPOINTS.ADMIN.NOTIFICATIONS, { params }),
+  getUnreadNotificationCount: () =>
+    apiClient.get(API_ENDPOINTS.ADMIN.NOTIFICATIONS_UNREAD_COUNT),
+  markNotificationAsRead: (id) =>
+    apiClient.patch(API_ENDPOINTS.ADMIN.NOTIFICATIONS_READ(id)),
+  // Empty object, never null: with the JSON content type axios would send the text "null",
+  // which express.json() rejects (400 entity.parse.failed)
   markAllNotificationsAsRead: (category) =>
-    apiClient.patch(API_ENDPOINTS.ADMIN.NOTIFICATIONS_READ_ALL, null, { params: category ? { category } : {} }),
+    apiClient.patch(
+      API_ENDPOINTS.ADMIN.NOTIFICATIONS_READ_ALL,
+      {},
+      { params: category ? { category } : {} },
+    ),
 };
 
 export default adminApi;

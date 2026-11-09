@@ -1,126 +1,206 @@
 import { createSlice } from '@reduxjs/toolkit';
 import { createApiThunk } from '../../../utils/reduxUtils';
 import { adminApi } from '../api/adminApi';
-import { ADMIN_NOTIFICATION_FILTER_ALL, ADMIN_NOTIFICATION_PAGE_LIMIT } from '../constants/dashboard.constants';
+import {
+  ADMIN_NOTIFICATION_FILTER_ALL,
+  ADMIN_NOTIFICATION_PAGE_LIMIT,
+} from '../constants/dashboard.constants';
 
 // ---- Thunks ----
 
 // Lists are paged by useServerTable, which keeps the rows; these thunks only route the calls through Redux
-export const fetchAdminUsers = createApiThunk('admin/fetchUsers', (params) => adminApi.getUsers(params));
+export const fetchAdminUsers = createApiThunk('admin/fetchUsers', (params) =>
+  adminApi.getUsers(params),
+);
 
-export const fetchAdminChildren = createApiThunk('admin/fetchChildren', (params) => adminApi.getChildren(params));
+export const fetchAdminChildren = createApiThunk(
+  'admin/fetchChildren',
+  (params) => adminApi.getChildren(params),
+);
 
 // Platform-wide counts shown above the lists (kept by useAdminStats)
-export const fetchAdminUserStats = createApiThunk('admin/fetchUserStats', () => adminApi.getUserStats());
-
-export const fetchAdminChildStats = createApiThunk('admin/fetchChildStats', () => adminApi.getChildStats());
-
-export const fetchAdminUserDetail = createApiThunk('admin/fetchUserDetail', (userId) =>
-  adminApi.getUserDetail(userId)
+export const fetchAdminUserStats = createApiThunk('admin/fetchUserStats', () =>
+  adminApi.getUserStats(),
 );
 
-export const fetchAdminUserPayments = createApiThunk('admin/fetchUserPayments', (params) =>
-  adminApi.getPayments(params)
+export const fetchAdminChildStats = createApiThunk(
+  'admin/fetchChildStats',
+  () => adminApi.getChildStats(),
 );
 
-export const updateAdminUserStatus = createApiThunk('admin/updateUserStatus', ({ userId, isActive }) =>
-  adminApi.updateUserStatus(userId, { isActive })
+export const fetchAdminUserDetail = createApiThunk(
+  'admin/fetchUserDetail',
+  (userId) => adminApi.getUserDetail(userId),
 );
 
-export const fetchAdminChildDetail = createApiThunk('admin/fetchChildDetail', (childId) =>
-  adminApi.getChildDetail(childId)
+export const fetchAdminUserPayments = createApiThunk(
+  'admin/fetchUserPayments',
+  (params) => adminApi.getPayments(params),
+);
+
+export const updateAdminUserStatus = createApiThunk(
+  'admin/updateUserStatus',
+  ({ userId, isActive }) => adminApi.updateUserStatus(userId, { isActive }),
+);
+
+export const fetchAdminChildDetail = createApiThunk(
+  'admin/fetchChildDetail',
+  (childId) => adminApi.getChildDetail(childId),
 );
 
 // Safety & reports moderation
-export const fetchAdminReports = createApiThunk('admin/fetchReports', (params) => adminApi.getReports(params));
-
-export const fetchAdminReportStats = createApiThunk('admin/fetchReportStats', () => adminApi.getReportStats());
-
-export const fetchAdminReportDetail = createApiThunk('admin/fetchReportDetail', (id) => adminApi.getReportDetail(id));
-
-export const reviewAdminReport = createApiThunk('admin/reviewReport', ({ id, action }) =>
-  adminApi.reviewReport(id, { action })
+export const fetchAdminReports = createApiThunk(
+  'admin/fetchReports',
+  (params) => adminApi.getReports(params),
 );
 
-export const updateAdminReportSeverity = createApiThunk('admin/updateReportSeverity', ({ id, severity }) =>
-  adminApi.updateReportSeverity(id, { severity })
+export const fetchAdminReportStats = createApiThunk(
+  'admin/fetchReportStats',
+  () => adminApi.getReportStats(),
 );
 
-export const applyAdminReportAction = createApiThunk('admin/applyReportAction', ({ id, payload }) =>
-  adminApi.applyReportAction(id, payload)
+export const fetchAdminReportDetail = createApiThunk(
+  'admin/fetchReportDetail',
+  (id) => adminApi.getReportDetail(id),
 );
 
-export const resolveAdminReport = createApiThunk('admin/resolveReport', ({ id, payload }) =>
-  adminApi.resolveReport(id, payload)
+export const reviewAdminReport = createApiThunk(
+  'admin/reviewReport',
+  ({ id, action }) => adminApi.reviewReport(id, { action }),
 );
 
-export const reopenAdminReport = createApiThunk('admin/reopenReport', ({ id, note }) =>
-  adminApi.reopenReport(id, { note })
+export const updateAdminReportSeverity = createApiThunk(
+  'admin/updateReportSeverity',
+  ({ id, severity }) => adminApi.updateReportSeverity(id, { severity }),
+);
+
+export const applyAdminReportAction = createApiThunk(
+  'admin/applyReportAction',
+  ({ id, payload }) => adminApi.applyReportAction(id, payload),
+);
+
+export const resolveAdminReport = createApiThunk(
+  'admin/resolveReport',
+  ({ id, payload }) => adminApi.resolveReport(id, payload),
+);
+
+export const reopenAdminReport = createApiThunk(
+  'admin/reopenReport',
+  ({ id, note }) => adminApi.reopenReport(id, { note }),
+);
+export const assessAdminReportWithSentinel = createApiThunk(
+  'admin/assessReportWithSentinel',
+  ({ id, forceRefresh }) =>
+    adminApi.assessReportWithSentinel(id, { forceRefresh }),
+);
+export const applyAdminSentinelRecommendation = createApiThunk(
+  'admin/applySentinelRecommendation',
+  ({ id, note }) =>
+    adminApi.applySentinelRecommendation(id, note ? { note } : {}),
+);
+export const batchScanAdminSentinel = createApiThunk(
+  'admin/batchScanSentinel',
+  () => adminApi.batchScanSentinel(),
+);
+export const batchApplyAdminSentinel = createApiThunk(
+  'admin/batchApplySentinel',
+  (payload) => adminApi.batchApplySentinel(payload),
+);
+export const resolveAdminSentinelCluster = createApiThunk(
+  'admin/resolveSentinelCluster',
+  (payload) => adminApi.resolveSentinelCluster(payload),
 );
 
 // Playdates & connections oversight: list, detail, and the admin action on one of them
-export const fetchAdminPlaydates = createApiThunk('admin/fetchPlaydates', (params) => adminApi.getPlaydates(params));
-
-export const fetchAdminPlaydateStats = createApiThunk('admin/fetchPlaydateStats', () => adminApi.getPlaydateStats());
-
-export const fetchAdminPlaydateDetail = createApiThunk('admin/fetchPlaydateDetail', (playdateId) =>
-  adminApi.getPlaydateDetail(playdateId)
+export const fetchAdminPlaydates = createApiThunk(
+  'admin/fetchPlaydates',
+  (params) => adminApi.getPlaydates(params),
 );
 
-export const cancelAdminPlaydate = createApiThunk('admin/cancelPlaydate', ({ id, reason }) =>
-  adminApi.cancelPlaydate(id, reason)
+export const fetchAdminPlaydateStats = createApiThunk(
+  'admin/fetchPlaydateStats',
+  () => adminApi.getPlaydateStats(),
 );
 
-export const fetchAdminConnections = createApiThunk('admin/fetchConnections', (params) =>
-  adminApi.getConnections(params)
+export const fetchAdminPlaydateDetail = createApiThunk(
+  'admin/fetchPlaydateDetail',
+  (playdateId) => adminApi.getPlaydateDetail(playdateId),
 );
 
-export const fetchAdminConnectionStats = createApiThunk('admin/fetchConnectionStats', () =>
-  adminApi.getConnectionStats()
+export const cancelAdminPlaydate = createApiThunk(
+  'admin/cancelPlaydate',
+  ({ id, reason }) => adminApi.cancelPlaydate(id, reason),
 );
 
-export const fetchAdminConnectionDetail = createApiThunk('admin/fetchConnectionDetail', (connectionId) =>
-  adminApi.getConnectionDetail(connectionId)
+export const fetchAdminConnections = createApiThunk(
+  'admin/fetchConnections',
+  (params) => adminApi.getConnections(params),
 );
 
-export const removeAdminConnection = createApiThunk('admin/removeConnection', ({ id, reason }) =>
-  adminApi.removeConnection(id, reason)
+export const fetchAdminConnectionStats = createApiThunk(
+  'admin/fetchConnectionStats',
+  () => adminApi.getConnectionStats(),
+);
+
+export const fetchAdminConnectionDetail = createApiThunk(
+  'admin/fetchConnectionDetail',
+  (connectionId) => adminApi.getConnectionDetail(connectionId),
+);
+
+export const removeAdminConnection = createApiThunk(
+  'admin/removeConnection',
+  ({ id, reason }) => adminApi.removeConnection(id, reason),
 );
 
 // Subscription plans & revenue: results are kept by the hooks of that screen
-export const fetchAdminPlans = createApiThunk('admin/fetchPlans', () => adminApi.getPlans());
-
-export const fetchAdminPlanDetail = createApiThunk('admin/fetchPlanDetail', (id) => adminApi.getPlanDetail(id));
-
-export const updateAdminPlan = createApiThunk('admin/updatePlan', ({ id, payload }) => adminApi.updatePlan(id, payload));
-
-export const fetchAdminSubscriptions = createApiThunk('admin/fetchSubscriptions', (params) =>
-  adminApi.getSubscriptions(params)
+export const fetchAdminPlans = createApiThunk('admin/fetchPlans', () =>
+  adminApi.getPlans(),
 );
 
-export const fetchAdminSubscriptionDetail = createApiThunk('admin/fetchSubscriptionDetail', (id) =>
-  adminApi.getSubscriptionDetail(id)
+export const fetchAdminPlanDetail = createApiThunk(
+  'admin/fetchPlanDetail',
+  (id) => adminApi.getPlanDetail(id),
 );
 
-export const fetchAdminTransactions = createApiThunk('admin/fetchTransactions', (params) =>
-  adminApi.getTransactions(params)
+export const updateAdminPlan = createApiThunk(
+  'admin/updatePlan',
+  ({ id, payload }) => adminApi.updatePlan(id, payload),
 );
 
-export const fetchAdminTransactionDetail = createApiThunk('admin/fetchTransactionDetail', (id) =>
-  adminApi.getTransactionDetail(id)
+export const fetchAdminSubscriptions = createApiThunk(
+  'admin/fetchSubscriptions',
+  (params) => adminApi.getSubscriptions(params),
 );
 
-export const fetchAdminRevenueSummary = createApiThunk('admin/fetchRevenueSummary', (params) =>
-  adminApi.getRevenueSummary(params)
+export const fetchAdminSubscriptionDetail = createApiThunk(
+  'admin/fetchSubscriptionDetail',
+  (id) => adminApi.getSubscriptionDetail(id),
+);
+
+export const fetchAdminTransactions = createApiThunk(
+  'admin/fetchTransactions',
+  (params) => adminApi.getTransactions(params),
+);
+
+export const fetchAdminTransactionDetail = createApiThunk(
+  'admin/fetchTransactionDetail',
+  (id) => adminApi.getTransactionDetail(id),
+);
+
+export const fetchAdminRevenueSummary = createApiThunk(
+  'admin/fetchRevenueSummary',
+  (params) => adminApi.getRevenueSummary(params),
 );
 
 // Analytics & Notifications
-export const fetchAdminAnalytics = createApiThunk('admin/fetchAnalytics', (params) =>
-  adminApi.getAnalytics(params)
+export const fetchAdminAnalytics = createApiThunk(
+  'admin/fetchAnalytics',
+  (params) => adminApi.getAnalytics(params),
 );
 
 // 'all' is a choice of the filters, not a value to send
-const isNotificationFilterSet = (value) => value && value !== ADMIN_NOTIFICATION_FILTER_ALL;
+const isNotificationFilterSet = (value) =>
+  value && value !== ADMIN_NOTIFICATION_FILTER_ALL;
 
 export const fetchAdminNotifications = createApiThunk(
   'admin/fetchNotifications',
@@ -130,27 +210,38 @@ export const fetchAdminNotifications = createApiThunk(
       ...(isNotificationFilterSet(severity) ? { severity } : {}),
       page,
       limit,
-    })
+    }),
 );
 
-export const fetchAdminUnreadNotificationCount = createApiThunk('admin/fetchUnreadNotificationCount', () =>
-  adminApi.getUnreadNotificationCount()
+export const fetchAdminUnreadNotificationCount = createApiThunk(
+  'admin/fetchUnreadNotificationCount',
+  () => adminApi.getUnreadNotificationCount(),
 );
 
-export const markAdminNotificationAsRead = createApiThunk('admin/markNotificationAsRead', (id) =>
-  adminApi.markNotificationAsRead(id)
+export const markAdminNotificationAsRead = createApiThunk(
+  'admin/markNotificationAsRead',
+  (id) => adminApi.markNotificationAsRead(id),
 );
 
-export const markAllAdminNotificationsAsRead = createApiThunk('admin/markAllNotificationsAsRead', (category) =>
-  adminApi.markAllNotificationsAsRead(category)
+export const markAllAdminNotificationsAsRead = createApiThunk(
+  'admin/markAllNotificationsAsRead',
+  (category) => adminApi.markAllNotificationsAsRead(category),
 );
 
-const emptyDetail = { data: null, isLoading: false, error: null, requestId: null };
+const emptyDetail = {
+  data: null,
+  isLoading: false,
+  error: null,
+  requestId: null,
+};
 
 const initialNotifications = {
   items: [],
   pagination: null,
-  filters: { category: ADMIN_NOTIFICATION_FILTER_ALL, severity: ADMIN_NOTIFICATION_FILTER_ALL },
+  filters: {
+    category: ADMIN_NOTIFICATION_FILTER_ALL,
+    severity: ADMIN_NOTIFICATION_FILTER_ALL,
+  },
   isLoading: false,
   isLoadingMore: false,
   requestId: null,
@@ -171,7 +262,8 @@ const initialState = {
 };
 
 // A detail request answered after another one started (or after the drawer closed) is ignored
-const isCurrentRequest = (slot, action) => slot.requestId === action.meta.requestId;
+const isCurrentRequest = (slot, action) =>
+  slot.requestId === action.meta.requestId;
 
 // Detail slot of an oversight modal: keep the open item on screen while it reloads (after an admin action)
 const addOversightDetailCases = (builder, thunk, slotKey) =>
@@ -233,9 +325,18 @@ export const adminSlice = createSlice({
     adminNotificationReceived: (state, action) => {
       const notification = action.payload;
       const { items, filters, pagination } = state.notifications;
-      const matchesCategory = !isNotificationFilterSet(filters.category) || notification.category === filters.category;
-      const matchesSeverity = !isNotificationFilterSet(filters.severity) || notification.severity === filters.severity;
-      if (!matchesCategory || !matchesSeverity || items.some((item) => item.id === notification.id)) return;
+      const matchesCategory =
+        !isNotificationFilterSet(filters.category) ||
+        notification.category === filters.category;
+      const matchesSeverity =
+        !isNotificationFilterSet(filters.severity) ||
+        notification.severity === filters.severity;
+      if (
+        !matchesCategory ||
+        !matchesSeverity ||
+        items.some((item) => item.id === notification.id)
+      )
+        return;
       items.unshift(notification);
       if (pagination) pagination.total += 1;
     },
@@ -292,7 +393,9 @@ export const adminSlice = createSlice({
         state.notifications.unreadCount = action.payload;
       })
       .addCase(markAdminNotificationAsRead.fulfilled, (state, action) => {
-        const item = state.notifications.items.find((notification) => notification.id === action.meta.arg);
+        const item = state.notifications.items.find(
+          (notification) => notification.id === action.meta.arg,
+        );
         if (item) item.isRead = true;
       })
       .addCase(markAllAdminNotificationsAsRead.fulfilled, (state, action) => {
@@ -333,7 +436,8 @@ export const adminSlice = createSlice({
         if (!isCurrentRequest(state.payments, action)) return;
         const data = action.payload || {};
         state.payments.items = data.items || [];
-        state.payments.total = data.pagination?.total ?? state.payments.items.length;
+        state.payments.total =
+          data.pagination?.total ?? state.payments.items.length;
         state.payments.isLoading = false;
       })
       .addCase(fetchAdminUserPayments.rejected, (state, action) => {
@@ -356,7 +460,12 @@ export const adminSlice = createSlice({
 
       // Child detail
       .addCase(fetchAdminChildDetail.pending, (state, action) => {
-        state.childDetail = { data: null, isLoading: true, error: null, requestId: action.meta.requestId };
+        state.childDetail = {
+          data: null,
+          isLoading: true,
+          error: null,
+          requestId: action.meta.requestId,
+        };
       })
       .addCase(fetchAdminChildDetail.fulfilled, (state, action) => {
         if (!isCurrentRequest(state.childDetail, action)) return;
@@ -369,12 +478,29 @@ export const adminSlice = createSlice({
         state.childDetail.error = action.payload || action.error;
       });
 
-    addOversightDetailCases(builder, fetchAdminPlaydateDetail, 'playdateDetail');
-    addOversightDetailCases(builder, fetchAdminConnectionDetail, 'connectionDetail');
-    addOversightDetailCases(builder, fetchAdminReportDetail, 'reportDetail');
-    [reviewAdminReport, updateAdminReportSeverity, applyAdminReportAction, resolveAdminReport, reopenAdminReport].forEach(
-      (thunk) => addOversightActionCases(builder, thunk)
+    addOversightDetailCases(
+      builder,
+      fetchAdminPlaydateDetail,
+      'playdateDetail',
     );
+    addOversightDetailCases(
+      builder,
+      fetchAdminConnectionDetail,
+      'connectionDetail',
+    );
+    addOversightDetailCases(builder, fetchAdminReportDetail, 'reportDetail');
+    [
+      reviewAdminReport,
+      updateAdminReportSeverity,
+      applyAdminReportAction,
+      resolveAdminReport,
+      reopenAdminReport,
+      assessAdminReportWithSentinel,
+      applyAdminSentinelRecommendation,
+      batchScanAdminSentinel,
+      batchApplyAdminSentinel,
+      resolveAdminSentinelCluster,
+    ].forEach((thunk) => addOversightActionCases(builder, thunk));
     addOversightActionCases(builder, cancelAdminPlaydate);
     addOversightActionCases(builder, removeAdminConnection);
   },
@@ -384,14 +510,27 @@ export const {
   adminNotificationReceived,
   adminUnreadCountReceived,
   adminNotificationSocketStatusChanged,
-  resetAdminNotifications, clearUserDetail, clearChildDetail, clearPlaydateDetail, clearConnectionDetail, clearReportDetail } = adminSlice.actions;
+  resetAdminNotifications,
+  clearUserDetail,
+  clearChildDetail,
+  clearPlaydateDetail,
+  clearConnectionDetail,
+  clearReportDetail,
+} = adminSlice.actions;
 
 /**
  * Page 1 of the list with its current filters, and the unread counts (after a reconnection or on demand)
  */
 export const refreshAdminNotifications = () => (dispatch, getState) => {
   const { category, severity } = getState().admin.notifications.filters;
-  dispatch(fetchAdminNotifications({ category, severity, page: 1, limit: ADMIN_NOTIFICATION_PAGE_LIMIT }));
+  dispatch(
+    fetchAdminNotifications({
+      category,
+      severity,
+      page: 1,
+      limit: ADMIN_NOTIFICATION_PAGE_LIMIT,
+    }),
+  );
   dispatch(fetchAdminUnreadNotificationCount());
 };
 

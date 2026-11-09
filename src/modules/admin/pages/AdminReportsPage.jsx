@@ -1,13 +1,28 @@
 import React from 'react';
-import { Calendar, Eye, MessageSquare, RotateCcw, User } from 'lucide-react';
+import {
+  Calendar,
+  Eye,
+  MessageSquare,
+  RotateCcw,
+  ShieldAlert,
+  Sparkles,
+  User,
+} from 'lucide-react';
 import { AdminListToolbar } from '../components/AdminListToolbar';
 import { AdminFilterDropdown } from '../components/AdminFilterDropdown';
 import { AdminStatStrip } from '../components/AdminStatStrip';
 import { AdminReportInvestigationDrawer } from '../components/AdminReportInvestigationDrawer';
-import { ReportOverdueChip, ReportSeverityChip, ReportStatusChip } from '../components/reports/ReportChips';
+import {
+  ReportOverdueChip,
+  ReportSeverityChip,
+  ReportStatusChip,
+} from '../components/reports/ReportChips';
+import { SentinelBatchCommandBar } from '../components/reports/SentinelBatchCommandBar';
 import { DataTable } from '../../../components/ui/DataTable';
 import { Pagination } from '../../../components/navigation/Pagination';
+import { ConfirmDialog } from '../../../components/feedback/ConfirmDialog';
 import { Avatar } from '../../../components/ui/Avatar';
+import { StatusChip } from '../../../components/badges/StatusChip';
 import { Button } from '../../../components/ui/Button';
 import { useAdminReports } from '../hooks/useAdminReports';
 import {
@@ -17,6 +32,7 @@ import {
   REPORT_TARGET_TYPE_LABELS,
   REPORT_TARGET_TYPE_OPTIONS,
   getReportCategoryLabel,
+  isTemporarilyRestricted,
 } from '../constants/admin.constants';
 import { formatDateTime } from '../../../utils/formatters';
 import { ICON_SIZE } from '../../../constants/icon.constants';
@@ -26,9 +42,18 @@ const COLUMNS = [
   { key: 'category', label: 'Danh mục', headerClassName: 'min-w-col-md' },
   { key: 'targetType', label: 'Đối tượng', headerClassName: 'min-w-col-sm' },
   { key: 'reporter', label: 'Người báo cáo', headerClassName: 'min-w-col-lg' },
-  { key: 'reportedUser', label: 'Người bị báo cáo', headerClassName: 'min-w-col-xl' },
+  {
+    key: 'reportedUser',
+    label: 'Người bị báo cáo',
+    headerClassName: 'min-w-col-xl',
+  },
   { key: 'status', label: 'Trạng thái', headerClassName: 'min-w-col-md' },
-  { key: 'actions', label: 'Thao tác', align: 'right', headerClassName: 'min-w-col-actions' },
+  {
+    key: 'actions',
+    label: 'Thao tác',
+    align: 'right',
+    headerClassName: 'min-w-col-actions',
+  },
 ];
 
 const TARGET_ICONS = { message: MessageSquare, playdate: Calendar, user: User };
@@ -70,11 +95,18 @@ export const AdminReportsPage = () => {
     closeReportDetail,
     isActionLoading,
     handleClaim,
-    handleTakeover,
     handleUpdateSeverity,
     handleApplyAction,
     handleResolve,
     handleReopen,
+    handleAssessSentinel,
+    handleApplySentinel,
+    pendingSentinelApply,
+    confirmApplySentinel,
+    cancelApplySentinel,
+    handleResolveCluster,
+    isBatchScanning,
+    handleBatchScanSentinel,
     isExporting,
     handleExport,
   } = useAdminReports();
@@ -82,16 +114,43 @@ export const AdminReportsPage = () => {
   const renderCell = (key, _value, row) => {
     switch (key) {
       case 'severity':
-        return <ReportSeverityChip severity={row.severity} />;
+        return (
+          <div className="flex flex-col items-start gap-1">
+            <ReportSeverityChip severity={row.severity} />
+            {row.sentinelAssessment && (
+              <div className="flex flex-wrap items-center gap-1">
+                <span
+                  className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-2 py-0.5 text-label-xs font-semibold text-primary"
+                  title={row.sentinelAssessment.summary}
+                >
+                  <Sparkles size={ICON_SIZE.XS} />
+                  AI: {row.sentinelAssessment.confidenceScore}%
+                </span>
+                {isTemporarilyRestricted(row) && (
+                  <StatusChip
+                    tone="danger"
+                    icon={ShieldAlert}
+                    label="Đang hạn chế nhắn tin"
+                  />
+                )}
+              </div>
+            )}
+          </div>
+        );
 
       case 'category': {
         const label = getReportCategoryLabel(row.category);
         return (
           <div className="min-w-0">
-            <span className="block truncate max-w-truncate-md text-body-md font-medium text-text-primary" title={label}>
+            <span
+              className="block truncate max-w-truncate-md text-body-md font-medium text-text-primary"
+              title={label}
+            >
               {label}
             </span>
-            <span className="block mt-1 text-label-sm text-text-muted whitespace-nowrap">{formatDateTime(row.createdAt)}</span>
+            <span className="block mt-1 text-label-sm text-text-muted whitespace-nowrap">
+              {formatDateTime(row.createdAt)}
+            </span>
           </div>
         );
       }
@@ -101,7 +160,11 @@ export const AdminReportsPage = () => {
         return (
           <div className="flex items-center gap-1.5 text-label-md text-text-primary">
             {Icon && <Icon size={ICON_SIZE.XS} className="text-primary" />}
-            <span>{REPORT_TARGET_TYPE_LABELS[row.targetType] || row.targetType || '—'}</span>
+            <span>
+              {REPORT_TARGET_TYPE_LABELS[row.targetType] ||
+                row.targetType ||
+                '—'}
+            </span>
           </div>
         );
       }
@@ -130,14 +193,20 @@ export const AdminReportsPage = () => {
 
       case 'actions':
         return (
-          <div className="flex items-center justify-end gap-1" onClick={(event) => event.stopPropagation()}>
+          <div
+            className="flex items-center justify-end gap-1"
+            onClick={(event) => event.stopPropagation()}
+          >
             <Button
+              type="button"
+              variant="ghost"
               size="sm"
-              variant="outline"
-              leftIcon={<Eye size={ICON_SIZE.XS} />}
               onClick={() => openReportDetail(row.id)}
+              className="p-1.5 rounded-lg text-text-muted hover:text-text-primary"
+              title="Xem chi tiết"
+              aria-label="Xem chi tiết"
             >
-              Chi tiết
+              <Eye size={ICON_SIZE.SM} />
             </Button>
           </div>
         );
@@ -150,9 +219,12 @@ export const AdminReportsPage = () => {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-headline-md font-semibold text-on-surface">Kiểm duyệt An toàn &amp; Báo cáo vi phạm</h2>
+        <h2 className="text-headline-md font-semibold text-on-surface">
+          Kiểm duyệt An toàn &amp; Báo cáo vi phạm
+        </h2>
         <p className="text-body-md text-text-muted mt-1">
-          Tiếp nhận báo cáo vi phạm người dùng, tin nhắn và cuộc hẹn, điều tra ngữ cảnh và thi hành chế tài kỷ luật.
+          Tiếp nhận báo cáo vi phạm người dùng, tin nhắn và cuộc hẹn, điều tra
+          ngữ cảnh và thi hành chế tài kỷ luật.
         </p>
       </div>
 
@@ -161,6 +233,16 @@ export const AdminReportsPage = () => {
         stats={stats}
         isLoading={isStatsLoading}
         hasError={hasStatsError}
+      />
+
+      <SentinelBatchCommandBar
+        rows={rows}
+        stats={stats}
+        isBatchScanning={isBatchScanning}
+        isActionLoading={isActionLoading}
+        onBatchScan={handleBatchScanSentinel}
+        onOpenReportDetail={openReportDetail}
+        onResolveCluster={handleResolveCluster}
       />
 
       <AdminListToolbar
@@ -175,7 +257,11 @@ export const AdminReportsPage = () => {
         dateRange={{
           from: params.fromDate || '',
           to: params.toDate || '',
-          onChange: ({ from, to }) => setFilters({ fromDate: from || undefined, toDate: to || undefined }),
+          onChange: ({ from, to }) =>
+            setFilters({
+              fromDate: from || undefined,
+              toDate: to || undefined,
+            }),
         }}
         onExport={handleExport}
         isExporting={isExporting}
@@ -222,16 +308,27 @@ export const AdminReportsPage = () => {
           onRowClick={(row) => openReportDetail(row.id)}
           renderCell={renderCell}
           tableClassName="min-w-table-reports"
-          emptyTitle={listErrorMessage ? 'Không tải được danh sách báo cáo' : 'Không có báo cáo vi phạm nào'}
-          emptyMessage={listErrorMessage || 'Hiện tại không có báo cáo nào phù hợp với bộ lọc tìm kiếm.'}
+          emptyTitle={
+            listErrorMessage
+              ? 'Không tải được danh sách báo cáo'
+              : 'Không có báo cáo vi phạm nào'
+          }
+          emptyMessage={
+            listErrorMessage ||
+            'Hiện tại không có báo cáo nào phù hợp với bộ lọc tìm kiếm.'
+          }
         />
 
-  {     /* Pagination Footer */}
+        {/* Pagination Footer */}
         {pagination.totalPages > 1 && (
           <div className="flex items-center justify-between pt-2">
             <p className="text-body-md text-text-muted">
-              Hiển thị trang <span className="font-semibold text-text-primary">{pagination.page}</span> /{' '}
-              <span>{pagination.totalPages}</span> ({pagination.total} báo cáo)
+              Hiển thị trang{' '}
+              <span className="font-semibold text-text-primary">
+                {pagination.page}
+              </span>{' '}
+              / <span>{pagination.totalPages}</span> ({pagination.total} báo
+              cáo)
             </p>
             <Pagination
               currentPage={pagination.page}
@@ -250,11 +347,42 @@ export const AdminReportsPage = () => {
         isLoading={isDrawerLoading}
         isActionLoading={isActionLoading}
         onClaim={handleClaim}
-        onTakeover={handleTakeover}
         onUpdateSeverity={handleUpdateSeverity}
         onApplyAction={handleApplyAction}
         onResolve={handleResolve}
         onReopen={handleReopen}
+        onAssessSentinel={handleAssessSentinel}
+        onApplySentinel={handleApplySentinel}
+      />
+
+      <ConfirmDialog
+        open={Boolean(pendingSentinelApply)}
+        title={
+          pendingSentinelApply?.requiresReason
+            ? 'Xác nhận chế tài trên tài khoản theo đề xuất Sentinel AI'
+            : 'Xác nhận áp dụng đề xuất của Sentinel AI'
+        }
+        description={
+          pendingSentinelApply
+            ? `Áp dụng cho ${pendingSentinelApply.targetUser}: ${pendingSentinelApply.sanctionLabels.join(
+                ', ',
+              )}. Báo cáo vẫn mở: sau đó bấm "Kết luận & đóng báo cáo" để kết thúc vụ việc.`
+            : ''
+        }
+        variant={pendingSentinelApply?.requiresReason ? 'danger' : 'primary'}
+        confirmLabel="Xác nhận"
+        cancelLabel="Hủy bỏ"
+        isLoading={isActionLoading}
+        reason={{
+          required: Boolean(pendingSentinelApply?.requiresReason),
+          label: pendingSentinelApply?.requiresReason
+            ? 'Lý do phê duyệt (lưu vào nhật ký)'
+            : 'Ghi chú (không bắt buộc)',
+          placeholder: 'Nhập ghi chú hoặc lý do phê duyệt...',
+          maxLength: 500,
+        }}
+        onConfirm={(reason) => confirmApplySentinel(reason)}
+        onCancel={cancelApplySentinel}
       />
     </div>
   );
