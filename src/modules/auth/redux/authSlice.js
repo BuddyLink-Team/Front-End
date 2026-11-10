@@ -15,8 +15,9 @@ export const registerUser = createApiThunk('auth/register', (payload) => authApi
 
 export const loginUser = createApiThunk('auth/login', (credentials) => authApi.login(credentials));
 
-export const loginWithGoogle = createApiThunk('auth/loginWithGoogle', (idToken) =>
-  authApi.googleLogin({ idToken }),
+// { accessToken } from our Google button (OAuth popup), or an ID token string (local mock sign-in)
+export const loginWithGoogle = createApiThunk('auth/loginWithGoogle', (credential) =>
+  authApi.googleLogin(typeof credential === 'string' ? { idToken: credential } : credential),
 );
 
 export const requestPasswordReset = createApiThunk('auth/requestPasswordReset', (email) =>

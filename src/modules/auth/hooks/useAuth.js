@@ -102,8 +102,9 @@ export const useAuth = () => {
       },
     );
 
-  const handleGoogleLogin = (idToken) =>
-    runAuthAction(loginWithGoogle(idToken), 'Đăng nhập Google thất bại. Vui lòng thử lại!', (payload) => {
+  // credential: { accessToken } from the Google button, or a mock ID token string
+  const handleGoogleLogin = (credential) =>
+    runAuthAction(loginWithGoogle(credential), 'Đăng nhập Google thất bại. Vui lòng thử lại!', (payload) => {
       goToHomeOrVerification(payload);
       return 'Đăng nhập với Google thành công!';
     });

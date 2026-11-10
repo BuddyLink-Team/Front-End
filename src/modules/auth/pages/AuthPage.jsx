@@ -123,7 +123,7 @@ export const AuthPage = () => {
 
       {/* Google Action */}
       <GoogleLoginButton
-        onSuccess={(idToken) => handleGoogleLogin(idToken)}
+        onSuccess={(credential) => handleGoogleLogin(credential)}
         onClick={onGoogleClick}
         disabled={isSubmitting}
         text={
