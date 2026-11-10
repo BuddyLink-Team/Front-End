@@ -7,6 +7,7 @@ import { PlaceSuggestionCard } from './PlaceSuggestionCard';
 import { MatchSuggestionCard } from './MatchSuggestionCard';
 import { PlaydateDraftCard } from './PlaydateDraftCard';
 import { QuotaNoticeCard } from './QuotaNoticeCard';
+import { formatDurationLabel } from '../../playdate/constants/playdate.constants';
 
 /**
  * Tool UI Cards of one assistant reply (unknown card types are ignored)
@@ -64,6 +65,9 @@ export const ToolCardList = ({
                   safetyAcknowledged: params?.safetyAcknowledged ?? Boolean(card.draft?.safetyAcknowledged),
                 },
               })
+            }
+            onChangeDuration={(minutes) =>
+              choose({ custom: { durationMinutes: minutes }, label: `Đổi thời lượng: ${formatDurationLabel(minutes)}` })
             }
           />
         );

@@ -1,15 +1,28 @@
-import React, { useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { GoogleLogin, useGoogleOAuth } from '@react-oauth/google';
 import { Loader2 } from 'lucide-react';
 
 const GOOGLE_UNAVAILABLE_MESSAGE =
   'Không tải được đăng nhập Google. Vui lòng kiểm tra kết nối rồi tải lại trang.';
+const GOOGLE_RELOADING_MESSAGE = 'Nút Google đang được tải lại, bạn bấm lại sau giây lát nhé.';
+const SLOW_SERVER_MESSAGE = 'Máy chủ đang khởi động, có thể mất đến 1 phút. Bạn chờ một chút nhé.';
+
+// The GSI iframe not drawn after this long: the button is mounted again (a few times at most)
+const GSI_RENDER_TIMEOUT_MS = 4000;
+const GSI_MAX_AUTO_REMOUNTS = 2;
+// The backend still verifying after this long: it is probably starting up (cold start)
+const SLOW_SERVER_AFTER_MS = 6000;
+// Never stuck on the loader: past the longest auth request (60 s) the button is usable again
+const LOADING_WATCHDOG_MS = 75000;
 
 /**
  * Custom-styled Google button. The official GSI button (it returns the ID token the backend verifies)
  * is laid invisibly over it, and only while it can really be clicked:
  * - not before the Google script has loaded (an empty overlay would swallow the clicks)
  * - not while the backend verifies the token (the button shows its loader instead)
+ * - not before Google has really drawn its iframe in it: an empty overlay lets the clicks through to the custom
+ *   button, which draws the GSI button again (and is drawn again by itself after a few seconds)
+ * A slow backend (server starting up) is explained under the button, and the loader never stays forever.
  * After each attempt (success, refusal, closed popup, backend error) the GSI button is mounted again,
  * so the next click always reaches a fresh one.
  * @param {(idToken: string) => Promise<unknown>|void} onSuccess
@@ -24,13 +37,66 @@ export const GoogleLoginButton = ({
   const [isLoading, setIsLoading] = useState(false);
   const [attempt, setAttempt] = useState(0);
   const [isUnavailable, setIsUnavailable] = useState(false);
+  // The GSI iframe is really drawn inside the overlay: only then may the overlay take the clicks
+  const [isGsiReady, setIsGsiReady] = useState(false);
+  const [isReloading, setIsReloading] = useState(false);
+  const [isSlow, setIsSlow] = useState(false);
+  const overlayRef = useRef(null);
+  const autoRemounts = useRef(0);
   const { scriptLoadedSuccessfully } = useGoogleOAuth();
   const hasClientId = Boolean(import.meta.env.VITE_GOOGLE_CLIENT_ID);
 
   const isOverlayActive =
     hasClientId && scriptLoadedSuccessfully && !disabled && !isLoading;
 
-  const remountGoogleButton = () => setAttempt((count) => count + 1);
+  const remountGoogleButton = useCallback(() => setAttempt((count) => count + 1), []);
+
+  // Watch the overlay until Google draws its iframe; an overlay left empty (GSI failed to render after an
+  // attempt, slow network) lets the clicks through to the custom button and is mounted again
+  useEffect(() => {
+    setIsGsiReady(false);
+    const node = overlayRef.current;
+    if (!isOverlayActive || !node) return undefined;
+    const hasIframe = () => Boolean(node.querySelector('iframe'));
+    if (hasIframe()) {
+      setIsGsiReady(true);
+      return undefined;
+    }
+    const observer = new MutationObserver(() => {
+      if (!hasIframe()) return;
+      setIsGsiReady(true);
+      setIsReloading(false);
+      autoRemounts.current = 0;
+      observer.disconnect();
+    });
+    observer.observe(node, { childList: true, subtree: true });
+    const timer = setTimeout(() => {
+      if (hasIframe() || autoRemounts.current >= GSI_MAX_AUTO_REMOUNTS) return;
+      autoRemounts.current += 1;
+      remountGoogleButton();
+    }, GSI_RENDER_TIMEOUT_MS);
+    return () => {
+      observer.disconnect();
+      clearTimeout(timer);
+    };
+  }, [attempt, isOverlayActive, remountGoogleButton]);
+
+  // A slow backend (server starting up) is explained, and the loader can never stay forever
+  useEffect(() => {
+    if (!isLoading) {
+      setIsSlow(false);
+      return undefined;
+    }
+    const slowTimer = setTimeout(() => setIsSlow(true), SLOW_SERVER_AFTER_MS);
+    const watchdog = setTimeout(() => {
+      setIsLoading(false);
+      remountGoogleButton();
+    }, LOADING_WATCHDOG_MS);
+    return () => {
+      clearTimeout(slowTimer);
+      clearTimeout(watchdog);
+    };
+  }, [isLoading, remountGoogleButton]);
 
   const handleCredential = async (credentialResponse) => {
     if (!credentialResponse?.credential) {
@@ -42,17 +108,26 @@ export const GoogleLoginButton = ({
       await onSuccess?.(credentialResponse.credential);
     } finally {
       setIsLoading(false);
+      autoRemounts.current = 0;
       remountGoogleButton();
     }
   };
 
-  // Reached only when no GSI button lies over the custom one
+  // Reached only when no drawn GSI button lies over the custom one
   const handleFallbackClick = () => {
     if (!hasClientId) {
       onClick?.();
       return;
     }
-    if (!scriptLoadedSuccessfully) setIsUnavailable(true);
+    if (!scriptLoadedSuccessfully) {
+      setIsUnavailable(true);
+      return;
+    }
+    // The GSI button is not drawn: draw it again, and offer Google's own account chooser meanwhile
+    autoRemounts.current = 0;
+    setIsReloading(true);
+    remountGoogleButton();
+    window.google?.accounts?.id?.prompt?.();
   };
 
   return (
@@ -61,7 +136,7 @@ export const GoogleLoginButton = ({
       <div className="group relative w-full overflow-hidden rounded-xl">
         <button
           type="button"
-          onClick={isOverlayActive ? undefined : handleFallbackClick}
+          onClick={isOverlayActive && isGsiReady ? undefined : handleFallbackClick}
           disabled={disabled || isLoading}
           className="w-full py-3 px-4 rounded-xl bg-surface-container-low text-on-surface text-sm font-semibold transition-all duration-200 flex items-center justify-center gap-3 border border-hairline shadow-soft cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary/20 group-hover:bg-surface-container group-hover:border-primary-border group-hover:shadow-md group-hover:text-primary-dark group-active:scale-99 group-focus-within:ring-2 group-focus-within:ring-primary/20 disabled:opacity-60 disabled:cursor-not-allowed disabled:group-hover:bg-surface-container-low disabled:group-hover:border-hairline disabled:group-hover:shadow-soft disabled:group-hover:text-on-surface"
         >
@@ -102,8 +177,12 @@ export const GoogleLoginButton = ({
         {isOverlayActive && (
           <div
             key={attempt}
+            ref={overlayRef}
             data-testid="google-gsi-overlay"
-            className="absolute inset-0 opacity-0 overflow-hidden flex items-center justify-center scale-150"
+            data-ready={isGsiReady ? 'true' : 'false'}
+            className={`absolute inset-0 opacity-0 overflow-hidden flex items-center justify-center scale-150 ${
+              isGsiReady ? 'cursor-pointer' : 'pointer-events-none'
+            }`}
           >
             <GoogleLogin
               onSuccess={handleCredential}
@@ -119,6 +198,16 @@ export const GoogleLoginButton = ({
       {isUnavailable && (
         <p role="alert" className="text-label-sm text-error">
           {GOOGLE_UNAVAILABLE_MESSAGE}
+        </p>
+      )}
+      {!isUnavailable && isLoading && isSlow && (
+        <p role="status" className="text-label-sm text-text-muted text-center">
+          {SLOW_SERVER_MESSAGE}
+        </p>
+      )}
+      {!isUnavailable && !isLoading && isReloading && !isGsiReady && (
+        <p role="status" className="text-label-sm text-text-muted text-center">
+          {GOOGLE_RELOADING_MESSAGE}
         </p>
       )}
     </div>

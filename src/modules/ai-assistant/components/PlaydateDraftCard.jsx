@@ -31,6 +31,7 @@ import { familyDistanceText, LINK_CLASS } from '../../playdate/utils/suggestionF
 import { googleMapsSearchUrl } from '../utils/aiAssistantUtils';
 import { OptionLinks } from './OptionLinks';
 import { ToolCardFrame } from './ToolCardFrame';
+import { DurationChips } from './DurationChips';
 import {
   AI_CARD_TONES,
   AI_CARD_TYPES,
@@ -70,21 +71,23 @@ Part.propTypes = {
  * @param {() => void} onConfirm - Creates the playdate (through the assistant)
  * @param {boolean} [disabled] - A message is being sent, or this is not the current plan any more
  */
-export const PlaydateDraftCard = ({ card, onConfirm, disabled = false }) => {
+export const PlaydateDraftCard = ({ card, onConfirm, onChangeDuration, disabled = false }) => {
   const { draft } = card;
   const parent = useSelector((state) => state.parent.profile);
   const isCreated = card.status === AI_CHOICE_STATUS.ANSWERED && Boolean(card.playdateId);
   const [safetyAcknowledged, setSafetyAcknowledged] = useState(draft.safetyAcknowledged || false);
 
   const rawWarnings = draft.warnings || [];
+  // The server writes each warning with its details (who, when, how far); older drafts only have the code
   const normalizedWarnings = rawWarnings
     .map((w) => {
-      if (typeof w === 'string') return { code: w, severity: AI_WARNING_SEVERITY.WARN };
-      return { code: w.code, severity: w.severity || AI_WARNING_SEVERITY.WARN };
+      if (typeof w === 'string') return { code: w, severity: AI_WARNING_SEVERITY.WARN, text: DRAFT_WARNING_TEXT[w] };
+      return { code: w.code, severity: w.severity || AI_WARNING_SEVERITY.WARN, text: w.message || DRAFT_WARNING_TEXT[w.code], params: w.params };
     })
-    .filter((w) => DRAFT_WARNING_TEXT[w.code]);
+    .filter((w) => w.text);
 
-  const warnings = Array.from(new Map(normalizedWarnings.map((w) => [w.code, w])).values());
+  const warnings = Array.from(new Map(normalizedWarnings.map((w) => [`${w.code}:${w.text}`, w])).values());
+  const canEditDuration = !isCreated && !disabled && typeof onChangeDuration === 'function';
   const hasBlockingWarning = warnings.some(
     (w) => w.severity === AI_WARNING_SEVERITY.BLOCK && !(w.code === AI_DRAFT_WARNING_CODES.SAFETY_HIGH_RISK && safetyAcknowledged)
   );
@@ -143,6 +146,9 @@ export const PlaydateDraftCard = ({ card, onConfirm, disabled = false }) => {
             {formatDurationLabel(draft.durationMinutes)}
           </ReadOnlyField>
         </div>
+        {canEditDuration && draft.durationChoices?.length > 0 && (
+          <DurationChips durations={draft.durationChoices} current={draft.durationMinutes} onPick={onChangeDuration} />
+        )}
         {draft.location && (
           <ReadOnlyField label="Địa điểm" icon={MapPin}>
             <div className="space-y-1">
@@ -250,18 +256,34 @@ export const PlaydateDraftCard = ({ card, onConfirm, disabled = false }) => {
                 : w.severity === AI_WARNING_SEVERITY.INFO
                   ? Info
                   : AlertCircle;
+            // A too long playdate is fixed in one tap
+            const shorterTo =
+              canEditDuration && w.code === AI_DRAFT_WARNING_CODES.TOO_LONG_FOR_AGE && w.params?.maxMinutes < draft.durationMinutes
+                ? w.params.maxMinutes
+                : null;
             return (
               <li
-                key={w.code}
+                key={`${w.code}:${w.text}`}
                 className={cn('flex items-center justify-between gap-2 rounded-xl border px-3 py-2 text-xs shadow-2xs', style.card)}
               >
                 <div className="flex items-center gap-2">
                   <Icon className={cn('w-4 h-4 shrink-0', style.iconColor)} />
-                  <span className="font-medium">{DRAFT_WARNING_TEXT[w.code]}</span>
+                  <span className="font-medium">{w.text}</span>
                 </div>
-                <span className={cn('shrink-0 text-label-xs font-bold px-2 py-0.5 rounded-full border', style.badge)}>
-                  {style.label}
-                </span>
+                <div className="flex shrink-0 items-center gap-1.5">
+                  {shorterTo && (
+                    <button
+                      type="button"
+                      onClick={() => onChangeDuration(shorterTo)}
+                      className="rounded-full border border-current px-2 py-0.5 text-label-xs font-semibold hover:bg-surface-container-lowest"
+                    >
+                      Rút còn {formatDurationLabel(shorterTo)}
+                    </button>
+                  )}
+                  <span className={cn('text-label-xs font-bold px-2 py-0.5 rounded-full border', style.badge)}>
+                    {style.label}
+                  </span>
+                </div>
               </li>
             );
           })}
@@ -303,6 +325,7 @@ PlaydateDraftCard.propTypes = {
       time: PropTypes.string,
       endTime: PropTypes.string,
       durationMinutes: PropTypes.number,
+      durationChoices: PropTypes.arrayOf(PropTypes.number),
       location: PropTypes.shape({ name: PropTypes.string, address: PropTypes.string }),
       placeDetails: PropTypes.shape({
         placeType: PropTypes.string,
@@ -320,6 +343,7 @@ PlaydateDraftCard.propTypes = {
     }).isRequired,
   }).isRequired,
   onConfirm: PropTypes.func.isRequired,
+  onChangeDuration: PropTypes.func,
   disabled: PropTypes.bool,
 };
 

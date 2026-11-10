@@ -19,6 +19,8 @@ const timeSchema = z
   .object({
     date: z.string().regex(DATE_REGEX, 'Vui lòng chọn ngày.'),
     time: z.string().regex(TIME_REGEX, 'Vui lòng chọn giờ.'),
+    // The select gives a string; BE PLAYDATE_RULES: 30 - 480 minutes
+    durationMinutes: integerBetween(30, 480, 'Vui lòng chọn thời lượng.').optional(),
   })
   .superRefine((data, ctx) => {
     if (new Date(`${data.date}T${data.time}`) <= new Date()) {

@@ -8,6 +8,8 @@ import { useChoiceCard } from '../hooks/useChoiceCard';
 import { OptionLinks } from './OptionLinks';
 import { ChoiceCustomForm } from './ChoiceCustomForm';
 import { ToolCardFrame } from './ToolCardFrame';
+import { DurationChips } from './DurationChips';
+import { formatDurationLabel } from '../../playdate/constants/playdate.constants';
 import { AI_STEPS, AI_STEP_TONES, AI_TONES } from '../constants/ai-assistant.constants';
 
 // Same icons as the Playdate and Discovery pages
@@ -78,6 +80,17 @@ export const ChoiceCard = ({ card, onChoose, disabled = false, onViewChild }) =>
       }
     >
       {card.description && <p className="text-xs text-text-muted leading-relaxed">{card.description}</p>}
+
+      {card.stepId === AI_STEPS.TIME && !choice.isAnswered && card.durationMinutes && (
+        <DurationChips
+          durations={card.durationChoices}
+          current={card.durationMinutes}
+          disabled={isLocked}
+          onPick={(minutes) =>
+            choice.submitCustom({ durationMinutes: minutes }, `Đổi thời lượng: ${formatDurationLabel(minutes)}`)
+          }
+        />
+      )}
 
       {card.options.length === 0 ? (
         <p className="text-xs text-text-muted">Chưa có gợi ý phù hợp cho bước này.</p>
@@ -193,6 +206,8 @@ ChoiceCard.propTypes = {
     allowCustom: PropTypes.bool,
     allowSkip: PropTypes.bool,
     hostChildId: PropTypes.string,
+    durationMinutes: PropTypes.number,
+    durationChoices: PropTypes.arrayOf(PropTypes.number),
     customAnswer: PropTypes.object,
     preselectedOptionIds: PropTypes.arrayOf(PropTypes.string),
     options: PropTypes.arrayOf(

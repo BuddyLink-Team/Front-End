@@ -4,6 +4,8 @@ import { Controller } from 'react-hook-form';
 import { MapPin } from 'lucide-react';
 import { Input } from '../../../components/ui/Input';
 import { Textarea } from '../../../components/ui/Textarea';
+import { Select } from '../../../components/ui/Select';
+import { getDurationOptions } from '../../playdate/constants/playdate.constants';
 import { Combobox } from '../../../components/ui/Combobox';
 import { Button } from '../../../components/ui/Button';
 import { PlaceSearchModal } from '../../playdate/components/PlaceSearchModal';
@@ -88,6 +90,16 @@ export const ChoiceCustomForm = ({ card, onSubmit, onCancel }) => {
         <div className="grid grid-cols-2 gap-2">
           <Input id={`${fieldId}-date`} type="date" label="Ngày" required min={getLocalDateString()} error={errorOf('date')} {...register('date')} />
           <Input id={`${fieldId}-time`} type="time" label="Giờ" required error={errorOf('time')} {...register('time')} />
+          <div className="col-span-2">
+            <Select
+              id={`${fieldId}-duration`}
+              label="Thời lượng"
+              placeholder=""
+              options={getDurationOptions(card.durationMinutes)}
+              error={errorOf('durationMinutes')}
+              {...register('durationMinutes')}
+            />
+          </div>
         </div>
       )}
       {hasPlaymateSearch && (

@@ -1,4 +1,4 @@
-import { Compass, Calendar, MapPin, Shapes } from 'lucide-react';
+import { Compass, Calendar, CalendarClock, CalendarDays, Inbox, MapPin, Shapes, Smile } from 'lucide-react';
 
 // Tool UI Cards of an assistant reply (BE: AI_CARD_TYPES)
 export const AI_CARD_TYPES = Object.freeze({
@@ -157,6 +157,12 @@ export const QUICK_PROMPTS = Object.freeze([
   { key: 'plan', icon: Calendar, tone: AI_TONES.primary, label: 'Lên kế hoạch playdate', prompt: 'Lên kế hoạch hẹn chơi cho bé' },
   { key: 'places', icon: MapPin, tone: AI_TONES.secondary, label: 'Địa điểm vui chơi gần nhà', prompt: 'Gợi ý địa điểm vui chơi cho bé gần nhà mình' },
   { key: 'indoor', icon: Shapes, tone: AI_TONES.tertiary, label: 'Hoạt động trong nhà cho bé', prompt: 'Gợi ý vài hoạt động trong nhà phù hợp với bé' },
+  // Managing playdates (listMyPlaydates, respondInvitation, reschedulePlaydate, cancelPlaydate)
+  { key: 'schedule', icon: CalendarDays, tone: AI_TONES.secondary, label: 'Lịch hẹn tuần này của bé', prompt: 'Tuần này bé nhà mình có lịch hẹn chơi nào?' },
+  { key: 'invitations', icon: Inbox, tone: AI_TONES.primary, label: 'Lời mời đang chờ trả lời', prompt: 'Mình có lời mời hẹn chơi nào chưa trả lời không?' },
+  { key: 'reschedule', icon: CalendarClock, tone: AI_TONES.tertiary, label: 'Dời hoặc hủy một buổi hẹn', prompt: 'Mình muốn dời hoặc hủy một buổi hẹn chơi sắp tới' },
+  // Parenting advice
+  { key: 'social', icon: Smile, tone: AI_TONES.secondary, label: 'Giúp bé tự tin kết bạn', prompt: 'Bé nhà mình hơi nhút nhát, làm sao giúp bé tự tin kết bạn hơn?' },
 ]);
 
 // Session list groups (Stitch "Lịch sử trò chuyện")
@@ -182,6 +188,8 @@ export const AI_WARNING_SEVERITY = Object.freeze({
 // Warning codes the cards act on (the others are only shown, DRAFT_WARNING_TEXT)
 export const AI_DRAFT_WARNING_CODES = Object.freeze({
   SAFETY_HIGH_RISK: 'SAFETY_HIGH_RISK',
+  // Shown with a "shorten to …" button on the summary card
+  TOO_LONG_FOR_AGE: 'TOO_LONG_FOR_AGE',
 });
 
 export const DRAFT_WARNING_TEXT = Object.freeze({
@@ -218,7 +226,7 @@ export const DRAFT_WARNING_TEXT = Object.freeze({
   INVITEE_NOT_FRIEND: 'Có bạn chưa kết nối nên không thể mời',
   SCHEDULE_CONFLICT: 'Có bé đã có lịch hẹn khác trùng giờ này',
   INVITEE_BUSY: 'Có bạn bị trùng lịch bận',
-  NOT_PREFERRED_TIME: 'Giờ này chưa hợp lịch ưu tiên của mọi gia đình',
+  NOT_PREFERRED_TIME: 'Giờ này chưa đúng buổi rảnh (trong hồ sơ) của mọi gia đình',
   NO_SHARED_INTEREST: 'Các bé chưa có sở thích chung nào được lưu',
   // Weather
   BAD_WEATHER: 'Dự báo thời tiết có thể có mưa hoặc bão',

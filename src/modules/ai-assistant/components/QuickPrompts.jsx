@@ -16,7 +16,7 @@ export const QuickPrompts = ({ onPick, disabled = false, compact = false }) => (
     <div className="space-y-1">
       <h2 className="text-lg font-semibold text-on-surface">Xin chào! Mình là BuddyLink AI</h2>
       <p className="text-sm text-on-surface-variant">
-        Mình giúp bạn tìm bạn chơi cho bé, gợi ý địa điểm và lên kế hoạch hẹn chơi từng bước.
+        Mình giúp bạn tìm bạn chơi cho bé, lên kế hoạch và quản lý lịch hẹn chơi, cùng các mẹo nuôi dạy và vui chơi cho bé.
       </p>
     </div>
     <div className={cn('grid w-full gap-2', compact ? 'grid-cols-1' : 'grid-cols-1 sm:grid-cols-2')}>

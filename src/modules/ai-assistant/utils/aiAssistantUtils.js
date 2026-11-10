@@ -1,6 +1,7 @@
 import { SESSION_GROUPS, AI_LIMITS, AI_STEPS, AI_APP_SECTIONS } from '../constants/ai-assistant.constants';
 import { ACTIVITIES, ACTIVITY_GROUPS, toActivityOption } from '../../../constants/activity.constants';
 import { POPULAR_INTERESTS } from '../../child/constants/child.constants';
+import { formatDurationLabel, DEFAULT_PLAYDATE_DURATION } from '../../playdate/constants/playdate.constants';
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 const AGENDA_NOTE_HEADER = 'Hoạt động chính (gợi ý bởi BuddyLink AI):';
@@ -164,8 +165,10 @@ export const buildCustomAnswer = (card, values) => {
     case AI_STEPS.TIME: {
       const [year, month, day] = values.date.split('-');
       return {
-        custom: { date: values.date, time: values.time, durationMinutes: card.durationMinutes },
-        label: `Chọn giờ khác: ${day}/${month}/${year} · ${values.time}`,
+        custom: { date: values.date, time: values.time, durationMinutes: values.durationMinutes || card.durationMinutes },
+        label: `Chọn giờ khác: ${day}/${month}/${year} · ${values.time}${
+          values.durationMinutes && values.durationMinutes !== card.durationMinutes ? ` (${formatDurationLabel(values.durationMinutes)})` : ''
+        }`,
       };
     }
     case AI_STEPS.PLAYMATES:
@@ -226,7 +229,7 @@ export const customFormDefaults = (card) => {
   }
   if (card.stepId === AI_STEPS.TIME) {
     const first = card.options[0]?.data;
-    return { date: first?.date || '', time: first?.time || '' };
+    return { date: first?.date || '', time: first?.time || '', durationMinutes: String(card.durationMinutes || DEFAULT_PLAYDATE_DURATION) };
   }
   if (card.stepId === AI_STEPS.PLAYMATES && card.hostChildId) return { playmates: [] };
   return {};

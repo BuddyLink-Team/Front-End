@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import PropTypes from 'prop-types';
-import { Check, Plus, Shapes, Trash2 } from 'lucide-react';
+import { Check, Plus, RefreshCw, Search, Shapes, Trash2 } from 'lucide-react';
 import { Button } from '../../../components/ui/Button';
 import { Input } from '../../../components/ui/Input';
 import { cn } from '../../../utils/cn';
@@ -37,6 +37,8 @@ export const AgendaCard = ({ card, onChoose, disabled = false }) => {
 
   if (isAnswered) {
     const kept = card.customAnswer?.agenda || items;
+    // Answered by asking for other games or searching the place: a new card follows
+    const replaced = !card.customAnswer?.agenda && Boolean(card.customAnswer?.text);
     return (
       <ToolCardFrame
         tone={tone}
@@ -44,10 +46,11 @@ export const AgendaCard = ({ card, onChoose, disabled = false }) => {
         title={card.title}
         aside={
           <span className={cn('inline-flex shrink-0 items-center gap-1 rounded-full px-2 py-0.5 text-label-sm font-medium', tone.chip)}>
-            <Check className="w-3 h-3" /> Đã chọn
+            <Check className="w-3 h-3" /> {replaced ? 'Đã đổi gợi ý' : 'Đã chọn'}
           </span>
         }
       >
+        {replaced && <p className="text-xs text-text-muted">{card.customAnswer.text}: danh sách mới ở bên dưới.</p>}
         <ol className="space-y-1.5">
           {kept.map((item, index) => (
             <li key={item} className="flex items-start gap-2 text-sm text-text-primary">
@@ -62,7 +65,7 @@ export const AgendaCard = ({ card, onChoose, disabled = false }) => {
 
   return (
     <ToolCardFrame tone={tone} icon={Shapes} title={card.title}>
-      <p className="text-xs text-text-muted">Bạn sửa, xóa hoặc thêm trò chơi cho các bé nhé.</p>
+      <p className="text-xs text-text-muted leading-relaxed">{card.description || 'Bạn sửa, xóa hoặc thêm trò chơi cho các bé nhé.'}</p>
       <ol className="space-y-2">
         {items.map((item, index) => (
           <li key={index} className="flex items-center gap-2">
@@ -106,6 +109,28 @@ export const AgendaCard = ({ card, onChoose, disabled = false }) => {
             Thêm hoạt động
           </Button>
         )}
+        {card.canRegenerate && (
+          <Button
+            size="sm"
+            variant="outline"
+            disabled={disabled}
+            leftIcon={<RefreshCw className="w-3.5 h-3.5" />}
+            onClick={() => onChoose({ custom: { regenerate: true }, label: 'Gợi ý trò chơi khác' })}
+          >
+            Gợi ý trò khác
+          </Button>
+        )}
+        {card.canSearchAttractions && (
+          <Button
+            size="sm"
+            variant="outline"
+            disabled={disabled}
+            leftIcon={<Search className="w-3.5 h-3.5" />}
+            onClick={() => onChoose({ custom: { searchAttractions: true }, label: 'Tìm trò chơi tại địa điểm này' })}
+          >
+            Tìm trò chơi tại đây
+          </Button>
+        )}
       </div>
     </ToolCardFrame>
   );
@@ -114,8 +139,11 @@ export const AgendaCard = ({ card, onChoose, disabled = false }) => {
 AgendaCard.propTypes = {
   card: PropTypes.shape({
     title: PropTypes.string,
+    description: PropTypes.string,
+    canRegenerate: PropTypes.bool,
+    canSearchAttractions: PropTypes.bool,
     status: PropTypes.string.isRequired,
-    customAnswer: PropTypes.shape({ agenda: PropTypes.arrayOf(PropTypes.string) }),
+    customAnswer: PropTypes.shape({ agenda: PropTypes.arrayOf(PropTypes.string), text: PropTypes.string }),
     options: PropTypes.arrayOf(PropTypes.shape({ label: PropTypes.string.isRequired })).isRequired,
   }).isRequired,
   onChoose: PropTypes.func.isRequired,

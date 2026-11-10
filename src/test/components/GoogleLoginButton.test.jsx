@@ -4,7 +4,7 @@ import { render, screen, fireEvent, act } from '@testing-library/react';
 import { GoogleLoginButton } from '../../modules/auth/components/GoogleLoginButton';
 
 // Stand-in for the GSI button: counts its mounts and lets a test answer like Google would
-const gsi = vi.hoisted(() => ({ scriptLoaded: true, mounts: 0, props: null }));
+const gsi = vi.hoisted(() => ({ scriptLoaded: true, mounts: 0, props: null, draws: true }));
 vi.mock('@react-oauth/google', () => ({
   useGoogleOAuth: () => ({ scriptLoadedSuccessfully: gsi.scriptLoaded }),
   GoogleLogin: (props) => {
@@ -12,7 +12,8 @@ vi.mock('@react-oauth/google', () => ({
     useEffect(() => {
       gsi.mounts += 1;
     }, []);
-    return <div data-testid="gsi-button" />;
+    // Google draws its button in an iframe; `draws: false` is a GSI button that failed to render
+    return <div data-testid="gsi-button">{gsi.draws && <iframe title="Sign in with Google" />}</div>;
   },
 }));
 
@@ -30,6 +31,7 @@ describe('GoogleLoginButton', () => {
     gsi.scriptLoaded = true;
     gsi.mounts = 0;
     gsi.props = null;
+    gsi.draws = true;
   });
   afterEach(() => vi.unstubAllEnvs());
 
@@ -73,6 +75,46 @@ describe('GoogleLoginButton', () => {
     act(() => gsi.props.onError());
 
     expect(gsi.mounts).toBe(2);
+  });
+
+  it('lets the clicks through an overlay Google did not draw, and draws the button again', () => {
+    gsi.draws = false;
+    const prompt = vi.fn();
+    window.google = { accounts: { id: { prompt } } };
+    render(<GoogleLoginButton onSuccess={vi.fn()} />);
+
+    const overlay = screen.getByTestId('google-gsi-overlay');
+    expect(overlay).toHaveAttribute('data-ready', 'false');
+    expect(overlay.className).toContain('pointer-events-none');
+
+    fireEvent.click(screen.getByRole('button', { name: /Google/ }));
+    expect(gsi.mounts).toBe(2);
+    expect(prompt).toHaveBeenCalled();
+    expect(screen.getByRole('status')).toHaveTextContent('Nút Google đang được tải lại');
+    delete window.google;
+  });
+
+  it('takes the clicks only once the GSI button is drawn', () => {
+    render(<GoogleLoginButton onSuccess={vi.fn()} />);
+
+    const overlay = screen.getByTestId('google-gsi-overlay');
+    expect(overlay).toHaveAttribute('data-ready', 'true');
+    expect(overlay.className).toContain('cursor-pointer');
+  });
+
+  it('explains a slow server while the backend verifies', async () => {
+    vi.useFakeTimers();
+    const backend = deferred();
+    render(<GoogleLoginButton onSuccess={() => backend.promise} />);
+
+    await act(async () => {
+      gsi.props.onSuccess({ credential: 'id-token' });
+    });
+    act(() => vi.advanceTimersByTime(7000));
+    expect(screen.getByRole('status')).toHaveTextContent('Máy chủ đang khởi động');
+
+    await act(async () => backend.resolve());
+    vi.useRealTimers();
   });
 
   it('uses the custom click without a Google client id', () => {

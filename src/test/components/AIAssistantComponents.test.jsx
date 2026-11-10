@@ -558,3 +558,50 @@ describe('AIAssistantFab', () => {
     expect(screen.queryByRole('button', { name: 'Mở Trợ lý BuddyLink AI' })).not.toBeInTheDocument();
   });
 });
+
+describe('AI planning upgrade', () => {
+  it('changes the length of the playdate from the time card', () => {
+    const onChoose = vi.fn();
+    renderWithProviders(<ChoiceCard card={card({ durationMinutes: 90, durationChoices: [60, 90, 120] })} onChoose={onChoose} />);
+    expect(screen.getByRole('button', { name: '1,5 giờ' })).toBeDisabled();
+    fireEvent.click(screen.getByRole('button', { name: '1 giờ' }));
+    expect(onChoose).toHaveBeenCalledWith({ custom: { durationMinutes: 60 }, label: 'Đổi thời lượng: 1 giờ' });
+  });
+
+  it('asks for other games on the agenda card', () => {
+    const onChoose = vi.fn();
+    renderWithProviders(
+      <AgendaCard
+        card={card({ stepId: 'agenda', canRegenerate: true, options: [{ id: 'agenda:0', label: 'Thi xếp Lego', links: [] }] })}
+        onChoose={onChoose}
+      />,
+    );
+    fireEvent.click(screen.getByRole('button', { name: 'Gợi ý trò khác' }));
+    expect(onChoose).toHaveBeenCalledWith({ custom: { regenerate: true }, label: 'Gợi ý trò chơi khác' });
+  });
+
+  it('shows the detailed warning text and shortens a too long playdate in one tap', () => {
+    const onChangeDuration = vi.fn();
+    const draft = {
+      ...DRAFT,
+      durationChoices: [60, 90, 120],
+      warnings: [
+        { code: 'TOO_LONG_FOR_AGE', severity: 'warn', params: { maxMinutes: 90 }, message: 'Buổi chơi 2 giờ hơi dài với bé nhỏ nhất, nên tối đa 1 giờ 30 phút' },
+        { code: 'SCHEDULE_CONFLICT', severity: 'warn', message: 'Bé Bin đã có hẹn khác lúc 08:00–10:00, có thể chưa nhận lời được' },
+      ],
+    };
+    renderWithProviders(
+      <PlaydateDraftCard
+        card={{ type: 'playdate_draft', stepId: 'confirm', status: 'open', draft }}
+        onConfirm={vi.fn()}
+        onChangeDuration={onChangeDuration}
+      />,
+      { store: makeStore() },
+    );
+    expect(screen.getByText(/Bé Bin đã có hẹn khác lúc 08:00–10:00/)).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Rút còn 1,5 giờ' }));
+    expect(onChangeDuration).toHaveBeenCalledWith(90);
+    fireEvent.click(screen.getByRole('button', { name: '1 giờ' }));
+    expect(onChangeDuration).toHaveBeenLastCalledWith(60);
+  });
+});
