@@ -36,6 +36,17 @@ export const PLAYDATE_STATUS_META = {
   cancelled: { label: 'Đã hủy', dotClass: 'bg-outline-variant' },
 };
 
+// Leaving a playdate (BE LEAVE_RULES): less than this many hours before the start is a late leave
+export const LATE_LEAVE_HOURS = 24;
+export const LEAVE_REASON_MAX_LENGTH = 300;
+
+// Reliability level (BE RELIABILITY_LEVELS) -> StatusChip tone + label
+export const RELIABILITY_LEVEL_META = Object.freeze({
+  good: { tone: 'success', label: 'Đáng tin cậy' },
+  fair: { tone: 'warning', label: 'Thỉnh thoảng rời sát giờ' },
+  at_risk: { tone: 'danger', label: 'Hay rời sát giờ' },
+});
+
 // Friend families loaded by the "Mời thêm bạn" dialog (BE max limit)
 export const INVITE_FRIENDS_FETCH_LIMIT = 100;
 
@@ -173,6 +184,8 @@ export const PLAYDATE_ERROR_MESSAGES = Object.freeze({
   TOO_MANY_HOST_CHILDREN: 'Một buổi hẹn có tối đa 5 bé của bạn.',
   ALREADY_LEFT: 'Bạn đã rời buổi hẹn này rồi.',
   LEAVE_CONFLICT: 'Buổi hẹn đã thay đổi trạng thái. Vui lòng tải lại trang.',
+  NOT_JOINED: 'Bạn chưa tham gia buổi hẹn này, hãy từ chối lời mời thay vì rời.',
+  PLAYDATE_ALREADY_STARTED: 'Buổi hẹn đã bắt đầu nên không thể rời nữa.',
   INVALID_RESCHEDULE_LOCATION: 'Địa điểm mới cần có cả tên và địa chỉ.',
   RESCHEDULE_IN_PAST: 'Lịch hẹn mới phải ở tương lai.',
   RESCHEDULE_NO_CHANGE: 'Lịch đề xuất đang trùng với lịch hiện tại.',

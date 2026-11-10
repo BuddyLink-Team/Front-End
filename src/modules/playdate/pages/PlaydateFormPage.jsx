@@ -54,6 +54,8 @@ import {
   formatDurationLabel,
   DEFAULT_PLAYDATE_DURATION,
   PLAYDATE_STATUS_KEYS,
+  LATE_LEAVE_HOURS,
+  LEAVE_REASON_MAX_LENGTH,
 } from '../constants/playdate.constants';
 import { addMinutesToTime, formatPlaydateTimeRange } from '../utils/playdateTime';
 import { googleMapsDirectionsUrl, toLngLat } from '../utils/placeLinks';
@@ -568,6 +570,7 @@ const PlaydateDetails = () => {
     canComplete,
     canInvite,
     canLeave,
+    isLateLeave,
     myPendingVote,
     canCancelReschedule,
     showCancelModal,
@@ -637,7 +640,12 @@ const PlaydateDetails = () => {
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <ParticipantCard parent={playdate.hostParent} childName={hostChildNames(playdate)} status="host" />
           {participants.map((p) => (
-            <ParticipantCard key={`${p.parentId}-${p.childId}`} parent={p.parent} childName={p.child?.displayName} status={p.status} />
+            <ParticipantCard
+              key={`${p.parentId}-${p.childId}`}
+              parent={p.parent}
+              childName={p.child?.displayName}
+              status={p.leftAt ? 'left' : p.status}
+            />
           ))}
         </div>
         {participants.length === 0 && isHost && (
@@ -861,11 +869,20 @@ const PlaydateDetails = () => {
       />
       <ConfirmDialog
         open={showLeaveModal}
-        title="Rời buổi hẹn này?"
-        description="Gia đình bạn sẽ không còn trong buổi hẹn và nhóm chat của buổi hẹn. Lượt tham gia đã dùng trong tháng không được hoàn lại."
+        title={isLateLeave ? 'Rời buổi hẹn sát giờ?' : 'Rời buổi hẹn này?'}
+        description={
+          isLateLeave
+            ? `Buổi hẹn bắt đầu trong chưa đầy ${LATE_LEAVE_HOURS} giờ. Rời lúc này sẽ được ghi nhận là rời sát giờ trong độ tin cậy của bạn. Gia đình bạn sẽ rời buổi hẹn và nhóm chat, lượt tham gia đã dùng không được hoàn lại.`
+            : 'Gia đình bạn sẽ không còn trong buổi hẹn và nhóm chat của buổi hẹn. Lượt tham gia đã dùng trong tháng không được hoàn lại.'
+        }
         confirmLabel="Rời buổi hẹn"
         cancelLabel="Ở lại"
-        variant="danger"
+        variant={isLateLeave ? 'warning' : 'danger'}
+        reason={{
+          label: 'Lý do (không bắt buộc, sẽ gửi cho người tổ chức)',
+          placeholder: 'Ví dụ: bé bị ốm, gia đình có việc đột xuất...',
+          maxLength: LEAVE_REASON_MAX_LENGTH,
+        }}
         isLoading={isActionLoading}
         onConfirm={handleLeave}
         onCancel={() => setShowLeaveModal(false)}

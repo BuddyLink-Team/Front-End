@@ -35,6 +35,7 @@ import {
 } from '../constants/admin.constants';
 import { formatAgeYears, formatCurrency, formatDateTime, formatDate } from '../../../utils/formatters';
 import { ICON_SIZE, ICON_STROKE } from '../../../constants/icon.constants';
+import { ReliabilityCard } from '../../playdate/components/ReliabilityCard';
 
 const SECTION_TITLE_CLASS = 'text-label-lg font-semibold text-text-primary flex items-center gap-2';
 const PANEL_CLASS = 'rounded-2xl border border-hairline p-4 bg-surface-container-lowest space-y-3 text-body-md';
@@ -200,6 +201,8 @@ export const AdminUserDetailDrawer = ({
                   hint={activity.reports.open > 0 ? `${activity.reports.open} đang chờ xử lý` : 'Không có báo cáo mở'}
                 />
               </div>
+              {/* Late leaves over the last 90 days (playdate reliability) */}
+              <ReliabilityCard reliability={activity.reliability} isAdminView className="rounded-2xl shadow-none" />
             </div>
           )}
 

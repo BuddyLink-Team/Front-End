@@ -13,6 +13,7 @@ import {
   Baby,
   MailOpen,
   Crown,
+  LogOut,
 } from 'lucide-react';
 import { Button } from '../../../components/ui/Button';
 import { Avatar } from '../../../components/ui/Avatar';
@@ -25,6 +26,8 @@ const RSVP_BADGES = {
   host: { label: 'Người tổ chức', icon: Crown, className: 'bg-primary text-primary-on-primary border-primary' },
   accepted: { label: 'Đã tham gia', icon: CheckCircle2, className: 'bg-primary/10 text-primary-dark border-primary/20' },
   declined: { label: 'Đã từ chối', icon: XCircle, className: 'bg-surface-container-low text-text-muted border-hairline' },
+  // Declined after joining (participant.leftAt)
+  left: { label: 'Đã rời', icon: LogOut, className: 'bg-surface-container-low text-text-muted border-hairline' },
   pending: { label: 'Chờ phản hồi', icon: Clock, className: 'bg-tertiary-fixed/30 text-tertiary-dark border-tertiary-fixed/50' },
 };
 

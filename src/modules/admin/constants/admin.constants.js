@@ -388,6 +388,8 @@ export const PARTICIPANT_STATUS_DISPLAY = Object.freeze({
   pending: { tone: 'warning', label: 'Chờ phản hồi' },
   accepted: { tone: 'success', label: 'Đã tham gia' },
   declined: { tone: 'neutral', label: 'Đã từ chối' },
+  // Declined after joining (participant.leftAt)
+  left: { tone: 'neutral', label: 'Đã rời' },
 });
 
 // Where a child pair of a connection comes from (connection childPairs[].source)

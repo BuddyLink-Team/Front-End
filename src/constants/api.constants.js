@@ -43,6 +43,7 @@ export const API_ENDPOINTS = {
     PENDING_RATINGS: '/playdates/ratings/pending',
     RATINGS: (id) => `/playdates/${id}/ratings`,
     CHAPERONE: (id) => `/playdates/${id}/chaperone`,
+    MY_RELIABILITY: '/playdates/reliability/me',
   },
   PLACES: {
     BASE: '/places',

@@ -339,6 +339,34 @@ Host có thể rút đề xuất khi còn `Pending`: Reschedule Request chuyển
 
 ---
 
+### Rời buổi hẹn (Leave)
+
+Gia đình đã `Accepted` có thể rời buổi hẹn bất kỳ lúc nào **trước giờ bắt đầu** (còn `Upcoming`):
+
+```text
+Accepted ──(Rời)──→ Declined (+ leftAt: hiển thị "Đã rời", khác "Đã từ chối")
+```
+
+- Chưa nhận lời (`Pending`) thì từ chối lời mời, không "rời". Host không rời được, chỉ hủy buổi hẹn.
+- Buổi hẹn đã bắt đầu thì không rời được nữa.
+- Popup xác nhận có ô **lý do (không bắt buộc)**, lý do được gửi cho host qua thông báo.
+- Lượt tham gia đã dùng trong tháng **không được hoàn lại**.
+- Gia đình rời ra khỏi nhóm chat và phiếu bầu đổi lịch đang chờ; host có thể mời lại hoặc mời thêm bạn khác.
+- Rời khi còn **dưới 24 giờ** trước giờ bắt đầu là **rời sát giờ**, popup cảnh báo trước khi xác nhận.
+- Rời vì đã **chặn** host hoặc một gia đình khác trong buổi là lựa chọn an toàn: không tính rời sát giờ, không gửi lý do cho host (host không biết về việc chặn).
+
+**Độ tin cậy** (hiện trên hồ sơ của chính phụ huynh và trong chi tiết tài khoản ở Admin, không hiện cho phụ huynh khác):
+
+| Mức | Rời sát giờ trong 90 ngày |
+| --- | --- |
+| Đáng tin cậy (`good`) | 0 |
+| Thỉnh thoảng rời sát giờ (`fair`) | 1 - 2 |
+| Hay rời sát giờ (`at_risk`) | từ 3 |
+
+Khi phụ huynh vừa đạt 3 lần, Admin nhận thông báo cảnh báo để theo dõi.
+
+---
+
 ### Tổng thể
 
 ```text

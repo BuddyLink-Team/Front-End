@@ -369,7 +369,7 @@ export const AdminPlaydateDetailModal = ({
                       <div className="flex flex-col items-end gap-1.5 shrink-0">
                         <StatusChip
                           status={p.status}
-                          {...PARTICIPANT_STATUS_DISPLAY[p.status]}
+                          {...PARTICIPANT_STATUS_DISPLAY[p.leftAt ? 'left' : p.status]}
                         />
                         <AccountLink userId={p.parent?.userId} />
                       </div>

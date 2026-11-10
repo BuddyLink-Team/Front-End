@@ -89,8 +89,9 @@ export const inviteParticipants = createApiThunk(
   ({ id, participants }) => playdateApi.inviteParticipants(id, participants),
 );
 
-export const leavePlaydate = createApiThunk('playdate/leave', (id) =>
-  playdateApi.leavePlaydate(id),
+// Takes the playdate id, or { id, reason }
+export const leavePlaydate = createApiThunk('playdate/leave', (arg) =>
+  typeof arg === 'object' ? playdateApi.leavePlaydate(arg.id, arg.reason) : playdateApi.leavePlaydate(arg),
 );
 
 export const createRescheduleRequest = createApiThunk(

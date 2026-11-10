@@ -7,6 +7,7 @@ import {
   Flame,
   Bell,
   Sparkles,
+  LogOut,
 } from 'lucide-react';
 import { AI_SESSION_PARAM } from '../../ai-assistant/constants/ai-assistant.constants';
 
@@ -15,6 +16,8 @@ export const NOTIFICATION_TYPES = Object.freeze({
   CONNECTION_ACCEPTED: 'connection_accepted',
   PLAYDATE_INVITE: 'playdate_invite',
   PLAYDATE_REMINDER: 'playdate_reminder',
+  // A family who joined left the host's playdate
+  PLAYDATE_LEFT: 'playdate_left',
   BADGE_UNLOCKED: 'badge_unlocked',
   STREAK_REMINDER: 'streak_reminder',
   // A plan prepared by the AI assistant (meeting the same friends again after a good playdate)
@@ -61,6 +64,7 @@ export const TAB_DEFINITIONS = [
     types: [
       NOTIFICATION_TYPES.PLAYDATE_INVITE,
       NOTIFICATION_TYPES.PLAYDATE_REMINDER,
+      NOTIFICATION_TYPES.PLAYDATE_LEFT,
     ],
   },
   {
@@ -115,6 +119,14 @@ export const NOTIFICATION_META = {
     badgeTone: 'warning',
     badgeText: 'Sắp diễn ra',
     actionLabel: 'Xem lịch hẹn',
+    getActionPath: (data) => (data?.playdateId ? `/playdates/${data.playdateId}` : '/playdates'),
+  },
+  [NOTIFICATION_TYPES.PLAYDATE_LEFT]: {
+    icon: LogOut,
+    bgClass: 'bg-tertiary-soft text-tertiary-dark border-tertiary-border',
+    badgeTone: 'warning',
+    badgeText: 'Có người rời',
+    actionLabel: 'Xem buổi hẹn',
     getActionPath: (data) => (data?.playdateId ? `/playdates/${data.playdateId}` : '/playdates'),
   },
   [NOTIFICATION_TYPES.BADGE_UNLOCKED]: {

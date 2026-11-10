@@ -83,10 +83,15 @@ export const playdateApi = {
     apiClient.put(`${API_ENDPOINTS.PLAYDATE.BASE}/${id}/respond`, { status }),
 
   /**
-   * Participant leaves the playdate
+   * Participant who joined leaves the playdate (the optional reason is sent to the host)
    */
-  leavePlaydate: (id) =>
-    apiClient.post(`${API_ENDPOINTS.PLAYDATE.BASE}/${id}/leave`),
+  leavePlaydate: (id, reason) =>
+    apiClient.post(`${API_ENDPOINTS.PLAYDATE.BASE}/${id}/leave`, reason ? { reason } : {}),
+
+  /**
+   * Own late leaves over the reliability window
+   */
+  getMyReliability: () => apiClient.get(API_ENDPOINTS.PLAYDATE.MY_RELIABILITY),
 
   /**
    * Propose a reschedule request for playdate

@@ -73,8 +73,10 @@ export const usePlaydateDetail = () => {
   const canComplete = isHost && isUpcoming && hasStarted;
   // More friends can be invited until the playdate starts (e.g. once every invitee declined)
   const canInvite = isHost && isUpcoming && !hasStarted;
-  // A family who joined and blocked another member can leave (decided by the API)
+  // A family who joined can leave until the start (decided by the API)
   const canLeave = Boolean(currentPlaydate?.canLeave);
+  // Leaving now would be recorded as a late leave (less than 24h before the start)
+  const isLateLeave = Boolean(currentPlaydate?.isLateLeave);
   const pendingReschedule = rescheduleReq?.status === RESCHEDULE_STATUS.PENDING ? rescheduleReq : null;
   const myPendingVote = pendingReschedule?.myVote === 'pending';
   const canCancelReschedule = isHost && isUpcoming && Boolean(pendingReschedule);
@@ -146,8 +148,13 @@ export const usePlaydateDetail = () => {
     return Boolean(result);
   };
 
-  const handleLeave = async () => {
-    const result = await runAction(leavePlaydate(id), 'Bạn đã rời buổi hẹn.', 'Không thể rời buổi hẹn.');
+  /** @param {string} [reason] - Optional, sent to the host */
+  const handleLeave = async (reason) => {
+    const result = await runAction(
+      leavePlaydate({ id, reason }),
+      'Bạn đã rời buổi hẹn. Người tổ chức đã được thông báo.',
+      'Không thể rời buổi hẹn.',
+    );
     if (result) {
       setShowLeaveModal(false);
       dispatch(fetchRescheduleRequest(id));
@@ -196,6 +203,7 @@ export const usePlaydateDetail = () => {
     canComplete,
     canInvite,
     canLeave,
+    isLateLeave,
     canOpenGroupChat,
     myPendingVote,
     canCancelReschedule,

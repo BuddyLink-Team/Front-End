@@ -9,6 +9,8 @@ import {
   ProfileSecurityTab,
 } from '../components';
 import { Spinner, Button, Tabs } from '../../../components';
+import { ReliabilityCard } from '../../playdate/components/ReliabilityCard';
+import { useMyReliability } from '../../playdate/hooks/useMyReliability';
 
 export const ParentProfilePage = () => {
   const [activeTab, setActiveTab] = useState(PROFILE_TABS.INFO);
@@ -25,6 +27,7 @@ export const ParentProfilePage = () => {
     uploadAvatar,
     changePassword,
   } = useParentProfile();
+  const { reliability } = useMyReliability();
 
   if (isLoading) {
     return (
@@ -60,13 +63,14 @@ export const ParentProfilePage = () => {
       {/* 2-Column Dashboard Layout */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
         {/* Left Column (4 cols on lg): Sticky Profile Sidebar Card */}
-        <div className="lg:col-span-4 lg:sticky lg:top-24">
+        <div className="lg:col-span-4 lg:sticky lg:top-24 space-y-4">
           <ProfileHeaderCard
             profile={profile}
             childrenCount={children.length}
             onAvatarUpload={uploadAvatar}
             isUploadingAvatar={isUploadingAvatar}
           />
+          <ReliabilityCard reliability={reliability} />
         </div>
 
         {/* Right Column (8 cols on lg): Horizontal Tabs & Main Content Panel */}

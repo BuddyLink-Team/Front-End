@@ -210,11 +210,30 @@ describe('PlaydateDetailPage Component', () => {
     const dialogButtons = screen.getAllByRole('button', { name: 'Rời buổi hẹn' });
     fireEvent.click(dialogButtons[dialogButtons.length - 1]);
 
-    await waitFor(() => expect(playdateApi.leavePlaydate).toHaveBeenCalledWith('playdate-test-123'));
+    // No reason typed: an empty one is sent
+    await waitFor(() => expect(playdateApi.leavePlaydate).toHaveBeenCalledWith('playdate-test-123', ''));
     await waitFor(() => expect(screen.queryByRole('button', { name: 'Rời buổi hẹn' })).not.toBeInTheDocument());
   });
 
-  it('does NOT show "Rời buổi hẹn" without a block', async () => {
+  it('warns about a late leave and sends the reason typed for the host', async () => {
+    const joined = { ...mockParticipantPlaydate, myParticipantStatus: 'accepted', canLeave: true, isLateLeave: true };
+    playdateApi.getPlaydateById.mockResolvedValue({ data: joined });
+    playdateApi.leavePlaydate.mockResolvedValue({ data: { ...joined, myParticipantStatus: 'declined', canLeave: false } });
+
+    renderWithProviders(<PlaydateDetailPage />);
+
+    fireEvent.click(await screen.findByRole('button', { name: 'Rời buổi hẹn' }));
+    expect(await screen.findByText('Rời buổi hẹn sát giờ?')).toBeInTheDocument();
+    expect(screen.getByText(/ghi nhận là rời sát giờ/)).toBeInTheDocument();
+
+    fireEvent.change(screen.getByLabelText(/Lý do/), { target: { value: '  Bé bị sốt  ' } });
+    const dialogButtons = screen.getAllByRole('button', { name: 'Rời buổi hẹn' });
+    fireEvent.click(dialogButtons[dialogButtons.length - 1]);
+
+    await waitFor(() => expect(playdateApi.leavePlaydate).toHaveBeenCalledWith('playdate-test-123', 'Bé bị sốt'));
+  });
+
+  it('does NOT show "Rời buổi hẹn" when the API does not allow it (not joined, or already started)', async () => {
     playdateApi.getPlaydateById.mockResolvedValue({
       data: { ...mockParticipantPlaydate, myParticipantStatus: 'accepted', canLeave: false },
     });
