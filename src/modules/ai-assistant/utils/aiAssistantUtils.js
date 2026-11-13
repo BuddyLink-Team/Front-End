@@ -100,8 +100,8 @@ export const normalizeAgenda = (agenda = []) =>
     ...new Set(
       agenda
         .map((item) => {
-          const text = String(item || '').replace(/\s+/g, ' ').trim();
-          return text.slice(0, agendaItemMaxLength(text));
+          const text = stripAgendaSource(String(item || '').replace(/\s+/g, ' '));
+          return text.slice(0, AI_LIMITS.AGENDA_ITEM_MAX_LENGTH);
         })
         .filter(Boolean)
     ),
@@ -250,12 +250,15 @@ export const interestOptions = (current = []) =>
 /** Activities of the catalog for the activity step, listed by category */
 export const ACTIVITY_OPTIONS = ACTIVITY_GROUPS.flatMap((group) => group.activities.map(toActivityOption(group.label)));
 
-const SOURCED_AGENDA_PREFIX = 'Theo thông tin trên mạng về';
+// Older cards wrote a real attraction as "Theo thông tin trên mạng về {place}: {game} ({link})"
+const SOURCED_ITEM_REGEX = /^Theo thông tin trên mạng về\s.*?:\s+/i;
+const SOURCE_LINK_REGEX = /\s*\(https?:\/\/[^)]*\)\s*$/i;
 
 /**
- * Longest text of an agenda item: an item of the place's real attractions also carries its source link
+ * The game of an agenda item only (the source link is shown under it, not in the text)
  * @param {string} item
- * @returns {number}
+ * @returns {string}
  */
-export const agendaItemMaxLength = (item) =>
-  String(item || '').startsWith(SOURCED_AGENDA_PREFIX) ? AI_LIMITS.SOURCED_AGENDA_ITEM_MAX_LENGTH : AI_LIMITS.AGENDA_ITEM_MAX_LENGTH;
+export function stripAgendaSource(item) {
+  return String(item || '').replace(SOURCE_LINK_REGEX, '').replace(SOURCED_ITEM_REGEX, '').trim();
+}

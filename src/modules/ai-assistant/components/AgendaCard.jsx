@@ -4,8 +4,9 @@ import { Check, Plus, RefreshCw, Search, Shapes, Trash2 } from 'lucide-react';
 import { Button } from '../../../components/ui/Button';
 import { Input } from '../../../components/ui/Input';
 import { cn } from '../../../utils/cn';
-import { normalizeAgenda, agendaItemMaxLength } from '../utils/aiAssistantUtils';
+import { normalizeAgenda, stripAgendaSource } from '../utils/aiAssistantUtils';
 import { ToolCardFrame } from './ToolCardFrame';
+import { OptionLinks } from './OptionLinks';
 import { AI_CHOICE_STATUS, AI_LIMITS, AI_STEP_TONES, AI_STEPS, AI_TONE_CYCLE } from '../constants/ai-assistant.constants';
 
 const NumberBadge = ({ index }) => (
@@ -30,7 +31,10 @@ NumberBadge.propTypes = { index: PropTypes.number.isRequired };
  * @param {boolean} [disabled] - A message is being sent, or the plan is closed
  */
 export const AgendaCard = ({ card, onChoose, disabled = false }) => {
-  const [items, setItems] = useState(() => card.options.map((option) => option.label));
+  const [items, setItems] = useState(() => card.options.map((option) => stripAgendaSource(option.label)));
+  // Source page of a real attraction, shown while the parent keeps that game as it is
+  const sourceLinksOf = (item) =>
+    card.options.find((option) => stripAgendaSource(option.label) === item)?.links || [];
   const isAnswered = card.status === AI_CHOICE_STATUS.ANSWERED;
   const agenda = normalizeAgenda(items);
   const tone = AI_STEP_TONES[AI_STEPS.AGENDA];
@@ -55,7 +59,7 @@ export const AgendaCard = ({ card, onChoose, disabled = false }) => {
           {kept.map((item, index) => (
             <li key={item} className="flex items-start gap-2 text-sm text-text-primary">
               <NumberBadge index={index} />
-              <span className="pt-0.5 break-words">{item}</span>
+              <span className="pt-0.5 break-words">{stripAgendaSource(item)}</span>
             </li>
           ))}
         </ol>
@@ -68,15 +72,18 @@ export const AgendaCard = ({ card, onChoose, disabled = false }) => {
       <p className="text-xs text-text-muted leading-relaxed">{card.description || 'Bạn sửa, xóa hoặc thêm trò chơi cho các bé nhé.'}</p>
       <ol className="space-y-2">
         {items.map((item, index) => (
-          <li key={index} className="flex items-center gap-2">
+          <li key={index} className="flex items-start gap-2">
             <NumberBadge index={index} />
-            <Input
-              aria-label={`Hoạt động chính ${index + 1}`}
-              value={item}
-              maxLength={agendaItemMaxLength(item)}
-              disabled={disabled}
-              onChange={(event) => setItems((prev) => prev.map((value, i) => (i === index ? event.target.value : value)))}
-            />
+            <div className="min-w-0 flex-1 space-y-1">
+              <Input
+                aria-label={`Hoạt động chính ${index + 1}`}
+                value={item}
+                maxLength={AI_LIMITS.AGENDA_ITEM_MAX_LENGTH}
+                disabled={disabled}
+                onChange={(event) => setItems((prev) => prev.map((value, i) => (i === index ? event.target.value : value)))}
+              />
+              <OptionLinks links={sourceLinksOf(item)} />
+            </div>
             <button
               type="button"
               aria-label={`Xóa hoạt động ${index + 1}`}

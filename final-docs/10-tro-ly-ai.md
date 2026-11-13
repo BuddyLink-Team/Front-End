@@ -28,6 +28,7 @@ Trợ lý trò chuyện giúp phụ huynh **tìm bạn chơi**, **lên kế ho�
 | Tìm bạn chơi mới (dùng công thức Khám phá) | Thẻ gợi ý bạn chơi | [find-matches.tool.js](../../Back-End/src/modules/ai-assistant/tools/find-matches.tool.js) |
 | Gửi lời mời kết bạn cho các bé vừa gợi ý | Thẻ xác nhận → gửi như "Thích" ở Khám phá | [send-connection-requests.tool.js](../../Back-End/src/modules/ai-assistant/tools/send-connection-requests.tool.js) |
 | Tìm địa điểm gần | Thẻ địa điểm | [find-nearby-places.tool.js](../../Back-End/src/modules/ai-assistant/tools/find-nearby-places.tool.js) |
+| Tra trò chơi thật của địa điểm | Lịch trình có các trò của chính địa điểm, kèm link nguồn | [place-attractions.service.js](../../Back-End/src/modules/places/place-attractions.service.js), [AgendaCard.jsx](../src/modules/ai-assistant/components/AgendaCard.jsx) |
 | Gợi ý giờ / bạn chơi rảnh / hoạt động / địa điểm | Thẻ lựa chọn | [suggestion-tools.js](../../Back-End/src/modules/ai-assistant/tools/suggestion-tools.js) |
 | Lập kế hoạch & tạo Playdate | Thẻ từng bước → Thẻ tóm tắt → nút Tạo | [propose-playdate.tool.js](../../Back-End/src/modules/ai-assistant/tools/propose-playdate.tool.js), [plan-steps.js](../../Back-End/src/modules/ai-assistant/tools/plan-steps.js) |
 | Xem / đổi lịch / huỷ / trả lời lời mời | Thẻ xác nhận trước khi thực hiện | [manage-playdates.tools.js](../../Back-End/src/modules/ai-assistant/tools/manage-playdates.tools.js) |
@@ -77,6 +78,12 @@ flowchart LR
 | BR-AI-10 | Giới hạn gợi ý: ≤ 5 khung giờ, ≤ 8 bạn chơi, ≤ 5 bạn mới, ≤ 8 địa điểm, ≤ 5 mục lịch trình | `AI_LIMITS` |
 | BR-AI-11 | Bản nháp được kiểm tra và cảnh báo trước khi tạo (xem bảng dưới) | [plan-draft.rules.js](../../Back-End/src/modules/ai-assistant/plan-draft.rules.js), [safety-rules.js](../../Back-End/src/modules/ai-assistant/safety-rules.js) |
 | BR-AI-12 | Hoạt động dưới nước được coi là rủi ro cao → thêm lưu ý an toàn, cần 1 người lớn/1 bé | `HIGH_RISK_WATER_REGEX` |
+| BR-AI-13 | Tra trò chơi thật của địa điểm trên mạng (Tavily → AI đọc trang): **tự động** với kids cafe, trung tâm thể thao có trò cụ thể (bạt nhún, bowling…), và địa điểm có tên/thẻ là khu giải trí / vui chơi; **khi phụ huynh bấm "Tìm trò chơi tại đây"** với địa điểm chưa chắc chắn (nhà văn hoá, trung tâm, câu lạc bộ…); **không tra** với công viên, thư viện, tại nhà | [playdate-suggestion.rules.js](../../Back-End/src/modules/playdate/playdate-suggestion.rules.js) – `shouldSearchAttractions`, [place-attractions.service.js](../../Back-End/src/modules/places/place-attractions.service.js) |
+| BR-AI-14 | Kết quả tra được lưu đệm 30 ngày cho mỗi địa điểm (kể cả khi không tìm thấy gì); lần tra bị lỗi không lưu để lần sau tra lại | `getOrFetchAttractions` |
+| BR-AI-15 | Ô hoạt động trên thẻ lịch trình chỉ chứa **tên trò chơi**; trò lấy từ mạng có link "Nguồn trên mạng" bên dưới. Câu "Theo thông tin trên mạng về {địa điểm}: {trò} ({link})" chỉ được ghi vào **ghi chú** của buổi hẹn khi tạo | `attractionOf`, `withAttractionSource` |
+| BR-AI-16 | Địa điểm **đã tra được trò chơi** → lịch trình chỉ gồm trò của địa điểm (cả khi AI tự viết, trò ngoài danh sách sẽ bị thay). Chỉ khi địa điểm có quá ít trò mới bổ sung trò khác cho đủ số tối thiểu | [playdate.activities.js](../../Back-End/src/modules/playdate/playdate.activities.js) – `pickAttractions` |
+| BR-AI-17 | Thứ tự trò: hợp tuổi trước, rồi trò **được nhiều bé cùng thích nhất** (so với sở thích + hoạt động yêu thích của mọi bé tham gia), rồi trò khớp nhiều sở thích hơn | `pickAttractions` – `scoreOf` |
+| BR-AI-18 | Số trò theo thời lượng: ~85% thời lượng dành cho chơi, chia cho thời gian 1 trò theo tuổi bé nhỏ nhất (< 4 tuổi ~12 phút, < 8 tuổi ~15 phút, lớn hơn ~20 phút); tối thiểu 2, tối đa 5 trò | `agendaSizeFor` |
 
 ### Cảnh báo trên bản nháp kế hoạch
 

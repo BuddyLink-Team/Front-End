@@ -8,6 +8,7 @@ import {
   Bell,
   Sparkles,
   LogOut,
+  CalendarX,
 } from 'lucide-react';
 import { AI_SESSION_PARAM } from '../../ai-assistant/constants/ai-assistant.constants';
 
@@ -18,6 +19,8 @@ export const NOTIFICATION_TYPES = Object.freeze({
   PLAYDATE_REMINDER: 'playdate_reminder',
   // A family who joined left the host's playdate
   PLAYDATE_LEFT: 'playdate_left',
+  // The host or an admin cancelled a playdate the parent was part of
+  PLAYDATE_CANCELLED: 'playdate_cancelled',
   BADGE_UNLOCKED: 'badge_unlocked',
   STREAK_REMINDER: 'streak_reminder',
   // A plan prepared by the AI assistant (meeting the same friends again after a good playdate)
@@ -65,6 +68,7 @@ export const TAB_DEFINITIONS = [
       NOTIFICATION_TYPES.PLAYDATE_INVITE,
       NOTIFICATION_TYPES.PLAYDATE_REMINDER,
       NOTIFICATION_TYPES.PLAYDATE_LEFT,
+      NOTIFICATION_TYPES.PLAYDATE_CANCELLED,
     ],
   },
   {
@@ -126,6 +130,14 @@ export const NOTIFICATION_META = {
     bgClass: 'bg-tertiary-soft text-tertiary-dark border-tertiary-border',
     badgeTone: 'warning',
     badgeText: 'Có người rời',
+    actionLabel: 'Xem buổi hẹn',
+    getActionPath: (data) => (data?.playdateId ? `/playdates/${data.playdateId}` : '/playdates'),
+  },
+  [NOTIFICATION_TYPES.PLAYDATE_CANCELLED]: {
+    icon: CalendarX,
+    bgClass: 'bg-surface-muted text-text-primary border-hairline',
+    badgeTone: 'neutral',
+    badgeText: 'Đã huỷ',
     actionLabel: 'Xem buổi hẹn',
     getActionPath: (data) => (data?.playdateId ? `/playdates/${data.playdateId}` : '/playdates'),
   },

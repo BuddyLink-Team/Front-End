@@ -18,6 +18,7 @@ Khuyến khích phụ huynh duy trì kết nối và tổ chức Playdate đều
 | Mừng đạt huy hiệu | Hiệu ứng chúc mừng + thông báo | [AchievementCelebration](../src/modules/gamification/components/AchievementCelebration.jsx) | `_notifyBadgesUnlocked` |
 | Cập nhật tự động | Sau sự kiện kết nối / Playdate | (tự động) | [gamification.events.js](../../Back-End/src/modules/gamification/gamification.events.js) – `syncParentAchievements` |
 | Rà soát hàng tuần | Đặt lại chuỗi bị đứt | (job) | [gamification.job.js](../../Back-End/src/jobs/gamification.job.js) – `reconcileAchievements` |
+| Nhắc giữ chuỗi | 09:00 thứ Bảy: nhắc người có chuỗi mà tuần này chưa có buổi hoàn thành | (job) → [NotificationPage](../src/modules/notification/pages/NotificationPage.jsx) | `sendStreakReminders` |
 
 ## Luồng chính
 ```mermaid
@@ -37,6 +38,7 @@ flowchart TD
 flowchart LR
     W1[Tuần có ≥ 1 Playdate hoàn thành] --> W2[Tuần liền kề tiếp theo cũng có] --> W3[Chuỗi +1]
     W2 -. Bỏ trống trọn 1 tuần .-> R[Chuỗi về 0]
+    N[Thứ Bảy 09:00, tuần này chưa có buổi] --> NR[Gửi nhắc giữ chuỗi]
 ```
 
 ## Danh sách huy hiệu
@@ -71,6 +73,7 @@ Nguồn: [gamification.constants.js](../../Back-End/src/modules/gamification/gam
 | BR-GAM-06 | Mỗi huy hiệu chỉ mở khoá 1 lần, kể cả khi job và người dùng tính cùng lúc | — |
 | BR-GAM-07 | Chuỗi dài nhất luôn giữ giá trị cao nhất từng đạt | — |
 | BR-GAM-08 | Lỗi khi tính chỉ ghi log; job tuần sau / lần mở trang sau sẽ tính lại | [gamification.events.js](../../Back-End/src/modules/gamification/gamification.events.js) |
+| BR-GAM-09 | Nhắc giữ chuỗi: 09:00 thứ Bảy, chỉ gửi cho người có chuỗi hiện tại > 0 và tuần này chưa hoàn thành buổi nào | `sendStreakReminders` |
 
 ## Dữ liệu chính
 
@@ -86,7 +89,7 @@ Nguồn: [gamification.constants.js](../../Back-End/src/modules/gamification/gam
 |---|---|
 | [05 Kết nối](05-ket-noi.md) | Kết nối thành công → tính lại |
 | [07 Playdate](07-buoi-choi-playdate.md) | Hoàn thành → tính lại |
-| [11 Thông báo](11-thong-bao.md) | Thông báo huy hiệu mới |
+| [11 Thông báo](11-thong-bao.md) | Thông báo huy hiệu mới, nhắc giữ chuỗi tuần |
 | [08 Đánh giá](08-danh-gia-phan-hoi.md) | Gợi ý hẹn lại có nhắc giữ chuỗi |
 
 ## File xử lý

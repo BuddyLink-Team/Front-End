@@ -62,12 +62,15 @@ export const AI_LINK_KINDS = Object.freeze({
   CHILD_PROFILE: 'child_profile',
   OSM: 'osm',
   GOOGLE_MAPS: 'google_maps',
+  // Web page a real attraction of the place was read from (agenda card)
+  SOURCE: 'source',
 });
 
 export const AI_LINK_LABELS = Object.freeze({
   [AI_LINK_KINDS.CHILD_PROFILE]: 'Xem hồ sơ',
   [AI_LINK_KINDS.OSM]: 'OpenStreetMap',
   [AI_LINK_KINDS.GOOGLE_MAPS]: 'Google Maps',
+  [AI_LINK_KINDS.SOURCE]: 'Nguồn trên mạng',
 });
 
 export const AI_MESSAGE_STATUS = Object.freeze({
@@ -85,8 +88,6 @@ export const AI_LIMITS = Object.freeze({
   SESSION_NEAR_FULL: 5,
   MAX_AGENDA_ITEMS: 5,
   AGENDA_ITEM_MAX_LENGTH: 80,
-  // A real attraction of the place keeps its source link ("Theo thông tin trên mạng về …", BE same limit)
-  SOURCED_AGENDA_ITEM_MAX_LENGTH: 400,
   // An AI turn can call the model several times (tool rounds)
   REQUEST_TIMEOUT_MS: 90000,
   // Friend families loaded once by the playmate search of a card, then filtered on the device

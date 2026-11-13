@@ -149,6 +149,7 @@ sequenceDiagram
 | BR-PD-23 | Chỉ chủ đánh dấu hoàn thành, và chỉ khi đã tới giờ bắt đầu | `CANNOT_COMPLETE_YET` |
 | BR-PD-24 | 00:00 mỗi ngày: buổi của ngày đã qua còn "sắp diễn ra" → có người nhận lời thì Hoàn thành, không thì Huỷ | `closeExpiredPlaydates` |
 | BR-PD-25 | Hoàn thành/Huỷ → huỷ mọi đề xuất đổi lịch đang chờ | — |
+| BR-PD-31 | Chủ hoặc Admin huỷ → báo cho mọi gia đình còn trong buổi (không báo gia đình đã từ chối / đã rời); Admin huỷ thì báo cả chủ buổi | `_cancellationRecipients` |
 
 ### Kiểm tra giờ chơi (theo độ tuổi bé nhỏ nhất)
 
@@ -192,7 +193,7 @@ sequenceDiagram
 | Được mời | Người được mời | Thông báo ([11](11-thong-bao.md)) |
 | Thay đổi thành viên | Chat | Cập nhật thành viên nhóm chat ([06](06-nhan-tin.md)) |
 | Hoàn thành | Kết nối, Đánh giá, Thành tích | Thêm cặp bé ([05](05-ket-noi.md)); mở đánh giá ([08](08-danh-gia-phan-hoi.md)); cập nhật huy hiệu/streak ([13](13-thanh-tich-huy-hieu.md)) |
-| Huỷ | Admin | Thông báo admin (thành viên thấy trạng thái "Đã huỷ" trên buổi) |
+| Huỷ | Các gia đình còn trong buổi (đã nhận lời hoặc chưa trả lời), chủ buổi (khi Admin huỷ), Admin | Thông báo "Buổi hẹn chơi đã bị huỷ" ([11](11-thong-bao.md)); thông báo admin |
 | Có người rời | Chủ buổi | Thông báo |
 | Rủi ro độ tin cậy | Admin | Thông báo admin ([14](14-quan-tri-admin.md)) |
 | Đến giờ nhắc (24h, 1h) | Chủ + người nhận lời | Thông báo; nhắc 24h kèm tin hệ thống trong nhóm chat |

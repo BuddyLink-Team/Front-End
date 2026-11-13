@@ -11,6 +11,7 @@ Các tác vụ chạy định kỳ phía máy chủ (theo giờ Việt Nam) đ�
 | Tự đóng buổi chơi | 00:00 mỗi ngày | Buổi của ngày đã qua còn "sắp diễn ra": có người nhận lời → Hoàn thành; không ai → Huỷ | [07](07-buoi-choi-playdate.md) | [playdate-auto-close.job.js](../../Back-End/src/jobs/playdate-auto-close.job.js) |
 | Nhắc lịch buổi chơi | Mỗi 15 phút | Gửi nhắc trước 24h và 1h cho chủ + người đã nhận lời (mỗi mốc 1 lần) | [07](07-buoi-choi-playdate.md), [11](11-thong-bao.md) | [playdate-reminder.job.js](../../Back-End/src/jobs/playdate-reminder.job.js) |
 | Mở khoá tài khoản hết hạn | Mỗi 15 phút | Tài khoản tạm khoá đã hết hạn → hoạt động lại | [09](09-an-toan-kiem-duyet.md) | [suspension-expiry.job.js](../../Back-End/src/jobs/suspension-expiry.job.js) |
+| Nhắc giữ chuỗi tuần | 09:00 thứ Bảy | Gửi nhắc cho phụ huynh đang có chuỗi tuần nhưng tuần này chưa hoàn thành buổi nào | [13](13-thanh-tich-huy-hieu.md), [11](11-thong-bao.md) | [gamification.job.js](../../Back-End/src/jobs/gamification.job.js) |
 | Tính lại thành tích | 00:00 thứ Hai | Tính lại chuỗi tuần + huy hiệu mọi phụ huynh, đặt lại chuỗi bị đứt | [13](13-thanh-tich-huy-hieu.md) | [gamification.job.js](../../Back-End/src/jobs/gamification.job.js) |
 
 ## Khi máy chủ khởi động
