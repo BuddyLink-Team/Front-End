@@ -66,8 +66,7 @@ export const useVerifyOtp = () => {
   const [countdown, setCountdown] = useState(OTP_RESEND_COOLDOWN_SECONDS);
   const [canResend, setCanResend] = useState(false);
 
-  // The phone SMS is only sent on a user click: an invisible reCAPTCHA executed on page load,
-  // without any interaction, is rejected by Firebase (auth/invalid-app-credential)
+  // False until a phone code has actually been sent (still sending, send failed, or no phone yet)
   const [isPhoneOtpSent, setIsPhoneOtpSent] = useState(false);
   const [isSendingPhoneOtp, setIsSendingPhoneOtp] = useState(false);
 
@@ -83,9 +82,13 @@ export const useVerifyOtp = () => {
         return;
       }
 
-      // The phone step waits for the "Gửi mã OTP" click (see isPhoneOtpSent)
       if (activeStep === 'EMAIL') {
         handleSendEmailOtp();
+      } else if (phoneNumber) {
+        // Firebase can reject an invisible reCAPTCHA run without a click
+        // (auth/invalid-app-credential). The backend SMS is console-only, so falling back to it
+        // here would claim a code was sent that never arrives: "Gửi lại" is unlocked instead.
+        sendPhoneVerificationOtp(phoneNumber, { allowBackendFallback: false });
       }
     }
     // Runs once per screen visit (guarded by the ref). The send helper is recreated every
@@ -148,7 +151,7 @@ export const useVerifyOtp = () => {
   const confirmationResultRef = useRef(null);
 
   // Send Phone OTP: Priority Firebase Phone SMS -> Fallback to Backend Console SMS
-  const requestPhoneOtp = async (phone) => {
+  const requestPhoneOtp = async (phone, { allowBackendFallback = true } = {}) => {
     setErrorMessage(null);
     confirmationResultRef.current = null;
 
@@ -169,6 +172,16 @@ export const useVerifyOtp = () => {
           error?.message,
         );
         clearRecaptchaVerifier('recaptcha-container');
+        if (!allowBackendFallback) {
+          setErrorMessage(
+            getApiErrorMsg(
+              AUTH_ERROR_MESSAGES,
+              error,
+              'Chưa gửi được mã OTP tự động. Vui lòng bấm "Gửi lại" để nhận mã.',
+            ),
+          );
+          return { success: false };
+        }
         // Fallback to backend SMS endpoint if Firebase quota / config / carrier fails
         return await handleSendPhoneOtp(phone);
       }
@@ -177,15 +190,18 @@ export const useVerifyOtp = () => {
     return await handleSendPhoneOtp(phone);
   };
 
-  const sendPhoneVerificationOtp = async (phone) => {
+  const sendPhoneVerificationOtp = async (phone, options) => {
     setIsSendingPhoneOtp(true);
     try {
-      const res = await requestPhoneOtp(phone);
-      if (res.success) {
+      const res = await requestPhoneOtp(phone, options);
+      if (res?.success) {
         setIsPhoneOtpSent(true);
         setCountdown(OTP_RESEND_COOLDOWN_SECONDS);
         setCanResend(false);
         setOtpDigits(['', '', '', '', '', '']);
+      } else {
+        // Nothing was sent: do not make the user wait for the cooldown before retrying
+        setCountdown(0);
       }
       return res;
     } finally {
@@ -193,17 +209,12 @@ export const useVerifyOtp = () => {
     }
   };
 
-  // First phone OTP send, triggered by the user's click
-  const handleSendPhoneCode = async () => {
-    if (!phoneNumber || isSendingPhoneOtp) return;
-    await sendPhoneVerificationOtp(phoneNumber);
-  };
-
   // Resend OTP
   const handleResendOtp = async () => {
-    if (!canResend || isSubmitting) return;
+    if (!canResend || isSubmitting || isSendingPhoneOtp) return;
 
     if (activeStep === 'PHONE') {
+      if (!phoneNumber) return;
       await sendPhoneVerificationOtp(phoneNumber);
     } else {
       const res = await handleSendEmailOtp();
@@ -315,7 +326,6 @@ export const useVerifyOtp = () => {
     handleKeyDown,
     handlePaste,
     handleResendOtp,
-    handleSendPhoneCode,
     handleVerifySubmit,
     handleSavePhone,
   };

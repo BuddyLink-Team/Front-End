@@ -30,7 +30,6 @@ const mockHook = (overrides) => {
     handleKeyDown: vi.fn(),
     handlePaste: vi.fn(),
     handleResendOtp: vi.fn(),
-    handleSendPhoneCode: vi.fn(),
     handleVerifySubmit: vi.fn(),
     handleSavePhone: vi.fn(),
     ...overrides,
@@ -61,6 +60,15 @@ describe('VerifyOtpPage steps', () => {
     expect(screen.getByText(/Bước 1\/2/)).toBeInTheDocument();
     expect(screen.getByText('Tiến trình hồ sơ phụ huynh')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /Tiếp tục xác thực Email/ })).toBeInTheDocument();
+  });
+
+  it('never starts with a send button: only "Gửi lại" is offered while no code is out', () => {
+    mockHook({ isPhoneOtpSent: false });
+    render(<VerifyOtpPage />);
+
+    expect(screen.queryByRole('button', { name: 'Gửi mã OTP' })).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Gửi lại' })).toBeEnabled();
+    expect(screen.queryByText(/Mã có hiệu lực trong/)).not.toBeInTheDocument();
   });
 
   it('keeps the email step when the phone is done and the email is not', () => {

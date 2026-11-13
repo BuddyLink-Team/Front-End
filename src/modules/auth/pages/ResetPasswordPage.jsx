@@ -1,11 +1,12 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { useForm } from 'react-hook-form';
+import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Mail, KeyRound, ArrowLeft, ShieldCheck } from 'lucide-react';
+import { Mail, ArrowLeft, ShieldCheck } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 import { resetPasswordSchema } from '../validation/authValidation';
 import AuthCardLayout from '../components/AuthCardLayout';
+import OtpCodeInput from '../components/OtpCodeInput';
 import { Input, PasswordInput, Button } from '../../../components';
 
 export const ResetPasswordPage = () => {
@@ -14,6 +15,7 @@ export const ResetPasswordPage = () => {
 
   const {
     register,
+    control,
     handleSubmit,
     formState: { errors },
   } = useForm({
@@ -67,17 +69,20 @@ export const ResetPasswordPage = () => {
           {...register('email')}
         />
 
-        <Input
-          id="reset-token"
-          label="Mã khôi phục"
-          required
-          placeholder="6 chữ số"
-          inputMode="numeric"
-          autoComplete="one-time-code"
-          maxLength={6}
-          leftIcon={<KeyRound className="w-4 h-4" />}
-          error={errors.token?.message}
-          {...register('token')}
+        <Controller
+          name="token"
+          control={control}
+          render={({ field }) => (
+            <OtpCodeInput
+              id="reset-token"
+              label="Mã khôi phục"
+              required
+              value={field.value}
+              onChange={field.onChange}
+              onBlur={field.onBlur}
+              error={errors.token?.message}
+            />
+          )}
         />
 
         <PasswordInput

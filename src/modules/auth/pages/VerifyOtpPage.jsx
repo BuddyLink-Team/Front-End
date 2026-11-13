@@ -38,12 +38,17 @@ export const VerifyOtpPage = () => {
     handleKeyDown,
     handlePaste,
     handleResendOtp,
-    handleSendPhoneCode,
     handleVerifySubmit,
     handleSavePhone,
   } = useVerifyOtp();
 
+  // No phone code out yet: still sending, the automatic send failed, or no phone number
   const isAwaitingPhoneSend = activeStep === 'PHONE' && !isPhoneOtpSent;
+  const isResendEnabled =
+    canResend &&
+    !isSubmitting &&
+    !isSendingPhoneOtp &&
+    !(activeStep === 'PHONE' && (!phoneNumber || isEditingPhone));
   // Email already verified (phone changed, or Google sign-up): the SMS code is the only step left
   const isPhoneOnly = activeStep === 'PHONE' && isEmailVerified;
 
@@ -141,12 +146,14 @@ export const VerifyOtpPage = () => {
           </div>
 
           <p className="text-sm text-on-surface-variant max-w-otp-text leading-relaxed">
-            {isPhoneOnly
-              ? isAwaitingPhoneSend
-                ? 'Email của bạn đã được xác thực. Bấm "Gửi mã OTP" rồi nhập mã 6 chữ số nhận qua SMS là hoàn tất.'
-                : 'Email của bạn đã được xác thực. Chỉ cần nhập mã 6 chữ số vừa gửi qua SMS là hoàn tất.'
-              : isAwaitingPhoneSend
-                ? 'Bấm "Gửi mã OTP" để BuddyLink gửi mã bảo mật 6 chữ số đến số điện thoại của bạn nhằm xác thực thành viên và bảo vệ an toàn mạng lưới kết nối phụ huynh.'
+            {isAwaitingPhoneSend
+              ? isSendingPhoneOtp
+                ? 'BuddyLink đang gửi mã bảo mật 6 chữ số đến số điện thoại của bạn...'
+                : phoneNumber
+                  ? 'Mã chưa được gửi đi. Bấm "Gửi lại" để BuddyLink gửi mã bảo mật 6 chữ số đến số điện thoại của bạn.'
+                  : 'Nhập số điện thoại để BuddyLink gửi mã bảo mật 6 chữ số qua SMS.'
+              : isPhoneOnly
+                ? 'Email của bạn đã được xác thực. Chỉ cần nhập mã 6 chữ số vừa gửi qua SMS là hoàn tất.'
                 : activeStep === 'PHONE'
                   ? 'BuddyLink đã gửi mã bảo mật 6 chữ số đến thiết bị của bạn nhằm xác thực thành viên và bảo vệ an toàn mạng lưới kết nối phụ huynh.'
                   : 'BuddyLink đã gửi mã bảo mật 6 chữ số đến hộp thư của bạn nhằm hoàn tất chứng nhận tài khoản an toàn.'}
@@ -187,22 +194,14 @@ export const VerifyOtpPage = () => {
             ))}
           </div>
 
-          {/* Phone step: the first SMS is sent on click (required by Firebase reCAPTCHA) */}
-          {isAwaitingPhoneSend ? (
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={handleSendPhoneCode}
-              isLoading={isSendingPhoneOtp}
-              disabled={!phoneNumber || isEditingPhone || isSendingPhoneOtp}
-              leftIcon={<Smartphone className="w-4 h-4" />}
-            >
-              Gửi mã OTP
-            </Button>
-          ) : (
-            /* Countdown & Resend Option */
-            <div className="flex flex-wrap items-center justify-between w-full max-w-otp-actions px-1 text-on-surface-variant gap-2 text-xs sm:text-sm">
+          {/* Validity & Resend Option (the first code is sent automatically on arrival) */}
+          <div
+            className={`flex flex-wrap items-center w-full max-w-otp-actions px-1 text-on-surface-variant gap-2 text-xs sm:text-sm ${
+              isAwaitingPhoneSend ? 'justify-center' : 'justify-between'
+            }`}
+          >
+            {/* The validity is only stated once a code has really been sent */}
+            {!isAwaitingPhoneSend && (
               <div className="flex items-center gap-1.5 bg-surface-container-low/70 py-1 px-3 rounded-full border border-hairline/60">
                 <Clock className="w-3.5 h-3.5 text-primary" />
                 <span>
@@ -215,27 +214,29 @@ export const VerifyOtpPage = () => {
                   </strong>
                 </span>
               </div>
+            )}
 
-              <div className="flex items-center gap-1.5">
-                <span className="text-text-muted">Chưa nhận được?</span>
-                <button
-                  type="button"
-                  onClick={handleResendOtp}
-                  disabled={!canResend || isSubmitting}
-                  className={`font-semibold transition-colors inline-flex items-center gap-1 ${
-                    canResend
-                      ? 'text-primary hover:underline cursor-pointer'
-                      : 'text-text-muted cursor-not-allowed opacity-70'
-                  }`}
-                >
-                  <RotateCcw className="w-3 h-3" />
-                  {canResend
+            <div className="flex items-center gap-1.5">
+              <span className="text-text-muted">Chưa nhận được?</span>
+              <button
+                type="button"
+                onClick={handleResendOtp}
+                disabled={!isResendEnabled}
+                className={`font-semibold transition-colors inline-flex items-center gap-1 ${
+                  isResendEnabled
+                    ? 'text-primary hover:underline cursor-pointer'
+                    : 'text-text-muted cursor-not-allowed opacity-70'
+                }`}
+              >
+                <RotateCcw className="w-3 h-3" />
+                {isSendingPhoneOtp
+                  ? 'Đang gửi mã...'
+                  : canResend
                     ? 'Gửi lại'
                     : `Gửi lại sau ${formatTimer(countdown)}`}
-                </button>
-              </div>
+              </button>
             </div>
-          )}
+          </div>
         </div>
 
         {/* Change Phone Modal / Toggle Row */}
