@@ -2,14 +2,21 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import { StatCard } from '../../../components/cards/StatCard';
 import { formatCount } from '../../../utils/formatters';
+import { cn } from '../../../utils/cn';
 import { ICON_SIZE, ICON_STROKE } from '../../../constants/icon.constants';
 
 /**
  * Platform-wide counts above an admin list (not affected by its filters)
  */
+// The cards always fill the row: three on one line, four on two then one line
+const GRID_BY_COUNT = {
+  3: 'grid-cols-1 sm:grid-cols-3',
+  4: 'grid-cols-2 lg:grid-cols-4',
+};
+
 export const AdminStatStrip = ({ cards, stats, isLoading, hasError }) => (
   <div className="space-y-2">
-    <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+    <div className={cn('grid gap-3 sm:gap-4', GRID_BY_COUNT[cards.length] || GRID_BY_COUNT[4])}>
       {cards.map(({ key, label, icon: Icon, variant, format = formatCount }) => (
         <StatCard
           key={key}

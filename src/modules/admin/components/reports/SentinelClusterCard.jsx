@@ -11,21 +11,7 @@ import {
 } from '../../constants/admin.constants';
 import { ReportSeverityChip, ReportStatusChip } from './ReportChips';
 import { SentinelMonitoringBlock } from './SentinelMonitoringBlock';
-
-const RISK_BADGE_MAP = {
-  high: {
-    label: 'Rủi ro cao',
-    className: 'bg-error-soft text-error-dark border-error/20',
-  },
-  medium: {
-    label: 'Rủi ro trung bình',
-    className: 'bg-tertiary-soft text-tertiary-dark border-tertiary-border',
-  },
-  low: {
-    label: 'Rủi ro thấp',
-    className: 'bg-primary-soft text-primary-dark border-primary-border',
-  },
-};
+import { SENTINEL_RISK_BADGES } from '../../utils/sentinelView';
 
 /**
  * Cluster card grouping reports filed against a single parent.
@@ -39,7 +25,10 @@ export const SentinelClusterCard = ({
   onAskResolveCluster,
   isActionLoading = false,
 }) => {
-  const riskBadge = RISK_BADGE_MAP[cluster.riskLevel] || RISK_BADGE_MAP.high;
+  // No badge for a cluster without any assessed report
+  const riskBadge = cluster.view
+    ? SENTINEL_RISK_BADGES[cluster.view.riskLevel] || SENTINEL_RISK_BADGES.low
+    : null;
   // Nothing the quick handling can close (no violation or false report concluded by the AI)
   const plan = planSentinelCluster(cluster.reports);
 
@@ -61,14 +50,16 @@ export const SentinelClusterCard = ({
               <h4 className="text-title-md font-bold text-text-primary">
                 {cluster.reportedUser?.fullName || 'Phụ huynh bị báo cáo'}
               </h4>
-              <span
-                className={cn(
-                  'inline-flex items-center rounded-full border px-3 py-0.5 text-label-xs font-bold',
-                  riskBadge.className,
-                )}
-              >
-                {riskBadge.label}
-              </span>
+              {riskBadge && (
+                <span
+                  className={cn(
+                    'inline-flex items-center rounded-full border px-3 py-0.5 text-label-xs font-bold',
+                    riskBadge.className,
+                  )}
+                >
+                  {riskBadge.label}
+                </span>
+              )}
               {cluster.reportedUser?.strikeCount > 0 && (
                 <span className="rounded-full bg-tertiary-soft border border-tertiary-border px-2.5 py-0.5 text-label-xs font-semibold text-tertiary-dark">
                   {cluster.reportedUser.strikeCount} lần cảnh cáo trước đó
@@ -83,7 +74,7 @@ export const SentinelClusterCard = ({
               </strong>{' '}
               từ{' '}
               <strong className="text-text-primary">
-                {cluster.uniqueReportersCount} phụ huynh
+                {cluster.openReportersCount} phụ huynh
               </strong>
             </p>
           </div>

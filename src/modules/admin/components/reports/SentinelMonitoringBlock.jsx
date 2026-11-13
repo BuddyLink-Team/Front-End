@@ -1,44 +1,45 @@
 import React from 'react';
 import { cn } from '../../../../utils/cn';
 import { ICON_SIZE } from '../../../../constants/icon.constants';
-import { Activity, FileSearch, Scale, UserCheck } from 'lucide-react';
-
-const SANCTION_LABEL_MAP = {
-  warn: 'Gửi cảnh cáo',
-  delete_message: 'Xóa tin nhắn vi phạm',
-  cancel_playdate: 'Hủy buổi hẹn chơi',
-  suspend: 'Tạm đình chỉ tài khoản',
-  ban: 'Khóa tài khoản vĩnh viễn',
-};
-
-const RISK_BADGE_MAP = {
-  high: {
-    label: 'Rủi ro cao',
-    className: 'bg-error-soft text-error-dark border-error/20',
-  },
-  medium: {
-    label: 'Rủi ro trung bình',
-    className: 'bg-tertiary-soft text-tertiary-dark border-tertiary-border',
-  },
-  low: {
-    label: 'Rủi ro thấp',
-    className: 'bg-primary-soft text-primary-dark border-primary-border',
-  },
-};
+import { Activity, FileSearch, Scale, UserCheck, Users } from 'lucide-react';
+import { StatusChip } from '../../../../components/badges/StatusChip';
+import {
+  SENTINEL_RISK_BADGES,
+  SENTINEL_SANCTION_LABELS,
+} from '../../utils/sentinelView';
 
 /**
  * Giám sát báo cáo bằng AI sub-card for a reported parent cluster.
- * Displays the 3 enforcement pillars (Velocity, Credibility, Evidence), investigation steps, and sanction recommendations.
+ * Shows the assessment of the cluster's primary report with the same content as the report drawer
+ * (cluster.view, from buildSentinelView): verdict, enforcement pillars, investigation steps, sanctions.
  */
 export const SentinelMonitoringBlock = ({ cluster }) => {
-  const riskBadge = RISK_BADGE_MAP[cluster.riskLevel] || RISK_BADGE_MAP.high;
+  const view = cluster.view;
+
+  if (!view) {
+    return (
+      <div className="rounded-2xl border border-hairline-strong bg-surface-container-low p-4 text-body-md text-text-muted">
+        Chưa có bản phân tích tự động cho các báo cáo của đối tượng này. Mở chi
+        tiết báo cáo để chạy AI điều tra.
+      </div>
+    );
+  }
+
+  const riskBadge =
+    SENTINEL_RISK_BADGES[view.riskLevel] || SENTINEL_RISK_BADGES.low;
 
   return (
     <div className="rounded-2xl border border-hairline-strong bg-surface-container-low p-4 space-y-4">
-      <div className="flex items-center justify-between">
-        <span className="text-body-md font-bold text-text-primary">
-          Giám sát báo cáo bằng AI
-        </span>
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="text-body-md font-bold text-text-primary">
+            Giám sát báo cáo bằng AI
+          </span>
+          <StatusChip
+            tone={view.verdictDisplay.tone}
+            label={view.verdictDisplay.label}
+          />
+        </div>
         <span
           className={cn(
             'inline-flex items-center rounded-full border px-3 py-0.5 text-label-xs font-bold',
@@ -53,7 +54,7 @@ export const SentinelMonitoringBlock = ({ cluster }) => {
       <div className="grid grid-cols-2 gap-4 border-b border-hairline-strong pb-3.5">
         <div>
           <div className="text-headline-md font-bold text-text-primary leading-tight">
-            {cluster.reportsReceived}
+            {view.reportsReceived}
           </div>
           <div className="text-body-md text-text-muted">
             Số báo cáo ghi nhận
@@ -61,7 +62,7 @@ export const SentinelMonitoringBlock = ({ cluster }) => {
         </div>
         <div>
           <div className="text-headline-md font-bold text-text-primary leading-tight">
-            {cluster.timeWindow}
+            {view.timeWindow}
           </div>
           <div className="text-body-md text-text-muted">
             Khung thời gian giám sát
@@ -69,16 +70,20 @@ export const SentinelMonitoringBlock = ({ cluster }) => {
         </div>
       </div>
 
-      {/* 3 Enforcement Pillars */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-2.5">
+      {/* Enforcement Pillars */}
+      <div
+        className={cn(
+          'grid grid-cols-1 gap-2.5',
+          view.corroboration ? 'md:grid-cols-2' : 'md:grid-cols-3',
+        )}
+      >
         <div className="rounded-xl bg-surface-container-lowest p-3 border border-hairline-strong shadow-2xs">
           <div className="flex items-center gap-1.5 text-label-xs font-bold text-text-primary">
             <Activity size={ICON_SIZE.SM} className="text-primary-dark" />
             <span>1. Mật độ báo cáo</span>
           </div>
           <p className="mt-1 text-label-xs text-on-surface-variant">
-            {cluster.reportsReceived} báo cáo trong {cluster.timeWindow} (
-            {cluster.uniqueReportersCount} người báo cáo)
+            {view.densityLabel}
           </p>
         </div>
 
@@ -88,7 +93,7 @@ export const SentinelMonitoringBlock = ({ cluster }) => {
             <span>2. Độ tin cậy người báo cáo</span>
           </div>
           <p className="mt-1 text-label-xs text-on-surface-variant">
-            {cluster.credibilityLabel}
+            {view.credibilityLabel}
           </p>
         </div>
 
@@ -98,10 +103,21 @@ export const SentinelMonitoringBlock = ({ cluster }) => {
             <span>3. Bằng chứng vi phạm</span>
           </div>
           <p className="mt-1 text-label-xs text-on-surface-variant">
-            Độ tự tin AI: {cluster.confidenceScore}% • Đã đối chiếu ngữ cảnh
-            &amp; tiền sử vi phạm
+            {view.evidenceLabel} • Độ tự tin AI: {view.confidence}%
           </p>
         </div>
+
+        {view.corroboration && (
+          <div className="rounded-xl bg-surface-container-lowest p-3 border border-hairline-strong shadow-2xs">
+            <div className="flex items-center gap-1.5 text-label-xs font-bold text-text-primary">
+              <Users size={ICON_SIZE.SM} className="text-primary-dark" />
+              <span>4. Xác thực chéo</span>
+            </div>
+            <p className="mt-1 text-label-xs text-on-surface-variant">
+              {view.corroborationLabel}
+            </p>
+          </div>
+        )}
       </div>
 
       {/* Two-column AI Investigation & AI Recommendation */}
@@ -111,7 +127,7 @@ export const SentinelMonitoringBlock = ({ cluster }) => {
             Điều tra &amp; tổng hợp của AI
           </h6>
           <ul className="list-disc pl-5 space-y-1 text-label-sm text-on-surface-variant">
-            {cluster.investigationSteps.map((step, i) => (
+            {view.investigationSteps.map((step, i) => (
               <li key={i}>{step}</li>
             ))}
           </ul>
@@ -122,34 +138,46 @@ export const SentinelMonitoringBlock = ({ cluster }) => {
             <h6 className="text-body-md font-bold text-text-primary">
               Khuyến nghị xử lý của AI
             </h6>
-            {cluster.isRestrictionApplied && (
+            {view.isRestrictionApplied && (
               <span className="inline-flex items-center rounded-full bg-error-soft px-2.5 py-0.5 text-label-xs font-bold text-error-dark border border-error/20">
-                Đang hạn chế nhắn tin
+                {view.restrictionBadgeLabel}
               </span>
             )}
           </div>
-          {cluster.tempRestrictionSteps.length > 0 && (
+          {view.restrictionSteps.length > 0 && (
             <ul className="list-disc pl-5 space-y-1 text-label-sm text-on-surface-variant">
-              {cluster.tempRestrictionSteps.map((step, i) => (
+              {view.restrictionSteps.map((step, i) => (
                 <li key={i}>{step}</li>
               ))}
             </ul>
           )}
+
+          <p className="text-label-xs text-on-surface-variant">
+            <span className="font-semibold text-text-primary">
+              Khung quy chuẩn tham chiếu:
+            </span>{' '}
+            {view.policyClause} • Lần vi phạm thứ {view.strikeCount}
+          </p>
 
           <div className="pt-2 border-t border-hairline-strong flex flex-wrap items-center gap-1.5">
             <Scale size={ICON_SIZE.SM} className="text-primary-dark" />
             <span className="text-label-xs font-semibold text-text-muted">
               Chế tài chính thức đề xuất:
             </span>
-            {cluster.recommendedSanctions.map((s, sIdx) => (
+            {view.recommendedSanctions.map((s, sIdx) => (
               <span
                 key={sIdx}
                 className="inline-flex items-center gap-1 rounded-md bg-primary-soft px-2 py-0.5 text-label-xs font-bold text-primary-dark border border-primary/20"
               >
-                {SANCTION_LABEL_MAP[s.type] || s.type}
+                {SENTINEL_SANCTION_LABELS[s.type] || s.type}
                 {s.durationDays ? ` (${s.durationDays} ngày)` : ''}
               </span>
             ))}
+            {view.noSanctionReason && (
+              <span className="text-label-xs text-on-surface-variant">
+                {view.noSanctionReason}
+              </span>
+            )}
           </div>
         </div>
       </div>

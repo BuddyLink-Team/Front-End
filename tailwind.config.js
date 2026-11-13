@@ -214,6 +214,7 @@ export default {
         'chat-frame': 'calc(100dvh - 8rem)', // Full viewport fit: fills screen neatly without footer peeking up, footer visible on scroll
         chart: '280px', // Dashboard charts (BarChart)
         'place-modal': 'min(640px, 85vh)', // Place search modal: fixed, does not resize while loading
+        'decision-modal': 'min(760px, 90vh)', // Report decision dialog: fixed, does not resize with the choice
       },
       minHeight: {
         page: '70vh', // Centered page-level loading / empty states

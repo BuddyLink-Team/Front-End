@@ -38,33 +38,15 @@ export const adminMockHandlers = [
   },
   {
     method: 'POST',
-    pattern: '/admin/reports/:id/sentinel-apply',
+    pattern: '/admin/reports/:id/decide',
     handler: ({ params, body }) =>
-      adminReportMockService.applySentinelRecommendation(params.id, body),
-  },
-  {
-    method: 'PATCH',
-    pattern: '/admin/reports/:id/review',
-    handler: ({ params, body }) =>
-      adminReportMockService.reviewReport(params.id, body),
+      adminReportMockService.decideReport(params.id, body),
   },
   {
     method: 'PATCH',
     pattern: '/admin/reports/:id/severity',
     handler: ({ params, body }) =>
       adminReportMockService.updateReportSeverity(params.id, body),
-  },
-  {
-    method: 'POST',
-    pattern: '/admin/reports/:id/action',
-    handler: ({ params, body }) =>
-      adminReportMockService.applyReportAction(params.id, body),
-  },
-  {
-    method: 'PATCH',
-    pattern: '/admin/reports/:id/resolve',
-    handler: ({ params, body }) =>
-      adminReportMockService.resolveReport(params.id, body),
   },
   {
     method: 'PATCH',

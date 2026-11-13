@@ -51,7 +51,7 @@ export const SentinelBatchOverviewModal = ({
     clusters,
     sourceReports,
     scannedAt,
-    highRiskClustersCount,
+    restrictedClustersCount,
     avgConfidence,
     autoResolvedCount,
   } = useSentinelOverview(scanOverview, rows);
@@ -176,10 +176,10 @@ export const SentinelBatchOverviewModal = ({
                 <ShieldAlert size={ICON_SIZE.MD} className="text-error-dark" />
               </div>
               <div className="mt-1.5 text-headline-md font-bold text-error-dark">
-                {highRiskClustersCount} đối tượng
+                {restrictedClustersCount} đối tượng
               </div>
               <p className="mt-0.5 text-label-xs text-error-dark/80">
-                Mức rủi ro cao đang bị tạm hạn chế
+                Tài khoản đang bị tạm hạn chế nhắn tin
               </p>
             </div>
 

@@ -4,60 +4,20 @@ import { Button } from '../../../../components/ui/Button';
 import { ICON_SIZE, ICON_STROKE } from '../../../../constants/icon.constants';
 
 /**
- * Status changes only (the drawer closes from its header): start a pending report, conclude or dismiss
- * an open one through the conclusion dialog, reopen a closed one. Sanctions are applied in the body.
+ * The decision of the case (the drawer closes from its header): no violation or violation on an open
+ * case, both through the decision dialog; reopen on a closed one.
  */
 export const ReportDrawerFooter = ({
-  report,
   actionState,
   isActionLoading,
-  onClaim,
-  onAskConclusion,
+  onAskDecision,
   onAskReopen,
 }) => {
-  const { isPending, isReviewing, isClosed, hasOfficialActions } = actionState;
+  const { isClosed, hasOfficialActions } = actionState;
 
-  return (
-    <div className="flex flex-wrap items-center justify-between gap-2 w-full">
-      {!isClosed ? (
-        <Button
-          type="button"
-          variant="outline"
-          // A sanctioned report had a violation: it is concluded, never dismissed
-          disabled={isActionLoading || hasOfficialActions}
-          title={
-            hasOfficialActions
-              ? 'Báo cáo đã có chế tài nên không thể bác bỏ'
-              : undefined
-          }
-          onClick={() => onAskConclusion('dismiss')}
-        >
-          Bác bỏ báo cáo
-        </Button>
-      ) : (
-        <span />
-      )}
-      {isPending && (
-        <Button
-          type="button"
-          variant="primary"
-          disabled={isActionLoading}
-          onClick={() => onClaim(report.id)}
-        >
-          Bắt đầu xử lý
-        </Button>
-      )}
-      {isReviewing && (
-        <Button
-          type="button"
-          variant="primary"
-          disabled={isActionLoading}
-          onClick={() => onAskConclusion('resolve')}
-        >
-          Kết luận & đóng báo cáo
-        </Button>
-      )}
-      {isClosed && (
+  if (isClosed) {
+    return (
+      <div className="flex w-full justify-end">
         <Button
           type="button"
           variant="primary"
@@ -69,7 +29,34 @@ export const ReportDrawerFooter = ({
         >
           Mở lại vụ việc
         </Button>
-      )}
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex w-full flex-wrap items-center justify-between gap-2">
+      <Button
+        type="button"
+        variant="outline"
+        // A sanctioned case had a violation: it is never dismissed
+        disabled={isActionLoading || hasOfficialActions}
+        title={
+          hasOfficialActions
+            ? 'Vụ việc đã có chế tài nên không thể bác bỏ'
+            : undefined
+        }
+        onClick={() => onAskDecision('dismiss')}
+      >
+        Không vi phạm — bác bỏ
+      </Button>
+      <Button
+        type="button"
+        variant="primary"
+        disabled={isActionLoading}
+        onClick={() => onAskDecision('violation')}
+      >
+        Có vi phạm — xử lý
+      </Button>
     </div>
   );
 };

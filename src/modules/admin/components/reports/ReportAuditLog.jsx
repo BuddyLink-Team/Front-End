@@ -99,12 +99,13 @@ export const ReportAuditLog = ({ actions = [], history = [] }) => (
     )}
 
     {history.length > 0 && (
-      <ReportSection icon={History} title="Nhật ký kiểm toán (ReportAuditLog)">
+      <ReportSection icon={History} title="Nhật ký thao tác">
         <div className="space-y-2.5">
           {history.map((entry) => {
             const isOverrideEvent =
               entry.eventType === 'policy_overridden' ||
               entry.metadata?.isPolicyOverride;
+            const isLiftedEvent = entry.eventType === 'sanction_lifted';
             return (
               <div
                 key={entry.id}
@@ -128,6 +129,11 @@ export const ReportAuditLog = ({ actions = [], history = [] }) => (
                       {isOverrideEvent && (
                         <span className="rounded bg-tertiary-soft px-1.5 py-0.5 text-label-xs font-bold text-tertiary-dark">
                           Ngoại lệ chính sách
+                        </span>
+                      )}
+                      {isLiftedEvent && (
+                        <span className="rounded bg-error-soft px-1.5 py-0.5 text-label-xs font-bold text-error-dark">
+                          Hình phạt chấm dứt sớm
                         </span>
                       )}
                     </div>

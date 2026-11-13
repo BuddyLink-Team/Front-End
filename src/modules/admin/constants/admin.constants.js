@@ -406,6 +406,7 @@ export const REMOVABLE_CONNECTION_STATUSES = ['pending', 'accepted'];
 export const ADMIN_ERROR_MESSAGES = Object.freeze({
   CANNOT_LOCK_SELF: 'Bạn không thể tự khóa tài khoản của mình.',
   CANNOT_LOCK_ADMIN: 'Không thể khóa tài khoản quản trị viên khác.',
+  UNLOCK_REASON_REQUIRED: 'Tài khoản đang chịu hình phạt từ báo cáo vi phạm: cần nhập lý do mở khóa (tối thiểu 10 ký tự).',
   PARENT_NOT_FOUND: 'Không tìm thấy hồ sơ phụ huynh của tài khoản này.',
   CHILD_NOT_FOUND: 'Không tìm thấy hồ sơ trẻ này.',
   PLAYDATE_NOT_FOUND: 'Không tìm thấy cuộc hẹn chơi này.',
@@ -455,13 +456,7 @@ export const ADMIN_ERROR_MESSAGES = Object.freeze({
 // ==========================================
 
 export const REPORT_STAT_CARDS = [
-  { key: 'pending', label: 'Chờ tiếp nhận', icon: Clock, variant: 'secondary' },
-  {
-    key: 'reviewing',
-    label: 'Đang xem xét',
-    icon: UserCheck,
-    variant: 'primary',
-  },
+  { key: 'pending', label: 'Chờ xử lý', icon: Clock, variant: 'secondary' },
   { key: 'overdue', label: 'Quá hạn SLA', icon: Lock, variant: 'error' },
   {
     key: 'resolvedThisWeek',
@@ -473,7 +468,8 @@ export const REPORT_STAT_CARDS = [
 
 export const REPORT_STATUS_DISPLAY = Object.freeze({
   pending: { tone: 'warning', label: 'Chờ xử lý' },
-  reviewing: { tone: 'info', label: 'Đang xem xét' },
+  // Reports claimed before the single-step flow: still waiting for a decision
+  reviewing: { tone: 'warning', label: 'Chờ xử lý' },
   resolved: { tone: 'success', label: 'Đã giải quyết' },
   dismissed: { tone: 'neutral', label: 'Bác bỏ' },
 });
@@ -487,8 +483,6 @@ export const PLAYDATE_STATUS_DISPLAY = Object.freeze({
 export const REPORT_NOTES_MIN_LENGTH = 10;
 export const REPORT_OVERRIDE_MIN_LENGTH = 20;
 export const REPORT_SUSPEND_DURATIONS = Object.freeze([3, 7, 14, 30]);
-// Sanctions on the whole account: related reports can be closed together with them
-export const REPORT_ACCOUNT_SANCTIONS = Object.freeze(['suspend', 'ban']);
 // Most images a report can have (REPORT_LIMITS.MAX_EVIDENCE_URLS on the backend)
 export const REPORT_EVIDENCE_MAX_LINKS = 5;
 
@@ -556,7 +550,7 @@ export const getSentinelVerdict = (assessment) =>
     ? assessment.verdict
     : 'unclear';
 
-const CLUSTER_SEVERITY_WEIGHTS = { critical: 4, high: 3, medium: 2, low: 1 };
+export const CLUSTER_SEVERITY_WEIGHTS = { critical: 4, high: 3, medium: 2, low: 1 };
 
 /**
  * What "Xác nhận xử lý & đóng cụm" will do, by the same rules as the backend
@@ -606,6 +600,8 @@ export const planSentinelCluster = (reports = []) => {
     dismissIds,
     manualCount,
     sanctions: isHeavy ? [] : sanctions,
+    // Most severe violation report: the one the sanctions of the cluster come from
+    primaryId: primary?.id || null,
     isActionable: violationIds.length + dismissIds.length > 0,
   };
 };
@@ -625,39 +621,6 @@ export const SENTINEL_BATCH_MIN_CONFIDENCE = 80;
  * @param {string} type
  * @param {number|null} [durationDays]
  */
-export const getReportSanctionConfirm = (type, durationDays) =>
-  ({
-    warn: {
-      title: 'Xác nhận cảnh cáo phụ huynh',
-      description:
-        'Phụ huynh nhận thông báo cảnh cáo và số lần cảnh cáo của tài khoản tăng thêm 1.',
-      variant: 'warning',
-    },
-    delete_message: {
-      title: 'Xác nhận xóa tin nhắn vi phạm',
-      description:
-        'Tin nhắn được thay bằng thông báo gỡ bỏ trong cuộc trò chuyện, ngay lập tức với mọi người tham gia.',
-      variant: 'danger',
-    },
-    cancel_playdate: {
-      title: 'Xác nhận hủy cuộc hẹn',
-      description:
-        'Cuộc hẹn bị hủy ngay lập tức, các gia đình tham gia được hoàn lượt và nhận thông báo.',
-      variant: 'danger',
-    },
-    suspend: {
-      title: `Xác nhận tạm đình chỉ tài khoản ${durationDays} ngày`,
-      description: `Tài khoản không đăng nhập được, bị đăng xuất và ngắt kết nối ngay trong ${durationDays} ngày, sau đó tự động mở lại.`,
-      variant: 'danger',
-    },
-    ban: {
-      title: 'Xác nhận khóa tài khoản vĩnh viễn',
-      description:
-        'Tài khoản không đăng nhập được nữa, bị đăng xuất và ngắt kết nối ngay lập tức.',
-      variant: 'danger',
-    },
-  })[type];
-
 export const REPORT_STATUS_CHIPS = [
   { id: '', label: 'Tất cả', value: '', query: {} },
   {
@@ -665,12 +628,6 @@ export const REPORT_STATUS_CHIPS = [
     label: 'Chờ xử lý',
     value: 'pending',
     query: { status: 'pending' },
-  },
-  {
-    id: 'reviewing',
-    label: 'Đang xem xét',
-    value: 'reviewing',
-    query: { status: 'reviewing' },
   },
   {
     id: 'resolved',
@@ -757,6 +714,6 @@ export const REPORT_ACTION_LABELS = Object.freeze({
 
 export const REPORT_RESOLUTION_LABELS = Object.freeze({
   action_taken: 'Đã áp dụng chế tài kỷ luật',
-  no_action: 'Không kỷ luật (Không vi phạm / Đã giải quyết hòa giải)',
+  no_action: 'Có vi phạm nhưng không kỷ luật',
   dismissed: 'Bác bỏ (Báo cáo sai / Không đủ bằng chứng)',
 });

@@ -46,12 +46,15 @@ export const useAdminUsers = () => {
     setFilters({ status: '', isVerified: '' });
   }, [setSearch, setFilters]);
 
-  const confirmLockToggle = useCallback(async () => {
+  // reason: asked when the unlock ends a sanction decided on a report
+  const confirmLockToggle = useCallback(async (reason = '') => {
     if (!lockTargetUser) return;
     const nextActive = !lockTargetUser.isActive;
 
     try {
-      await dispatch(updateAdminUserStatus({ userId: lockTargetUser.id, isActive: nextActive })).unwrap();
+      await dispatch(
+        updateAdminUserStatus({ userId: lockTargetUser.id, isActive: nextActive, reason: reason || undefined })
+      ).unwrap();
       success(
         nextActive
           ? `Đã mở khóa tài khoản ${lockTargetUser.fullName}.`

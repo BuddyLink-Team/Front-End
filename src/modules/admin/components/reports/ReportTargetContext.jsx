@@ -116,7 +116,7 @@ export const ReportTargetContext = ({ report }) => {
   };
 
   return (
-    <ReportSection icon={TARGET_ICONS[targetType]} title="Ngữ cảnh đối tượng vi phạm">
+    <ReportSection icon={TARGET_ICONS[targetType]} title="Nội dung bị báo cáo">
       {renderContext()}
     </ReportSection>
   );

@@ -16,8 +16,8 @@ import { Modal } from './Modal';
  * @param {Function} onConfirm - Receives the trimmed reason when `reason` is set
  * @param {Function} onCancel
  * @param {boolean} [isLoading=false]
- * @param {{ required?: boolean, label?: string, placeholder?: string, maxLength?: number }} [reason]
- *   Shows a reason field; when required, confirming is disabled until it is filled in
+ * @param {{ required?: boolean, minLength?: number, label?: string, placeholder?: string, maxLength?: number }} [reason]
+ *   Shows a reason field; when required, confirming is disabled until it is filled in (minLength characters)
  */
 export const ConfirmDialog = ({
   open = false,
@@ -41,7 +41,7 @@ export const ConfirmDialog = ({
   if (!open) return null;
 
   const trimmedReason = reasonText.trim();
-  const isReasonMissing = Boolean(reason?.required) && !trimmedReason;
+  const isReasonMissing = Boolean(reason?.required) && trimmedReason.length < (reason.minLength || 1);
 
   const variantConfig = {
     danger: {
@@ -94,6 +94,11 @@ export const ConfirmDialog = ({
           placeholder={reason.placeholder || 'Nhập lý do...'}
           maxLength={reason.maxLength ?? 500}
           rows={3}
+          helperText={
+            reason.minLength && trimmedReason.length < reason.minLength
+              ? `Tối thiểu ${reason.minLength} ký tự (hiện có ${trimmedReason.length}).`
+              : undefined
+          }
           value={reasonText}
           onChange={(e) => setReasonText(e.target.value)}
           disabled={isLoading}

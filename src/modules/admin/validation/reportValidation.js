@@ -11,11 +11,6 @@ export const reportNotesSchema = z.object({
   ),
 });
 
-// Conclusion dialog: the outcome of a resolution (a dismissal ignores it) and the notes
-export const reportConclusionSchema = reportNotesSchema.extend({
-  outcome: z.enum(['action_taken', 'no_action']),
-});
-
 // Mirrors PATCH /admin/reports/:id/reopen
 export const reportReopenSchema = z.object({
   note: longEnough(

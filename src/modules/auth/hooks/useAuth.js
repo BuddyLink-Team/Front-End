@@ -27,6 +27,7 @@ import socketService from '../../../services/socket';
 import { getApiErrorMsg } from '../../../utils/errorUtils';
 import { AUTH_ERROR_MESSAGES } from '../constants/auth.constants';
 import { needsVerification } from '../utils/verification';
+import { getAccountLockMessage } from '../utils/accountLock';
 
 /**
  * Authentication UI flows. API calls and session state live in the auth slice thunks;
@@ -55,7 +56,10 @@ export const useAuth = () => {
         if (successMessage) toast.success(successMessage);
         return { success: true, data, message: successMessage };
       } catch (error) {
-        const msg = getApiErrorMsg(AUTH_ERROR_MESSAGES, error, fallbackError);
+        // A locked account is told why and until when, not only that it is locked
+        const msg =
+          getAccountLockMessage(error) ||
+          getApiErrorMsg(AUTH_ERROR_MESSAGES, error, fallbackError);
         setErrorMessage(msg);
         toast.error(msg);
         return { success: false, error: msg };

@@ -111,7 +111,61 @@ class AdminReportMockService {
     };
   }
 
+  // Same rule as the backend: the reports about the same content are one case
+  _caseKey(report) {
+    const context = report.targetContext;
+    if (context?.playdate?.id) return `playdate:${context.playdate.id}`;
+    if (context?.reportedMessage?.id) return `message:${context.reportedMessage.id}`;
+    return `user:${report.reportedUser.id}:${report.category}`;
+  }
+
+  // One row of the queue: the open reports of a case, or the reports closed by one decision
+  _caseGroup(report) {
+    return OPEN_STATUSES.includes(report.status)
+      ? `open:${this._caseKey(report)}`
+      : `closed:${report.closedCaseId || report.id}`;
+  }
+
+  _caseMembers(report, reports) {
+    const group = this._caseGroup(report);
+    return reports
+      .filter((item) => this._caseGroup(item) === group)
+      .sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
+  }
+
   _toDetail(report, reports) {
+    const members = this._caseMembers(report, reports);
+    const ownKey = OPEN_STATUSES.includes(report.status)
+      ? this._caseKey(report)
+      : null;
+    const otherCases = new Map();
+    reports
+      .filter(
+        (item) =>
+          item.reportedUser.id === report.reportedUser.id &&
+          OPEN_STATUSES.includes(item.status) &&
+          this._caseKey(item) !== ownKey,
+      )
+      .sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt))
+      .forEach((item) => {
+        const key = this._caseKey(item);
+        const found = otherCases.get(key);
+        if (!found) {
+          otherCases.set(key, {
+            id: item.id,
+            targetType: item.targetType,
+            category: item.category,
+            severity: item.severity,
+            createdAt: item.createdAt,
+            reportCount: 1,
+            reporterIds: [item.reporter.id],
+          });
+        } else {
+          found.reportCount += 1;
+          if (!found.reporterIds.includes(item.reporter.id))
+            found.reporterIds.push(item.reporter.id);
+        }
+      });
     const others = reports.filter(
       (item) =>
         item.id !== report.id &&
@@ -119,7 +173,25 @@ class AdminReportMockService {
     );
     return {
       ...report,
-      isOverdue: isOverdue(report),
+      isOverdue: members.some(isOverdue),
+      caseReports: members.map((item) => ({
+        id: item.id,
+        reporter: item.reporter,
+        reason: item.reason,
+        description: item.description,
+        evidenceUrls: item.evidenceUrls || [],
+        status: item.status,
+        createdAt: item.createdAt,
+      })),
+      reportCount: members.length,
+      reporterCount: new Set(members.map((item) => item.reporter.id)).size,
+      otherOpenCases: [...otherCases.values()].map(
+        ({ reporterIds, ...item }) => ({
+          ...item,
+          reporterCount: reporterIds.length,
+        }),
+      ),
+      isPolicyEnforced: Boolean(report.sentinelAssessment?.assessedAt),
       relatedOpenReports: others
         .filter((item) => OPEN_STATUSES.includes(item.status))
         .map((item) => ({
@@ -131,6 +203,14 @@ class AdminReportMockService {
         })),
       reportedUser: {
         ...report.reportedUser,
+        // Sanctioned incidents on the other reports (propagated copies are not counted)
+        priorViolationCount: others.filter(
+          (item) =>
+            item.status === 'resolved' &&
+            item.actions.some(
+              (action) => !action.isProvisional && !action.propagatedFrom,
+            ),
+        ).length,
         pastReports: others.map((item) => ({
           id: item.id,
           category: item.category,
@@ -205,30 +285,68 @@ class AdminReportMockService {
         reportedUser.email,
       ].some((text) => text.toLowerCase().includes(search));
 
-    const items = this._getReports()
+    const allReports = this._getReports();
+    const matched = allReports
       .filter(
         (report) =>
-          (!query.status || report.status === query.status) &&
+          (!query.status ||
+            (OPEN_STATUSES.includes(query.status)
+              ? OPEN_STATUSES.includes(report.status)
+              : report.status === query.status)) &&
           (!query.severity || report.severity === query.severity) &&
           (!query.category || report.category === query.category) &&
           (!query.targetType || report.targetType === query.targetType) &&
-          (!query.assignedTo || report.assignedTo?.id === MOCK_ADMIN.id) &&
           (!query.fromDate ||
             report.createdAt.slice(0, 10) >= query.fromDate) &&
           (!query.toDate || report.createdAt.slice(0, 10) <= query.toDate) &&
           (!search || matchesSearch(report)),
       )
+      .sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
+
+    // One row per case (view=reports keeps one row per report, for the export)
+    const seen = new Set();
+    const rows =
+      query.view === 'reports'
+        ? matched
+        : matched.filter((report) => {
+            const group = this._caseGroup(report);
+            if (seen.has(group)) return false;
+            seen.add(group);
+            return true;
+          });
+    const items = rows
+      .map((report) => {
+        const members =
+          query.view === 'reports'
+            ? [report]
+            : this._caseMembers(report, allReports);
+        const worst = members.reduce(
+          (found, item) =>
+            SEVERITY_WEIGHTS[item.severity] > SEVERITY_WEIGHTS[found.severity]
+              ? item
+              : found,
+          report,
+        );
+        const reporterNames = [
+          ...new Set(members.map((item) => item.reporter.fullName)),
+        ];
+        return {
+          ...report,
+          severity: worst.severity,
+          reportCount: members.length,
+          reporterCount: reporterNames.length,
+          reporterNames,
+          firstReportedAt: members[0].createdAt,
+          isOverdue: members.some(isOverdue),
+          reportedMessageContent:
+            report.targetContext?.reportedMessage?.content || null,
+        };
+      })
       .sort(
         (a, b) =>
           SEVERITY_WEIGHTS[b.severity] - SEVERITY_WEIGHTS[a.severity] ||
-          new Date(a.createdAt) - new Date(b.createdAt),
-      )
-      .map((report) => ({
-        ...report,
-        isOverdue: isOverdue(report),
-        reportedMessageContent:
-          report.targetContext?.reportedMessage?.content || null,
-      }));
+          new Date(a.firstReportedAt) - new Date(b.firstReportedAt),
+      );
 
     return {
       success: true,
@@ -251,6 +369,9 @@ class AdminReportMockService {
     await delay();
     const reports = this._getReports();
     const countWith = (predicate) => reports.filter(predicate).length;
+    const countCases = (predicate) =>
+      new Set(reports.filter(predicate).map((report) => this._caseGroup(report)))
+        .size;
     const closed = reports.filter((report) => report.resolvedAt);
     const totalHours = closed.reduce(
       (sum, report) =>
@@ -263,10 +384,10 @@ class AdminReportMockService {
       success: true,
       data: {
         total: reports.length,
-        pending: countWith((report) => report.status === 'pending'),
-        reviewing: countWith((report) => report.status === 'reviewing'),
-        resolved: countWith((report) => report.status === 'resolved'),
-        dismissed: countWith((report) => report.status === 'dismissed'),
+        pending: countCases((report) => OPEN_STATUSES.includes(report.status)),
+        reviewing: 0,
+        resolved: countCases((report) => report.status === 'resolved'),
+        dismissed: countCases((report) => report.status === 'dismissed'),
         bySeverity: Object.fromEntries(
           Object.keys(SEVERITY_WEIGHTS).map((severity) => [
             severity,
@@ -274,7 +395,7 @@ class AdminReportMockService {
           ]),
         ),
         resolvedThisWeek: countWith((report) => report.status === 'resolved'),
-        overdue: countWith(isOverdue),
+        overdue: countCases(isOverdue),
         criticalPending: countWith(
           (report) =>
             report.status === 'pending' && report.severity === 'critical',
@@ -299,24 +420,110 @@ class AdminReportMockService {
   }
 
   /**
-   * PATCH /admin/reports/:id/review
+   * POST /admin/reports/:id/decide
+   * One decision closes every open report of the case, and the other open cases chosen with it.
    */
-  async reviewReport(id, { action }) {
+  async decideReport(
+    id,
+    {
+      outcome,
+      sanctions = [],
+      notes,
+      isPolicyOverride,
+      overrideReason,
+      alsoCloseReportIds = [],
+    },
+  ) {
     await delay();
-    return this._update(id, (report) => {
+    return this._update(id, (report, reports) => {
       if (CLOSED_STATUSES.includes(report.status)) {
+        throw fail(409, 'REPORT_ALREADY_CLOSED', 'Report is already closed');
+      }
+      const isViolation = outcome === 'violation';
+      const ownKey = this._caseKey(report);
+      const alsoKeys = new Set(
+        reports
+          .filter((item) => alsoCloseReportIds.includes(item.id))
+          .map((item) => this._caseKey(item)),
+      );
+      const followers = reports.filter(
+        (item) =>
+          item.id !== report.id &&
+          item.reportedUser.id === report.reportedUser.id &&
+          OPEN_STATUSES.includes(item.status) &&
+          (this._caseKey(item) === ownKey || alsoKeys.has(this._caseKey(item))),
+      );
+      const hasOfficial = (item) =>
+        item.actions.some((action) => !action.isProvisional);
+      if (!isViolation && [report, ...followers].some(hasOfficial)) {
         throw fail(
           400,
-          'INVALID_STATUS_TRANSITION',
-          'Can only review open reports',
+          'RESOLUTION_CONFLICTS_WITH_ACTIONS',
+          'Sanctions were applied to this case: it cannot be dismissed',
         );
       }
-      const fromStatus = report.status;
-      report.status = 'reviewing';
-      report.assignedTo = MOCK_ADMIN;
-      report.history.push(
-        logEntry(action, fromStatus, 'reviewing', 'Tiếp nhận xử lý vụ việc'),
-      );
+
+      if (isViolation) {
+        sanctions
+          .filter(
+            ({ type }) => !report.actions.some((action) => action.type === type),
+          )
+          .forEach(({ type, durationDays }) =>
+            this._applySanction(report, reports, {
+              type,
+              durationDays,
+              note: notes,
+              isPolicyOverride,
+              overrideReason,
+            }),
+          );
+      }
+
+      const official = report.actions.filter((action) => !action.isProvisional);
+      const status = isViolation ? 'resolved' : 'dismissed';
+      const close = (item, resolution, note, closedCaseId) => {
+        const fromStatus = item.status;
+        Object.assign(item, {
+          status,
+          resolution,
+          adminNotes: notes,
+          resolvedBy: MOCK_ADMIN,
+          resolvedAt: new Date().toISOString(),
+          closedCaseId,
+        });
+        item.history.push(logEntry('status_change', fromStatus, status, note));
+      };
+      const resolutionOf = (actions) =>
+        !isViolation
+          ? 'dismissed'
+          : actions.length > 0
+            ? 'action_taken'
+            : 'no_action';
+
+      close(report, resolutionOf(official), notes, report.id);
+      // Each other case stays a row of its own: its first report carries it
+      const caseIdOf = (item) =>
+        this._caseKey(item) === ownKey
+          ? report.id
+          : followers.find(
+              (other) => this._caseKey(other) === this._caseKey(item),
+            ).id;
+      followers.forEach((item) => {
+        const shared = official
+          .filter((action) => ['warn', 'suspend', 'ban'].includes(action.type))
+          .map((action) => ({
+            ...action,
+            id: `${action.id}-${item.id}`,
+            propagatedFrom: report.id,
+          }));
+        item.actions.push(...shared);
+        close(
+          item,
+          resolutionOf(shared),
+          `Đóng cùng vụ việc: ${notes}`,
+          caseIdOf(item),
+        );
+      });
     });
   }
 
@@ -326,11 +533,11 @@ class AdminReportMockService {
   async updateReportSeverity(id, { severity }) {
     await delay();
     return this._update(id, (report) => {
-      if (report.status !== 'reviewing') {
+      if (!OPEN_STATUSES.includes(report.status)) {
         throw fail(
           400,
           'INVALID_STATUS_TRANSITION',
-          'Can only change severity when reviewing',
+          'Can only change the severity of an open report',
         );
       }
       const note = `Đổi mức độ nghiêm trọng từ ${report.severity} sang ${severity}`;
@@ -357,13 +564,26 @@ class AdminReportMockService {
           'Cannot apply action on closed report',
         );
       }
-      if (report.status !== 'reviewing') {
-        throw fail(
-          400,
-          'INVALID_STATUS_TRANSITION',
-          'Start reviewing the report first',
-        );
-      }
+      this._applySanction(report, reports, {
+        type,
+        durationDays,
+        note,
+        isPolicyOverride,
+        overrideReason,
+      });
+    });
+  }
+
+  /**
+   * Run one sanction on a report: checks, effect on the account or the target, action and history
+   * @private
+   */
+  _applySanction(
+    report,
+    reports,
+    { type, durationDays, note, isPolicyOverride, overrideReason },
+  ) {
+    {
       if (report.actions.some((action) => action.type === type)) {
         throw fail(
           409,
@@ -477,7 +697,7 @@ class AdminReportMockService {
           note || `Đã thi hành chế tài: ${type}`,
         ),
       );
-    });
+    }
   }
 
   /**
@@ -491,13 +711,6 @@ class AdminReportMockService {
     return this._update(id, (report, reports) => {
       if (CLOSED_STATUSES.includes(report.status)) {
         throw fail(409, 'REPORT_ALREADY_CLOSED', 'Report is already closed');
-      }
-      if (status === 'resolved' && report.status !== 'reviewing') {
-        throw fail(
-          400,
-          'INVALID_STATUS_TRANSITION',
-          'A report must be reviewed before it is resolved',
-        );
       }
       // Like the backend: the outcome matches the official (non provisional) sanctions
       const hasOfficialSanction = report.actions.some(
@@ -557,7 +770,7 @@ class AdminReportMockService {
           );
           close(
             related,
-            `Đóng đồng loạt theo báo cáo ${report.id}: ${adminNotes}`,
+            `Đóng đồng loạt theo báo cáo chính của cụm: ${adminNotes}`,
           );
         });
     });
@@ -578,13 +791,14 @@ class AdminReportMockService {
       }
       const fromStatus = report.status;
       Object.assign(report, {
-        status: 'reviewing',
+        status: 'pending',
         resolution: null,
         adminNotes: '',
         resolvedBy: null,
         resolvedAt: null,
+        closedCaseId: null,
       });
-      report.history.push(logEntry('reopen', fromStatus, 'reviewing', note));
+      report.history.push(logEntry('reopen', fromStatus, 'pending', note));
     });
   }
 
@@ -699,10 +913,6 @@ class AdminReportMockService {
           note: note || 'Áp dụng theo đề xuất của Sentinel AI',
         });
       });
-      if (report.status === 'pending') {
-        report.status = 'reviewing';
-        report.assignedTo = MOCK_ADMIN;
-      }
       report.history.push(
         logEntry(
           'action_applied',
@@ -800,7 +1010,7 @@ class AdminReportMockService {
       report.resolvedBy = MOCK_ADMIN;
       report.resolvedAt = now;
       report.history.push(
-        logEntry('status_change', 'reviewing', status, notes),
+        logEntry('status_change', 'pending', status, notes),
       );
     };
 

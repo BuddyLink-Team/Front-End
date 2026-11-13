@@ -20,7 +20,6 @@ const makeReport = (overrides = {}) => ({
   reportedMessageContent: 'Nhà ở đâu vậy?',
   reporter: { id: 'p1', fullName: 'Mẹ Lan', email: 'lan@example.com' },
   reportedUser: { id: 'p2', fullName: 'Bố Hùng', email: 'hung@example.com', strikeCount: 2, isLocked: true },
-  assignedTo: ADMIN,
   isOverdue: false,
   resolution: 'action_taken',
   adminNotes: 'Đã khóa tài khoản vi phạm',
@@ -93,7 +92,6 @@ describe('buildModerationReportSheets', () => {
         reportedEmail: 'hung@example.com',
         reason: 'An toàn trẻ em',
         description: 'Hỏi địa chỉ nhà',
-        assignee: ADMIN.fullName,
         adminNotes: 'Đã khóa tài khoản vi phạm',
         resolvedBy: ADMIN.fullName,
         resolutionHours: 2,
@@ -199,30 +197,34 @@ describe('adminReportMockService', () => {
   });
 
   it('follows the same workflow rules as the API', async () => {
-    await expect(adminReportMockService.applyReportAction('report-mock-1', { type: 'warn' })).rejects.toMatchObject({
-      response: { data: { error: { code: 'INVALID_STATUS_TRANSITION' } } },
+    // One decision, with no claim step: the sanctions run and the case closes
+    const { data } = await adminReportMockService.decideReport('report-mock-1', {
+      outcome: 'violation',
+      sanctions: [{ type: 'delete_message' }],
+      notes: 'Đã gỡ tin nhắn vi phạm',
     });
-
-    await adminReportMockService.reviewReport('report-mock-1', { action: 'claim' });
-    const { data } = await adminReportMockService.applyReportAction('report-mock-1', { type: 'delete_message' });
     expect(data.targetContext.reportedMessage.isDeleted).toBe(true);
+    expect(data).toEqual(expect.objectContaining({ status: 'resolved', resolution: 'action_taken' }));
+    expect(data.caseReports.map((item) => item.id)).toContain('report-mock-1');
 
     await expect(
-      adminReportMockService.applyReportAction('report-mock-1', { type: 'delete_message' })
-    ).rejects.toMatchObject({ response: { data: { error: { code: 'ACTION_ALREADY_APPLIED' } } } });
-
-    await adminReportMockService.resolveReport('report-mock-1', {
-      status: 'resolved',
-      resolution: 'action_taken',
-      adminNotes: 'Đã gỡ tin nhắn vi phạm',
-    });
-    await expect(
-      adminReportMockService.resolveReport('report-mock-1', {
-        status: 'dismissed',
-        resolution: 'dismissed',
-        adminNotes: 'Đã gỡ tin nhắn vi phạm',
-      })
+      adminReportMockService.decideReport('report-mock-1', { outcome: 'no_violation', notes: 'Đã gỡ tin nhắn vi phạm' })
     ).rejects.toMatchObject({ response: { data: { error: { code: 'REPORT_ALREADY_CLOSED' } } } });
+
+    // A reopened case goes back to the queue, and cannot be dismissed once it was sanctioned
+    const reopened = await adminReportMockService.reopenReport('report-mock-1', { note: 'Có bằng chứng mới' });
+    expect(reopened.data.status).toBe('pending');
+    await expect(
+      adminReportMockService.decideReport('report-mock-1', { outcome: 'no_violation', notes: 'Đã gỡ tin nhắn vi phạm' })
+    ).rejects.toMatchObject({ response: { data: { error: { code: 'RESOLUTION_CONFLICTS_WITH_ACTIONS' } } } });
+  });
+
+  it('lists the queue by case and keeps one line per report for the export', async () => {
+    const byCase = (await adminReportMockService.getReports({ limit: 50 })).data;
+    const byReport = (await adminReportMockService.getReports({ limit: 50, view: 'reports' })).data;
+
+    expect(byCase.items.every((item) => item.reportCount >= 1 && item.reporterNames.length === item.reporterCount)).toBe(true);
+    expect(byReport.pagination.total).toBeGreaterThanOrEqual(byCase.pagination.total);
   });
 });
 

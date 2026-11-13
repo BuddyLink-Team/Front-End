@@ -5,23 +5,18 @@ import { useToast } from '../../../hooks/useToast';
 import { getApiErrorMsg } from '../../../utils/errorUtils';
 import {
   ADMIN_ERROR_MESSAGES,
-  REPORT_ACCOUNT_SANCTIONS,
-  REPORT_ACTION_LABELS,
   REPORT_STATUS_CHIPS,
   SENTINEL_BATCH_MIN_CONFIDENCE,
 } from '../constants/admin.constants';
 import {
-  applyAdminReportAction,
   clearReportDetail,
   fetchAdminReportDetail,
   fetchAdminReports,
   fetchAdminReportStats,
   reopenAdminReport,
-  resolveAdminReport,
-  reviewAdminReport,
+  decideAdminReport,
   updateAdminReportSeverity,
   assessAdminReportWithSentinel,
-  applyAdminSentinelRecommendation,
   batchScanAdminSentinel,
   batchApplyAdminSentinel,
   resolveAdminSentinelCluster,
@@ -136,16 +131,6 @@ export const useAdminReports = () => {
     ],
   );
 
-  const handleClaim = useCallback(
-    (id) =>
-      runAction(
-        reviewAdminReport({ id, action: 'claim' }),
-        'Đã tiếp nhận xử lý báo cáo.',
-        'Không thể tiếp nhận báo cáo.',
-      ),
-    [runAction],
-  );
-
   const handleUpdateSeverity = useCallback(
     (id, severity) =>
       runAction(
@@ -156,24 +141,15 @@ export const useAdminReports = () => {
     [runAction],
   );
 
-  const handleApplyAction = useCallback(
+  // One decision closes every open report of the case (and the other cases chosen with it)
+  const handleDecide = useCallback(
     (id, payload) =>
       runAction(
-        applyAdminReportAction({ id, payload }),
-        'Đã thi hành chế tài.',
-        'Không thể thi hành chế tài.',
-      ),
-    [runAction],
-  );
-
-  const handleResolve = useCallback(
-    (id, payload) =>
-      runAction(
-        resolveAdminReport({ id, payload }),
-        payload.status === 'resolved'
-          ? 'Đã đóng báo cáo: đã xử lý.'
-          : 'Đã bác bỏ báo cáo.',
-        'Không thể đóng báo cáo.',
+        decideAdminReport({ id, payload }),
+        payload.outcome === 'violation'
+          ? 'Đã xử lý và đóng vụ việc.'
+          : 'Đã bác bỏ vụ việc.',
+        'Không thể đóng vụ việc.',
       ),
     [runAction],
   );
@@ -182,8 +158,8 @@ export const useAdminReports = () => {
     (id, note) =>
       runAction(
         reopenAdminReport({ id, note }),
-        'Đã mở lại báo cáo.',
-        'Không thể mở lại báo cáo.',
+        'Đã mở lại vụ việc.',
+        'Không thể mở lại vụ việc.',
       ),
     [runAction],
   );
@@ -197,104 +173,6 @@ export const useAdminReports = () => {
       ),
     [runAction],
   );
-
-  const [pendingSentinelApply, setPendingSentinelApply] = useState(null);
-
-  // Opens the confirmation (sanctions + related reports) before applying Sentinel's recommendation
-  const handleApplySentinel = useCallback(
-    (reportOrId) => {
-      const isObject = typeof reportOrId === 'object' && reportOrId !== null;
-      const reportId = isObject ? reportOrId.id : reportOrId;
-      const reportObj = isObject
-        ? reportOrId
-        : detail.data?.id === reportId
-          ? detail.data
-          : table.rows.find((r) => r.id === reportId);
-
-      // Only the AI-recommended sanctions still missing (none when the AI found no violation)
-      const recommended =
-        reportObj?.sentinelAssessment?.recommendedSanctions || [];
-      const appliedTypes = new Set(
-        (reportObj?.actions || []).map((action) => action.type),
-      );
-      const sanctions = recommended.filter((s) => !appliedTypes.has(s.type));
-      const hasAccountSanction = sanctions.some((s) =>
-        REPORT_ACCOUNT_SANCTIONS.includes(s.type),
-      );
-
-      setPendingSentinelApply({
-        reportId,
-        sanctionLabels: sanctions.map((s) =>
-          s.durationDays
-            ? `${REPORT_ACTION_LABELS[s.type] || s.type} ${s.durationDays} ngày`
-            : REPORT_ACTION_LABELS[s.type] || s.type,
-        ),
-        requiresReason: hasAccountSanction,
-        targetUser:
-          reportObj?.reportedUser?.fullName ||
-          reportObj?.reportedUser?.email ||
-          'Người dùng',
-      });
-    },
-    [detail.data, table.rows],
-  );
-
-  const confirmApplySentinel = useCallback(
-    async (note = '') => {
-      if (!pendingSentinelApply) return false;
-      const { reportId } = pendingSentinelApply;
-      try {
-        const result = await dispatch(
-          applyAdminSentinelRecommendation({ id: reportId, note }),
-        ).unwrap();
-        const toLabels = (items) =>
-          items.map((f) => REPORT_ACTION_LABELS[f.type] || f.type).join(', ');
-        const failed = result?.sentinelApplyResult?.failed || [];
-        const notApplicable = result?.sentinelApplyResult?.notApplicable || [];
-        if (failed.length > 0) {
-          toastError(
-            `Không thể thi hành: ${toLabels(failed)}. Báo cáo vẫn mở để bạn xử lý tiếp.`,
-          );
-        } else {
-          success(
-            `Đã áp dụng chế tài AI đề xuất${
-              notApplicable.length > 0
-                ? ` (bỏ qua vì không còn áp dụng: ${toLabels(notApplicable)})`
-                : ''
-            }. Bấm "Kết luận & đóng báo cáo" để kết thúc vụ việc.`,
-          );
-        }
-        setPendingSentinelApply(null);
-        if (selectedReportId) loadDetail(selectedReportId);
-        refetch();
-        reloadStats();
-        return true;
-      } catch (err) {
-        toastError(
-          getApiErrorMsg(
-            ADMIN_ERROR_MESSAGES,
-            err,
-            'Không thể thi hành đề xuất của Sentinel AI.',
-          ),
-        );
-        return false;
-      }
-    },
-    [
-      pendingSentinelApply,
-      dispatch,
-      success,
-      toastError,
-      selectedReportId,
-      loadDetail,
-      refetch,
-      reloadStats,
-    ],
-  );
-
-  const cancelApplySentinel = useCallback(() => {
-    setPendingSentinelApply(null);
-  }, []);
 
   // Quick handling of an overview cluster (open reports against one parent). Resolves with the result,
   // or null when the request failed.
@@ -421,8 +299,10 @@ export const useAdminReports = () => {
     page: 'bao-cao-vi-pham',
     buildSheets: buildModerationReportSheets,
     fetchData: async () => ({
+      // The export keeps one line per report, not per case
       reports: await fetchAllPages(fetcher, {
         ...filters,
+        view: 'reports',
         search: searchInput,
       }),
       filter: filters,
@@ -486,16 +366,10 @@ export const useAdminReports = () => {
 
     // Actions
     isActionLoading,
-    handleClaim,
     handleUpdateSeverity,
-    handleApplyAction,
-    handleResolve,
+    handleDecide,
     handleReopen,
     handleAssessSentinel,
-    handleApplySentinel,
-    pendingSentinelApply,
-    confirmApplySentinel,
-    cancelApplySentinel,
     handleResolveCluster,
     isBatchScanning,
     isBatchApplying,

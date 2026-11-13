@@ -7,7 +7,7 @@ import { useReportReopenForm } from '../../hooks/useReportInvestigation';
 const FORM_ID = 'report-reopen-form';
 
 /**
- * Sends a closed report back to reviewing. The sanctions already applied stay in effect.
+ * Sends a closed report back to the queue. The sanctions already applied stay in effect.
  */
 export const ReportReopenDialog = ({ report, isOpen, onClose, onReopen, isActionLoading }) => {
   const { form, submit } = useReportReopenForm(report, isOpen, onReopen, onClose);
@@ -17,7 +17,7 @@ export const ReportReopenDialog = ({ report, isOpen, onClose, onReopen, isAction
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title="Mở lại hồ sơ điều tra"
+      title="Mở lại vụ việc"
       footer={
         <>
           <Button type="button" variant="ghost" onClick={onClose}>
@@ -31,7 +31,7 @@ export const ReportReopenDialog = ({ report, isOpen, onClose, onReopen, isAction
     >
       <form id={FORM_ID} onSubmit={submit} className="space-y-4">
         <p className="text-label-md text-text-muted">
-          Báo cáo sẽ chuyển lại về trạng thái <strong>Đang xem xét</strong>. Các chế tài đã thi hành không bị hủy tự động.
+          Vụ việc sẽ chuyển lại về trạng thái <strong>Chờ xử lý</strong>. Các chế tài đã thi hành không bị hủy tự động.
         </p>
         <Textarea
           label="Lý do mở lại"

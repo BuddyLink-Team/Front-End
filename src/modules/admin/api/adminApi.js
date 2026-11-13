@@ -32,10 +32,10 @@ export const adminApi = {
   /**
    * Update user status (lock / unlock)
    * @param {string} id
-   * @param {{ isActive: boolean }} data
+   * @param {{ isActive: boolean, reason?: string }} data - reason: needed to end a report sanction early
    */
-  updateUserStatus: (id, { isActive }) =>
-    apiClient.patch(`${USERS}/${id}/status`, { isActive }),
+  updateUserStatus: (id, { isActive, reason }) =>
+    apiClient.patch(`${USERS}/${id}/status`, { isActive, ...(reason ? { reason } : {}) }),
 
   /**
    * Get paginated children list (read-only)
@@ -116,29 +116,22 @@ export const adminApi = {
     apiClient.get(API_ENDPOINTS.ADMIN.REPORT_STATS, { params }),
   /** Full investigation report detail */
   getReportDetail: (id) => apiClient.get(API_ENDPOINTS.ADMIN.REPORT_BY_ID(id)),
-  /** Claim or takeover report. @param {{ action: 'claim' | 'takeover' }} payload */
-  reviewReport: (id, payload) =>
-    apiClient.patch(API_ENDPOINTS.ADMIN.REPORT_REVIEW(id), payload),
+  /**
+   * Decide a case in one step: every open report about the same content is closed.
+   * @param {{ outcome: 'violation'|'no_violation', sanctions?: Array<{ type: string, durationDays?: number }>,
+   *   notes: string, isPolicyOverride?: boolean, overrideReason?: string, alsoCloseReportIds?: string[] }} payload
+   */
+  decideReport: (id, payload) =>
+    apiClient.post(API_ENDPOINTS.ADMIN.REPORT_DECIDE(id), payload),
   /** Update severity during review. @param {{ severity: string, note?: string }} payload */
   updateReportSeverity: (id, payload) =>
     apiClient.patch(API_ENDPOINTS.ADMIN.REPORT_SEVERITY(id), payload),
-  /** Apply disciplinary action. @param {{ type: string, durationDays?: number, note?: string }} payload */
-  applyReportAction: (id, payload) =>
-    apiClient.post(API_ENDPOINTS.ADMIN.REPORT_ACTION(id), payload),
-  /** Resolve or dismiss report. @param {{ status: string, resolution: string, adminNotes: string, applyToRelatedReportIds?: string[] }} payload */
-  resolveReport: (id, payload) =>
-    apiClient.patch(API_ENDPOINTS.ADMIN.REPORT_RESOLVE(id), payload),
   /** Reopen closed report. @param {{ note: string }} payload */
   reopenReport: (id, payload) =>
     apiClient.patch(API_ENDPOINTS.ADMIN.REPORT_REOPEN(id), payload),
   /** Trigger or refresh Sentinel AI assessment. @param {{ forceRefresh?: boolean }} [payload] */
   assessReportWithSentinel: (id, payload = {}) =>
     apiClient.post(API_ENDPOINTS.ADMIN.REPORT_SENTINEL_ASSESS(id), payload, {
-      timeout: AI_REQUEST_TIMEOUT_MS,
-    }),
-  /** 1-Click Approve Sentinel recommendations. @param {{ note?: string }} [payload] */
-  applySentinelRecommendation: (id, payload = {}) =>
-    apiClient.post(API_ENDPOINTS.ADMIN.REPORT_SENTINEL_APPLY(id), payload, {
       timeout: AI_REQUEST_TIMEOUT_MS,
     }),
   /** Batch scan open reports with Sentinel AI */

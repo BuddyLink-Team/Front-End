@@ -21,6 +21,24 @@ import {
 } from '../constants/admin.constants';
 import { formatDate, formatDateTime } from '../../../utils/formatters';
 import { cn } from '../../../utils/cn';
+
+const UNLOCK_REASON_MIN_LENGTH = 10;
+
+// The sanction an account is locked by, in a few words
+const describeLockShort = (lockSource) =>
+  lockSource.lockType === 'banned'
+    ? 'Khóa vĩnh viễn (báo cáo)'
+    : `Đình chỉ đến ${formatDate(lockSource.suspensionUntil)}`;
+
+const describeSanctionLift = (fullName, lockSource) => {
+  const sanction =
+    lockSource.lockType === 'banned'
+      ? 'đang bị khóa vĩnh viễn'
+      : `đang bị tạm đình chỉ đến ${formatDateTime(lockSource.suspensionUntil)}`;
+  const because = lockSource.reason ? ` do vi phạm: ${lockSource.reason}` : '';
+  const decided = lockSource.decidedAt ? ` (xử lý ngày ${formatDate(lockSource.decidedAt)})` : '';
+  return `Tài khoản "${fullName}" ${sanction}${because}${decided}. Mở khóa sẽ chấm dứt hình phạt sớm và được ghi vào nhật ký vụ việc.`;
+};
 import { ICON_SIZE, ICON_STROKE } from '../../../constants/icon.constants';
 
 const COLUMNS = [
@@ -66,6 +84,8 @@ export const AdminUserManagementPage = () => {
   } = useAdminUsers();
 
   const isLockAction = Boolean(lockTargetUser?.isActive);
+  // Unlocking an account a report suspended or banned ends that sanction early
+  const liftedSanction = !isLockAction ? lockTargetUser?.lockSource || null : null;
 
   const renderCell = (key, _val, row) => {
     switch (key) {
@@ -134,6 +154,9 @@ export const AdminUserManagementPage = () => {
               status={row.isActive ? 'active' : 'locked'}
               label={row.isActive ? 'Đang hoạt động' : 'Đã khóa'}
             />
+            {!row.isActive && row.lockSource && (
+              <StatusChip tone="danger" label={describeLockShort(row.lockSource)} />
+            )}
             {row.isProfileHidden && <StatusChip {...PROFILE_HIDDEN_CHIP} />}
           </div>
         );
@@ -286,14 +309,32 @@ export const AdminUserManagementPage = () => {
       <ConfirmDialog
         open={Boolean(lockTargetUser)}
         isLoading={isUpdatingStatus}
-        variant={isLockAction ? 'danger' : 'info'}
-        title={isLockAction ? 'Khóa tài khoản phụ huynh' : 'Mở khóa tài khoản phụ huynh'}
+        variant={isLockAction || liftedSanction ? 'danger' : 'info'}
+        title={
+          isLockAction
+            ? 'Khóa tài khoản phụ huynh'
+            : liftedSanction
+              ? 'Chấm dứt hình phạt sớm'
+              : 'Mở khóa tài khoản phụ huynh'
+        }
         description={
           isLockAction
             ? `Bạn có chắc chắn muốn khóa tài khoản "${lockTargetUser.fullName}"? Phụ huynh sẽ bị đăng xuất, không thể đăng nhập lại, và các bé sẽ bị ẩn khỏi Khám phá.`
-            : `Mở khóa cho tài khoản "${lockTargetUser?.fullName}"? Phụ huynh sẽ có thể đăng nhập và xuất hiện trở lại trên nền tảng.`
+            : liftedSanction
+              ? describeSanctionLift(lockTargetUser.fullName, liftedSanction)
+              : `Mở khóa cho tài khoản "${lockTargetUser?.fullName}"? Phụ huynh sẽ có thể đăng nhập và xuất hiện trở lại trên nền tảng.`
         }
-        confirmLabel={isLockAction ? 'Khóa tài khoản' : 'Mở khóa'}
+        reason={
+          liftedSanction
+            ? {
+                required: true,
+                minLength: UNLOCK_REASON_MIN_LENGTH,
+                label: 'Lý do chấm dứt hình phạt sớm (ghi vào nhật ký vụ việc)',
+                placeholder: 'Ví dụ: phụ huynh khiếu nại và được chấp nhận, báo cáo bị xác định sai...',
+              }
+            : undefined
+        }
+        confirmLabel={isLockAction ? 'Khóa tài khoản' : liftedSanction ? 'Chấm dứt hình phạt' : 'Mở khóa'}
         cancelLabel="Hủy bỏ"
         onConfirm={confirmLockToggle}
         onCancel={closeLockDialog}

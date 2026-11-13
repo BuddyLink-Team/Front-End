@@ -40,7 +40,7 @@ export const fetchAdminUserPayments = createApiThunk(
 
 export const updateAdminUserStatus = createApiThunk(
   'admin/updateUserStatus',
-  ({ userId, isActive }) => adminApi.updateUserStatus(userId, { isActive }),
+  ({ userId, isActive, reason }) => adminApi.updateUserStatus(userId, { isActive, reason }),
 );
 
 export const fetchAdminChildDetail = createApiThunk(
@@ -64,24 +64,14 @@ export const fetchAdminReportDetail = createApiThunk(
   (id) => adminApi.getReportDetail(id),
 );
 
-export const reviewAdminReport = createApiThunk(
-  'admin/reviewReport',
-  ({ id, action }) => adminApi.reviewReport(id, { action }),
+export const decideAdminReport = createApiThunk(
+  'admin/decideReport',
+  ({ id, payload }) => adminApi.decideReport(id, payload),
 );
 
 export const updateAdminReportSeverity = createApiThunk(
   'admin/updateReportSeverity',
   ({ id, severity }) => adminApi.updateReportSeverity(id, { severity }),
-);
-
-export const applyAdminReportAction = createApiThunk(
-  'admin/applyReportAction',
-  ({ id, payload }) => adminApi.applyReportAction(id, payload),
-);
-
-export const resolveAdminReport = createApiThunk(
-  'admin/resolveReport',
-  ({ id, payload }) => adminApi.resolveReport(id, payload),
 );
 
 export const reopenAdminReport = createApiThunk(
@@ -92,11 +82,6 @@ export const assessAdminReportWithSentinel = createApiThunk(
   'admin/assessReportWithSentinel',
   ({ id, forceRefresh }) =>
     adminApi.assessReportWithSentinel(id, { forceRefresh }),
-);
-export const applyAdminSentinelRecommendation = createApiThunk(
-  'admin/applySentinelRecommendation',
-  ({ id, note }) =>
-    adminApi.applySentinelRecommendation(id, note ? { note } : {}),
 );
 export const batchScanAdminSentinel = createApiThunk(
   'admin/batchScanSentinel',
@@ -490,13 +475,10 @@ export const adminSlice = createSlice({
     );
     addOversightDetailCases(builder, fetchAdminReportDetail, 'reportDetail');
     [
-      reviewAdminReport,
+      decideAdminReport,
       updateAdminReportSeverity,
-      applyAdminReportAction,
-      resolveAdminReport,
       reopenAdminReport,
       assessAdminReportWithSentinel,
-      applyAdminSentinelRecommendation,
       batchScanAdminSentinel,
       batchApplyAdminSentinel,
       resolveAdminSentinelCluster,

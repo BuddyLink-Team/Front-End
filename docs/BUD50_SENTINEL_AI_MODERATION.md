@@ -102,27 +102,41 @@ Khi báo cáo đã có phân tích AI, chế tài ngoài khung (kể cả số n
 
 ---
 
-## 4. Xử lý trong drawer chi tiết báo cáo
+## 4. Hàng đợi theo vụ việc và quyết định một bước
 
-Mỗi việc chỉ ở một chỗ:
+### 4.1. Vụ việc
 
-| Vị trí | Việc |
+Một **vụ việc** là các báo cáo về **cùng nội dung bị báo cáo** (`caseKeyOf`, `enforcement-metrics.rules.js`):
+
+| Loại báo cáo | Cùng vụ việc khi |
 | :--- | :--- |
-| **Footer** | Chuyển trạng thái: *Bác bỏ báo cáo* · *Bắt đầu xử lý* (chờ xử lý) · *Kết luận & đóng báo cáo* (đang xem xét) · *Mở lại vụ việc* (đã đóng). Đóng drawer bằng nút X ở header |
-| **Thẻ Sentinel AI** | Chạy / Phân tích lại (ẩn khi đã đóng), kết luận AI, *Áp dụng chế tài AI đề xuất* (chỉ khi `verdict = violation` và đang xem xét; chỉ áp chế tài **còn thiếu**, báo cáo vẫn mở; mức độ báo cáo được đồng bộ theo mức AI đề xuất và ghi vào nhật ký trước khi áp) |
-| **Khung kỷ luật** | Áp từng chế tài theo khung chuẩn hoặc ngoại lệ |
-| **Hộp thoại kết luận** | Nơi duy nhất đóng báo cáo |
+| Tin nhắn | cùng tin nhắn |
+| Cuộc hẹn | cùng cuộc hẹn |
+| Hồ sơ | cùng phụ huynh bị báo cáo **và** cùng loại vi phạm |
 
-### 4.1. Ràng buộc khi kết luận
+- `GET /reports` trả **mỗi dòng một vụ việc**, kèm `reportCount`, `reporterCount`, `reporterNames`, `firstReportedAt`; mức độ của vụ là mức cao nhất trong các báo cáo. `view=reports` trả mỗi dòng một báo cáo (dùng cho xuất Excel).
+- Vụ việc đã đóng giữ nguyên nhóm lúc quyết định qua `closedCaseId`, nên vẫn là một dòng: áp dụng cho hộp thoại quyết định, Sentinel tự xử lý và xử lý cụm. Báo cáo đóng trước khi có trường này là mỗi báo cáo một dòng.
+- **Khóa tài khoản:** khi đăng nhập bị chặn, `403 ACCOUNT_DISABLED` trả `details: { lockType: 'suspended'|'banned'|'locked', suspensionUntil, reason }`; `reason` là loại vi phạm của báo cáo mới nhất đã đình chỉ hoặc khóa tài khoản, dạng câu chung như trong thông báo phạt (`account-lock.service.js`, chỉ tra khi đăng nhập bị chặn, không lưu thêm trường nào), không bao giờ là ghi chú nội bộ của admin. Khóa tay từ trang người dùng không có lý do.
+- **Mở khóa sớm:** trang người dùng hiện án đang áp dụng (`lockSource`: loại khóa, hạn, loại vi phạm, ngày xử lý; không có ID báo cáo). Mở khóa một tài khoản đang chịu án từ báo cáo là chấm dứt hình phạt sớm: hộp xác nhận cảnh báo và bắt buộc lý do ≥ 10 ký tự (`400 UNLOCK_REASON_REQUIRED` nếu thiếu), rồi báo cáo gốc nhận sự kiện `sanction_lifted` trong nhật ký (người mở, hạn cũ, lý do). Khóa tay và hết hạn tự mở không cần lý do, không ghi gì. Trang đăng nhập hiển thị thời hạn, lý do và địa chỉ hỗ trợ.
+- Thống kê (`/reports/stats`) đếm theo vụ việc. Không còn trạng thái *Đang xem xét* và không còn bước nhận việc (`assignedTo` đã bỏ); `reviewing` chỉ còn trong dữ liệu cũ và được coi như *Chờ xử lý* (`npm run migrate:report-cases` chuyển dữ liệu cũ, chạy thử trước khi thêm `--apply`).
 
-| Tình trạng | "Đã xử lý bằng chế tài" | "Có vi phạm nhưng không kỷ luật" | Bác bỏ |
-| :--- | :---: | :---: | :---: |
-| Đã có chế tài **chính thức** | ✅ chọn sẵn | 🔒 khóa | 🔒 khóa |
-| Chưa có (chỉ có chế tài tạm thời hoặc không có gì) | 🔒 khóa | ✅ chọn sẵn | ✅ |
+### 4.2. Drawer chi tiết vụ việc
 
-- Backend kiểm tra cùng luật: `400 RESOLUTION_CONFLICTS_WITH_ACTIONS` hoặc `400 ACTIONS_REQUIRED_FOR_RESOLVE`.
-- Ghi chú bắt buộc (≥ 10 ký tự). Bản nháp AI được điền vào hộp thoại **bác bỏ** khi `verdict = no_violation`, vào hộp thoại **kết luận** trong các trường hợp khác.
-- Báo cáo liên quan chỉ đóng cùng được khi đã có đình chỉ hoặc khóa tài khoản; trong nội dung drawer danh sách này chỉ để xem.
+Thứ tự đọc: header (trạng thái, mức độ có thể đổi, số người báo cáo) → kết luận (khi đã đóng) → **Nội dung bị báo cáo** → **Các báo cáo** (lý do, mô tả, ảnh của từng người) → **Người bị báo cáo** (trạng thái tài khoản, *Đã vi phạm N lần* theo cách đếm của khung kỷ luật, số vụ khác đang mở, lịch sử thu gọn) → **Gợi ý của AI** (kết luận, tóm tắt, hình phạt đề xuất; số liệu chi tiết trong *Xem chi tiết phân tích*) → nhật ký (thu gọn).
+
+Footer: *Không vi phạm — bác bỏ* và *Có vi phạm — xử lý* khi vụ đang mở, *Mở lại vụ việc* khi đã đóng (mở lại đưa vụ về *Chờ xử lý*).
+
+### 4.3. Quyết định: `POST /reports/:id/decide`
+
+Một hộp thoại (chiều cao cố định, chỉ phần thân cuộn), một lần gọi: `{ outcome, sanctions, notes, isPolicyOverride, overrideReason, alsoCloseReportIds, reportedUserNotice, reporterNotice }`.
+
+- **Có vi phạm:** chọn **một** hình thức (`sanctions` tối đa 1 phần tử) hoặc *Không áp dụng hình phạt* (= có vi phạm nhưng không kỷ luật). Hình thức được chọn sẵn là hình thức nặng nhất trong đề xuất của AI khi AI kết luận vi phạm, ngược lại trong khung kỷ luật. Hình thức không còn áp dụng được (tin nhắn đã xóa, tài khoản đã khóa…) bị khóa kèm lý do.
+- **Thông báo:** các bên nhận đúng nội dung hiển thị trong hộp thoại. Khi quyết định trùng kết luận của AI, ô *Gửi người bị báo cáo* và *Gửi người báo cáo* được điền sẵn bản AI soạn (`draftNotes`); ngược lại là câu mặc định. Có nội dung cho người bị báo cáo thì chỉ gửi một thông báo đó thay cho thông báo riêng của hình phạt; để trống thì gửi thông báo mặc định của hình phạt. Khi Sentinel tự xử lý hoặc admin bấm xử lý cụm, bản AI soạn cũng được dùng.
+- Hình phạt chạy **một lần** trên báo cáo được mở; các báo cáo khác của vụ đóng cùng (bản sao cảnh cáo / đình chỉ / khóa qua `propagatedFrom`, không tính thêm lần vi phạm).
+- **Đóng kèm vụ khác của cùng người** (`alsoCloseReportIds`, một báo cáo mỗi vụ): dùng khi là cùng một chuyện; vụ đóng kèm không bị phạt thêm và vẫn là một dòng riêng. Vụ của người khác → `400 CLUSTER_MIXED_USERS`.
+- Mọi hình phạt được kiểm tra trước khi chạy: chế tài ngoài khung (khi đã có phân tích AI) cần lý do ngoại lệ ≥ 20 ký tự; tài khoản đã khóa / không còn → không chạy gì cả.
+- **Không vi phạm:** bác bỏ mọi báo cáo của vụ; bị chặn khi vụ đã có chế tài chính thức (`400 RESOLUTION_CONFLICTS_WITH_ACTIONS`). Chế tài tạm thời của Auto-Shield không tính.
+- Ghi chú bắt buộc (≥ 10 ký tự). Bản nháp AI được điền vào hộp thoại **bác bỏ** khi `verdict = no_violation`, vào hộp thoại **xử lý** trong các trường hợp khác. Mỗi người báo cáo nhận thông báo kết quả.
 
 ---
 
@@ -133,7 +147,7 @@ Mỗi việc chỉ ở một chỗ:
 | `POST /reports/sentinel-batch-scan` | Phân tích tối đa 20 báo cáo mở (3 báo cáo / lượt), **không phạt, không đổi trạng thái** | 10 / 15 phút |
 | `POST /reports/sentinel-batch-apply` | Áp dụng và đóng **từng** báo cáo đủ `autoResolveEligible` (tính lại tại thời điểm bấm); không đóng kèm báo cáo liên quan | 10 / 15 phút |
 | `POST /reports/sentinel-cluster-resolve` | Nút **Xác nhận xử lý & đóng cụm** (mục 5.1) | 60 / 15 phút |
-| `POST /reports/:id/sentinel-assess`, `POST /reports/:id/sentinel-apply` | Phân tích / áp chế tài AI đề xuất cho một báo cáo | 60 / 15 phút |
+| `POST /reports/:id/sentinel-assess` | Phân tích một báo cáo (chế tài được chọn trong hộp thoại quyết định) | 60 / 15 phút |
 
 ### 5.1. Xác nhận xử lý & đóng cụm
 
@@ -176,8 +190,9 @@ Ghi chú để trống thì dùng bản nháp AI của từng báo cáo. Sau khi
 | `Back-End/src/modules/safety/sanction-executor.service.js` | Thi hành chế tài (dùng chung tự động / thủ công), `planSanctions`, `isPlaydateCancellable` |
 | `Back-End/src/modules/admin/admin-report.service.js` | Chi tiết (tính lại phần luật), áp chế tài, kết luận (ràng buộc), áp dụng đề xuất, hàng loạt, xử lý cụm |
 | `Front-End/src/modules/admin/components/reports/SentinelCopilotCard.jsx` | Thẻ AI trong drawer: kết luận, số liệu, hình phạt đề xuất theo `verdict` |
-| `Front-End/src/modules/admin/components/reports/ReportSanctionPanel.jsx` | Khung kỷ luật và ngoại lệ |
-| `Front-End/src/modules/admin/components/reports/ReportConclusionDialog.jsx` | Hộp thoại kết luận / bác bỏ có ràng buộc |
-| `Front-End/src/modules/admin/components/reports/ReportDrawerFooter.jsx` | Các nút chuyển trạng thái |
+| `Front-End/src/modules/admin/components/reports/ReportDecisionDialog.jsx` | Hộp thoại quyết định: hình phạt (khung kỷ luật, ngoại lệ), đóng kèm vụ khác, ghi chú |
+| `Front-End/src/modules/admin/components/reports/CaseReportsList.jsx` | Các báo cáo của một vụ việc |
+| `Front-End/src/modules/admin/components/reports/ReportDrawerFooter.jsx` | Hai nút quyết định, mở lại |
+| `Front-End/src/modules/admin/utils/sentinelView.js` | Nội dung phân tích AI dùng chung cho drawer và modal quét |
 | `Front-End/src/modules/admin/components/reports/SentinelBatchCommandBar.jsx`, `SentinelBatchOverviewModal.jsx`, `SentinelClusterCard.jsx` | Quét hàng loạt, modal tổng quan, xử lý cụm |
 | `Front-End/src/modules/admin/hooks/useSentinelOverview.js` | Gom báo cáo theo người bị báo cáo |

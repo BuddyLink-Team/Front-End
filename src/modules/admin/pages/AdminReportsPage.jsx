@@ -5,7 +5,6 @@ import {
   MessageSquare,
   RotateCcw,
   ShieldAlert,
-  Sparkles,
   User,
 } from 'lucide-react';
 import { AdminListToolbar } from '../components/AdminListToolbar';
@@ -20,7 +19,6 @@ import {
 import { SentinelBatchCommandBar } from '../components/reports/SentinelBatchCommandBar';
 import { DataTable } from '../../../components/ui/DataTable';
 import { Pagination } from '../../../components/navigation/Pagination';
-import { ConfirmDialog } from '../../../components/feedback/ConfirmDialog';
 import { Avatar } from '../../../components/ui/Avatar';
 import { StatusChip } from '../../../components/badges/StatusChip';
 import { Button } from '../../../components/ui/Button';
@@ -31,22 +29,28 @@ import {
   REPORT_STAT_CARDS,
   REPORT_TARGET_TYPE_LABELS,
   REPORT_TARGET_TYPE_OPTIONS,
+  SENTINEL_VERDICT_DISPLAY,
   getReportCategoryLabel,
+  getSentinelVerdict,
   isTemporarilyRestricted,
 } from '../constants/admin.constants';
 import { formatDateTime } from '../../../utils/formatters';
 import { ICON_SIZE } from '../../../constants/icon.constants';
 
+// One row is one case: the reports about the same content, decided together
 const COLUMNS = [
   { key: 'severity', label: 'Mức độ', headerClassName: 'min-w-col-sm' },
-  { key: 'category', label: 'Danh mục', headerClassName: 'min-w-col-md' },
-  { key: 'targetType', label: 'Đối tượng', headerClassName: 'min-w-col-sm' },
-  { key: 'reporter', label: 'Người báo cáo', headerClassName: 'min-w-col-lg' },
+  {
+    key: 'content',
+    label: 'Nội dung bị báo cáo',
+    headerClassName: 'min-w-col-lg',
+  },
   {
     key: 'reportedUser',
     label: 'Người bị báo cáo',
-    headerClassName: 'min-w-col-xl',
+    headerClassName: 'min-w-col-lg',
   },
+  { key: 'reporters', label: 'Người báo cáo', headerClassName: 'min-w-col-md' },
   { key: 'status', label: 'Trạng thái', headerClassName: 'min-w-col-md' },
   {
     key: 'actions',
@@ -57,18 +61,6 @@ const COLUMNS = [
 ];
 
 const TARGET_ICONS = { message: MessageSquare, playdate: Calendar, user: User };
-
-const Person = ({ person, children }) => (
-  <div className="flex items-center gap-2.5 min-w-0">
-    <Avatar src={person?.avatarUrl} alt={person?.fullName} size="sm" />
-    <div className="min-w-0">
-      <span className="font-semibold text-text-primary text-body-md truncate block max-w-truncate-sm">
-        {person?.fullName || 'Người dùng'}
-      </span>
-      {children}
-    </div>
-  </div>
-);
 
 export const AdminReportsPage = () => {
   const {
@@ -94,16 +86,10 @@ export const AdminReportsPage = () => {
     openReportDetail,
     closeReportDetail,
     isActionLoading,
-    handleClaim,
     handleUpdateSeverity,
-    handleApplyAction,
-    handleResolve,
+    handleDecide,
     handleReopen,
     handleAssessSentinel,
-    handleApplySentinel,
-    pendingSentinelApply,
-    confirmApplySentinel,
-    cancelApplySentinel,
     handleResolveCluster,
     isBatchScanning,
     handleBatchScanSentinel,
@@ -113,75 +99,82 @@ export const AdminReportsPage = () => {
 
   const renderCell = (key, _value, row) => {
     switch (key) {
-      case 'severity':
+      case 'severity': {
+        const verdict = row.sentinelAssessment
+          ? SENTINEL_VERDICT_DISPLAY[getSentinelVerdict(row.sentinelAssessment)]
+          : null;
         return (
           <div className="flex flex-col items-start gap-1">
             <ReportSeverityChip severity={row.severity} />
-            {row.sentinelAssessment && (
-              <div className="flex flex-wrap items-center gap-1">
-                <span
-                  className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-2 py-0.5 text-label-xs font-semibold text-primary"
-                  title={row.sentinelAssessment.summary}
-                >
-                  <Sparkles size={ICON_SIZE.XS} />
-                  AI: {row.sentinelAssessment.confidenceScore}%
-                </span>
-                {isTemporarilyRestricted(row) && (
-                  <StatusChip
-                    tone="danger"
-                    icon={ShieldAlert}
-                    label="Đang hạn chế nhắn tin"
-                  />
-                )}
-              </div>
+            {verdict && (
+              <span title={row.sentinelAssessment.summary}>
+                <StatusChip tone={verdict.tone} label={verdict.label} />
+              </span>
+            )}
+            {isTemporarilyRestricted(row) && (
+              <StatusChip
+                tone="danger"
+                icon={ShieldAlert}
+                label="Đang hạn chế nhắn tin"
+              />
             )}
           </div>
         );
+      }
 
-      case 'category': {
+      case 'content': {
+        const Icon = TARGET_ICONS[row.targetType];
         const label = getReportCategoryLabel(row.category);
         return (
           <div className="min-w-0">
+            <span className="flex items-center gap-1.5 text-body-md font-medium text-text-primary">
+              {Icon && (
+                <Icon size={ICON_SIZE.XS} className="shrink-0 text-primary" />
+              )}
+              <span className="truncate max-w-truncate-md" title={label}>
+                {label}
+              </span>
+            </span>
             <span
-              className="block truncate max-w-truncate-md text-body-md font-medium text-text-primary"
-              title={label}
+              className="mt-1 block truncate max-w-truncate-md text-label-sm text-text-muted"
+              title={row.reason}
             >
-              {label}
-            </span>
-            <span className="block mt-1 text-label-sm text-text-muted whitespace-nowrap">
-              {formatDateTime(row.createdAt)}
+              {REPORT_TARGET_TYPE_LABELS[row.targetType] || '—'}
+              {row.reason && row.reason !== row.category ? ` · ${row.reason}` : ''}
             </span>
           </div>
         );
       }
-
-      case 'targetType': {
-        const Icon = TARGET_ICONS[row.targetType];
-        return (
-          <div className="flex items-center gap-1.5 text-label-md text-text-primary">
-            {Icon && <Icon size={ICON_SIZE.XS} className="text-primary" />}
-            <span>
-              {REPORT_TARGET_TYPE_LABELS[row.targetType] ||
-                row.targetType ||
-                '—'}
-            </span>
-          </div>
-        );
-      }
-
-      case 'reporter':
-        return <Person person={row.reporter} />;
 
       case 'reportedUser':
         return (
-          <Person person={row.reportedUser}>
-            {row.reportedUser?.strikeCount > 0 && (
-              <span className="text-label-xs px-1.5 py-0.5 rounded-full font-semibold bg-tertiary-soft text-tertiary-dark">
-                {row.reportedUser.strikeCount} lần cảnh cáo
-              </span>
-            )}
-          </Person>
+          <div className="flex min-w-0 items-center gap-2.5">
+            <Avatar
+              src={row.reportedUser?.avatarUrl}
+              alt={row.reportedUser?.fullName}
+              size="sm"
+            />
+            <span className="block max-w-truncate-sm truncate text-body-md font-semibold text-text-primary">
+              {row.reportedUser?.fullName || 'Người dùng'}
+            </span>
+          </div>
         );
+
+      case 'reporters': {
+        const count = row.reporterCount || 1;
+        const firstName =
+          row.reporterNames?.[0] || row.reporter?.fullName || 'Người dùng';
+        return (
+          <div className="min-w-0">
+            <span className="block max-w-truncate-sm truncate text-body-md font-medium text-text-primary">
+              {count > 1 ? `${firstName} và ${count - 1} người khác` : firstName}
+            </span>
+            <span className="mt-1 block whitespace-nowrap text-label-sm text-text-muted">
+              Từ {formatDateTime(row.firstReportedAt || row.createdAt)}
+            </span>
+          </div>
+        );
+      }
 
       case 'status':
         return (
@@ -223,8 +216,8 @@ export const AdminReportsPage = () => {
           Kiểm duyệt An toàn &amp; Báo cáo vi phạm
         </h2>
         <p className="text-body-md text-text-muted mt-1">
-          Tiếp nhận báo cáo vi phạm người dùng, tin nhắn và cuộc hẹn, điều tra
-          ngữ cảnh và thi hành chế tài kỷ luật.
+          Mỗi dòng là một vụ việc: các báo cáo về cùng một tin nhắn, cuộc hẹn
+          hoặc hồ sơ được gộp lại và xử lý bằng một quyết định.
         </p>
       </div>
 
@@ -310,12 +303,12 @@ export const AdminReportsPage = () => {
           tableClassName="min-w-table-reports"
           emptyTitle={
             listErrorMessage
-              ? 'Không tải được danh sách báo cáo'
-              : 'Không có báo cáo vi phạm nào'
+              ? 'Không tải được danh sách vụ việc'
+              : 'Không có vụ việc nào'
           }
           emptyMessage={
             listErrorMessage ||
-            'Hiện tại không có báo cáo nào phù hợp với bộ lọc tìm kiếm.'
+            'Hiện tại không có vụ việc nào phù hợp với bộ lọc tìm kiếm.'
           }
         />
 
@@ -327,8 +320,7 @@ export const AdminReportsPage = () => {
               <span className="font-semibold text-text-primary">
                 {pagination.page}
               </span>{' '}
-              / <span>{pagination.totalPages}</span> ({pagination.total} báo
-              cáo)
+              / <span>{pagination.totalPages}</span> ({pagination.total} vụ việc)
             </p>
             <Pagination
               currentPage={pagination.page}
@@ -346,43 +338,10 @@ export const AdminReportsPage = () => {
         report={drawerReport}
         isLoading={isDrawerLoading}
         isActionLoading={isActionLoading}
-        onClaim={handleClaim}
         onUpdateSeverity={handleUpdateSeverity}
-        onApplyAction={handleApplyAction}
-        onResolve={handleResolve}
+        onDecide={handleDecide}
         onReopen={handleReopen}
         onAssessSentinel={handleAssessSentinel}
-        onApplySentinel={handleApplySentinel}
-      />
-
-      <ConfirmDialog
-        open={Boolean(pendingSentinelApply)}
-        title={
-          pendingSentinelApply?.requiresReason
-            ? 'Xác nhận chế tài trên tài khoản theo đề xuất Sentinel AI'
-            : 'Xác nhận áp dụng đề xuất của Sentinel AI'
-        }
-        description={
-          pendingSentinelApply
-            ? `Áp dụng cho ${pendingSentinelApply.targetUser}: ${pendingSentinelApply.sanctionLabels.join(
-                ', ',
-              )}. Báo cáo vẫn mở: sau đó bấm "Kết luận & đóng báo cáo" để kết thúc vụ việc.`
-            : ''
-        }
-        variant={pendingSentinelApply?.requiresReason ? 'danger' : 'primary'}
-        confirmLabel="Xác nhận"
-        cancelLabel="Hủy bỏ"
-        isLoading={isActionLoading}
-        reason={{
-          required: Boolean(pendingSentinelApply?.requiresReason),
-          label: pendingSentinelApply?.requiresReason
-            ? 'Lý do phê duyệt (lưu vào nhật ký)'
-            : 'Ghi chú (không bắt buộc)',
-          placeholder: 'Nhập ghi chú hoặc lý do phê duyệt...',
-          maxLength: 500,
-        }}
-        onConfirm={(reason) => confirmApplySentinel(reason)}
-        onCancel={cancelApplySentinel}
       />
     </div>
   );

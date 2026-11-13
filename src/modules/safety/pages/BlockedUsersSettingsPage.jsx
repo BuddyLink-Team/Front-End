@@ -147,7 +147,7 @@ export const BlockedUsersSettingsPage = () => {
   return (
     <div className="w-full space-y-6 pb-12">
       {/* Page Header Card */}
-      <Card padding="lg" className="sticky top-20 z-10">
+      <Card padding="lg">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
             <div className="flex items-center gap-2.5">

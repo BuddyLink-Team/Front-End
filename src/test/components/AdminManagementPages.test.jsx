@@ -301,6 +301,62 @@ describe('AdminUserManagementPage', () => {
     });
   });
 
+  it('unlocks an account locked by hand without asking for a reason', async () => {
+    renderWithProviders(<AdminUserManagementPage />);
+    await screen.findByText('Trần Thị Mẹ');
+
+    fireEvent.click(screen.getAllByTitle('Mở khóa tài khoản')[0]);
+
+    const dialog = screen.getByRole('dialog');
+    expect(within(dialog).getByText('Mở khóa tài khoản phụ huynh')).toBeInTheDocument();
+    expect(within(dialog).queryByRole('textbox')).not.toBeInTheDocument();
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Mở khóa' }));
+
+    await waitFor(() => expect(adminApi.updateUserStatus).toHaveBeenCalledWith('user-2', { isActive: true }));
+  });
+
+  it('warns before ending a sanction a report decided, and needs a reason of 10 characters', async () => {
+    const suspended = {
+      ...mockUsersResponse.items[1],
+      lockSource: {
+        lockType: 'suspended',
+        suspensionUntil: '2026-11-20T05:46:38.000Z',
+        reason: 'quấy rối hoặc đe dọa người khác',
+        decidedAt: '2026-11-13T05:46:38.000Z',
+      },
+    };
+    adminApi.getUsers.mockResolvedValue({
+      success: true,
+      data: { ...mockUsersResponse, items: [mockUsersResponse.items[0], suspended] },
+    });
+    renderWithProviders(<AdminUserManagementPage />);
+    await screen.findByText('Trần Thị Mẹ');
+
+    // The row says what the account is locked by
+    expect(screen.getByText(/^Đình chỉ đến/)).toBeInTheDocument();
+
+    fireEvent.click(screen.getAllByTitle('Mở khóa tài khoản')[0]);
+    const dialog = screen.getByRole('dialog');
+    expect(within(dialog).getByText('Chấm dứt hình phạt sớm')).toBeInTheDocument();
+    expect(within(dialog).getByText(/đang bị tạm đình chỉ đến .* do vi phạm: quấy rối hoặc đe dọa người khác/)).toBeInTheDocument();
+
+    const confirm = within(dialog).getByRole('button', { name: 'Chấm dứt hình phạt' });
+    const reason = within(dialog).getByLabelText(/Lý do chấm dứt hình phạt sớm/);
+    expect(confirm).toBeDisabled();
+    fireEvent.change(reason, { target: { value: 'Ngắn' } });
+    expect(confirm).toBeDisabled();
+    fireEvent.change(reason, { target: { value: 'Phụ huynh khiếu nại và được chấp nhận' } });
+    expect(confirm).toBeEnabled();
+    fireEvent.click(confirm);
+
+    await waitFor(() =>
+      expect(adminApi.updateUserStatus).toHaveBeenCalledWith('user-2', {
+        isActive: true,
+        reason: 'Phụ huynh khiếu nại và được chấp nhận',
+      })
+    );
+  });
+
   it('shows platform-wide counts in cards that are not clickable', async () => {
     renderWithProviders(<AdminUserManagementPage />);
 

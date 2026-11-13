@@ -1,19 +1,17 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
+import { ChevronDown, ChevronUp } from 'lucide-react';
 import { Modal } from '../../../components/feedback/Modal';
-import { ConfirmDialog } from '../../../components/feedback/ConfirmDialog';
 import { Skeleton } from '../../../components/feedback/Skeleton';
-import { useReportInvestigation } from '../hooks/useReportInvestigation';
-import { RelatedReportsPanel } from './reports/RelatedReportsPanel';
+import { ICON_SIZE } from '../../../constants/icon.constants';
+import { getReportActionState } from '../hooks/useReportInvestigation';
+import { CaseReportsList } from './reports/CaseReportsList';
 import { ReportAuditLog } from './reports/ReportAuditLog';
-import { ReportContentPanel } from './reports/ReportContentPanel';
+import { ReportDecisionDialog } from './reports/ReportDecisionDialog';
 import { ReportDrawerFooter } from './reports/ReportDrawerFooter';
 import { ReportDrawerHeader } from './reports/ReportDrawerHeader';
-import { ReportedUserHistory } from './reports/ReportedUserHistory';
-import { ReportPartyCards } from './reports/ReportPartyCards';
+import { ReportedUserCard } from './reports/ReportPartyCards';
 import { ReportReopenDialog } from './reports/ReportReopenDialog';
 import { ReportClosedSummary } from './reports/ReportResolutionForm';
-import { ReportConclusionDialog } from './reports/ReportConclusionDialog';
-import { ReportSanctionPanel } from './reports/ReportSanctionPanel';
 import { ReportTargetContext } from './reports/ReportTargetContext';
 import { SentinelCopilotCard } from './reports/SentinelCopilotCard';
 
@@ -27,7 +25,9 @@ const DrawerSkeleton = () => (
 );
 
 /**
- * Investigation drawer of a report: context and proof, the reported user's history, sanctions and closing
+ * Investigation drawer of a case, in the order a moderator works: what was reported, what each parent
+ * reported, who the reported parent is, then the AI suggestion. The decision is taken from the footer,
+ * in one step.
  */
 export const AdminReportInvestigationDrawer = ({
   open,
@@ -35,38 +35,26 @@ export const AdminReportInvestigationDrawer = ({
   report,
   isLoading,
   isActionLoading,
-  onClaim,
   onUpdateSeverity,
-  onApplyAction,
-  onResolve,
+  onDecide,
   onReopen,
   onAssessSentinel,
-  onApplySentinel,
 }) => {
   const [isReopenOpen, setIsReopenOpen] = useState(false);
-  // 'resolve' | 'dismiss' while the conclusion dialog is open
-  const [conclusionMode, setConclusionMode] = useState(null);
-  const {
-    actionState,
-    policyGuidance,
-    isPolicyOverride,
-    setIsPolicyOverride,
-    overrideReason,
-    setOverrideReason,
-    isOverrideValid,
-    suspendDays,
-    setSuspendDays,
-    askSanction,
-    cancelSanction,
-    confirmSanction,
-    sanctionConfirm,
-  } = useReportInvestigation(report, open, onApplyAction);
+  // 'violation' | 'dismiss' while the decision dialog is open
+  const [decisionMode, setDecisionMode] = useState(null);
+  const [isLogOpen, setIsLogOpen] = useState(false);
+  const actionState = useMemo(() => getReportActionState(report), [report]);
+
   useEffect(() => {
     setIsReopenOpen(false);
-    setConclusionMode(null);
+    setDecisionMode(null);
+    setIsLogOpen(false);
   }, [report?.id, open]);
 
-  const { isClosed, isReviewing } = actionState;
+  const { isClosed } = actionState;
+  const logCount =
+    (report?.actions?.length || 0) + (report?.history?.length || 0);
 
   return (
     <>
@@ -75,16 +63,14 @@ export const AdminReportInvestigationDrawer = ({
         onClose={onClose}
         placement="right"
         maxWidth="max-w-xl"
-        title="Chi tiết báo cáo vi phạm"
+        title="Chi tiết vụ việc"
         footer={
           !isLoading &&
           report && (
             <ReportDrawerFooter
-              report={report}
               actionState={actionState}
               isActionLoading={isActionLoading}
-              onClaim={onClaim}
-              onAskConclusion={setConclusionMode}
+              onAskDecision={setDecisionMode}
               onAskReopen={() => setIsReopenOpen(true)}
             />
           )
@@ -100,51 +86,46 @@ export const AdminReportInvestigationDrawer = ({
               isActionLoading={isActionLoading}
               onUpdateSeverity={onUpdateSeverity}
             />
+            {isClosed && <ReportClosedSummary report={report} />}
+            <ReportTargetContext report={report} />
+            <CaseReportsList report={report} />
+            <ReportedUserCard report={report} />
             <SentinelCopilotCard
               report={report}
               isActionLoading={isActionLoading}
               onAssessSentinel={onAssessSentinel}
-              onApplySentinel={onApplySentinel}
             />
-            <ReportPartyCards
-              reporter={report.reporter}
-              reportedUser={report.reportedUser}
-            />
-            <ReportContentPanel report={report} />
-            <ReportTargetContext report={report} />
-            <ReportedUserHistory reportedUser={report.reportedUser} />
-            {!isClosed && report.relatedOpenReports?.length > 0 && (
-              <RelatedReportsPanel reports={report.relatedOpenReports} />
-            )}
-            {isReviewing && (
-              <ReportSanctionPanel
-                targetType={report.targetType}
-                actionState={actionState}
-                hasSentinelAssessment={Boolean(report.sentinelAssessment)}
-                policyGuidance={policyGuidance}
-                isPolicyOverride={isPolicyOverride}
-                onTogglePolicyOverride={setIsPolicyOverride}
-                overrideReason={overrideReason}
-                onOverrideReasonChange={setOverrideReason}
-                isOverrideValid={isOverrideValid}
-                suspendDays={suspendDays}
-                onSuspendDaysChange={setSuspendDays}
-                onAskSanction={askSanction}
-                isActionLoading={isActionLoading}
-              />
-            )}
-            <ReportAuditLog actions={report.actions} history={report.history} />
-            {isClosed && <ReportClosedSummary report={report} />}
+            <section className="space-y-3">
+              <button
+                type="button"
+                aria-expanded={isLogOpen}
+                onClick={() => setIsLogOpen((isOpen) => !isOpen)}
+                className="flex w-full items-center justify-between text-label-lg font-semibold text-text-muted hover:text-text-primary"
+              >
+                <span>Nhật ký xử lý ({logCount})</span>
+                {isLogOpen ? (
+                  <ChevronUp size={ICON_SIZE.SM} />
+                ) : (
+                  <ChevronDown size={ICON_SIZE.SM} />
+                )}
+              </button>
+              {isLogOpen && (
+                <ReportAuditLog
+                  actions={report.actions}
+                  history={report.history}
+                />
+              )}
+            </section>
           </div>
         )}
       </Modal>
 
       {report && (
-        <ReportConclusionDialog
+        <ReportDecisionDialog
           report={report}
-          mode={conclusionMode}
-          onClose={() => setConclusionMode(null)}
-          onResolve={onResolve}
+          mode={decisionMode}
+          onClose={() => setDecisionMode(null)}
+          onDecide={onDecide}
           isActionLoading={isActionLoading}
         />
       )}
@@ -158,23 +139,6 @@ export const AdminReportInvestigationDrawer = ({
           isActionLoading={isActionLoading}
         />
       )}
-
-      <ConfirmDialog
-        open={Boolean(sanctionConfirm)}
-        title={sanctionConfirm?.title}
-        description={sanctionConfirm?.description}
-        variant={sanctionConfirm?.variant}
-        confirmLabel="Xác nhận thi hành"
-        cancelLabel="Hủy bỏ"
-        isLoading={isActionLoading}
-        reason={{
-          required: false,
-          label: 'Ghi chú (không bắt buộc)',
-          placeholder: 'Nhập ghi chú lý do kỷ luật...',
-        }}
-        onConfirm={confirmSanction}
-        onCancel={cancelSanction}
-      />
     </>
   );
 };
