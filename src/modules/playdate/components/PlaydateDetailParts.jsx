@@ -1,5 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
+import { Link } from 'react-router-dom';
 import {
   Calendar as CalendarIcon,
   Clock,
@@ -121,7 +122,9 @@ export const PlaydateBanners = ({
     durationMinutes: rescheduleReq?.newDurationMinutes ?? duration,
     excludePlaydateId: playdate.id,
   });
-  const cannotAccept = invitationCheck.ownConflicts.length > 0;
+  // An invited child locked by the Free plan (invited while the parent was Premium) cannot join
+  const hasLockedChild = isInvitationPending && (playdate.myLockedChildIds || []).length > 0;
+  const cannotAccept = invitationCheck.ownConflicts.length > 0 || hasLockedChild;
   const cannotAgree = voteCheck.ownConflicts.length > 0;
 
   return (
@@ -138,6 +141,15 @@ export const PlaydateBanners = ({
               Vui lòng xác nhận để phụ huynh tổ chức chuẩn bị không gian chơi tốt nhất cho các bé.
             </p>
             <ConflictNote conflicts={invitationCheck.ownConflicts} />
+            {hasLockedChild && (
+              <p className="text-xs font-medium text-error mt-2">
+                Hồ sơ bé được mời đang bị khóa ở gói Free nên chưa thể tham gia.{' '}
+                <Link to="/subscription" className="underline font-semibold">
+                  Nâng cấp Premium
+                </Link>{' '}
+                để mở khóa, hoặc từ chối lời mời.
+              </p>
+            )}
           </div>
         </div>
         <div className="flex items-center gap-2 self-end sm:self-center">

@@ -13,6 +13,9 @@ export const COMMON_ERROR_MESSAGES = Object.freeze({
   [CLIENT_ERROR_CODES.NETWORK_ERROR]: 'Không thể kết nối tới máy chủ. Vui lòng kiểm tra mạng và thử lại.',
   [CLIENT_ERROR_CODES.REQUEST_TIMEOUT]: 'Máy chủ phản hồi quá lâu. Vui lòng thử lại.',
 
+  // childService.assertChildUsable: discovery, playdate friends / suggestions / create / RSVP
+  CHILD_PROFILE_LOCKED: 'Hồ sơ bé này đang bị khóa ở gói Free. Nâng cấp Premium để dùng lại hồ sơ.',
+
   // auth.middleware / role.middleware
   AUTHENTICATION_REQUIRED: 'Vui lòng đăng nhập để tiếp tục.',
   INVALID_ACCESS_TOKEN: 'Phiên làm việc không hợp lệ. Vui lòng đăng nhập lại!',

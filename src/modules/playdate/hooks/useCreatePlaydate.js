@@ -118,7 +118,8 @@ export const useCreatePlaydate = () => {
       .unwrap()
       .then((data) => {
         if (!isMounted) return;
-        const ids = (Array.isArray(data) ? data : data?.children || []).map(getChildId);
+        // A child locked by the Free plan cannot host a playdate: it is never preselected
+        const ids = (Array.isArray(data) ? data : data?.children || []).filter((c) => !c.isLocked).map(getChildId);
         const initialChildId = ids.includes(preferredChildId) ? preferredChildId : ids[0];
         if (initialChildId) setValue('hostChildIds', [initialChildId]);
       })
