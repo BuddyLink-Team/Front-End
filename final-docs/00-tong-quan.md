@@ -92,6 +92,10 @@ Chi tiết: [12-goi-dich-vu-thanh-toan.md](12-goi-dich-vu-thanh-toan.md)
 | 13 | [Thành tích & Huy hiệu](13-thanh-tich-huy-hieu.md) | Chuỗi tuần, 13 huy hiệu |
 | 14 | [Quản trị Admin](14-quan-tri-admin.md) | Dashboard, quản lý, xử lý báo cáo, thông báo admin |
 | 15 | [Tác vụ tự động](15-tac-vu-tu-dong.md) | Các job định kỳ |
+| 16 | [Kiến trúc hệ thống](16-kien-truc-he-thong.md) | Giải thích System Architecture Diagram & kịch bản thuyết trình |
+| 17 | [Sơ đồ gói (Package Diagrams)](17-so-do-goi-package.md) | Giải thích Package Diagram Front-End & Back-End + kịch bản thuyết trình |
+| 18 | [Luồng AI Agent](18-luong-ai-agent.md) | Giải thích 2 luồng AI Family Assistant & Sentinel AI + kịch bản thuyết trình |
+| 19 | [Kịch bản Demo & Data mẫu](19-kich-ban-demo-va-data-mau.md) | Flow demo 15–20 phút (bỏ qua Auth) & bộ dữ liệu mẫu copy-paste sẵn |
 
 ## Dịch vụ bên ngoài
 
