@@ -1,4 +1,12 @@
-import { getPlaydateStart, hasPlaydateStarted, addMinutesToTime } from '../utils/playdateTime';
+import { getPlaydateStart, hasPlaydateStarted, addMinutesToTime, getPlaydateStartIssue } from '../utils/playdateTime';
+
+// "Sắp tới": confirmed and not started yet (same rule as the API)
+const isUpcomingConfirmed = (p) =>
+  p.status === 'upcoming' && (p.displayStatus === 'confirmed' || (p.isHost && p.displayStatus !== 'pending')) &&
+  !hasPlaydateStarted(p.scheduledDate, p.time);
+
+// API error code of a start time outside [now + 2h, now + 30 days]
+const START_ISSUE_CODES = { past: 'IN_PAST', too_soon: 'TOO_SOON', too_far: 'TOO_FAR' };
 import {
   MOCK_CURRENT_PARENT,
   MOCK_HOST_CHILDREN,
@@ -110,7 +118,7 @@ class PlaydateMockService {
     // Compute status counts based on full list
     const counts = {
       all: playdates.length,
-      upcoming: playdates.filter((p) => p.status === 'upcoming').length,
+      upcoming: playdates.filter(isUpcomingConfirmed).length,
       pending: playdates.filter(
         (p) =>
           p.status === 'upcoming' &&
@@ -129,7 +137,7 @@ class PlaydateMockService {
     if (status && status !== 'all') {
       const normalized = status.toLowerCase();
       if (normalized === 'upcoming') {
-        filtered = filtered.filter((p) => p.status === 'upcoming');
+        filtered = filtered.filter(isUpcomingConfirmed);
       } else if (normalized === 'pending') {
         filtered = filtered.filter(
           (p) =>
@@ -227,10 +235,9 @@ class PlaydateMockService {
     const playdates = this._getStoredPlaydates();
     const newId = `pd-mock-${Date.now()}`;
 
-    // Same past check as the API (calendar date + start of the time slot)
-    if (getPlaydateStart(payload.scheduledDate, payload.time).getTime() <= Date.now()) {
-      this._fail('PLAYDATE_IN_PAST', 'Playdate must start in the future');
-    }
+    // Same booking window as the API: at least 2 hours from now, at most 30 days ahead
+    const startIssue = getPlaydateStartIssue(payload.scheduledDate, payload.time);
+    if (startIssue) this._fail(`PLAYDATE_${START_ISSUE_CODES[startIssue]}`, 'Playdate start time is outside the booking window');
 
     // Resolve host child details
     const selectedChild =
@@ -605,9 +612,8 @@ class PlaydateMockService {
     if (newLocation && (!newLocation.name?.trim() || !newLocation.address?.trim())) {
       this._fail('INVALID_RESCHEDULE_LOCATION', 'New location needs both a name and an address');
     }
-    if (getPlaydateStart(payload.newDate, payload.newStartTime).getTime() <= Date.now()) {
-      this._fail('RESCHEDULE_IN_PAST', 'New schedule must be in the future');
-    }
+    const startIssue = getPlaydateStartIssue(payload.newDate, payload.newStartTime);
+    if (startIssue) this._fail(`RESCHEDULE_${START_ISSUE_CODES[startIssue]}`, 'New schedule is outside the booking window');
 
     // Voters are the accepted participants; with none, the new schedule applies at once
     const voters = (playdate.participants || []).filter((p) => p.status === 'accepted');

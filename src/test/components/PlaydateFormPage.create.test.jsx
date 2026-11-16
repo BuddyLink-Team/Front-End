@@ -1,9 +1,20 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, beforeAll, afterAll } from 'vitest';
 import { renderWithProviders, screen, fireEvent, waitFor, within } from '../utils/testUtils';
 import { PlaydateFormPage as CreatePlaydatePage } from '../../modules/playdate/pages/PlaydateFormPage';
 import { childApi } from '../../modules/child/api/childApi';
 import { playdateApi } from '../../modules/playdate/api/playdateApi';
 import { subscriptionApi } from '../../modules/subscription/api/subscriptionApi';
+
+// The fixtures are in early November 2030: the clock is set a few days before, inside the 30-day booking window
+// (only Date is faked, timers keep running)
+beforeAll(() => {
+  vi.useFakeTimers({ toFake: ['Date'] });
+  vi.setSystemTime(new Date('2030-10-30T08:00:00'));
+});
+afterAll(() => {
+  vi.useRealTimers();
+});
+
 
 vi.mock('../../modules/child/api/childApi', () => ({
   childApi: {
@@ -173,10 +184,10 @@ describe('CreatePlaydatePage Component', () => {
 
     // Own child busy: red, with the next free time to pick
     fireEvent.change(screen.getByLabelText(/^Giờ bắt đầu/), { target: { value: '10:00' } });
-    expect(await screen.findByText(/trùng giờ bạn chọn, không thể dùng giờ này/)).toBeInTheDocument();
-    fireEvent.click(screen.getByRole('button', { name: /chọn 11:00 \(giờ trống gần nhất\)/i }));
-    expect(screen.getByLabelText(/^Giờ bắt đầu/).value).toBe('11:00');
-    expect(screen.queryByText(/trùng giờ bạn chọn/)).not.toBeInTheDocument();
+    expect(await screen.findByText(/cách giờ bạn chọn dưới 30 phút, không thể dùng giờ này/)).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: /chọn 11:30 \(giờ trống gần nhất\)/i }));
+    expect(screen.getByLabelText(/^Giờ bắt đầu/).value).toBe('11:30');
+    expect(screen.queryByText(/cách giờ bạn chọn dưới 30 phút/)).not.toBeInTheDocument();
 
     // A friend's child busy: a warning only
     fireEvent.change(screen.getByLabelText(/^Giờ bắt đầu/), { target: { value: '16:00' } });
@@ -189,7 +200,7 @@ describe('CreatePlaydatePage Component', () => {
     await screen.findAllByText('Công viên APEC');
     const [submitBtn] = screen.getAllByRole('button', { name: /tạo buổi hẹn/i });
     fireEvent.click(submitBtn);
-    expect(await screen.findByText(/bé đã có một buổi hẹn khác trùng giờ này/i)).toBeInTheDocument();
+    expect(await screen.findByText(/gia đình bạn đã có buổi hẹn khác trùng hoặc cách giờ này dưới 30 phút/i)).toBeInTheDocument();
     expect(playdateApi.createPlaydate).not.toHaveBeenCalled();
   });
 
@@ -418,7 +429,7 @@ describe('CreatePlaydatePage Component', () => {
         expect.objectContaining({ hostChildId: 'child-1', time: '09:00', durationMinutes: 90 })
       );
     });
-    expect(await screen.findByText(/bé đã có một buổi hẹn khác trùng giờ này/i)).toBeInTheDocument();
+    expect(await screen.findByText(/gia đình bạn đã có buổi hẹn khác trùng hoặc cách giờ này dưới 30 phút/i)).toBeInTheDocument();
   });
 
   it('brings several own children: at least one, all of them sent with the main child first', async () => {

@@ -42,7 +42,7 @@ export const useScheduleCheck = ({ childId, participantChildIds = [], date, time
       busy,
       ownConflicts: conflicts.filter((b) => b.isOwnChild),
       otherConflicts: conflicts.filter((b) => !b.isOwnChild),
-      // Earliest start from the picked time that keeps the own child free
+      // Earliest start from the picked time that keeps the own family free and can be booked (2 hours from now)
       freeTime: conflicts.some((b) => b.isOwnChild) ? findNextFreeTime(ownBusy, date, time, durationMinutes) : null,
       isLoading: isLoading || isRefreshing,
     };

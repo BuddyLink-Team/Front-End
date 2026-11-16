@@ -13,6 +13,7 @@ import { useScheduleCheck } from './useScheduleCheck';
 import { useTimeCheck } from './useTimeCheck';
 import { createPlaydateSchema } from '../validation/playdateValidation';
 import { getLocalDateString } from '../../../utils/formatters';
+import { getMaxPlaydateDateString } from '../utils/playdateTime';
 import { getApiErrorMsg, getErrorCode } from '../../../utils/errorUtils';
 import {
   DEFAULT_PLAYDATE_DURATION,
@@ -77,6 +78,7 @@ export const useCreatePlaydate = () => {
   const [placeToView, setPlaceToView] = useState(null);
 
   const todayStr = getLocalDateString();
+  const maxDateStr = getMaxPlaydateDateString();
 
   const {
     register,
@@ -268,14 +270,14 @@ export const useCreatePlaydate = () => {
     setPlaceToView(null);
   }, []);
 
-  // Invited children who already have another playdate at that time (they can still be invited)
+  // Invited children whose family already has another playdate at / close to that time (they can still be invited)
   const warnScheduleConflicts = (warnings = []) => {
     const names = warnings
       .filter((w) => w.code === PLAYDATE_WARNING_CODES.SCHEDULE_CONFLICT)
       .map((w) => selectedFriends.find((f) => f.childId === w.childId)?.childName)
       .filter(Boolean);
     if (names.length) {
-      toast.toast(`${names.join(', ')} đã có lịch hẹn khác trùng giờ này. Phụ huynh của bé có thể chưa nhận lời được.`, {
+      toast.toast(`${names.join(', ')} đã có lịch hẹn khác trùng hoặc sát giờ này (cần cách nhau ít nhất 30 phút). Phụ huynh của bé có thể chưa nhận lời được.`, {
         icon: '⚠️',
         duration: 6000,
       });
@@ -322,9 +324,12 @@ export const useCreatePlaydate = () => {
       const code = getErrorCode(err);
       // The global PaywallModal is opened by apiClient for quota errors
       if (code === PLAYDATE_ERROR_CODES.QUOTA_EXCEEDED) return;
-      if (code === PLAYDATE_ERROR_CODES.SCHEDULE_CONFLICT || code === PLAYDATE_ERROR_CODES.PLACE_CLOSED) {
+      if (
+        [PLAYDATE_ERROR_CODES.SCHEDULE_CONFLICT, PLAYDATE_ERROR_CODES.PLACE_CLOSED, PLAYDATE_ERROR_CODES.PLAYDATE_TOO_SOON].includes(code)
+      ) {
         setError('time', { message: PLAYDATE_ERROR_MESSAGES[code] });
       }
+      if (code === PLAYDATE_ERROR_CODES.PLAYDATE_TOO_FAR) setError('scheduledDate', { message: PLAYDATE_ERROR_MESSAGES[code] });
       toast.error(getApiErrorMsg(PLAYDATE_ERROR_MESSAGES, err, 'Có lỗi xảy ra khi tạo cuộc hẹn chơi. Vui lòng kiểm tra lại.'));
     }
   };
@@ -333,6 +338,7 @@ export const useCreatePlaydate = () => {
     isPremium,
     playdateLimit,
     todayStr,
+    maxDateStr,
     myChildren,
     playmates,
     friendSearch,

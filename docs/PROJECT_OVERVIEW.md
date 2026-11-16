@@ -184,7 +184,9 @@ Tạo Playdate bắt đầu từ **bé**:
 **Trợ giúp lên kế hoạch:**
 
 - **Gợi ý thời gian:** tối đa 3 khung giờ trong 7 ngày tới, hợp với ngày / buổi ưu tiên của các phụ huynh, bỏ qua giờ đã qua và giờ các bé đã có hẹn.
-- **Trùng lịch:** một bé không thể ở hai Playdate cùng lúc. Bé của chủ trì trùng lịch → không tạo / đổi lịch được; bé được mời trùng lịch → chỉ cảnh báo khi tạo, và không thể nhận lời (hoặc đồng ý đổi lịch) cho tới khi hết trùng.
+- **Thời gian đặt lịch:** giờ bắt đầu cách hiện tại ít nhất 2 giờ và tối đa 30 ngày (khi tạo và khi đổi lịch).
+- **Trùng lịch:** hai Playdate của cùng một gia đình phải cách nhau ít nhất 30 phút (từ giờ kết thúc buổi trước tới giờ bắt đầu buổi sau). Gia đình chủ trì vi phạm → không tạo / đổi lịch được; gia đình được mời vi phạm → chỉ cảnh báo khi tạo, và không thể nhận lời (hoặc đồng ý đổi lịch) cho tới khi hợp lệ.
+- **Tab Sắp tới:** chỉ gồm các buổi đã xác nhận và chưa tới giờ bắt đầu.
 - **Nhắc lịch:** thông báo cho chủ trì và các bé đã nhận lời 24 giờ và 1 giờ trước giờ bắt đầu (mỗi lời nhắc gửi đúng 1 lần).
 
 ---

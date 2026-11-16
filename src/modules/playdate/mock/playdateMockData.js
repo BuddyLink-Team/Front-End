@@ -20,7 +20,7 @@ export const MOCK_CURRENT_PARENT = {
   avatarUrl: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150',
   isVerified: true,
   isPremium: true,
-  planCode: 'premium',
+  planCode: 'premium_monthly',
   // Only area / city are shared with other families (never the exact address)
   location: { area: 'Phường Bến Nghé', city: 'TP. Hồ Chí Minh' },
   verification: {

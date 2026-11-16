@@ -102,15 +102,15 @@ Mỗi gợi ý hiện 4 mục đầu, còn lại trong "Xem thêm". Gói Free gi
 
 Nguyên tắc: **một bé không thể ở hai buổi hẹn cùng lúc.** Hai buổi nối tiếp nhau thì không tính là trùng (ví dụ 10:00–12:00 rồi 12:00–14:00).
 
-Bé chỉ bị tính là bận khi là bé chủ trì hoặc đã nhận lời một buổi sắp tới. Lời mời chưa trả lời không tính là bận.
+Lịch bận tính theo **gia đình**: phụ huynh là chủ trì hoặc đã nhận lời một buổi sắp tới thì mọi bé của gia đình đều bận giờ đó. Hai buổi của cùng gia đình phải cách nhau **ít nhất 30 phút** (từ giờ kết thúc buổi trước tới giờ bắt đầu buổi sau). Lời mời chưa trả lời không tính là bận. Giờ bắt đầu phải cách hiện tại ít nhất 2 giờ và tối đa 30 ngày.
 
 Hệ thống báo ngay khi phụ huynh chọn ngày và giờ, **không đợi tới lúc bấm gửi**:
 
 | Tình huống | Người dùng thấy | Có tiếp tục được không |
 | --- | --- | --- |
 | Chọn ngày | "Lịch bận trong ngày: Bé Bin 09:00–11:00 · Bé Sóc 15:00–17:00", hoặc "Ngày này các bé chưa có hẹn nào khác" | — |
-| Giờ chọn trùng lịch **bé của mình** (tạo hẹn, đổi lịch) | Thông báo đỏ + nút **"Chọn 11:00 (giờ trống gần nhất)"**; không còn giờ trống trước 21:00 thì nhắc chọn ngày khác | Không, phải đổi giờ |
-| Giờ chọn trùng lịch **bé được mời** | Nhắc vàng: phụ huynh của bé sẽ chưa nhận lời được | Có, vẫn gửi lời mời |
+| Giờ chọn trùng hoặc cách dưới 30 phút lịch **gia đình mình** (tạo hẹn, đổi lịch) | Thông báo đỏ + nút **"Chọn 11:30 (giờ trống gần nhất)"** (giờ kết thúc buổi bận + 30 phút); không còn giờ trống trước 21:00 thì nhắc chọn ngày khác | Không, phải đổi giờ |
+| Giờ chọn trùng hoặc sát lịch **gia đình được mời** | Nhắc vàng: phụ huynh của bé sẽ chưa nhận lời được | Có, vẫn gửi lời mời |
 | Được mời nhưng một trong các bé của mình đã bận giờ đó | "Bé Sóc đã có hẹn khác 16:00–18:00, trùng giờ này"; nút **Chấp nhận tham gia** bị khoá | Chỉ có thể từ chối |
 | Có đề xuất đổi lịch sang giờ bé của mình đang bận | Như trên; nút **Đồng ý lịch mới** bị khoá | Chỉ có thể từ chối lịch mới |
 
@@ -130,7 +130,7 @@ Với bé của gia đình khác, hệ thống chỉ cho biết **giờ bận**,
 
 ## 7. Danh sách buổi hẹn
 
-- **Các tab:** Tất cả, Sắp tới, Lịch sử đã chơi, Chờ phản hồi, Đã huỷ. Mỗi tab có số lượng; danh sách phân trang 10 buổi một trang.
+- **Các tab:** Tất cả, Sắp tới (đã xác nhận và chưa tới giờ bắt đầu), Lịch sử đã chơi, Chờ phản hồi, Đã huỷ. Mỗi tab có số lượng; danh sách phân trang 10 buổi một trang.
 - **Tìm kiếm** theo hoạt động hoặc địa điểm.
 - **Hai dạng xem:** danh sách và lịch theo tháng.
 - **Thứ tự:** cùng một quy tắc ở mọi tab:

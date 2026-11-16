@@ -143,7 +143,7 @@ export const usePlaydateDetail = () => {
     );
     // Busy children are still invited: they are checked again when their parent accepts
     if (result?.warnings?.some((warning) => warning.code === PLAYDATE_WARNING_CODES.SCHEDULE_CONFLICT)) {
-      toast.toast('Có bé đã có lịch hẹn khác trùng giờ này. Phụ huynh của bé có thể chưa nhận lời được.', { icon: '⚠️' });
+      toast.toast('Có bé đã có lịch hẹn khác trùng hoặc sát giờ này (cần cách nhau ít nhất 30 phút). Phụ huynh của bé có thể chưa nhận lời được.', { icon: '⚠️' });
     }
     return Boolean(result);
   };

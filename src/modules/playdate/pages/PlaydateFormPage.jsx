@@ -95,6 +95,7 @@ const CreatePlaydateForm = () => {
     isPremium,
     playdateLimit,
     todayStr,
+    maxDateStr,
     myChildren,
     playmates,
     friendSearch,
@@ -377,6 +378,7 @@ const CreatePlaydateForm = () => {
             required
             type="date"
             min={todayStr}
+            max={maxDateStr}
             {...register('scheduledDate')}
             error={errors.scheduledDate?.message}
             leftIcon={<CalendarIcon className="w-4 h-4" />}

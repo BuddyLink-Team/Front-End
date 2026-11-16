@@ -5,6 +5,7 @@
 
 export const PLAYDATE_TABS = [
   { id: 'all', label: 'Tất cả' },
+  // Confirmed playdates that have not started yet
   { id: 'upcoming', label: 'Sắp tới' },
   { id: 'completed', label: 'Lịch sử đã chơi' },
   { id: 'pending', label: 'Chờ phản hồi' },
@@ -61,6 +62,8 @@ export const PLAYDATE_ERROR_CODES = Object.freeze({
   QUOTA_EXCEEDED: 'QUOTA_EXCEEDED',
   SCHEDULE_CONFLICT: 'SCHEDULE_CONFLICT',
   PLACE_CLOSED: 'PLACE_CLOSED',
+  PLAYDATE_TOO_SOON: 'PLAYDATE_TOO_SOON',
+  PLAYDATE_TOO_FAR: 'PLAYDATE_TOO_FAR',
 });
 
 /** Rules on the time of a playdate (BE playdate-time.rules.js), checked while the form is filled */
@@ -72,6 +75,8 @@ export const TIME_ISSUE_SEVERITY = Object.freeze({
 
 export const TIME_ISSUE_TEXT = Object.freeze({
   PAST_DATE: 'Thời gian đã qua, hãy chọn lại.',
+  TOO_SOON: 'Buổi hẹn cần được đặt trước ít nhất 2 giờ, hãy chọn giờ muộn hơn.',
+  TOO_FAR: 'Chỉ có thể đặt lịch trong vòng 30 ngày tới.',
   PLACE_CLOSED: 'Địa điểm đóng cửa vào thời gian này, hãy đổi giờ hoặc địa điểm.',
   UNUSUAL_HOUR: 'Giờ hẹn khá sớm hoặc khá muộn với các bé.',
   NAP_TIME: 'Trùng giờ ngủ trưa của bé nhỏ (12:00 - 14:00).',
@@ -166,6 +171,8 @@ export const PLAYDATE_ERROR_MESSAGES = Object.freeze({
   BLOCKED_INTERACTION:
     'Không thể mời phụ huynh mà bạn đã chặn hoặc đã chặn bạn.',
   PLAYDATE_IN_PAST: 'Thời gian buổi hẹn phải ở tương lai.',
+  PLAYDATE_TOO_SOON: 'Buổi hẹn cần được đặt trước ít nhất 2 giờ.',
+  PLAYDATE_TOO_FAR: 'Chỉ có thể đặt lịch trong vòng 30 ngày tới.',
   CANNOT_COMPLETE_YET: 'Chỉ có thể hoàn thành buổi hẹn khi đã đến giờ hẹn.',
   ALREADY_COMPLETED: 'Buổi hẹn này đã được hoàn thành.',
   ALREADY_CANCELLED: 'Buổi hẹn chơi này đã được hủy trước đó.',
@@ -185,9 +192,11 @@ export const PLAYDATE_ERROR_MESSAGES = Object.freeze({
   ALREADY_LEFT: 'Bạn đã rời buổi hẹn này rồi.',
   LEAVE_CONFLICT: 'Buổi hẹn đã thay đổi trạng thái. Vui lòng tải lại trang.',
   NOT_JOINED: 'Bạn chưa tham gia buổi hẹn này, hãy từ chối lời mời thay vì rời.',
-  PLAYDATE_ALREADY_STARTED: 'Buổi hẹn đã bắt đầu nên không thể rời nữa.',
+  PLAYDATE_ALREADY_STARTED: 'Buổi hẹn đã bắt đầu, không thể thực hiện thao tác này nữa.',
   INVALID_RESCHEDULE_LOCATION: 'Địa điểm mới cần có cả tên và địa chỉ.',
   RESCHEDULE_IN_PAST: 'Lịch hẹn mới phải ở tương lai.',
+  RESCHEDULE_TOO_SOON: 'Lịch hẹn mới cần cách hiện tại ít nhất 2 giờ.',
+  RESCHEDULE_TOO_FAR: 'Lịch hẹn mới chỉ được trong vòng 30 ngày tới.',
   RESCHEDULE_NO_CHANGE: 'Lịch đề xuất đang trùng với lịch hiện tại.',
   RESCHEDULE_NOT_FOUND: 'Không tìm thấy đề xuất đổi lịch đang chờ phản hồi.',
   NOT_AUTHORIZED_TO_VOTE:
@@ -199,7 +208,7 @@ export const PLAYDATE_ERROR_MESSAGES = Object.freeze({
   LOCATION_REQUIRED: 'Hãy cập nhật vị trí trong hồ sơ để nhận gợi ý địa điểm.',
   INVALID_DATE_RANGE: 'Khoảng ngày gợi ý tối đa 14 ngày.',
   [PLAYDATE_ERROR_CODES.SCHEDULE_CONFLICT]:
-    'Bé đã có một buổi hẹn khác trùng giờ này. Hãy chọn thời gian khác.',
+    'Gia đình bạn đã có buổi hẹn khác trùng hoặc cách giờ này dưới 30 phút. Hãy chọn thời gian khác.',
   [PLAYDATE_ERROR_CODES.QUOTA_EXCEEDED]:
     'Bạn đã đạt giới hạn của gói hiện tại. Nâng cấp Premium để không giới hạn!',
 });

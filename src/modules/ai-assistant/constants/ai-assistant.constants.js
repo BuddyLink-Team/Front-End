@@ -198,6 +198,8 @@ export const DRAFT_WARNING_TEXT = Object.freeze({
   NAP_TIME: 'Trùng giờ ngủ trưa của bé (12:00 - 14:00)',
   SCHOOL_HOURS: 'Trùng giờ học của các bé',
   PAST_DATE: 'Thời gian đã qua, hãy chọn lại',
+  TOO_SOON: 'Buổi hẹn cần được đặt trước ít nhất 2 giờ',
+  TOO_FAR: 'Chỉ có thể đặt lịch trong vòng 30 ngày tới',
   UNUSUAL_HOUR: 'Giờ hẹn khá sớm hoặc khá muộn với các bé',
   SHORT_NOTICE: 'Hẹn gấp dưới 4 tiếng, bạn chơi có thể chưa kịp chuẩn bị',
   HOLIDAY: 'Ngày lễ lớn, địa điểm có thể rất đông',
@@ -228,7 +230,6 @@ export const DRAFT_WARNING_TEXT = Object.freeze({
   SCHEDULE_CONFLICT: 'Có bé đã có lịch hẹn khác trùng giờ này',
   INVITEE_BUSY: 'Có bạn bị trùng lịch bận',
   NOT_PREFERRED_TIME: 'Giờ này chưa đúng buổi rảnh (trong hồ sơ) của mọi gia đình',
-  NO_SHARED_INTEREST: 'Các bé chưa có sở thích chung nào được lưu',
   // Weather
   BAD_WEATHER: 'Dự báo thời tiết có thể có mưa hoặc bão',
 });

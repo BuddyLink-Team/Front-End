@@ -58,23 +58,23 @@ stateDiagram-v2
 flowchart TD
     A[Chủ điền form] --> B{Bé của mình, không bị khoá, ≤ 5 bé?}
     B -- Không --> X1[Lỗi]
-    B -- Có --> C{Thời gian ở tương lai?}
-    C -- Không --> X2[Lỗi: thời gian đã qua]
+    B -- Có --> C{Bắt đầu sau ít nhất 2 giờ<br/>và trong vòng 30 ngày?}
+    C -- Không --> X2[Lỗi: đã qua / quá gấp / quá xa]
     C -- Có --> D{Người được mời hợp lệ?<br/>đã kết nối, không chặn, bé còn hoạt động}
     D -- Không --> X3[Lỗi]
-    D -- Có --> E{Bé nhà chủ trùng lịch buổi khác?}
+    D -- Có --> E{Gia đình chủ có buổi khác trùng<br/>hoặc cách dưới 30 phút?}
     E -- Có --> X4[Lỗi: trùng lịch]
     E -- Không --> F{Còn hạn mức tạo buổi tháng này?}
     F -- Không --> X5[Hết lượt → gợi ý Premium]
     F -- Có --> G[Tạo buổi, trừ lượt]
     G --> H[Gửi lời mời + thông báo]
-    G --> W[Trả kèm cảnh báo: bé được mời bị trùng lịch, lệch tuổi]
+    G --> W[Trả kèm cảnh báo: gia đình được mời bị trùng lịch, lệch tuổi]
 ```
 
 ### Nhận lời / Rời buổi
 ```mermaid
 flowchart TD
-    A[Người được mời bấm Nhận lời] --> B{Bé bị khoá theo gói / trùng lịch?}
+    A[Người được mời bấm Nhận lời] --> B{Buổi đã bắt đầu / bé bị khoá theo gói /<br/>gia đình có buổi khác cách dưới 30 phút?}
     B -- Có --> X[Lỗi]
     B -- Không --> C{Còn hạn mức tham gia tháng này?}
     C -- Không --> X2[Hết lượt → gợi ý Premium]
@@ -116,9 +116,9 @@ sequenceDiagram
 |---|---|---|
 | BR-PD-01 | Chủ mang tối đa 5 bé của mình; bé phải thuộc chủ và không bị khoá theo gói | `MAX_HOST_CHILDREN` |
 | BR-PD-02 | Thời lượng 30–480 phút, mặc định 120 phút | [playdate.constants.js](../../Back-End/src/modules/playdate/playdate.constants.js) |
-| BR-PD-03 | Buổi chơi phải bắt đầu trong tương lai | `PLAYDATE_IN_PAST` |
+| BR-PD-03 | Giờ bắt đầu cách hiện tại **ít nhất 2 giờ** và **tối đa 30 ngày** | `PLAYDATE_IN_PAST`, `PLAYDATE_TOO_SOON`, `PLAYDATE_TOO_FAR` (`MIN_LEAD_HOURS`, `MAX_ADVANCE_DAYS`) |
 | BR-PD-04 | Chỉ mời bạn **đã kết nối**, không chặn nhau, không mời chính mình, bé được mời phải thuộc phụ huynh đó | `_validateInvitees` |
-| BR-PD-05 | Bé nhà chủ không được ở 2 buổi cùng lúc (chặn). Bé được mời trùng lịch chỉ cảnh báo, kiểm tra lại khi nhận lời | `_assertNoConflict`, `_inviteeWarnings` |
+| BR-PD-05 | Hai buổi của **cùng một gia đình** (là chủ hoặc đã nhận lời, bất kể bé nào đi) phải cách nhau **ít nhất 30 phút**, tính từ giờ kết thúc buổi trước tới giờ bắt đầu buổi sau. Gia đình chủ vi phạm → chặn; gia đình được mời vi phạm → chỉ cảnh báo, chặn khi nhận lời. Không nhận lời được khi buổi đã bắt đầu | `_assertNoConflict`, `_inviteeWarnings` (`MIN_GAP_MINUTES`), `PLAYDATE_ALREADY_STARTED` |
 | BR-PD-06 | Hai bé lệch nhau > 3 tuổi → cảnh báo (không chặn) | `MAX_AGE_GAP_YEARS` |
 | BR-PD-07 | Hạn mức tạo buổi/tháng: Free = 3, Premium = không giới hạn. Huỷ buổi không hoàn lượt tạo | `checkAndConsumeQuota('playdateCreate')` |
 | BR-PD-08 | Chỉ chủ mời thêm, khi buổi sắp diễn ra & chưa bắt đầu; không mời trùng gia đình | `inviteParticipants` |
@@ -142,11 +142,12 @@ sequenceDiagram
 
 | Mã | Quy tắc | Ghi chú |
 |---|---|---|
-| BR-PD-19 | Chỉ chủ đề xuất/rút đề xuất đổi lịch; lịch mới phải ở tương lai và khác lịch cũ | `createRescheduleRequest` |
+| BR-PD-19 | Chỉ chủ đề xuất/rút đề xuất đổi lịch; lịch mới phải cách hiện tại ít nhất 2 giờ, tối đa 30 ngày, khác lịch cũ và cách các buổi khác của gia đình ≥ 30 phút | `createRescheduleRequest` (`RESCHEDULE_TOO_SOON`, `RESCHEDULE_TOO_FAR`) |
 | BR-PD-20 | Đề xuất mới thay thế đề xuất đang chờ; chưa ai nhận lời thì áp dụng ngay | — |
-| BR-PD-21 | Mọi gia đình đã nhận lời đều phải đồng ý; 1 người từ chối là huỷ đề xuất. Người đồng ý phải rảnh ở giờ mới | `voteRescheduleRequest` |
+| BR-PD-21 | Mọi gia đình đã nhận lời đều phải đồng ý; 1 người từ chối là huỷ đề xuất. Gia đình đồng ý phải rảnh ở giờ mới (cách các buổi khác ≥ 30 phút) | `voteRescheduleRequest` |
 | BR-PD-22 | Người nhận lời sau khi có đề xuất → được thêm vào danh sách biểu quyết; người rời → bị bỏ khỏi danh sách | — |
 | BR-PD-23 | Chỉ chủ đánh dấu hoàn thành, và chỉ khi đã tới giờ bắt đầu | `CANNOT_COMPLETE_YET` |
+| BR-PD-25 | Tab **Sắp tới** chỉ gồm các buổi **đã xác nhận** (có gia đình nhận lời và không còn ai chờ trả lời; với người được mời là buổi mình đã nhận lời) **và chưa tới giờ bắt đầu** | `findForParent(status=upcoming)` |
 | BR-PD-24 | 00:00 mỗi ngày: buổi của ngày đã qua còn "sắp diễn ra" → có người nhận lời thì Hoàn thành, không thì Huỷ | `closeExpiredPlaydates` |
 | BR-PD-25 | Hoàn thành/Huỷ → huỷ mọi đề xuất đổi lịch đang chờ | — |
 | BR-PD-31 | Chủ hoặc Admin huỷ → báo cho mọi gia đình còn trong buổi (không báo gia đình đã từ chối / đã rời); Admin huỷ thì báo cả chủ buổi | `_cancellationRecipients` |

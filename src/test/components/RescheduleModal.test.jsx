@@ -1,7 +1,18 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, beforeAll, afterAll } from 'vitest';
 import { renderWithProviders, screen, fireEvent, waitFor } from '../utils/testUtils';
 import { RescheduleModal } from '../../modules/playdate/components/RescheduleModal';
 import { playdateApi } from '../../modules/playdate/api/playdateApi';
+
+// The fixtures are in early November 2030: the clock is set a few days before, inside the 30-day booking window
+// (only Date is faked, timers keep running)
+beforeAll(() => {
+  vi.useFakeTimers({ toFake: ['Date'] });
+  vi.setSystemTime(new Date('2030-10-30T08:00:00'));
+});
+afterAll(() => {
+  vi.useRealTimers();
+});
+
 
 vi.mock('../../modules/playdate/api/playdateApi', () => ({
   playdateApi: {
@@ -42,15 +53,15 @@ describe('RescheduleModal duration', () => {
     renderModal();
 
     fireEvent.change(screen.getByLabelText(/ngày mới đề xuất/i), { target: { value: '2030-11-05' } });
-    expect(await screen.findByText(/trùng giờ bạn chọn, không thể dùng giờ này/)).toBeInTheDocument();
+    expect(await screen.findByText(/cách giờ bạn chọn dưới 30 phút, không thể dùng giờ này/)).toBeInTheDocument();
     expect(playdateApi.getBusyTimes).toHaveBeenLastCalledWith({ childId: 'child-host', date: '2030-11-05', excludePlaydateId: 'pd-1' });
 
     fireEvent.click(screen.getByRole('button', { name: /gửi đề xuất đổi lịch/i }));
-    expect(await screen.findByText(/bé đã có một buổi hẹn khác trùng giờ này/i)).toBeInTheDocument();
+    expect(await screen.findByText(/gia đình bạn đã có buổi hẹn khác trùng hoặc cách giờ này dưới 30 phút/i)).toBeInTheDocument();
     expect(playdateApi.createReschedule).not.toHaveBeenCalled();
 
-    fireEvent.click(screen.getByRole('button', { name: /chọn 10:00/i }));
-    expect(screen.getByLabelText(/giờ hẹn mới/i).value).toBe('10:00');
+    fireEvent.click(screen.getByRole('button', { name: /chọn 10:30/i }));
+    expect(screen.getByLabelText(/giờ hẹn mới/i).value).toBe('10:30');
   });
 
   it('starts from the current duration and shows the new end time', () => {

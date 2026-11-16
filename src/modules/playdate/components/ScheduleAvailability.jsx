@@ -36,7 +36,7 @@ export const ScheduleAvailability = ({ busy, ownConflicts, otherConflicts, freeT
         <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 px-3 py-2 rounded-xl border border-error-container bg-error-container/30 text-xs text-error">
           <span className="flex items-center gap-1.5">
             <CalendarX className="w-3.5 h-3.5 shrink-0" />
-            {ownConflicts.map(busyText).join(', ')}: trùng giờ bạn chọn, không thể dùng giờ này.
+            {ownConflicts.map(busyText).join(', ')}: trùng hoặc cách giờ bạn chọn dưới 30 phút, không thể dùng giờ này.
           </span>
           {freeTime ? (
             <button
@@ -56,7 +56,7 @@ export const ScheduleAvailability = ({ busy, ownConflicts, otherConflicts, freeT
         <p className="flex items-start gap-1.5 px-3 py-2 rounded-xl border text-xs bg-tertiary-soft text-tertiary-dark border-tertiary-border">
           <TriangleAlert className="w-3.5 h-3.5 shrink-0 mt-0.5" />
           <span>
-            {otherConflicts.map(busyText).join(', ')}: đã có hẹn khác trùng giờ — phụ huynh của bé sẽ chưa nhận lời được.
+            {otherConflicts.map(busyText).join(', ')}: đã có hẹn khác trùng hoặc sát giờ (dưới 30 phút) — phụ huynh của bé sẽ chưa nhận lời được.
           </span>
         </p>
       )}

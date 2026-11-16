@@ -77,7 +77,8 @@ export const PlaydateDraftCard = ({ card, onConfirm, onChangeDuration, disabled 
   const isCreated = card.status === AI_CHOICE_STATUS.ANSWERED && Boolean(card.playdateId);
   const [safetyAcknowledged, setSafetyAcknowledged] = useState(draft.safetyAcknowledged || false);
 
-  const rawWarnings = draft.warnings || [];
+  // "No shared interest" is not shown to parents
+  const rawWarnings = (draft.warnings || []).filter((w) => (typeof w === 'string' ? w : w?.code) !== 'NO_SHARED_INTEREST');
   // The server writes each warning with its details (who, when, how far); older drafts only have the code
   const normalizedWarnings = rawWarnings
     .map((w) => {
