@@ -5,7 +5,7 @@ import { getApiErrorMsg } from '../../../utils/errorUtils';
 import { createRescheduleRequest } from '../redux/playdateSlice';
 import { DEFAULT_PLAYDATE_DURATION, PLAYDATE_ERROR_MESSAGES } from '../constants/playdate.constants';
 import { getLocalDateString } from '../../../utils/formatters';
-import { PLAYDATE_TIME_REGEX, hasPlaydateStarted } from '../utils/playdateTime';
+import { PLAYDATE_TIME_REGEX, getPlaydateStartIssue, START_ISSUE_MESSAGES } from '../utils/playdateTime';
 import { useScheduleCheck } from './useScheduleCheck';
 
 const toDateInput = (value) => (value ? getLocalDateString(value) : '');
@@ -81,8 +81,10 @@ export const useRescheduleForm = ({ isOpen, playdate, onSuccess, onClose }) => {
     if (!form.newDate) errs.newDate = 'Vui lòng chọn ngày mới';
     if (!form.newStartTime.trim()) errs.newStartTime = 'Vui lòng chọn giờ hẹn mới';
     else if (!PLAYDATE_TIME_REGEX.test(form.newStartTime.trim())) errs.newStartTime = 'Giờ hẹn có dạng HH:mm, ví dụ 09:00';
-    else if (form.newDate && hasPlaydateStarted(form.newDate, form.newStartTime.trim())) {
-      errs.newStartTime = 'Lịch hẹn mới phải ở tương lai';
+    else if (form.newDate && getPlaydateStartIssue(form.newDate, form.newStartTime.trim())) {
+      // At least 2 hours from now, at most 30 days ahead (the API checks the same)
+      const { field, message } = START_ISSUE_MESSAGES[getPlaydateStartIssue(form.newDate, form.newStartTime.trim())];
+      errs[field === 'date' ? 'newDate' : 'newStartTime'] = message;
     } else if (scheduleCheck.ownConflicts.length > 0) {
       errs.newStartTime = PLAYDATE_ERROR_MESSAGES.SCHEDULE_CONFLICT;
     }

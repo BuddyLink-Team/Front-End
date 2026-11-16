@@ -269,7 +269,7 @@ src/components/
   - Bên phải: Chuông thông báo (kèm badge đỏ số tin chưa đọc) và User Menu Dropdown.
 
 #### 📑 `Tabs.jsx`
-- **Mục đích**: Chuyển đổi tab trên màn hình Quản lý Cuộc hẹn (*Sắp tới*, *Đã hoàn thành*, *Đã hủy*) hoặc Quản trị (*Người dùng*, *Báo cáo*, *Hội viên*).
+- **Mục đích**: Chuyển đổi tab trên màn hình Quản lý Cuộc hẹn (*Tất cả*, *Sắp tới* = đã xác nhận và chưa tới giờ, *Lịch sử đã chơi*, *Chờ phản hồi*, *Đã hủy*) hoặc Quản trị (*Người dùng*, *Báo cáo*, *Hội viên*).
 - **Giao diện**: Hỗ trợ 2 kiểu: Dạng Pill Tab mềm mại bo tròn hoặc dạng Line Tab gạch chân.
 
 #### 🗂️ `Sidebar.jsx`

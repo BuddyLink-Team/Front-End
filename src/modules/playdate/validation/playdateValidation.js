@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { getLocalDateString } from '../../../utils/formatters';
-import { PLAYDATE_TIME_REGEX, hasPlaydateStarted } from '../utils/playdateTime';
+import { PLAYDATE_TIME_REGEX, getPlaydateStartIssue, START_ISSUE_MESSAGES } from '../utils/playdateTime';
 
 export const createPlaydateSchema = z
   .object({
@@ -26,13 +26,11 @@ export const createPlaydateSchema = z
     note: z.string().optional().default(''),
   })
   .superRefine((data, ctx) => {
-    // Today is allowed only for a time that has not passed yet
-    if (data.scheduledDate && PLAYDATE_TIME_REGEX.test(data.time) && hasPlaydateStarted(data.scheduledDate, data.time)) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        path: ['time'],
-        message: 'Giờ hẹn phải ở tương lai',
-      });
+    // Starts at least 2 hours from now and at most 30 days ahead (the API checks the same)
+    const issue = data.scheduledDate && PLAYDATE_TIME_REGEX.test(data.time) ? getPlaydateStartIssue(data.scheduledDate, data.time) : null;
+    if (issue) {
+      const { field, message } = START_ISSUE_MESSAGES[issue];
+      ctx.addIssue({ code: z.ZodIssueCode.custom, path: [field === 'date' ? 'scheduledDate' : 'time'], message });
     }
     if (!data.locationName?.trim() || !data.locationAddress?.trim()) {
       ctx.addIssue({
@@ -43,7 +41,8 @@ export const createPlaydateSchema = z
     }
   });
 
-export const rescheduleSchema = z.object({
+export const rescheduleSchema = z
+  .object({
   newDate: z
     .string()
     .min(1, 'Vui lòng chọn ngày mới')
@@ -60,4 +59,11 @@ export const rescheduleSchema = z.object({
   locationName: z.string().optional().default(''),
   locationAddress: z.string().optional().default(''),
   reason: z.string().optional().default(''),
-});
+  })
+  .superRefine((data, ctx) => {
+    const issue = data.newDate && PLAYDATE_TIME_REGEX.test(data.newStartTime) ? getPlaydateStartIssue(data.newDate, data.newStartTime) : null;
+    if (issue) {
+      const { field, message } = START_ISSUE_MESSAGES[issue];
+      ctx.addIssue({ code: z.ZodIssueCode.custom, path: [field === 'date' ? 'newDate' : 'newStartTime'], message });
+    }
+  });

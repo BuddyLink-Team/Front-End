@@ -10,6 +10,7 @@ import { Combobox } from '../../../components/ui/Combobox';
 import { Button } from '../../../components/ui/Button';
 import { PlaceSearchModal } from '../../playdate/components/PlaceSearchModal';
 import { getLocalDateString } from '../../../utils/formatters';
+import { getMaxPlaydateDateString } from '../../playdate/utils/playdateTime';
 import { interestOptions, customFormDefaults, ACTIVITY_OPTIONS } from '../utils/aiAssistantUtils';
 import { useInvitableChildren } from '../hooks/useInvitableChildren';
 import { useChoiceCustomForm } from '../hooks/useChoiceCustomForm';
@@ -88,7 +89,7 @@ export const ChoiceCustomForm = ({ card, onSubmit, onCancel }) => {
     <form className="space-y-3 rounded-xl border border-hairline-strong shadow-sm bg-surface-container-low p-3" onSubmit={submit} noValidate>
       {card.stepId === AI_STEPS.TIME && (
         <div className="grid grid-cols-2 gap-2">
-          <Input id={`${fieldId}-date`} type="date" label="Ngày" required min={getLocalDateString()} error={errorOf('date')} {...register('date')} />
+          <Input id={`${fieldId}-date`} type="date" label="Ngày" required min={getLocalDateString()} max={getMaxPlaydateDateString()} error={errorOf('date')} {...register('date')} />
           <Input id={`${fieldId}-time`} type="time" label="Giờ" required error={errorOf('time')} {...register('time')} />
           <div className="col-span-2">
             <Select

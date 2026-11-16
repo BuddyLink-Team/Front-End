@@ -115,7 +115,7 @@ flowchart LR
 | Đối tượng | Trường chính |
 |---|---|
 | Gói (Plan) | Mã gói, tên, giá, tiền tệ, số tháng, chu kỳ, các hạn mức, đang bật |
-| Đăng ký (Subscription) | Phụ huynh, mã gói, trạng thái (Hoạt động / Hết hạn), ngày bắt đầu, ngày hết hạn, tổng tháng đã mua |
+| Đăng ký (Subscription) | Phụ huynh, gói (tham chiếu theo id của gói; API vẫn trả mã gói), trạng thái (Hoạt động / Hết hạn), ngày bắt đầu, ngày hết hạn, tổng tháng đã mua |
 | Thanh toán (Payment) | Mã đơn, phụ huynh, gói (bản chụp lúc mua), số tiền, trạng thái, link/QR, hạn, thời điểm trả |
 | Hạn mức đã dùng (Usage) | Phụ huynh, kỳ (ngày/tháng), số lượt: khám phá, lời mời, tạo buổi, tham gia buổi, AI |
 
