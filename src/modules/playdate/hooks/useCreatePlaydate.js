@@ -85,8 +85,10 @@ export const useCreatePlaydate = () => {
     handleSubmit,
     setValue,
     setError,
+    clearErrors,
+    trigger,
     watch,
-    formState: { errors },
+    formState: { errors, isSubmitted },
   } = useForm({
     resolver: zodResolver(createPlaydateSchema),
     defaultValues: {
@@ -108,6 +110,18 @@ export const useCreatePlaydate = () => {
   const activity = watch('activity');
   const scheduledDate = watch('scheduledDate');
   const time = watch('time');
+
+  // Live check of the date and the time, before any submit: the booking window (2 hours to 30 days ahead) needs both,
+  // so changing one re-checks the two fields; an error shows as soon as it exists and goes away once fixed
+  // Runs on a date / time change only: an error set by the submit (schedule conflict, place closed) stays until then
+  const isSubmittedRef = useRef(isSubmitted);
+  isSubmittedRef.current = isSubmitted;
+  useEffect(() => {
+    if (scheduledDate && time) trigger(['scheduledDate', 'time']);
+    // A field emptied before the first submit: no error yet ("required" is said on submit)
+    else if (!isSubmittedRef.current) clearErrors(['scheduledDate', 'time']);
+    else trigger(['scheduledDate', 'time']);
+  }, [scheduledDate, time, trigger, clearErrors]);
   const durationMinutes = Number(watch('durationMinutes')) || DEFAULT_PLAYDATE_DURATION;
   const locationName = watch('locationName');
   const locationAddress = watch('locationAddress');

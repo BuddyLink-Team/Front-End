@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { AI_STEPS } from '../constants/ai-assistant.constants';
+import { getPlaydateStartIssue, getStartIssueMessage } from '../../playdate/utils/playdateTime';
 
 const DATE_REGEX = /^\d{4}-\d{2}-\d{2}$/;
 const TIME_REGEX = /^([01]\d|2[0-3]):[0-5]\d$/;
@@ -23,8 +24,11 @@ const timeSchema = z
     durationMinutes: integerBetween(30, 480, 'Vui lòng chọn thời lượng.').optional(),
   })
   .superRefine((data, ctx) => {
-    if (new Date(`${data.date}T${data.time}`) <= new Date()) {
-      ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['time'], message: 'Giờ hẹn phải ở tương lai.' });
+    // At least 2 hours from now, at most 30 days ahead (same rule as the Create Playdate form and the API)
+    const issue = DATE_REGEX.test(data.date) && TIME_REGEX.test(data.time) ? getPlaydateStartIssue(data.date, data.time) : null;
+    if (issue) {
+      const { field, message } = getStartIssueMessage(issue);
+      ctx.addIssue({ code: z.ZodIssueCode.custom, path: [field], message });
     }
   });
 

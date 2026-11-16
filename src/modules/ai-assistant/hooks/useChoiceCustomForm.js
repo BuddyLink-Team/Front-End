@@ -1,4 +1,4 @@
-import { useCallback, useMemo } from 'react';
+import { useCallback, useEffect, useMemo, useRef } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { getCustomAnswerSchema } from '../validation/aiAssistantValidation';
@@ -16,8 +16,24 @@ export const useChoiceCustomForm = (card, onSubmit) => {
     control,
     handleSubmit,
     setValue,
-    formState: { errors },
+    trigger,
+    clearErrors,
+    watch,
+    formState: { errors, isSubmitted },
   } = useForm({ resolver: zodResolver(schema), defaultValues: customFormDefaults(card) });
+
+  // Time step, live check before any submit: the booking window needs both the date and the time, so changing one
+  // re-checks the two fields; an error shows as soon as it exists and goes away once fixed
+  const [date, time] = watch(['date', 'time']);
+  // Runs on a date / time change only, never because the form was just submitted
+  const isSubmittedRef = useRef(isSubmitted);
+  isSubmittedRef.current = isSubmitted;
+  useEffect(() => {
+    if (date === undefined && time === undefined) return; // not the time step
+    if (date && time) trigger(['date', 'time']);
+    else if (!isSubmittedRef.current) clearErrors(['date', 'time']);
+    else trigger(['date', 'time']);
+  }, [date, time, trigger, clearErrors]);
 
   const submit = useMemo(
     () =>

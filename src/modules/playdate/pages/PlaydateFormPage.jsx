@@ -57,14 +57,15 @@ import {
   LATE_LEAVE_HOURS,
   LEAVE_REASON_MAX_LENGTH,
 } from '../constants/playdate.constants';
-import { addMinutesToTime, formatPlaydateTimeRange } from '../utils/playdateTime';
+import { addMinutesToTime, formatPlaydateTimeRange, getTimePresetOptions } from '../utils/playdateTime';
 import { googleMapsDirectionsUrl, toLngLat } from '../utils/placeLinks';
 import { hostChildNames } from '../utils/hostChildren';
 import { TimeRuleNotices } from '../components/TimeRuleNotices';
 import { formatDate } from '../../../utils/formatters';
 
 // Quick start time presets
-const TIME_PRESETS = ['08:00', '09:00', '15:00', '16:30'].map((preset) => ({ id: preset, label: preset }));
+// Already shown on the date / time fields (form validation): not repeated in the time notices
+const FIELD_TIME_ISSUES = new Set(['PAST_DATE', 'TOO_SOON', 'TOO_FAR']);
 
 const MAPS_LINK_CLASS = 'inline-flex items-center gap-1 text-label-sm font-semibold text-primary-dark hover:underline';
 
@@ -393,7 +394,7 @@ const CreatePlaydateForm = () => {
               leftIcon={<Clock className="w-4 h-4" />}
             />
             <FilterChips
-              options={TIME_PRESETS}
+              options={getTimePresetOptions(scheduledDate)}
               selected={time}
               onChange={(value) => value && handleSelectTime(value)}
               className="flex-wrap"
@@ -427,7 +428,7 @@ const CreatePlaydateForm = () => {
           </div>
         </div>
         {selectedChildId && scheduledDate && <ScheduleAvailability {...scheduleCheck} onPickFreeTime={handleSelectTime} />}
-        {selectedChildId && scheduledDate && time && <TimeRuleNotices issues={timeCheck.issues} />}
+        {selectedChildId && scheduledDate && time && <TimeRuleNotices issues={timeCheck.issues.filter((issue) => !FIELD_TIME_ISSUES.has(issue.code))} />}
         <div className="border-t border-hairline pt-4 space-y-3">
           {selectedChildId && (
             <PlaceSuggestionList

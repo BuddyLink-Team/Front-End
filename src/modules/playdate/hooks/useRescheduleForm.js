@@ -5,7 +5,7 @@ import { getApiErrorMsg } from '../../../utils/errorUtils';
 import { createRescheduleRequest } from '../redux/playdateSlice';
 import { DEFAULT_PLAYDATE_DURATION, PLAYDATE_ERROR_MESSAGES } from '../constants/playdate.constants';
 import { getLocalDateString } from '../../../utils/formatters';
-import { PLAYDATE_TIME_REGEX, getPlaydateStartIssue, START_ISSUE_MESSAGES } from '../utils/playdateTime';
+import { PLAYDATE_TIME_REGEX, getPlaydateStartIssue, getStartIssueMessage } from '../utils/playdateTime';
 import { useScheduleCheck } from './useScheduleCheck';
 
 const toDateInput = (value) => (value ? getLocalDateString(value) : '');
@@ -43,6 +43,24 @@ export const useRescheduleForm = ({ isOpen, playdate, onSuccess, onClose }) => {
     }
   }, [isOpen, playdate]);
 
+  // Live check of the new date and time, before any submit: shown as soon as they break a rule, gone once fixed.
+  // An empty field gets its "required" error on submit only.
+  useEffect(() => {
+    const time = form.newStartTime.trim();
+    const live = { newDate: null, newStartTime: null };
+    if (time && !PLAYDATE_TIME_REGEX.test(time)) live.newStartTime = 'Giờ hẹn có dạng HH:mm, ví dụ 09:00';
+    else if (form.newDate && time) {
+      const issue = getPlaydateStartIssue(form.newDate, time);
+      if (issue) {
+        const { field, message } = getStartIssueMessage(issue);
+        live[field === 'date' ? 'newDate' : 'newStartTime'] = message;
+      }
+    }
+    setErrors((prev) =>
+      prev.newDate === live.newDate && prev.newStartTime === live.newStartTime ? prev : { ...prev, ...live }
+    );
+  }, [form.newDate, form.newStartTime]);
+
   // The host child must be free at the new time; accepted families' children are checked too
   // (they could not agree to a time they are busy at). This playdate itself does not count.
   const acceptedChildIds = useMemo(
@@ -58,9 +76,11 @@ export const useRescheduleForm = ({ isOpen, playdate, onSuccess, onClose }) => {
     excludePlaydateId: playdate?.id,
   });
 
+  // The date and the time are checked together (booking window): changing one clears the errors of both
   const setField = useCallback((field, value) => {
     setForm((prev) => ({ ...prev, [field]: value }));
-    setErrors((prev) => (prev[field] ? { ...prev, [field]: null } : prev));
+    const linked = field === 'newDate' || field === 'newStartTime' ? ['newDate', 'newStartTime'] : [field];
+    setErrors((prev) => (linked.some((name) => prev[name]) ? { ...prev, ...Object.fromEntries(linked.map((name) => [name, null])) } : prev));
   }, []);
 
   const selectPlace = useCallback((place) => {
@@ -83,7 +103,7 @@ export const useRescheduleForm = ({ isOpen, playdate, onSuccess, onClose }) => {
     else if (!PLAYDATE_TIME_REGEX.test(form.newStartTime.trim())) errs.newStartTime = 'Giờ hẹn có dạng HH:mm, ví dụ 09:00';
     else if (form.newDate && getPlaydateStartIssue(form.newDate, form.newStartTime.trim())) {
       // At least 2 hours from now, at most 30 days ahead (the API checks the same)
-      const { field, message } = START_ISSUE_MESSAGES[getPlaydateStartIssue(form.newDate, form.newStartTime.trim())];
+      const { field, message } = getStartIssueMessage(getPlaydateStartIssue(form.newDate, form.newStartTime.trim()));
       errs[field === 'date' ? 'newDate' : 'newStartTime'] = message;
     } else if (scheduleCheck.ownConflicts.length > 0) {
       errs.newStartTime = PLAYDATE_ERROR_MESSAGES.SCHEDULE_CONFLICT;

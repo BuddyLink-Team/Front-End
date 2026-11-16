@@ -6,7 +6,7 @@ import { cn } from '../../utils/cn';
  * FilterChips - interactive filter chips for quick criteria selection
  * (e.g. Distance, Age range, Gender, Activities, Verified only)
  *
- * @param {Array<{id: string, label: string, icon?: React.ComponentType, count?: number}>} options
+ * @param {Array<{id: string, label: string, icon?: React.ComponentType, count?: number, disabled?: boolean, title?: string}>} options
  * @param {Array<string>|string} selected - ID or array of IDs selected
  * @param {Function} onChange - (newSelected) => void
  * @param {boolean} [multiple=false] - allow multiple selection
@@ -61,11 +61,15 @@ export const FilterChips = ({
             key={optionId}
             type="button"
             onClick={() => handleToggle(optionId)}
+            disabled={opt.disabled}
+            title={opt.title}
             className={cn(
               'inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-medium border transition-all duration-150 select-none whitespace-nowrap shadow-2xs',
-              active
-                ? 'bg-primary text-white border-primary shadow-xs'
-                : 'bg-white text-text-primary border-hairline hover:bg-gray-50 hover:border-gray-300'
+              opt.disabled
+                ? 'bg-surface-container text-text-muted border-hairline line-through cursor-not-allowed shadow-none'
+                : active
+                  ? 'bg-primary text-white border-primary shadow-xs'
+                  : 'bg-white text-text-primary border-hairline hover:bg-gray-50 hover:border-gray-300'
             )}
           >
             {Icon && <Icon className="w-3.5 h-3.5 shrink-0" />}

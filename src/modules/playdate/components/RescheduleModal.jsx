@@ -11,12 +11,7 @@ import { ScheduleAvailability } from './ScheduleAvailability';
 import { useRescheduleForm } from '../hooks/useRescheduleForm';
 import { getLocalDateString } from '../../../utils/formatters';
 import { getDurationOptions } from '../constants/playdate.constants';
-import { addMinutesToTime, getMaxPlaydateDateString } from '../utils/playdateTime';
-
-const TIME_PRESETS = ['08:00', '09:00', '15:00', '16:30'].map((preset) => ({
-  id: preset,
-  label: preset,
-}));
+import { addMinutesToTime, getMaxPlaydateDateString, getTimePresetOptions } from '../utils/playdateTime';
 
 export const RescheduleModal = ({ isOpen, onClose, playdate, onSuccess }) => {
   const [showPlaceSearch, setShowPlaceSearch] = useState(false);
@@ -84,7 +79,7 @@ export const RescheduleModal = ({ isOpen, onClose, playdate, onSuccess }) => {
                 error={errors.newStartTime}
               />
               <FilterChips
-                options={TIME_PRESETS}
+                options={getTimePresetOptions(form.newDate)}
                 selected={form.newStartTime}
                 onChange={(value) => value && setField('newStartTime', value)}
               />

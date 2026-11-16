@@ -85,9 +85,65 @@ export const getPlaydateStartIssue = (scheduledDate, time, now = new Date()) => 
   return null;
 };
 
-/** Form messages of getPlaydateStartIssue, with the field they belong to */
-export const START_ISSUE_MESSAGES = Object.freeze({
-  past: { field: 'time', message: 'Giờ hẹn phải ở tương lai' },
-  too_soon: { field: 'time', message: 'Buổi hẹn cần được đặt trước ít nhất 2 giờ' },
-  too_far: { field: 'date', message: 'Chỉ đặt lịch được trong vòng 30 ngày tới' },
-});
+const pad = (value) => String(value).padStart(2, '0');
+
+/**
+ * Earliest start that can be booked: now + 2 hours, rounded up to 5 minutes
+ * @param {Date} [now]
+ * @returns {Date}
+ */
+export const getEarliestBookableStart = (now = new Date()) => {
+  const step = 5 * 60 * 1000;
+  return new Date(Math.ceil((now.getTime() + PLAYDATE_BOOKING_RULES.MIN_LEAD_HOURS * HOUR_MS) / step) * step);
+};
+
+/**
+ * Form message of getPlaydateStartIssue, with the field it belongs to
+ * @param {'past'|'too_soon'|'too_far'} issue
+ * @param {Date} [now]
+ * @returns {{ field: 'date'|'time', message: string }}
+ */
+export const getStartIssueMessage = (issue, now = new Date()) => {
+  const earliest = getEarliestBookableStart(now);
+  const earliestText =
+    getLocalDateString(earliest) === getLocalDateString(now)
+      ? `từ ${pad(earliest.getHours())}:${pad(earliest.getMinutes())} hôm nay`
+      : 'từ ngày mai';
+  if (issue === 'past') {
+    return {
+      field: 'time',
+      message: `Giờ này đã qua. Buổi hẹn cần bắt đầu sau thời điểm hiện tại ít nhất ${PLAYDATE_BOOKING_RULES.MIN_LEAD_HOURS} tiếng, bạn chọn ${earliestText} trở đi nhé.`,
+    };
+  }
+  if (issue === 'too_soon') {
+    return {
+      field: 'time',
+      message: `Buổi hẹn cần được đặt trước ít nhất ${PLAYDATE_BOOKING_RULES.MIN_LEAD_HOURS} tiếng để các gia đình kịp sắp xếp, bạn chọn ${earliestText} trở đi nhé.`,
+    };
+  }
+  return {
+    field: 'date',
+    message: `Chỉ có thể đặt lịch trong vòng ${PLAYDATE_BOOKING_RULES.MAX_ADVANCE_DAYS} ngày tới (đến hết ngày ${getMaxPlaydateDateString(now).split('-').reverse().join('/')}), bạn chọn ngày gần hơn nhé.`,
+  };
+};
+
+/** Start time chips of the playdate forms */
+export const TIME_PRESETS = Object.freeze(['08:00', '09:00', '15:00', '16:30']);
+
+/**
+ * Start time chips; on the picked date, the ones that cannot be booked (past, less than 2 hours away) are disabled
+ * @param {string} [date] - "YYYY-MM-DD"
+ * @param {Date} [now]
+ * @returns {Array<{ id: string, label: string, disabled: boolean, title?: string }>}
+ */
+export const getTimePresetOptions = (date, now = new Date()) =>
+  TIME_PRESETS.map((preset) => {
+    const issue = date ? getPlaydateStartIssue(date, preset, now) : null;
+    const disabled = issue === 'past' || issue === 'too_soon';
+    return {
+      id: preset,
+      label: preset,
+      disabled,
+      title: disabled ? `Giờ này chưa đủ ${PLAYDATE_BOOKING_RULES.MIN_LEAD_HOURS} tiếng kể từ bây giờ` : undefined,
+    };
+  });

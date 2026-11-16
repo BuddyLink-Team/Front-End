@@ -141,16 +141,21 @@ describe('ChoiceCard', () => {
   });
 
   it('sends another time typed by the parent', async () => {
+    // A few days ahead: inside the booking window (2 hours to 30 days)
+    const ahead = new Date(Date.now() + 5 * 24 * 60 * 60 * 1000);
+    const pad = (n) => String(n).padStart(2, '0');
+    const day = `${ahead.getFullYear()}-${pad(ahead.getMonth() + 1)}-${pad(ahead.getDate())}`;
+    const dayLabel = `${pad(ahead.getDate())}/${pad(ahead.getMonth() + 1)}/${ahead.getFullYear()}`;
     const onChoose = vi.fn();
     renderWithProviders(<ChoiceCard card={card({ durationMinutes: 90 })} onChoose={onChoose} />);
     fireEvent.click(screen.getByRole('button', { name: 'Chọn giờ khác' }));
-    fireEvent.change(screen.getByLabelText(/^Ngày/), { target: { value: '2099-01-03' } });
+    fireEvent.change(screen.getByLabelText(/^Ngày/), { target: { value: day } });
     fireEvent.change(screen.getByLabelText(/^Giờ/), { target: { value: '10:30' } });
     fireEvent.click(screen.getByRole('button', { name: 'Gửi' }));
     await waitFor(() =>
       expect(onChoose).toHaveBeenCalledWith({
-        custom: { date: '2099-01-03', time: '10:30', durationMinutes: 90 },
-        label: 'Chọn giờ khác: 03/01/2099 · 10:30',
+        custom: { date: day, time: '10:30', durationMinutes: 90 },
+        label: `Chọn giờ khác: ${dayLabel} · 10:30`,
       }),
     );
   });

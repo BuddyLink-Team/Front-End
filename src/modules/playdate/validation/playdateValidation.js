@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { getLocalDateString } from '../../../utils/formatters';
-import { PLAYDATE_TIME_REGEX, getPlaydateStartIssue, START_ISSUE_MESSAGES } from '../utils/playdateTime';
+import { PLAYDATE_TIME_REGEX, getPlaydateStartIssue, getStartIssueMessage } from '../utils/playdateTime';
 
 export const createPlaydateSchema = z
   .object({
@@ -29,7 +29,7 @@ export const createPlaydateSchema = z
     // Starts at least 2 hours from now and at most 30 days ahead (the API checks the same)
     const issue = data.scheduledDate && PLAYDATE_TIME_REGEX.test(data.time) ? getPlaydateStartIssue(data.scheduledDate, data.time) : null;
     if (issue) {
-      const { field, message } = START_ISSUE_MESSAGES[issue];
+      const { field, message } = getStartIssueMessage(issue);
       ctx.addIssue({ code: z.ZodIssueCode.custom, path: [field === 'date' ? 'scheduledDate' : 'time'], message });
     }
     if (!data.locationName?.trim() || !data.locationAddress?.trim()) {
@@ -63,7 +63,7 @@ export const rescheduleSchema = z
   .superRefine((data, ctx) => {
     const issue = data.newDate && PLAYDATE_TIME_REGEX.test(data.newStartTime) ? getPlaydateStartIssue(data.newDate, data.newStartTime) : null;
     if (issue) {
-      const { field, message } = START_ISSUE_MESSAGES[issue];
+      const { field, message } = getStartIssueMessage(issue);
       ctx.addIssue({ code: z.ZodIssueCode.custom, path: [field === 'date' ? 'newDate' : 'newStartTime'], message });
     }
   });
